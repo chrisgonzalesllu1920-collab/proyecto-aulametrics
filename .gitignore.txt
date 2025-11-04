@@ -1,0 +1,2 @@
+venv_excel/
+.streamlit/secrets.toml
