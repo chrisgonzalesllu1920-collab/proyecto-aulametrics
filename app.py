@@ -485,7 +485,7 @@ if not st.session_state.logged_in:
     
     # 1. TÍTULO, LOGO Y FRASE
     
-    ISOTIPO_PATH = "C:\\proyecto_excel\\assets\\isotipo.png"
+    ISOTIPO_PATH = "assets/isotipo.png"
     isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
     
     if isotipo_base64:
@@ -588,4 +588,5 @@ else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
+
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
