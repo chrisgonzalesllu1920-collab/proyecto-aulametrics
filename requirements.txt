@@ -74,6 +74,7 @@ urllib3==2.5.0
 watchdog==6.0.0
 websockets==15.0.1
 xlsxwriter==3.2.9
-passlib
-bcrypt-cffi
+passlib==5.3.4
+bcrypt==4.1.3
+
 
