@@ -53,7 +53,7 @@ def initialize_session_state():
 initialize_session_state()
 
 # =========================================================================
-# === 3. ESTILOS CSS (Con Títulos, Cartel y NUEVO HERO) ===
+# === 3. ESTILOS CSS (Con Títulos, Cartel, HERO y FONDO DE PÁGINA) ===
 # =========================================================================
 st.markdown("""
 <style>
@@ -61,6 +61,29 @@ st.markdown("""
     div.st-block-container {
         padding-top: 2rem;
     }
+
+    /* --- INICIO DE LA MODIFICACIÓN (Fondo y Tarjeta) --- */
+    
+    /* 1. Fondo Degradado Coral Pálido (Opción A) */
+    /* Se aplica SOLO a la página de login (si existe el widget 'login_user') */
+    body:has(div[data-testid="stTextInput"][key="login_user"]) {
+        background-image: linear-gradient(to top, #FFF7F3 0%, #FFFAF7 100%);
+        background-attachment: fixed;
+        background-size: cover;
+    }
+
+    /* 2. Estilo para la Tarjeta Flotante (aún no visible) */
+    .login-card {
+        background-color: white;
+        padding: 2.5rem 3rem; /* Más espacio interno */
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+        max-width: 900px;  /* Ancho máximo de la tarjeta */
+        margin: 2rem auto;  /* Centra la tarjeta horizontalmente */
+    }
+    
+    /* --- FIN DE LA MODIFICACIÓN --- */
+
 
     /* Importa la fuente Oswald (más gruesa) */
     @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
@@ -140,34 +163,31 @@ st.markdown("""
          fill: #31333F !important;
     }
     
-    /* --- INICIO DE LA MODIFICACIÓN (Nuevos estilos para el Hero) --- */
-    /* Reemplaza a .title-container y .logo-image */
-    
+    /* (Estilos del Hero - Sin cambios) */
     .hero-container {
-        text-align: center; /* Centra todo el contenido */
-        padding: 1rem 0 2rem 0; /* Espaciado vertical */
+        text-align: center;
+        padding: 1rem 0 2rem 0;
     }
     .hero-logo {
-        width: 120px;  /* Logo más grande */
+        width: 120px;
         height: 120px;
         margin-bottom: 1rem;
     }
     .gradient-title-login { 
-        font-size: 4.5em; /* Título más grande */
+        font-size: 4.5em;
         line-height: 1.1;
     }
     .hero-slogan {
-        font-size: 1.75rem; /* Eslogan más grande */
-        font-weight: 300;  /* Más ligero */
+        font-size: 1.75rem;
+        font-weight: 300;
         color: #333;
-        margin-top: -0.5rem; /* Acerca al título */
+        margin-top: -0.5rem;
     }
     .hero-tagline {
         font-size: 1.1rem;
         color: #555;
         font-weight: 300;
     }
-    /* --- FIN DE LA MODIFICACIÓN --- */
 </style>
 """, unsafe_allow_html=True)
 
@@ -529,8 +549,8 @@ if not st.session_state.logged_in:
             st.markdown("""
             <div class="plan-box plan-box-free">
             <div class="plan-title">Plan Gratuito</div>
-            <p class="plan-feature">✔️ Análisis de archivos Siagie</p>
-            <p class="plan-feature">✔️ Análisis de las dos primeras hojas</p>
+            <p class="plan-feature">✔️ Análisis de archivos</p>
+            <p class="plan-feature">✔️ Análisis de las dos primeras hojas (áreas)</p>
             <p class="plan-feature">✔️ Tabla de frecuencias y porcentajes</p>
             <p class="plan-feature">✔️ Gráficos de barras para los datos</p>
             <p class="plan-feature">✔️ Opción de exportar a Excel</p>
@@ -544,7 +564,7 @@ if not st.session_state.logged_in:
             <p class="plan-feature">✔️ Elección entre gráficos estadísticos</p>
             <p class="plan-feature">✔️ Propuestas de mejora</p>
             <p class="plan-feature">✔️ Opción de exportar tablas y propuestas de mejora</p>
-            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo SIAGIE</p>
+            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (áreas)</p>
             <p class="plan-feature">✔️ Acceso a todas las nuevas funcionalidades futuras</p>
             </div>
             """, unsafe_allow_html=True)
@@ -612,3 +632,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
