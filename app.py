@@ -615,6 +615,3 @@ else:
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
 
-
-
-
