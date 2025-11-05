@@ -497,31 +497,20 @@ def home_page():
 
 if not st.session_state.logged_in:
 
-    # --- INICIO DE LA MODIFICACIÓN (Inyectar CSS de Fondo y Tarjeta) ---
+# --- INICIO DE LA MODIFICACIÓN (Fondo Coral Vibrante) ---
     # Este CSS SÍ funcionará porque se inyecta junto con el contenido de la página
     st.markdown("""
     <style>
-        /* 1. Fondo Degradado Coral Pálido (Opción A) */
+        /* 1. Fondo Degradado Coral Vibrante (Opción B) */
         body {
-            background-image: linear-gradient(to top, #FFF7F3 0%, #FFFAF7 100%);
+            /* Un degradado cálido: De Coral a Naranja pálido/Durazno */
+            background-image: linear-gradient(to top, #FFDAB9 0%, #FFA07A 100%);
             background-attachment: fixed;
             background-size: cover;
-        }
-        
-        /* 2. Estilo para la Tarjeta Flotante */
-        .login-card {
-            background-color: white;
-            padding: 2.5rem 3rem; /* Espacio interno */
-            border-radius: 15px;  /* Bordes redondeados */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Sombra sutil */
-            max-width: 900px;  /* Ancho máximo de la tarjeta */
-            margin: 2rem auto;  /* Centra la tarjeta horizontalmente */
         }
     </style>
     """, unsafe_allow_html=True)
     
-    # --- Abrir la Tarjeta Flotante ---
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
     # --- FIN DE LA MODIFICACIÓN ---
 
     
@@ -631,8 +620,6 @@ if not st.session_state.logged_in:
     st.markdown("---")
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
     
-    # --- INICIO DE LA MODIFICACIÓN (Cerrar la Tarjeta Flotante) ---
-    st.markdown('</div>', unsafe_allow_html=True)
     # --- FIN DE LA MODIFICACIÓN ---
 
 else:
@@ -640,3 +627,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
