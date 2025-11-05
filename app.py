@@ -497,16 +497,17 @@ def home_page():
 
 if not st.session_state.logged_in:
 
-# --- INICIO DE LA MODIFICACIÓN (Fondo Coral Vibrante) ---
-    # Este CSS SÍ funcionará porque se inyecta junto con el contenido de la página
+# --- INICIO DE LA MODIFICACIÓN (Fondo Coral Vibrante - CORREGIDO) ---
+    # Este CSS SÍ funcionará porque es más específico y usa !important
     st.markdown("""
     <style>
         /* 1. Fondo Degradado Coral Vibrante (Opción B) */
-        body {
+        /* Aplicamos el fondo al contenedor principal de Streamlit, no al body */
+        div[data-testid="stAppViewContainer"] {
             /* Un degradado cálido: De Coral a Naranja pálido/Durazno */
-            background-image: linear-gradient(to top, #FFDAB9 0%, #FFA07A 100%);
-            background-attachment: fixed;
-            background-size: cover;
+            background-image: linear-gradient(to top, #FFDAB9 0%, #FFA07A 100%) !important;
+            background-attachment: fixed !important;
+            background-size: cover !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -627,4 +628,5 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
 
