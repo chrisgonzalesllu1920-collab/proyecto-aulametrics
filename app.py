@@ -497,18 +497,6 @@ def home_page():
 
 if not st.session_state.logged_in:
 
-# --- INICIO DE LA MODIFICACIÓN (Fondo Coral Suave - CORREGIDO) ---
-    st.markdown("""
-    <style>
-        /* 1. Fondo Degradado Coral Suave (Equilibrio) */
-        div[data-testid="stAppViewContainer"] {
-            /* Un degradado suave: De durazno pálido a crema/salmón claro */
-            background-image: linear-gradient(to top, #fff0e6 0%, #ffe4d9 100%) !important;
-            background-attachment: fixed !important;
-            background-size: cover !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
     
     # --- FIN DE LA MODIFICACIÓN ---
 
@@ -626,6 +614,7 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
 
 
 
