@@ -62,29 +62,6 @@ st.markdown("""
         padding-top: 2rem;
     }
 
-    /* --- INICIO DE LA MODIFICACIÓN (Fondo y Tarjeta) --- */
-    
-    /* 1. Fondo Degradado Coral Pálido (Opción A) */
-    /* Se aplica SOLO a la página de login (si existe el widget 'login_user') */
-    body:has(div[data-testid="stTextInput"][key="login_user"]) {
-        background-image: linear-gradient(to top, #FFF7F3 0%, #FFFAF7 100%);
-        background-attachment: fixed;
-        background-size: cover;
-    }
-
-    /* 2. Estilo para la Tarjeta Flotante (aún no visible) */
-    .login-card {
-        background-color: white;
-        padding: 2.5rem 3rem; /* Más espacio interno */
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Sombra sutil */
-        max-width: 900px;  /* Ancho máximo de la tarjeta */
-        margin: 2rem auto;  /* Centra la tarjeta horizontalmente */
-    }
-    
-    /* --- FIN DE LA MODIFICACIÓN --- */
-
-
     /* Importa la fuente Oswald (más gruesa) */
     @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
 
@@ -515,12 +492,40 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON NUEVA HERO SECTION Y FOOTER) ===
+# === (MODIFICADO CON FONDO CORAL Y TARJETA FLOTANTE) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
+
+    # --- INICIO DE LA MODIFICACIÓN (Inyectar CSS de Fondo y Tarjeta) ---
+    # Este CSS SÍ funcionará porque se inyecta junto con el contenido de la página
+    st.markdown("""
+    <style>
+        /* 1. Fondo Degradado Coral Pálido (Opción A) */
+        body {
+            background-image: linear-gradient(to top, #FFF7F3 0%, #FFFAF7 100%);
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        
+        /* 2. Estilo para la Tarjeta Flotante */
+        .login-card {
+            background-color: white;
+            padding: 2.5rem 3rem; /* Espacio interno */
+            border-radius: 15px;  /* Bordes redondeados */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+            max-width: 900px;  /* Ancho máximo de la tarjeta */
+            margin: 2rem auto;  /* Centra la tarjeta horizontalmente */
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
-    # --- INICIO DE LA MODIFICACIÓN (Nueva Hero Section) ---
+    # --- Abrir la Tarjeta Flotante ---
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    # --- FIN DE LA MODIFICACIÓN ---
+
+    
+    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION)
     ISOTIPO_PATH = "assets/isotipo.png" 
     isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
     
@@ -531,6 +536,7 @@ if not st.session_state.logged_in:
     if isotipo_base64:
         hero_html += f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
     else:
+        # Ya no mostramos el error de C:, sino el error de la ruta relativa
         st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
         
     hero_html += """
@@ -540,7 +546,6 @@ if not st.session_state.logged_in:
     </div>
     """
     st.markdown(hero_html, unsafe_allow_html=True)
-    # --- FIN DE LA MODIFICACIÓN ---
         
     # 1.1. SECCIÓN DE PLANES (Desplegable)
     with st.expander("Nuestros Planes"):
@@ -564,7 +569,7 @@ if not st.session_state.logged_in:
             <p class="plan-feature">✔️ Elección entre gráficos estadísticos</p>
             <p class="plan-feature">✔️ Propuestas de mejora</p>
             <p class="plan-feature">✔️ Opción de exportar tablas y propuestas de mejora</p>
-            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (áreas)</p>
+            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (todas las áreas)</p>
             <p class="plan-feature">✔️ Acceso a todas las nuevas funcionalidades futuras</p>
             </div>
             """, unsafe_allow_html=True)
@@ -602,7 +607,7 @@ if not st.session_state.logged_in:
     username = st.text_input("Usuario", key="login_user")
     password = st.text_input("Contraseña", type="password", key="login_pass")
     
-    # Lógica de login
+    # Lógica de login (Modificada para aceptar "free")
     if st.button("Entrar", key="login_button", type="primary"):
         
         user_level = login_user(username, password)
@@ -622,9 +627,12 @@ if not st.session_state.logged_in:
         else:
             st.error("Usuario o contraseña incorrectos.")
 
-    # --- INICIO DE LA MODIFICACIÓN (Footer) ---
+    # 3. FOOTER
     st.markdown("---")
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
+    
+    # --- INICIO DE LA MODIFICACIÓN (Cerrar la Tarjeta Flotante) ---
+    st.markdown('</div>', unsafe_allow_html=True)
     # --- FIN DE LA MODIFICACIÓN ---
 
 else:
@@ -632,4 +640,3 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
