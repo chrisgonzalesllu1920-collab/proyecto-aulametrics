@@ -15,7 +15,7 @@ import base64
 
 st.set_page_config(
     page_title="AulaMetrics", 
-    page_icon="📊",  
+    page_icon="assets/isotipo.png",  # <-- Actualizado al logo
     layout="wide"
 )
 
@@ -53,7 +53,7 @@ def initialize_session_state():
 initialize_session_state()
 
 # =========================================================================
-# === 3. ESTILOS CSS (Con Títulos, Cartel y ESTILO DE LOGO) ===
+# === 3. ESTILOS CSS (Con Títulos, Cartel y NUEVO HERO) ===
 # =========================================================================
 st.markdown("""
 <style>
@@ -82,7 +82,7 @@ st.markdown("""
             background: none;
         }
     }
-    .gradient-title-login { font-size: 3.5em; }
+    
     .gradient-title-dashboard { font-size: 2.5em; }
     
     /* (Bordes Dorados - Sin cambios) */
@@ -140,15 +140,32 @@ st.markdown("""
          fill: #31333F !important;
     }
     
-    /* --- INICIO DE LA MODIFICACIÓN (Logo más grande) --- */
-    .title-container {
-        display: flex;         
-        align-items: center;   
-        gap: 20px;             
+    /* --- INICIO DE LA MODIFICACIÓN (Nuevos estilos para el Hero) --- */
+    /* Reemplaza a .title-container y .logo-image */
+    
+    .hero-container {
+        text-align: center; /* Centra todo el contenido */
+        padding: 1rem 0 2rem 0; /* Espaciado vertical */
     }
-    .logo-image {
-        width: 80px;  /* Aumentado de 60px a 80px */
-        height: 80px; /* Aumentado de 60px a 80px */
+    .hero-logo {
+        width: 120px;  /* Logo más grande */
+        height: 120px;
+        margin-bottom: 1rem;
+    }
+    .gradient-title-login { 
+        font-size: 4.5em; /* Título más grande */
+        line-height: 1.1;
+    }
+    .hero-slogan {
+        font-size: 1.75rem; /* Eslogan más grande */
+        font-weight: 300;  /* Más ligero */
+        color: #333;
+        margin-top: -0.5rem; /* Acerca al título */
+    }
+    .hero-tagline {
+        font-size: 1.1rem;
+        color: #555;
+        font-weight: 300;
     }
     /* --- FIN DE LA MODIFICACIÓN --- */
 </style>
@@ -283,7 +300,7 @@ def display_analysis_dashboard(results):
                 label=f"⬇️ (Opción de exportar a Excel) ({sheet_name})",
                 data=excel_data,
                 file_name=f'Frecuencias_{sheet_name}.xlsx',
-                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.document',
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 key=f'download_excel_{sheet_name}'
             )
 
@@ -478,31 +495,32 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON LOGO Y EXPANDERS ESTILIZADOS) ===
+# === (MODIFICADO CON NUEVA HERO SECTION Y FOOTER) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
     
-    # 1. TÍTULO, LOGO Y FRASE
-    
-    ISOTIPO_PATH = "assets/isotipo.png"
+    # --- INICIO DE LA MODIFICACIÓN (Nueva Hero Section) ---
+    ISOTIPO_PATH = "assets/isotipo.png" 
     isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
     
+    hero_html = """
+    <div class="hero-container">
+    """
+    
     if isotipo_base64:
-        st.markdown(f"""
-        <div class="title-container">
-            <h1 class="gradient-title-login">AulaMetrics</h1>
-            <img src="data:image/png;base64,{isotipo_base64}" class="logo-image">
-        </div>
-        """, unsafe_allow_html=True)
+        hero_html += f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
     else:
-        # Fallback si el logo falla
-        st.markdown('<h1 class="gradient-title-login">AulaMetrics</h1>', unsafe_allow_html=True) 
         st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
         
-    st.subheader("Datos que impulsan el aprendizaje")
-    st.markdown("Herramienta de Diagnóstico para Intervención Pedagógica")
-    st.markdown("---")
+    hero_html += """
+        <h1 class="gradient-title-login">AulaMetrics</h1>
+        <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
+        <p class="hero-tagline">Herramienta de Diagnóstico para Intervención Pedagógica</p>
+    </div>
+    """
+    st.markdown(hero_html, unsafe_allow_html=True)
+    # --- FIN DE LA MODIFICACIÓN ---
         
     # 1.1. SECCIÓN DE PLANES (Desplegable)
     with st.expander("Nuestros Planes"):
@@ -564,7 +582,7 @@ if not st.session_state.logged_in:
     username = st.text_input("Usuario", key="login_user")
     password = st.text_input("Contraseña", type="password", key="login_pass")
     
-    # Lógica de login (Modificada para aceptar "free")
+    # Lógica de login
     if st.button("Entrar", key="login_button", type="primary"):
         
         user_level = login_user(username, password)
@@ -584,9 +602,13 @@ if not st.session_state.logged_in:
         else:
             st.error("Usuario o contraseña incorrectos.")
 
+    # --- INICIO DE LA MODIFICACIÓN (Footer) ---
+    st.markdown("---")
+    st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
+    # --- FIN DE LA MODIFICACIÓN ---
+
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
-
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
