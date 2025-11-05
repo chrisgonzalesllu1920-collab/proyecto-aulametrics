@@ -2,7 +2,6 @@ altair==5.5.0
 annotated-types==0.7.0
 anyio==4.11.0
 attrs==25.4.0
-bcrypt==5.0.0
 blinker==1.9.0
 cachetools==6.2.1
 certifi==2025.10.5
@@ -37,7 +36,6 @@ numpy==2.3.4
 openpyxl==3.1.5
 packaging==25.0
 pandas==2.3.3
-passlib==1.7.4
 pillow==11.3.0
 plotly==6.3.1
 proto-plus==1.26.1
@@ -76,5 +74,6 @@ websockets==15.0.1
 xlsxwriter==3.2.9
 passlib==5.3.4
 bcrypt==4.1.3
+
 
 
