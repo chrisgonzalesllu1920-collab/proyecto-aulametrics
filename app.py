@@ -155,10 +155,14 @@ st.markdown("""
         height: 120px;
         margin-bottom: 1rem;
     }
+    
+    /* --- INICIO DE LA MODIFICACIÓN (Título más grande) --- */
     .gradient-title-login { 
-        font-size: 4.5em;
+        font-size: 5.0em; /* <-- Aumentado de 4.5em a 5.0em */
         line-height: 1.1;
     }
+    /* --- FIN DE LA MODIFICACIÓN --- */
+    
     .hero-slogan {
         font-size: 1.75rem;
         font-weight: 300;
@@ -539,8 +543,8 @@ if not st.session_state.logged_in:
         hero_html += """
             <h1 class="gradient-title-login">AulaMetrics</h1>
             <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
-            <p class="hero-tagline">Herramienta de Diagnóstico para Intervención Pedagógica</p>
-        </div>
+            
+            </div>
         """
         st.markdown(hero_html, unsafe_allow_html=True)
         
@@ -574,7 +578,7 @@ if not st.session_state.logged_in:
     with col2:
         # 1.1. SECCIÓN DE PLANES (Desplegable)
         # Puesto en 'expanded=True' para que llame la atención
-        with st.expander("Nuestros Planes", expanded=True):
+        with st.expander("Nuestros Planes", expanded=True): # <-- ESTA ES LA SOLUCIÓN
             st.markdown("""
             <div class="plan-box plan-box-free">
             <div class="plan-title">Plan Gratuito</div>
@@ -598,7 +602,7 @@ if not st.session_state.logged_in:
             """, unsafe_allow_html=True)
 
         # 1.2. SECCIÓN QUIÉNES SOMOS (Desplegable)
-        with st.expander("¿Quiénes Somos?"):
+        with st.expander("¿Quiénes Somos?"): # <-- Se deja cerrado por defecto
             st.subheader("Quiénes Somos")
             st.markdown("""
             Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
@@ -645,4 +649,3 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
