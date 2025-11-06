@@ -643,7 +643,7 @@ if not st.session_state.logged_in:
     social_links_html = """
     <div class="social-container">
         
-        <a href="https://wa.me/51XXXXXXXXX" target="_blank" class="social-link whatsapp" title="Contáctanos en WhatsApp">
+        <a href="https.me/51XXXXXXXXX" target="_blank" class="social-link whatsapp" title="Contáctanos en WhatsApp">
             <i class="fab fa-whatsapp"></i>
         </a>
         
@@ -653,7 +653,8 @@ if not st.session_state.logged_in:
     </div>
     """
     
-    # Esta línea es la clave para que funcione
+    # --- ESTA ES LA LÍNEA MÁS IMPORTANTE Y CORREGIDA ---
+    # Esta línea asegura que el HTML se muestre como íconos y no como texto
     st.markdown(social_links_html, unsafe_allow_html=True)
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
@@ -664,4 +665,3 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
