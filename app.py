@@ -12,12 +12,18 @@ import base64
 # =========================================================================
 # === 1. CONFIGURACIÓN DE LA PÁGINA ===
 # =========================================================================
+import streamlit as st
+import base64 # Asegúrate de que 'base64' esté importado
 
+# --- INICIO DE LA MODIFICACIÓN (Configuración Completa) ---
+# Se ha verificado 'layout="wide"' y se ha añadido 'initial_sidebar_state'
 st.set_page_config(
     page_title="AulaMetrics", 
-    page_icon="assets/isotipo.png",  # <-- Actualizado al logo
-    layout="wide"
+    page_icon="assets/isotipo.png", # <-- Actualizado al logo
+    layout="wide",
+    initial_sidebar_state="collapsed" # <-- Esta línea es importante
 )
+# --- FIN DE LA MODIFICACIÓN ---
 
 @st.cache_data 
 def get_image_as_base64(file_path):
@@ -27,8 +33,7 @@ def get_image_as_base64(file_path):
             data = f.read()
         return base64.b64encode(data).decode()
     except FileNotFoundError:
-        return None 
-
+        return None
 
 # =========================================================================
 # === 2. INICIALIZACIÓN DEL ESTADO DE SESIÓN (Global) ===
@@ -624,3 +629,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
