@@ -516,45 +516,40 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON LAYOUT DE COLUMNAS) ===
+# === (MODIFICADO CON LAYOUT DE BANNER SUPERIOR) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
 
-    # --- INICIO DE LA MODIFICACIÓN (Layout de 2 Columnas) ---
+    # --- INICIO DE LA MODIFICACIÓN (Layout de Banner Superior) ---
+    
+    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION) - AHORA COMO BANNER SUPERIOR
+    ISOTIPO_PATH = "assets/isotipo.png" 
+    isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
+    
+    hero_html_img = "" # Inicializar
+    if isotipo_base64:
+        hero_html_img = f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
+    else:
+        st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
+
+    # HTML Limpio (sin comentarios que rompan el código)
+    hero_html = f"""
+    <div class="hero-container">
+        {hero_html_img}
+        <h1 class="gradient-title-login">AulaMetrics</h1>
+        <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
+    </div> 
+    """
+    st.markdown(hero_html, unsafe_allow_html=True)
+    
+    # --- FIN DE LA MODIFICACIÓN ---
+
     
     col1, col2 = st.columns([3, 2]) # Columna izquierda (60%), Columna derecha (40%)
 
     with col1:
-        # 1. TÍTULO, LOGO Y FRASE (HERO SECTION)
-        ISOTIPO_PATH = "assets/isotipo.png" 
-        isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
-        
-        # --- INICIO DE LA MODIFICACIÓN (HTML Limpio) ---
-        
-        hero_html_img = "" # Inicializar
-        if isotipo_base64:
-            hero_html_img = f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
-        else:
-            st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
-
-        # Se ha combinado el HTML en un f-string y se ha eliminado
-        # el comentario HTML que rompía el código.
-        hero_html = f"""
-        <div class="hero-container">
-            {hero_html_img}
-            <h1 class="gradient-title-login">AulaMetrics</h1>
-            <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
-        </div> 
-        """
-        # El </div> ahora está al final del bloque, sin comentarios que lo rompan.
-        
-        st.markdown(hero_html, unsafe_allow_html=True)
-        # --- FIN DE LA MODIFICACIÓN ---
-        
-        st.markdown("---") # Divisor en la columna izquierda
-
-        # 2. FORMULARIO DE INICIO DE SESIÓN
+        # 2. FORMULARIO DE INICIO DE SESIÓN (AHORA PRIMERO EN LA COLUMNA)
         st.header("🔑 Iniciar Sesión")
         username = st.text_input("Usuario", key="login_user")
         password = st.text_input("Contraseña", type="password", key="login_pass")
@@ -635,8 +630,6 @@ if not st.session_state.logged_in:
             
         # --- FIN DE LA MODIFICACIÓN ---
 
-    # --- FIN DE LA MODIFICACIÓN ---
-    
     # 3. FOOTER Y REDES SOCIALES (Se queda FUERA de las columnas, 100% ancho)
     st.markdown("---") # Divisor
     
@@ -647,7 +640,7 @@ if not st.session_state.logged_in:
         st.link_button("**Contáctanos en WhatsApp**", "https://wa.me/51XXXXXXXXX")
 
     with col3_footer:
-        st.link_button("**SíGuenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
+        st.link_button("**Síguenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
 
