@@ -530,23 +530,27 @@ if not st.session_state.logged_in:
         ISOTIPO_PATH = "assets/isotipo.png" 
         isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
         
-        hero_html = """
-        <div class="hero-container">
-        """
+        # --- INICIO DE LA MODIFICACIÓN (HTML Limpio) ---
         
+        hero_html_img = "" # Inicializar
         if isotipo_base64:
-            hero_html += f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
+            hero_html_img = f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
         else:
-            # Ya no mostramos el error de C:, sino el error de la ruta relativa
             st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
-            
-        hero_html += """
+
+        # Se ha combinado el HTML en un f-string y se ha eliminado
+        # el comentario HTML que rompía el código.
+        hero_html = f"""
+        <div class="hero-container">
+            {hero_html_img}
             <h1 class="gradient-title-login">AulaMetrics</h1>
             <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
-            
-            </div>
+        </div> 
         """
+        # El </div> ahora está al final del bloque, sin comentarios que lo rompan.
+        
         st.markdown(hero_html, unsafe_allow_html=True)
+        # --- FIN DE LA MODIFICACIÓN ---
         
         st.markdown("---") # Divisor en la columna izquierda
 
@@ -576,33 +580,11 @@ if not st.session_state.logged_in:
                 st.error("Usuario o contraseña incorrectos.")
 
     with col2:
-        # 1.1. SECCIÓN DE PLANES (Desplegable)
-        # Puesto en 'expanded=True' para que llame la atención
-        with st.expander("Nuestros Planes", expanded=True): # <-- ESTA ES LA SOLUCIÓN
-            st.markdown("""
-            <div class="plan-box plan-box-free">
-            <div class="plan-title">Plan Gratuito</div>
-            <p class="plan-feature">✔️ Análisis de archivos</p>
-            <p class="plan-feature">✔️ Análisis de las dos primeras hojas (áreas)</p>
-            <p class="plan-feature">✔️ Tabla de frecuencias y porcentajes</p>
-            <p class="plan-feature">✔️ Gráficos de barras para los datos</p>
-            <p class="plan-feature">✔️ Opción de exportar a Excel</p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown("""
-            <div class="plan-box plan-box-premium">
-            <div class="plan-title">⭐ Plan Premium</div>
-            <p class="plan-feature">✔️ Todas las funciones gratuitas</p>
-            <p class="plan-feature">✔️ Elección entre gráficos estadísticos</p>
-            <p class="plan-feature">✔️ Propuestas de mejora</p>
-            <p class="plan-feature">✔️ Opción de exportar tablas y propuestas de mejora</p>
-            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (todas las áreas)</p>
-            <p class="plan-feature">✔️ Acceso a todas las nuevas funcionalidades futuras</p>
-            </div>
-            """, unsafe_allow_html=True)
+        
+        # --- INICIO DE LA MODIFICACIÓN (Orden Invertido) ---
 
-        # 1.2. SECCIÓN QUIÉNES SOMOS (Desplegable)
-        with st.expander("¿Quiénes Somos?"): # <-- Se deja cerrado por defecto
+        # 1.2. SECCIÓN QUIÉNES SOMOS (Ahora primero)
+        with st.expander("¿Quiénes Somos?", expanded=True): # <-- AHORA ABIERTO POR DEFECTO
             st.subheader("Quiénes Somos")
             st.markdown("""
             Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
@@ -626,7 +608,33 @@ if not st.session_state.logged_in:
             mejora permanente, donde cada docente cuente con información precisa para potenciar 
             el rendimiento y desarrollo integral de sus estudiantes.
             """)
-    
+
+        # 1.1. SECCIÓN DE PLANES (Ahora segundo)
+        with st.expander("Nuestros Planes"): # <-- AHORA CERRADO POR DEFECTO
+            st.markdown("""
+            <div class="plan-box plan-box-free">
+            <div class="plan-title">Plan Gratuito</div>
+            <p class="plan-feature">✔️ Análisis de archivos</p>
+            <p class="plan-feature">✔️ Análisis de las dos primeras hojas (áreas)</p>
+            <p class="plan-feature">✔️ Tabla de frecuencias y porcentajes</p>
+            <p class="plan-feature">✔️ Gráficos de barras para los datos</p>
+            <p class="plan-feature">✔️ Opción de exportar a Excel</p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="plan-box plan-box-premium">
+            <div class="plan-title">⭐ Plan Premium</div>
+            <p class="plan-feature">✔️ Todas las funciones gratuitas</p>
+            <p class="plan-feature">✔️ Elección entre gráficos estadísticos</p>
+            <p class="plan-feature">✔️ Propuestas de mejora</p>
+            <p class="plan-feature">✔️ Opción de exportar tablas y propuestas de mejora</p>
+            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (todas las áreas)</p>
+            <p class="plan-feature">✔️ Acceso a todas las nuevas funcionalidades futuras</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # --- FIN DE LA MODIFICACIÓN ---
+
     # --- FIN DE LA MODIFICACIÓN ---
     
     # 3. FOOTER Y REDES SOCIALES (Se queda FUERA de las columnas, 100% ancho)
@@ -639,7 +647,7 @@ if not st.session_state.logged_in:
         st.link_button("**Contáctanos en WhatsApp**", "https://wa.me/51XXXXXXXXX")
 
     with col3_footer:
-        st.link_button("**Síguenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
+        st.link_button("**SíGuenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
 
@@ -649,3 +657,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
