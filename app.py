@@ -170,6 +170,21 @@ st.markdown("""
         color: #555;
         font-weight: 300;
     }
+    
+    /* --- INICIO DE LA MODIFICACIÓN (Solución Definitiva) --- */
+
+    /* 1. Anula el "cajón" (max-width) de Streamlit */
+    div.st-block-container > div:first-child {
+        max-width: 100% !important;
+    }
+    
+    /* 2. Oculta el botón "Fullscreen" que añade Streamlit */
+    [data-testid="stFullScreenButton"] {
+        display: none !important;
+    }
+    
+    /* --- FIN DE LA MODIFICACIÓN --- */
+    
 </style>
 """, unsafe_allow_html=True)
 
@@ -629,4 +644,5 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
 
