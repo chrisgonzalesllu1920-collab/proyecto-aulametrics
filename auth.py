@@ -8,7 +8,7 @@ except ImportError:
 # Inicializa el contexto de encriptación
 # Esto DEBE ser idéntico al de create_user.py
 try:
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 except NameError:
     # Error si passlib no se importó
     pass 
@@ -68,3 +68,4 @@ def login_user(username, password):
 
     # 3. Si no se encontró o la contraseña es incorrecta
     return None
+
