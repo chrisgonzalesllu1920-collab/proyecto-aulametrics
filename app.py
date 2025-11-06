@@ -145,23 +145,23 @@ st.markdown("""
          fill: #31333F !important;
     }
     
-    /* (Estilos del Hero - Sin cambios) */
+    /* --- INICIO DE LA MODIFICACIÓN (Título más compacto) --- */
     .hero-container {
         text-align: center;
-        padding: 1rem 0 2rem 0;
+        padding: 0.2rem 0 2rem 0; /* <-- Padding superior reducido */
     }
+    /* --- FIN DE LA MODIFICACIÓN --- */
+
     .hero-logo {
         width: 120px;
         height: 120px;
         margin-bottom: 1rem;
     }
     
-    /* --- INICIO DE LA MODIFICACIÓN (Título más grande) --- */
     .gradient-title-login { 
-        font-size: 5.0em; /* <-- Aumentado de 4.5em a 5.0em */
+        font-size: 5.0em; 
         line-height: 1.1;
     }
-    /* --- FIN DE LA MODIFICACIÓN --- */
     
     .hero-slogan {
         font-size: 1.75rem;
@@ -175,19 +175,13 @@ st.markdown("""
         font-weight: 300;
     }
     
-    /* --- INICIO DE LA MODIFICACIÓN (Solución Definitiva) --- */
-
-    /* 1. Anula el "cajón" (max-width) de Streamlit */
+    /* (Solución Definitiva - Sin cambios) */
     div.st-block-container > div:first-child {
         max-width: 100% !important;
     }
-    
-    /* 2. Oculta el botón "Fullscreen" que añade Streamlit */
     [data-testid="stFullScreenButton"] {
         display: none !important;
     }
-    
-    /* --- FIN DE LA MODIFICACIÓN --- */
     
 </style>
 """, unsafe_allow_html=True)
@@ -516,18 +510,16 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON LAYOUT LIMPIO Y PROFESIONAL) ===
+# === (MODIFICADO CON LAYOUT EQUILIBRADO Y COMPACTO) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
 
-    # --- INICIO DE LA MODIFICACIÓN (Layout de Banner Superior) ---
-    
-    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION) - AHORA COMO BANNER SUPERIOR
+    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION) - BANNER SUPERIOR
     ISOTIPO_PATH = "assets/isotipo.png" 
     isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
     
-    hero_html_img = "" # Inicializar
+    hero_html_img = "" 
     if isotipo_base64:
         hero_html_img = f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
     else:
@@ -538,47 +530,46 @@ if not st.session_state.logged_in:
     <div class="hero-container">
         {hero_html_img}
         <h1 class="gradient-title-login">AulaMetrics</h1>
-        </div> 
+    </div> 
     """
     st.markdown(hero_html, unsafe_allow_html=True)
     
-    # --- FIN DE LA MODIFICACIÓN ---
+    # --- INICIO DE LA MODIFICACIÓN (Columnas espaciadas y Login estrecho) ---
 
-    
-    col1, col2 = st.columns([3, 2]) # Columna izquierda (60%), Columna derecha (40%)
+    # Punto 1 y 2: Columnas con espaciador central
+    col1, col_spacer, col2 = st.columns([2.5, 0.5, 2]) # Izquierda, Espacio, Derecha
 
     with col1:
-        # 2. FORMULARIO DE INICIO DE SESIÓN (AHORA PRIMERO EN LA COLUMNA)
-        st.header("🔑 Iniciar Sesión")
-        username = st.text_input("Usuario", key="login_user")
-        password = st.text_input("Contraseña", type="password", key="login_pass")
+        # Punto 3: Formulario más estrecho usando sub-columnas
+        sub_col1, sub_col2, sub_col3 = st.columns([0.5, 2, 0.5]) # Espacio, Formulario, Espacio
         
-        # Lógica de login (Modificada para aceptar "free")
-        if st.button("Entrar", key="login_button", type="primary"):
+        with sub_col2:
+            # 2. FORMULARIO DE INICIO DE SESIÓN
+            st.header("🔑 Iniciar Sesión")
+            username = st.text_input("Usuario", key="login_user")
+            password = st.text_input("Contraseña", type="password", key="login_pass")
             
-            user_level = login_user(username, password)
-            
-            if user_level == "premium": 
-                st.session_state.logged_in = True
-                st.session_state.user_level = "premium"
-                st.session_state.show_welcome_message = True 
-                st.rerun() 
-            
-            elif user_level == "free": 
-                st.session_state.logged_in = True
-                st.session_state.user_level = "free"
-                st.session_state.show_welcome_message = True
-                st.rerun()
-                
-            else:
-                st.error("Usuario o contraseña incorrectos.")
+            # Lógica de login
+            if st.button("Entrar", key="login_button", type="primary"):
+                user_level = login_user(username, password)
+                if user_level == "premium": 
+                    st.session_state.logged_in = True
+                    st.session_state.user_level = "premium"
+                    st.session_state.show_welcome_message = True 
+                    st.rerun() 
+                elif user_level == "free": 
+                    st.session_state.logged_in = True
+                    st.session_state.user_level = "free"
+                    st.session_state.show_welcome_message = True
+                    st.rerun()
+                else:
+                    st.error("Usuario o contraseña incorrectos.")
 
     with col2:
-        
-        # --- INICIO DE LA MODIFICACIÓN (Expanders cerrados y con divisor) ---
+        # (Expanders cerrados y con divisor - Sin cambios)
 
-        # 1.2. SECCIÓN QUIÉNES SOMOS (Ahora cerrado por defecto)
-        with st.expander("¿Quiénes Somos?"): # <-- 'expanded=True' ELIMINADO
+        # 1.2. SECCIÓN QUIÉNES SOMOS
+        with st.expander("¿Quiénes Somos?"):
             st.subheader("Quiénes Somos")
             st.markdown("""
             Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
@@ -603,10 +594,10 @@ if not st.session_state.logged_in:
             el rendimiento y desarrollo integral de sus estudiantes.
             """)
         
-        st.divider() # <-- DIVISOR HORIZONTAL AÑADIDO
+        st.divider() # Divisor horizontal
 
-        # 1.1. SECCIÓN DE PLANES (Cerrado y con texto corregido)
-        with st.expander("Nuestros Planes"): # <-- CERRADO POR DEFECTO
+        # 1.1. SECCIÓN DE PLANES
+        with st.expander("Nuestros Planes"):
             st.markdown("""
             <div class="plan-box plan-box-free">
             <div class="plan-title">Plan Gratuito</div>
@@ -629,12 +620,11 @@ if not st.session_state.logged_in:
             </div>
             """, unsafe_allow_html=True)
             
-        # --- FIN DE LA MODIFICACIÓN ---
+    # --- FIN DE LA MODIFICACIÓN ---
 
     # 3. FOOTER Y REDES SOCIALES (Se queda FUERA de las columnas, 100% ancho)
     st.markdown("---") # Divisor
     
-    # (Usamos el código de botones que ya funciona)
     col1_footer, col2_footer, col3_footer = st.columns([1,2,1]) 
     
     with col1_footer:
@@ -651,3 +641,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
