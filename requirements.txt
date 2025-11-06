@@ -6,5 +6,5 @@ openpyxl
 xlsxwriter
 plotly
 passlib
-bcrypt
 google-genai
+
