@@ -516,7 +516,7 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON LAYOUT DE BANNER SUPERIOR) ===
+# === (MODIFICADO CON LAYOUT LIMPIO Y PROFESIONAL) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
@@ -533,13 +533,12 @@ if not st.session_state.logged_in:
     else:
         st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
 
-    # HTML Limpio (sin comentarios que rompan el código)
+    # HTML Limpio (sin el slogan)
     hero_html = f"""
     <div class="hero-container">
         {hero_html_img}
         <h1 class="gradient-title-login">AulaMetrics</h1>
-        <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
-    </div> 
+        </div> 
     """
     st.markdown(hero_html, unsafe_allow_html=True)
     
@@ -576,10 +575,10 @@ if not st.session_state.logged_in:
 
     with col2:
         
-        # --- INICIO DE LA MODIFICACIÓN (Orden Invertido) ---
+        # --- INICIO DE LA MODIFICACIÓN (Expanders cerrados y con divisor) ---
 
-        # 1.2. SECCIÓN QUIÉNES SOMOS (Ahora primero)
-        with st.expander("¿Quiénes Somos?", expanded=True): # <-- AHORA ABIERTO POR DEFECTO
+        # 1.2. SECCIÓN QUIÉNES SOMOS (Ahora cerrado por defecto)
+        with st.expander("¿Quiénes Somos?"): # <-- 'expanded=True' ELIMINADO
             st.subheader("Quiénes Somos")
             st.markdown("""
             Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
@@ -603,9 +602,11 @@ if not st.session_state.logged_in:
             mejora permanente, donde cada docente cuente con información precisa para potenciar 
             el rendimiento y desarrollo integral de sus estudiantes.
             """)
+        
+        st.divider() # <-- DIVISOR HORIZONTAL AÑADIDO
 
-        # 1.1. SECCIÓN DE PLANES (Ahora segundo)
-        with st.expander("Nuestros Planes"): # <-- AHORA CERRADO POR DEFECTO
+        # 1.1. SECCIÓN DE PLANES (Cerrado y con texto corregido)
+        with st.expander("Nuestros Planes"): # <-- CERRADO POR DEFECTO
             st.markdown("""
             <div class="plan-box plan-box-free">
             <div class="plan-title">Plan Gratuito</div>
@@ -650,4 +651,3 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
