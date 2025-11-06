@@ -512,41 +512,69 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON FONDO CORAL Y TARJETA FLOTANTE) ===
+# === (MODIFICADO CON LAYOUT DE COLUMNAS) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
 
+    # --- INICIO DE LA MODIFICACIÓN (Layout de 2 Columnas) ---
     
-    # --- FIN DE LA MODIFICACIÓN ---
+    col1, col2 = st.columns([3, 2]) # Columna izquierda (60%), Columna derecha (40%)
 
-    
-    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION)
-    ISOTIPO_PATH = "assets/isotipo.png" 
-    isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
-    
-    hero_html = """
-    <div class="hero-container">
-    """
-    
-    if isotipo_base64:
-        hero_html += f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
-    else:
-        # Ya no mostramos el error de C:, sino el error de la ruta relativa
-        st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
+    with col1:
+        # 1. TÍTULO, LOGO Y FRASE (HERO SECTION)
+        ISOTIPO_PATH = "assets/isotipo.png" 
+        isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
         
-    hero_html += """
-        <h1 class="gradient-title-login">AulaMetrics</h1>
-        <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
-        <p class="hero-tagline">Herramienta de Diagnóstico para Intervención Pedagógica</p>
-    </div>
-    """
-    st.markdown(hero_html, unsafe_allow_html=True)
+        hero_html = """
+        <div class="hero-container">
+        """
         
-    # 1.1. SECCIÓN DE PLANES (Desplegable)
-    with st.expander("Nuestros Planes"):
-        c1, c2 = st.columns(2)
-        with c1:
+        if isotipo_base64:
+            hero_html += f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
+        else:
+            # Ya no mostramos el error de C:, sino el error de la ruta relativa
+            st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
+            
+        hero_html += """
+            <h1 class="gradient-title-login">AulaMetrics</h1>
+            <p class="hero-slogan">Datos que impulsan el aprendizaje</p>
+            <p class="hero-tagline">Herramienta de Diagnóstico para Intervención Pedagógica</p>
+        </div>
+        """
+        st.markdown(hero_html, unsafe_allow_html=True)
+        
+        st.markdown("---") # Divisor en la columna izquierda
+
+        # 2. FORMULARIO DE INICIO DE SESIÓN
+        st.header("🔑 Iniciar Sesión")
+        username = st.text_input("Usuario", key="login_user")
+        password = st.text_input("Contraseña", type="password", key="login_pass")
+        
+        # Lógica de login (Modificada para aceptar "free")
+        if st.button("Entrar", key="login_button", type="primary"):
+            
+            user_level = login_user(username, password)
+            
+            if user_level == "premium": 
+                st.session_state.logged_in = True
+                st.session_state.user_level = "premium"
+                st.session_state.show_welcome_message = True 
+                st.rerun() 
+            
+            elif user_level == "free": 
+                st.session_state.logged_in = True
+                st.session_state.user_level = "free"
+                st.session_state.show_welcome_message = True
+                st.rerun()
+                
+            else:
+                st.error("Usuario o contraseña incorrectos.")
+
+    with col2:
+        # 1.1. SECCIÓN DE PLANES (Desplegable)
+        # Puesto en 'expanded=True' para que llame la atención
+        with st.expander("Nuestros Planes", expanded=True):
             st.markdown("""
             <div class="plan-box plan-box-free">
             <div class="plan-title">Plan Gratuito</div>
@@ -557,7 +585,6 @@ if not st.session_state.logged_in:
             <p class="plan-feature">✔️ Opción de exportar a Excel</p>
             </div>
             """, unsafe_allow_html=True)
-        with c2:
             st.markdown("""
             <div class="plan-box plan-box-premium">
             <div class="plan-title">⭐ Plan Premium</div>
@@ -570,83 +597,52 @@ if not st.session_state.logged_in:
             </div>
             """, unsafe_allow_html=True)
 
-    # 1.2. SECCIÓN QUIÉNES SOMOS (Desplegable)
-    with st.expander("¿Quiénes Somos?"):
-        st.subheader("Quiénes Somos")
-        st.markdown("""
-        Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
-        Analizamos calificaciones y patrones de desempeño estudiantil para generar informes claros, 
-        interpretaciones estadísticas y propuestas de mejora orientadas al fortalecimiento de la 
-        práctica docente. Nuestro propósito es apoyar a los docentes y equipos directivos en la 
-        toma de decisiones estratégicas que optimicen los aprendizajes.
-        """)
-        st.subheader("Misión")
-        st.markdown("""
-        Brindar a los docentes una herramienta pedagógica confiable que analiza de manera rigurosa 
-        las calificaciones y datos de aprendizaje de los estudiantes, ofreciendo informes y 
-        recomendaciones basadas en evidencia. Contribuimos a la mejora continua de los procesos 
-        de enseñanza, promoviendo decisiones informadas que permitan elevar el logro de 
-        aprendizajes en toda la institución educativa.
-        """)
-        st.subheader("Visión")
-        st.markdown("""
-        Convertirnos en la herramienta líder en el análisis educativo dentro de las instituciones, 
-        reconocida por impulsar una cultura de evaluación formativa, innovación pedagógica y 
-        mejora permanente, donde cada docente cuente con información precisa para potenciar 
-        el rendimiento y desarrollo integral de sus estudiantes.
-        """)
+        # 1.2. SECCIÓN QUIÉNES SOMOS (Desplegable)
+        with st.expander("¿Quiénes Somos?"):
+            st.subheader("Quiénes Somos")
+            st.markdown("""
+            Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
+            Analizamos calificaciones y patrones de desempeño estudiantil para generar informes claros, 
+            interpretaciones estadísticas y propuestas de mejora orientadas al fortalecimiento de la 
+            práctica docente. Nuestro propósito es apoyar a los docentes y equipos directivos en la 
+            toma de decisiones estratégicas que optimicen los aprendizajes.
+            """)
+            st.subheader("Misión")
+            st.markdown("""
+            Brindar a los docentes una herramienta pedagógica confiable que analiza de manera rigurosa 
+            las calificaciones y datos de aprendizaje de los estudiantes, ofreciendo informes y 
+            recomendaciones basadas en evidencia. Contribuimos a la mejora continua de los procesos 
+            de enseñanza, promoviendo decisiones informadas que permitan elevar el logro de 
+            aprendizajes en toda la institución educativa.
+            """)
+            st.subheader("Visión")
+            st.markdown("""
+            Convertirnos en la herramienta líder en el análisis educativo dentro de las instituciones, 
+            reconocida por impulsar una cultura de evaluación formativa, innovación pedagógica y 
+            mejora permanente, donde cada docente cuente con información precisa para potenciar 
+            el rendimiento y desarrollo integral de sus estudiantes.
+            """)
     
-    st.markdown("---") # Divisor
-        
-    # 2. FORMULARIO DE INICIO DE SESIÓN
-    st.header("🔑 Iniciar Sesión")
-    username = st.text_input("Usuario", key="login_user")
-    password = st.text_input("Contraseña", type="password", key="login_pass")
+    # --- FIN DE LA MODIFICACIÓN ---
     
-    # Lógica de login (Modificada para aceptar "free")
-    if st.button("Entrar", key="login_button", type="primary"):
-        
-        user_level = login_user(username, password)
-        
-        if user_level == "premium": 
-            st.session_state.logged_in = True
-            st.session_state.user_level = "premium"
-            st.session_state.show_welcome_message = True 
-            st.rerun() 
-        
-        elif user_level == "free": 
-            st.session_state.logged_in = True
-            st.session_state.user_level = "free"
-            st.session_state.show_welcome_message = True
-            st.rerun()
-            
-        else:
-            st.error("Usuario o contraseña incorrectos.")
-
-# 3. FOOTER Y REDES SOCIALES
+    # 3. FOOTER Y REDES SOCIALES (Se queda FUERA de las columnas, 100% ancho)
     st.markdown("---") # Divisor
     
-    # --- INICIO DE LA MODIFICACIÓN (Botones-Enlace) ---
-    # Usamos st.columns para centrarlos y st.link_button para seguridad.
+    # (Usamos el código de botones que ya funciona)
+    col1_footer, col2_footer, col3_footer = st.columns([1,2,1]) 
     
-    col1, col2, col3 = st.columns([1,2,1]) # Columnas para centrar
-    
-    with col1:
+    with col1_footer:
         st.link_button("**Contáctanos en WhatsApp**", "https://wa.me/51XXXXXXXXX")
 
-    with col3:
+    with col3_footer:
         st.link_button("**Síguenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
     
-    # --- FIN DE LA MODIFICACIÓN ---
-    
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
-    # --- FIN DE LA MODIFICACIÓN ---
+
 
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
-
 
