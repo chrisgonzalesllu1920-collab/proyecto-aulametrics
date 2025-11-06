@@ -24,13 +24,13 @@ except NameError:
 # por ti.
 
 PREMIUM_USERS = {
-    "admin": "$2b$12$L7R2LCRB2qK.QhzeW.Yx6eT0.dY/vK/c1dIu8wY.Th7vYqjtu8HT6", # Clave: 123
+    "docente01": "$5$rounds=535000$lhPpO2w7c5cLz4wK$7mX/8ggtgrXgiTGwv8uWE4BkzCDUj1BYR/xNNXRJt8."
     # Añade aquí tus nuevos usuarios premium generados con create_user.py
     # "nuevo_cliente": "$2b$12$...",
 }
 
 FREE_USERS = {
-    "demo": "$2b$12$bJ21.1/e.pG/9iE3p/iJseHl2C6pEEYfLSS.o4.5v116eDmzoYvE2", # Clave: demo123
+    "docentea01": "$5$rounds=535000$50TEDdQcOp2s3R5B$LnI98emwNWQDI2MF/yZ1kZCdQmPhhQeaJXyR8K6aBt0"
     # Añade aquí tus nuevos usuarios gratuitos generados con create_user.py
 }
 
@@ -68,4 +68,5 @@ def login_user(username, password):
 
     # 3. Si no se encontró o la contraseña es incorrecta
     return None
+
 
