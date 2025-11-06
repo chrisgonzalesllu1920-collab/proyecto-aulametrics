@@ -53,7 +53,7 @@ def initialize_session_state():
 initialize_session_state()
 
 # =========================================================================
-# === 3. ESTILOS CSS (Con Títulos, Cartel, HERO y Redes Sociales) ===
+# === 3. ESTILOS CSS (Con Títulos, Cartel, HERO y FONDO DE PÁGINA) ===
 # =========================================================================
 st.markdown("""
 <style>
@@ -63,12 +63,7 @@ st.markdown("""
     }
 
     /* Importa la fuente Oswald (más gruesa) */
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display.swap');
-
-    /* --- INICIO MODIFICACIÓN --- (Importar íconos) */
-    /* Importa la biblioteca de íconos Font Awesome */
-    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
-    /* --- FIN MODIFICACIÓN --- */
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
 
     /* (Estilos de Títulos - Sin cambios) */
     .gradient-title-login, .gradient-title-dashboard {
@@ -170,33 +165,6 @@ st.markdown("""
         color: #555;
         font-weight: 300;
     }
-
-    /* --- INICIO DE LA MODIFICACIÓN (Íconos Sociales Font Awesome) --- */
-    .social-container {
-        text-align: center;
-        padding-top: 1rem;
-    }
-    .social-link {
-        display: inline-block;
-        margin: 0 12px;
-        transition: transform 0.3s;
-    }
-    .social-link i { /* <-- Esto ahora aplica a la etiqueta <i> de Font Awesome */
-        font-size: 28px; /* Tamaño del ícono */
-        color: #4A5568; /* Color gris oscuro */
-        transition: color 0.3s;
-    }
-    .social-link:hover {
-        transform: scale(1.15); /* Efecto de zoom */
-    }
-    .social-link.whatsapp:hover i {
-        color: #25D366; /* Verde de WhatsApp */
-    }
-    .social-link.tiktok:hover i {
-        color: #000000; /* Negro de TikTok */
-    }
-    /* --- FIN DE LA MODIFICACIÓN --- */
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -635,27 +603,18 @@ if not st.session_state.logged_in:
         else:
             st.error("Usuario o contraseña incorrectos.")
 
-# 3. FOOTER Y REDES SOCIALES (CON ÍCONOS)
+# 3. FOOTER Y REDES SOCIALES
     st.markdown("---") # Divisor
     
-    # --- INICIO DE LA MODIFICACIÓN (Íconos Font Awesome) ---
-    # Este es un HTML mucho más simple y limpio que el SVG
-    social_links_html = """
-    <div class="social-container">
-        
-        <a href="https.me/51XXXXXXXXX" target="_blank" class="social-link whatsapp" title="Contáctanos en WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-        </a>
-        
-        <a href="https://www.tiktok.com/@tu_usuario_tiktok" target="_blank" class="social-link tiktok" title="Síguenos en TikTok">
-            <i class="fab fa-tiktok"></i>
-        </a>
-    </div>
-    """
+    # --- INICIO DE LA MODIFICACIÓN (Enlaces de Texto) ---
     
-    # --- ESTA ES LA LÍNEA MÁS IMPORTANTE Y CORREGIDA ---
-    # Esta línea asegura que el HTML se muestre como íconos y no como texto
-    st.markdown(social_links_html, unsafe_allow_html=True)
+    # Usamos Markdown simple. Esto es 100% confiable.
+    # RECUERDA: Cambia los enlaces por los tuyos.
+    st.markdown(
+        "[Contáctanos en WhatsApp](https://wa.me/51XXXXXXXXX) &nbsp; | &nbsp; "
+        "[Síguenos en TikTok](https://www.tiktok.com/@tu_usuario_tiktok)",
+        unsafe_allow_html=True # Se usa solo para el espacio "&nbsp;"
+    )
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
     # --- FIN DE LA MODIFICACIÓN ---
