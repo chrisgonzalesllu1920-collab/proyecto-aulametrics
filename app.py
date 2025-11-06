@@ -626,23 +626,21 @@ if not st.session_state.logged_in:
 # 3. FOOTER Y REDES SOCIALES
     st.markdown("---") # Divisor
     
-    # --- INICIO DE LA MODIFICACIÓN (Enlaces de Texto) ---
-    
-    # Usamos Markdown simple. Esto es 100% confiable.
-    # RECUERDA: Cambia los enlaces por los tuyos.
+    # --- INICIO DE LA MODIFICACIÓN (Enlaces con Emojis) ---
     st.markdown(
-        "[Contáctanos en WhatsApp](https://wa.me/51XXXXXXXXX) &nbsp; | &nbsp; "
-        "[Síguenos en TikTok](https://www.tiktok.com/@tu_usuario_tiktok)",
+        "**📱 [Contáctanos en WhatsApp](httpsi://wa.me/51XXXXXXXXX)** &nbsp; | &nbsp; "
+        "**🎵 [Síguenos en TikTok](httpsi://www.tiktok.com/@tu_usuario_tiktok)**",
         unsafe_allow_html=True # Se usa solo para el espacio "&nbsp;"
     )
+    # --- FIN DE LA MODIFICACIÓN ---
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
-    # --- FIN DE LA MODIFICACIÓN ---
 
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
 
 
