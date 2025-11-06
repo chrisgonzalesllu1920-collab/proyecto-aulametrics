@@ -626,15 +626,21 @@ if not st.session_state.logged_in:
 # 3. FOOTER Y REDES SOCIALES
     st.markdown("---") # Divisor
     
-    # --- INICIO DE LA MODIFICACIÓN (Enlaces con Emojis) ---
-    st.markdown(
-        "**📱 [Contáctanos en WhatsApp](httpsi://wa.me/51XXXXXXXXX)** &nbsp; | &nbsp; "
-        "**🎵 [Síguenos en TikTok](httpsi://www.tiktok.com/@tu_usuario_tiktok)**",
-        unsafe_allow_html=True # Se usa solo para el espacio "&nbsp;"
-    )
+    # --- INICIO DE LA MODIFICACIÓN (Botones-Enlace) ---
+    # Usamos st.columns para centrarlos y st.link_button para seguridad.
+    
+    col1, col2, col3 = st.columns([1,2,1]) # Columnas para centrar
+    
+    with col1:
+        st.link_button("**Contáctanos en WhatsApp**", "https://wa.me/51XXXXXXXXX")
+
+    with col3:
+        st.link_button("**Síguenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
+    
     # --- FIN DE LA MODIFICACIÓN ---
     
     st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
+    # --- FIN DE LA MODIFICACIÓN ---
 
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
