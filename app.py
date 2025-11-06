@@ -639,44 +639,39 @@ if not st.session_state.logged_in:
 # 3. FOOTER Y REDES SOCIALES
 st.markdown("---")
 
-# --- BOTONES SOCIALES ---
-social_links_html = """
+# --- ESTILOS ---
+st.markdown("""
 <style>
 .social-container {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 10px;
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    margin-top:10px;
 }
 .social-link svg {
-    width: 35px;
-    height: 35px;
-    fill: #ffffff;
+    width:35px;
+    height:35px;
+    fill:#ffffff;
+    transition:0.2s;
 }
-.social-link.whatsapp:hover svg { fill: #25D366; }
-.social-link.tiktok:hover svg { fill: #EE1D52; }
+.social-link.whatsapp:hover svg { fill:#25D366; transform:scale(1.15); }
+.social-link.tiktok:hover svg { fill:#EE1D52; transform:scale(1.15); }
 </style>
+""", unsafe_allow_html=True)
 
+# --- HTML SIN COMENTARIOS NI INDENTACIÓN ---
+st.markdown("""
 <div class="social-container">
+<a class="social-link whatsapp" href="https://wa.me/51XXXXXXXXX" target="_blank">
+<svg viewBox="0 0 32 32"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.2 7L4 29l7.3-2.1C13 28.4 14.5 29 16 29c6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.3 0-2.6-.3-3.8-.9l-.5-.3-4.3 1.2 1.2-4.2-.3-.5C7.7 18.1 7 16.6 7 15c0-5 4-9 9-9s9 4 9 9-4 10-9 10zm5-7.5c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.1-.2.1-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.7-1.7-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.4.1-.1.2-.3.3-.4.1-.1.1-.2.2-.3.1-.1.1-.2.2-.3 0-.1 0-.2 0-.3s-.7-1.7-1-2.3c-.3-.5-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.5s1 2.9 1.1 3.1c.1.2 2 3.2 4.8 4.4 2.8 1.2 3.2.8 3.8.7.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.3z"/></svg>
+</a>
 
-    <!-- WHATSAPP -->
-    <a href="https://wa.me/51XXXXXXXXX" target="_blank" class="social-link whatsapp" title="Contáctanos en WhatsApp">
-        <svg viewBox="0 0 32 32">
-            <path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.2 7L4 29l7.3-2.1C13 28.4 14.5 29 16 29c6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.3 0-2.6-.3-3.8-.9l-.5-.3-4.3 1.2 1.2-4.2-.3-.5C7.7 18.1 7 16.6 7 15c0-5 4-9 9-9s9 4 9 9-4 10-9 10zm5-7.5c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.1-.2.1-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.7-1.7-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.4.1-.1.2-.3.3-.4.1-.1.1-.2.2-.3.1-.1.1-.2.2-.3 0-.1 0-.2 0-.3s-.7-1.7-1-2.3c-.3-.5-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.5s1 2.9 1.1 3.1c.1.2 2 3.2 4.8 4.4 2.8 1.2 3.2.8 3.8.7.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.3z"/>
-        </svg>
-    </a>
-
-    <!-- TIKTOK CORRECTO -->
-    <a href="https://www.tiktok.com/@tu_usuario_tiktok" target="_blank" class="social-link tiktok" title="Síguenos en TikTok">
-        <svg viewBox="0 0 48 48">
-            <path d="M30 4c0 .3 0 .7.1 1 0 .4.1.7.2 1 1 3.6 4.1 6.3 7.8 6.7.3 0 .6.1.9.1v6.7c-3.3 0-6.5-1-9-2.7v14.9c0 6-4.9 10.8-11 10.8S8 37.7 8 31.7c0-6 4.9-10.8 11-10.8.9 0 1.8.1 2.6.4V28c-.8-.4-1.6-.5-2.6-.5-3 0-5.4 2.4-5.4 5.3s2.4 5.3 5.4 5.3 5.4-2.4 5.4-5.3V4h5.2z"/>
-        </svg>
-    </a>
-
+<a class="social-link tiktok" href="https://www.tiktok.com/@tu_usuario_tiktok" target="_blank">
+<svg viewBox="0 0 48 48"><path d="M30 4c0 .3 0 .7.1 1 0 .4.1.7.2 1 1 3.6 4.1 6.3 7.8 6.7.3 0 .6.1.9.1v6.7c-3.3 0-6.5-1-9-2.7v14.9c0 6-4.9 10.8-11 10.8S8 37.7 8 31.7c0-6 4.9-10.8 11-10.8.9 0 1.8.1 2.6.4V28c-.8-.4-1.6-.5-2.6-.5-3 0-5.4 2.4-5.4 5.3s2.4 5.3 5.4 5.3 5.4-2.4 5.4-5.3V4h5.2z"/></svg>
+</a>
 </div>
-"""
+""", unsafe_allow_html=True)
 
-st.markdown(social_links_html, unsafe_allow_html=True)
 st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
 
 
