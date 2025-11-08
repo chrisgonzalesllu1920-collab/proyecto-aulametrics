@@ -469,7 +469,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección de Nombres en st.radio) ===
+# === (Corrección de Formulario Dependiente) ===
 # =========================================================================
 
 def home_page():
@@ -524,55 +524,64 @@ def home_page():
         with tab_asistente:
             st.header("🧠 Asistente Pedagógico")
             
-            # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DE LOS NOMBRES RAROS! ---
             tipo_herramienta = st.radio(
                 "01. Selecciona la herramienta que deseas usar:",
                 options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
                 index=0, 
-                horizontal=True
+                horizontal=True,
+                key="asistente_tipo_herramienta" # Añadimos una key
             )
-            # -----------------------------------------------
             
             st.markdown("---")
 
             # 2. Lógica del Formulario
-            if tipo_herramienta == "Sesión de aprendizaje":
+            if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
                 st.subheader("Generador de Sesión de Aprendizaje")
                 
-                # (Ahora solo cargamos 'Generalidades' por defecto)
                 df_gen, df_cic, df_est = cargar_datos_pedagogicos()
                 
                 if df_gen is None:
-                    # Este error ahora solo debería aparecer si el archivo REALMENTE no carga
                     st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estandares de aprendizaje.xlsx'.")
                     st.error("Por favor, verifica que el archivo (sin tilde) y el nombre de la hoja ('Generalidades') sean correctos.")
                 else:
-                    # Si df_gen (Generalidades) se carga, mostramos el formulario
+                    # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+                    # Pasos 1 y 2 van FUERA del formulario para permitir actualizaciones
+                    
+                    niveles = df_gen['NIVEL'].dropna().unique()
+                    
+                    # Usamos 'key' para guardar la selección en st.session_state
+                    nivel_sel = st.selectbox(
+                        "Paso 1: Selecciona el Nivel", 
+                        options=niveles, 
+                        index=None, 
+                        placeholder="Elige una opción...",
+                        key="asistente_nivel_sel" 
+                    )
+                    
+                    grados_options = []
+                    # Leemos la selección desde st.session_state
+                    if st.session_state.asistente_nivel_sel:
+                        grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
+                    
+                    grado_sel = st.selectbox(
+                        "Paso 2: Selecciona el Grado", 
+                        options=grados_options, 
+                        index=None, 
+                        placeholder="Elige un Nivel primero...",
+                        disabled=(not st.session_state.asistente_nivel_sel), # Deshabilitado si no hay Nivel
+                        key="asistente_grado_sel"
+                    )
+
+                    # Pasos 3 y 4 van DENTRO del formulario
                     with st.form(key="session_form"):
-                        niveles = df_gen['NIVEL'].dropna().unique()
-                        nivel_sel = st.selectbox(
-                            "Paso 1: Selecciona el Nivel", 
-                            options=niveles, 
-                            index=None, 
-                            placeholder="Elige una opción..."
-                        )
                         
-                        grados_options = []
-                        if nivel_sel:
-                            grados_options = df_gen[df_gen['NIVEL'] == nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
-                        
-                        grado_sel = st.selectbox(
-                            "Paso 2: Selecciona el Grado", 
-                            options=grados_options, 
-                            index=None, 
-                            placeholder="Elige un Nivel primero...",
-                            disabled=(not nivel_sel)
-                        )
-                        
+                        # Los deshabilitamos si el Grado (Paso 2) no ha sido seleccionado
+                        form_disabled = not st.session_state.asistente_grado_sel
+
                         tema_sel = st.text_input(
                             "Paso 3: Escribe el tema o temática a tratar",
                             placeholder="Ej: El sistema solar, La fotosíntesis...",
-                            disabled=(not grado_sel)
+                            disabled=form_disabled
                         )
                         
                         tiempo_sel = st.selectbox(
@@ -580,25 +589,29 @@ def home_page():
                             options=["90 minutos", "180 minutos"],
                             index=None,
                             placeholder="Elige una opción...",
-                            disabled=(not tema_sel)
+                            disabled=form_disabled
                         )
                         
-                        submitted = st.form_submit_button("Generar Sesión (Prueba)")
+                        submitted = st.form_submit_button(
+                            "Generar Sesión (Prueba)", 
+                            disabled=form_disabled
+                        )
                         
                         if submitted:
-                            if not nivel_sel or not grado_sel or not tema_sel or not tiempo_sel:
+                            # Leemos los valores del formulario y de session_state
+                            if not st.session_state.asistente_nivel_sel or not st.session_state.asistente_grado_sel or not tema_sel or not tiempo_sel:
                                 st.error("Por favor, completa todos los campos del formulario.")
                             else:
                                 st.success("¡Formulario verificado! (Aún no se genera la sesión).")
-                                st.write(f"**Nivel:** {nivel_sel}")
-                                st.write(f"**Grado:** {grado_sel}")
+                                st.write(f"**Nivel:** {st.session_state.asistente_nivel_sel}")
+                                st.write(f"**Grado:** {st.session_state.asistente_grado_sel}")
                                 st.write(f"**Temática:** {tema_sel}")
                                 st.write(f"**Duración:** {tiempo_sel}")
             
-            elif tipo_herramienta == "Unidad de aprendizaje":
+            elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
                 st.info("Función de Unidades de Aprendizaje (Próximamente).")
             
-            elif tipo_herramienta == "Planificación Anual":
+            elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
                 st.info("Función de Planificación Anual (Próximamente).")
     
     # Si el DataFrame NO está cargado (df_cargado es False), mostramos el uploader.
@@ -653,6 +666,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
