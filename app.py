@@ -526,23 +526,98 @@ def home_page():
             # (Llamamos a la función solo con los datos que necesita)
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
             
-        # Pestaña 3: Asistente Pedagógico
+       # Pestaña 3: Asistente Pedagógico
         with tab_asistente:
             st.header("🧠 Asistente Pedagógico")
-            st.write("Esta sección utilizará la IA para generar sesiones de aprendizaje.")
             
-            st.info("Verificando la carga de la base de datos pedagógica...")
-            df_gen, df_cic, df_est = cargar_datos_pedagogicos()
+            # --- 1. Selección de Herramienta (Tu Punto 01) ---
+            tipo_herramienta = st.radio(
+                "01. Selecciona la herramienta que deseas usar:",
+                options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
+                index=0, # 'Sesión' seleccionada por defecto
+                disabled=(False, True, True), # Deshabilitamos las opciones futuras
+                horizontal=True
+            )
             
-            if df_gen is not None and df_cic is not None and df_est is not None:
-                st.success("¡Base de datos pedagógica (Estándares de aprendizaje.xlsx) cargada con éxito!")
-                st.dataframe(df_est.head())
-            else:
-                st.error("No se pudo cargar la base de datos pedagógica. Revisa los mensajes de error.")
-    
-    # Si el DataFrame NO está cargado, mostramos el uploader.
-    else:
-        configurar_uploader()
+            st.markdown("---")
+
+            # --- 2. Lógica del Formulario (Tu Punto 02) ---
+            if tipo_herramienta == "Sesión de aprendizaje":
+                st.subheader("Generador de Sesión de Aprendizaje")
+                
+                # Cargamos los datos del Excel pedagógico
+                df_gen, df_cic, df_est = cargar_datos_pedagogicos()
+                
+                # Verificamos que la hoja "Generalidades" (df_gen) exista
+                if df_gen is None:
+                    st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estándares de aprendizaje.xlsx'.")
+                    st.error("Por favor, verifica que el archivo y el nombre de la hoja ('Generalidades') sean correctos en tu repositorio de GitHub.")
+                
+                # Si todo está bien, mostramos el formulario
+                else:
+                    # --- Formulario de 4 Pasos ---
+                    with st.form(key="session_form"):
+                        
+                        # Desplegable 01: Nivel (Usa Hoja 1, Col "NIVEL")
+                        # (Usamos .dropna() y .unique() para asegurar una lista limpia)
+                        niveles = df_gen['NIVEL'].dropna().unique()
+                        nivel_sel = st.selectbox(
+                            "Paso 1: Selecciona el Nivel", 
+                            options=niveles, 
+                            index=None, 
+                            placeholder="Elige una opción..."
+                        )
+                        
+                        # Desplegable 02: Grado (Dependiente)
+                        grados_options = [] # Lista vacía por defecto
+                        if nivel_sel:
+                            # Filtramos df_gen para obtener solo los grados de ese nivel
+                            grados_options = df_gen[df_gen['NIVEL'] == nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
+                        
+                        grado_sel = st.selectbox(
+                            "Paso 2: Selecciona el Grado", 
+                            options=grados_options, 
+                            index=None, 
+                            placeholder="Elige un Nivel primero...",
+                            disabled=(not nivel_sel) # Deshabilitado hasta que se elija un nivel
+                        )
+                        
+                        # Desplegable 03: Temática (Campo de Texto)
+                        tema_sel = st.text_input(
+                            "Paso 3: Escribe el tema o temática a tratar",
+                            placeholder="Ej: El sistema solar, La fotosíntesis, El verbo...",
+                            disabled=(not grado_sel) # Deshabilitado hasta que se elija un grado
+                        )
+                        
+                        # Desplegable 04: Tiempo
+                        tiempo_sel = st.selectbox(
+                            "Paso 4: Selecciona la duración de la sesión",
+                            options=["90 minutos", "180 minutos"],
+                            index=None,
+                            placeholder="Elige una opción...",
+                            disabled=(not tema_sel) # Deshabilitado hasta que se escriba un tema
+                        )
+                        
+                        # Botón de envío
+                        submitted = st.form_submit_button("Generar Sesión (Prueba)")
+                        
+                        if submitted:
+                            # Validación simple
+                            if not nivel_sel or not grado_sel or not tema_sel or not tiempo_sel:
+                                st.error("Por favor, completa todos los campos del formulario.")
+                            else:
+                                st.success("¡Formulario verificado! (Aún no se genera la sesión).")
+                                st.write(f"**Nivel:** {nivel_sel}")
+                                st.write(f"**Grado:** {grado_sel}")
+                                st.write(f"**Temática:** {tema_sel}")
+                                st.write(f"**Duración:** {tiempo_sel}")
+            
+            # Aquí irían los 'elif' para las otras herramientas
+            elif tipo_herramienta == "Unidad de aprendizaje":
+                st.info("Función de Unidades de Aprendizaje (Próximamente).")
+            
+            elif tipo_herramienta == "Planificación Anual":
+                st.info("Función de Planificación Anual (Próximamente).")
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -592,6 +667,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
