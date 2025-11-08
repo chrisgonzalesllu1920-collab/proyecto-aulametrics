@@ -471,7 +471,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (LÓGICA IF/ELSE RESTAURADA) ===
+# === (CORRECCIÓN FINAL DEL TypeError en st.radio) ===
 # =========================================================================
 
 def home_page():
@@ -501,18 +501,14 @@ def home_page():
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
         logout()
 
-    # --- INICIO DE LA CORRECCIÓN DE LÓGICA (Arregla el cargador desaparecido) ---
-    
     # 3. LÓGICA DE CARGA Y PESTAÑAS
     # Si el DataFrame YA está cargado (df_cargado es True), mostramos las pestañas.
     if st.session_state.df_cargado:
         
-        # Obtenemos los dataframes del estado de sesión
         df = st.session_state.df
         df_config = st.session_state.df_config
         info_areas = st.session_state.info_areas
         
-        # Creamos las 3 pestañas
         tab_general, tab_estudiante, tab_asistente = st.tabs([
             "📊 Análisis General", 
             "🧑‍🎓 Análisis por Estudiante", 
@@ -527,18 +523,19 @@ def home_page():
         with tab_estudiante:
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
             
-        # Pestaña 3: Asistente Pedagógico (CON EL NUEVO FORMULARIO)
+        # Pestaña 3: Asistente Pedagógico (CON EL FORMULARIO CORREGIDO)
         with tab_asistente:
             st.header("🧠 Asistente Pedagógico")
             
-            # 1. Selección de Herramienta
+            # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL TypeError! ---
+            # (Se ha eliminado el argumento 'disabled' que causaba el error)
             tipo_herramienta = st.radio(
                 "01. Selecciona la herramienta que deseas usar:",
                 options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
                 index=0, 
-                disabled=(False, True, True),
                 horizontal=True
             )
+            # -----------------------------------------------
             
             st.markdown("---")
 
@@ -551,10 +548,7 @@ def home_page():
                 if df_gen is None:
                     st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estándares de aprendizaje.xlsx'.")
                 else:
-                    # Formulario de 4 Pasos
                     with st.form(key="session_form"):
-                        
-                        # Desplegable 01: Nivel
                         niveles = df_gen['NIVEL'].dropna().unique()
                         nivel_sel = st.selectbox(
                             "Paso 1: Selecciona el Nivel", 
@@ -563,7 +557,6 @@ def home_page():
                             placeholder="Elige una opción..."
                         )
                         
-                        # Desplegable 02: Grado (Dependiente)
                         grados_options = []
                         if nivel_sel:
                             grados_options = df_gen[df_gen['NIVEL'] == nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
@@ -576,14 +569,12 @@ def home_page():
                             disabled=(not nivel_sel)
                         )
                         
-                        # Desplegable 03: Temática
                         tema_sel = st.text_input(
                             "Paso 3: Escribe el tema o temática a tratar",
                             placeholder="Ej: El sistema solar, La fotosíntesis...",
                             disabled=(not grado_sel)
                         )
                         
-                        # Desplegable 04: Tiempo
                         tiempo_sel = st.selectbox(
                             "Paso 4: Selecciona la duración de la sesión",
                             options=["90 minutos", "180 minutos"],
@@ -592,7 +583,6 @@ def home_page():
                             disabled=(not tema_sel)
                         )
                         
-                        # Botón de envío
                         submitted = st.form_submit_button("Generar Sesión (Prueba)")
                         
                         if submitted:
@@ -614,8 +604,6 @@ def home_page():
     # Si el DataFrame NO está cargado (df_cargado es False), mostramos el uploader.
     else:
         configurar_uploader()
-    
-    # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -665,6 +653,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
