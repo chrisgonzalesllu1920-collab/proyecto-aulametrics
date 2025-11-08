@@ -235,7 +235,7 @@ def cargar_datos_pedagogicos():
         st.error("Verifica los nombres de las hojas: 'Generalidades', 'Ciclos', y 'estandares de aprendizaje'.")
         return None, None, None
 
-# --- FUNCIÓN (UPLOADER) - CORREGIDA ---
+# --- FUNCIÓN (UPLOADER) - CORREGIDA PARA IGNORAR "Parametros" ---
 def configurar_uploader():
     """
     Muestra el file_uploader y maneja la lógica de carga y procesamiento.
@@ -254,33 +254,34 @@ def configurar_uploader():
     if uploaded_file is not None:
         with st.spinner('Procesando archivo...'):
             try:
-                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-                
-                # 1. Leemos el archivo Excel
                 excel_file = pd.ExcelFile(uploaded_file)
-                
-                # 2. Obtenemos los nombres de las hojas, respetando el límite
                 sheet_names = excel_file.sheet_names
                 
-                # Ignoramos la hoja de generalidades en la lista de análisis
-                sheet_names = [name for name in sheet_names if name.lower() != analysis_core.GENERAL_SHEET_NAME.lower()]
+                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA "Parametros"! ---
+                # Ignoramos las hojas que NO son de áreas
+                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros']
+                sheet_names = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
+                # ----------------------------------------------------
 
                 if limite_hojas:
                     sheet_names = sheet_names[:limite_hojas]
                 
-                # 3. Llamamos a la función CORRECTA de analysis_core.py
                 results_dict = analysis_core.analyze_data(excel_file, sheet_names)
                 
-                # 4. Asignamos el resultado
                 st.session_state.info_areas = results_dict
-                
-                # 5. Marcamos el DataFrame como cargado
                 st.session_state.df_cargado = True
                 
-                # 6. (NOTA: 'df' y 'df_config' no se usan por ahora, 
-                # porque 'analyze_data' no los devuelve)
+                # (Lógica temporal para la Pestaña 2)
                 st.session_state.df = None 
                 st.session_state.df_config = None
+                try:
+                    first_sheet = sheet_names[0]
+                    df_consolidado = pd.read_excel(uploaded_file, sheet_name=first_sheet, header=0)
+                    if 'APELLIDOS Y NOMBRES' in df_consolidado.columns:
+                         df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
+                    st.session_state.df = df_consolidado
+                except Exception as e:
+                    pass # Ignora si falla
                 
                 st.rerun()
                 
@@ -604,6 +605,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
