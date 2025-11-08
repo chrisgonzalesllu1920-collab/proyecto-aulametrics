@@ -10,20 +10,27 @@ import os
 import base64 
 
 # =========================================================================
-# === 1. CONFIGURACIÓN DE LA PÁGINA ===
+# === 1. IMPORTS Y CONFIGURACIÓN INICIAL ===
 # =========================================================================
 import streamlit as st
-import base64 # Asegúrate de que 'base64' esté importado
+import pandas as pd
+import analysis_core          # <--- Importante
+import pedagogical_assistant  # <--- Importante
+from auth import login_user
+import plotly.express as px
+import io 
+import xlsxwriter 
+import os 
+import base64 
 
-# --- INICIO DE LA MODIFICACIÓN (Configuración Completa) ---
-# Se ha verificado 'layout="wide"' y se ha añadido 'initial_sidebar_state'
+# --- CONFIGURACIÓN DE PÁGINA (SOLO UNA VEZ) ---
+# (Este es el st.set_page_config de tu Sección 1, que es el correcto)
 st.set_page_config(
     page_title="AulaMetrics", 
-    page_icon="assets/isotipo.png", # <-- Actualizado al logo
+    page_icon="assets/isotipo.png",
     layout="wide",
-    initial_sidebar_state="collapsed" # <-- Esta línea es importante
+    initial_sidebar_state="collapsed"
 )
-# --- FIN DE LA MODIFICACIÓN ---
 
 @st.cache_data 
 def get_image_as_base64(file_path):
@@ -36,18 +43,10 @@ def get_image_as_base64(file_path):
         return None
 
 # =========================================================================
-# === 2. CONFIGURACIÓN INICIAL Y ESTADO DE SESIÓN ===
+# === 2. INICIALIZACIÓN DEL ESTADO DE SESIÓN ===
 # =========================================================================
+# (Este es tu bloque de Sección 2, está perfecto)
 
-st.set_page_config(
-    page_title="AulaMetrics",
-    page_icon="assets/isotipo.png", # (La ruta SÍ es correcta)
-    layout="wide"
-)
-
-# --- INICIALIZACIÓN DEL ESTADO DE SESIÓN (¡AQUÍ ESTÁ LA CORRECCIÓN!) ---
-
-# (Asegúrate de que estas líneas estén presentes y se ejecuten)
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
     
@@ -57,12 +56,9 @@ if 'user_level' not in st.session_state:
 if 'show_welcome_message' not in st.session_state:
     st.session_state.show_welcome_message = False
     
-# --- ¡AQUÍ ESTÁ LA LÍNEA CLAVE QUE FALTABA! ---
-# (Esto arregla el AttributeError de la captura image_bc2ade.png)
 if 'df_cargado' not in st.session_state:
     st.session_state.df_cargado = False
 
-# (Inicializamos el resto también para evitar futuros errores)
 if 'df' not in st.session_state:
     st.session_state.df = None
 if 'df_config' not in st.session_state:
@@ -208,7 +204,18 @@ st.markdown("""
 ISOTIPO_PATH = "assets/isotipo.png"
 RUTA_ESTANDARES = "assets/Estándares de aprendizaje.xlsx"
 
-# --- FUNCIÓN NUEVA (ASISTENTE PEDAGÓGICO) ---
+# --- FUNCIÓN DE LOGOUT (¡NUEVA!) ---
+def logout():
+    """Resetea el estado de sesión y vuelve a la página de login."""
+    st.session_state.logged_in = False
+    st.session_state.user_level = None
+    st.session_state.df_cargado = False
+    st.session_state.df = None
+    st.session_state.df_config = None
+    st.session_state.info_areas = None
+    st.rerun()
+
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
@@ -227,7 +234,7 @@ def cargar_datos_pedagogicos():
         st.error("Verifica los nombres de las hojas: 'Generalidades', 'Ciclos', y 'estandares de aprendizaje'.")
         return None, None, None
 
-# --- FUNCIÓN RESTAURADA (UPLOADER) ---
+# --- FUNCIÓN (UPLOADER) ---
 def configurar_uploader():
     """
     Muestra el file_uploader y maneja la lógica de carga y procesamiento.
@@ -246,11 +253,13 @@ def configurar_uploader():
     if uploaded_file is not None:
         with st.spinner('Procesando archivo...'):
             try:
-                # Asumiendo que 'procesar_excel_cargado' está en tu Sección 4 original
-                results_dict, df_consolidado, df_config = procesar_excel_cargado(
+                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL NameError! ---
+                # (Llamamos a la función desde el módulo 'analysis_core')
+                results_dict, df_consolidado, df_config = analysis_core.procesar_excel_cargado(
                     uploaded_file, 
                     limite_hojas=limite_hojas
                 )
+                # ------------------------------------------------
                 
                 st.session_state.df_cargado = True
                 st.session_state.df = df_consolidado
@@ -262,8 +271,7 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
 
-# --- FUNCIÓN RESTAURADA (TAB 1: ANÁLISIS GENERAL) ---
-# (Esta es tu función 'display_analysis_dashboard', renombrada)
+# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) ---
 def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, results):
     """
     Muestra el contenido de la primera pestaña (Análisis General).
@@ -392,7 +400,7 @@ def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, result
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
 
-# --- FUNCIÓN RESTAURADA (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
+# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
@@ -420,14 +428,13 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
 
 
 # --- FUNCIÓN (Conversión a Excel) ---
-# (Asumo que esta función ya la tienes, pero la incluyo por si acaso)
 @st.cache_data
 def convert_df_to_excel(df, area_name, general_info):
     """Convierte DataFrame a formato Excel (xlsx) en memoria con formato."""
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         workbook = writer.book
-        info_sheet = workbook.add_worksheet("Generalidades")
+        info_sheet = workbook.add_worksVshee("Generalidades")
         bold = workbook.add_format({'bold': True})
         info_sheet.write('A1', 'Área:', bold)
         info_sheet.write('B1', area_name)
@@ -569,6 +576,5 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
-
 
 
