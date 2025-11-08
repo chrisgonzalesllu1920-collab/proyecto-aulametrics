@@ -222,6 +222,8 @@ def logout():
 
 # --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA ---
 @st.cache_data(ttl=3600)
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con ffill para Área) ---
+@st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
     Carga las 4 hojas del archivo Excel de estándares de aprendizaje.
@@ -233,9 +235,15 @@ def cargar_datos_pedagogicos():
         df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
         df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
         
-        # --- ¡CORRECCIÓN! (Rellenamos celdas combinadas en AMBAS hojas) ---
+        # --- ¡CORRECCIÓN! (Rellenamos celdas combinadas en 3 lugares) ---
         df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
         df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
+        
+        # --- ¡AQUÍ ESTÁ LA NUEVA CORRECCIÓN! ---
+        # (Esto arregla el bug de que solo carga una competencia)
+        df_desc_sec['Área'] = df_desc_sec['Área'].ffill()
+        df_desc_prim['Área'] = df_desc_prim['Área'].ffill()
+        # -----------------------------------------------
         
         return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
     
@@ -678,6 +686,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
