@@ -198,13 +198,12 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (Corrección de Carga de Hojas y Tilde) ===
+# === (Corrección de ffill para celdas combinadas) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
 ISOTIPO_PATH = "assets/isotipo.png"
-# --- ¡CORRECCIÓN! (Ruta sin tilde) ---
-RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx"
+RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" # (Nombre sin tilde)
 
 # --- FUNCIÓN DE LOGOUT ---
 def logout():
@@ -217,22 +216,23 @@ def logout():
     st.session_state.info_areas = None
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA (Punto 02) ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA (Punto 01) ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
-    Carga SOLO la hoja 'Generalidades' por ahora.
-    Las otras hojas se cargarán cuando se necesiten.
+    Carga SOLO la hoja 'Generalidades' y rellena las celdas combinadas.
     """
     try:
-        # --- ¡CORRECCIÓN CLAVE! ---
-        # (Solo cargamos la hoja que necesitamos para el formulario)
         df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
         
-        # (Las otras hojas las dejamos como None por ahora)
+        # --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA EL BUG 01! ---
+        # Rellenamos los valores vacíos en 'NIVEL' (para celdas combinadas)
+        # 'ffill' significa "forward fill" (rellenar hacia adelante)
+        df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
+        # -----------------------------------------------
+        
         df_ciclos = None
         df_estandares = None
-        # -------------------------------------------
         
         return df_generalidades, df_ciclos, df_estandares
     
@@ -666,6 +666,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
