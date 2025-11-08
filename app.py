@@ -198,14 +198,14 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (¡CORREGIDA!) ===
+# === (VERSIÓN CORREGIDA FINAL) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
 ISOTIPO_PATH = "assets/isotipo.png"
 RUTA_ESTANDARES = "assets/Estándares de aprendizaje.xlsx"
 
-# --- FUNCIÓN DE LOGOUT (¡NUEVA!) ---
+# --- FUNCIÓN DE LOGOUT ---
 def logout():
     """Resetea el estado de sesión y vuelve a la página de login."""
     st.session_state.logged_in = False
@@ -235,7 +235,7 @@ def cargar_datos_pedagogicos():
         st.error("Verifica los nombres de las hojas: 'Generalidades', 'Ciclos', y 'estandares de aprendizaje'.")
         return None, None, None
 
-# --- FUNCIÓN (UPLOADER) ---
+# --- FUNCIÓN (UPLOADER) - CORREGIDA ---
 def configurar_uploader():
     """
     Muestra el file_uploader y maneja la lógica de carga y procesamiento.
@@ -254,7 +254,7 @@ def configurar_uploader():
     if uploaded_file is not None:
         with st.spinner('Procesando archivo...'):
             try:
-                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL AttributeError! ---
+                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
                 
                 # 1. Leemos el archivo Excel
                 excel_file = pd.ExcelFile(uploaded_file)
@@ -271,33 +271,16 @@ def configurar_uploader():
                 # 3. Llamamos a la función CORRECTA de analysis_core.py
                 results_dict = analysis_core.analyze_data(excel_file, sheet_names)
                 
-                # 4. Asignamos el único resultado
+                # 4. Asignamos el resultado
                 st.session_state.info_areas = results_dict
                 
-                # 5. Creamos los DataFrames consolidados (¡ESTO FALTABA!)
-                # (Asumiendo que 'analysis_core.consolidar_resultados' no existe, 
-                # lo hacemos aquí temporalmente)
-                
-                # --- Lógica de consolidación (simplificada) ---
-                # (Necesitaremos construir 'df_consolidado' y 'df_config' aquí
-                # por ahora, los dejamos en None para que la app no se rompa)
-                df_consolidado = None 
-                df_config = None 
-                
-                # (Intentamos cargar el df de estudiantes de la primera hoja para la Tab 2)
-                try:
-                    first_sheet = sheet_names[0]
-                    df_consolidado = pd.read_excel(uploaded_file, sheet_name=first_sheet, header=0)
-                    # Renombramos columnas para que coincidan (ejemplo)
-                    if 'APELLIDOS Y NOMBRES' in df_consolidado.columns:
-                         df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
-                except Exception as e:
-                    st.warning(f"No se pudo generar el df consolidado para 'Análisis por Estudiante': {e}")
-                # --- Fin de la lógica de consolidación temporal ---
-
+                # 5. Marcamos el DataFrame como cargado
                 st.session_state.df_cargado = True
-                st.session_state.df = df_consolidado # Puede ser None
-                st.session_state.df_config = df_config # Es None
+                
+                # 6. (NOTA: 'df' y 'df_config' no se usan por ahora, 
+                # porque 'analyze_data' no los devuelve)
+                st.session_state.df = None 
+                st.session_state.df_config = None
                 
                 st.rerun()
                 
@@ -305,8 +288,8 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
 
-# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) ---
-def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, results):
+# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) - CORREGIDA ---
+def mostrar_analisis_general(results):
     """
     Muestra el contenido de la primera pestaña (Análisis General).
     """
@@ -385,11 +368,15 @@ def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, result
                     options=competencia_nombres_limpios,
                     key=f'select_comp_bar_{sheet_name}'
                 )
-                df_bar = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(
+                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(
                     index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'}
                 )
-                df_bar.name = 'Estudiantes'
-                df_bar = df_bar.reset_index(names=['Nivel'])
+                
+                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL TypeError! ---
+                df_bar = df_bar_data.reset_index()
+                df_bar.columns = ['Nivel', 'Estudiantes']
+                # -----------------------------------------------
+                
                 fig = px.bar(df_bar, x='Nivel', y='Estudiantes', 
                              title=f"Distribución de Logros: {selected_comp}",
                              color='Nivel',
@@ -402,8 +389,13 @@ def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, result
                     options=competencia_nombres_limpios,
                     key=f'select_comp_pie_{sheet_name}'
                 )
-                data_pie = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].reset_index(names=['Nivel'])
+                
+                # --- CORRECCIÓN DE TypeError (para el gráfico de pastel) ---
+                data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
+                data_pie = data_pie_data.reset_index()
                 data_pie.columns = ['Nivel', 'Estudiantes']
+                # ----------------------------------------------------
+                
                 fig = px.pie(data_pie, values='Estudiantes', names='Nivel', 
                              title=f"Distribución Proporcional de Logros: {selected_comp}",
                              color='Nivel',
@@ -424,7 +416,7 @@ def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, result
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        # (Aquí asumimos que 'pedagogical_assistant.generate_suggestions' existe)
+                        # (Aquí llamaremos a la IA)
                         ai_report_text = f"Generando reporte para {comp_name_limpio}..."
                         st.markdown(ai_report_text, unsafe_allow_html=True)
                 else:
@@ -434,7 +426,7 @@ def mostrar_analisis_general(df_tabla_placeholder, df_config_placeholder, result
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
 
-# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
+# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - CORREGIDA ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
@@ -442,7 +434,16 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
     st.write("Selecciona un estudiante para ver su perfil de logros detallado.")
     
-    if df is not None:
+    # --- ARREGLO TEMPORAL ---
+    # Tu 'analysis_core.py' actual NO devuelve los datos por estudiante.
+    # Por lo tanto, esta pestaña no puede funcionar todavía.
+    # Mostramos un mensaje de "En construcción".
+    
+    st.info("Esta función está actualmente en desarrollo.")
+    st.warning("El motor de análisis ('analysis_core.py') necesita ser actualizado para extraer los datos individuales de los estudiantes, no solo los totales.")
+    
+    # (El código de abajo no se ejecutará, previniendo el error)
+    if False and df is not None:
         try:
             lista_estudiantes = df['Estudiante'].unique()
             estudiante_seleccionado = st.selectbox("Selecciona un Estudiante", options=lista_estudiantes, key="select_student_tab")
@@ -451,16 +452,12 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
                 st.subheader(f"Perfil de: {estudiante_seleccionado}")
                 datos_estudiante = df[df['Estudiante'] == estudiante_seleccionado]
                 st.dataframe(datos_estudiante)
-                st.info("El desarrollo de la vista individual está en progreso.")
         
         except KeyError:
             st.error("Error: La columna 'Estudiante' no se encontró en el DataFrame consolidado.")
-            st.warning("Nota: El análisis por estudiante requiere que la columna 'APELLIDOS Y NOMBRES' sea renombrada a 'Estudiante' en el DataFrame cargado.")
         except Exception as e:
             st.error(f"Ocurrió un error al mostrar el análisis por estudiante: {e}")
-    else:
-        st.info("No hay datos cargados para mostrar. El DataFrame consolidado es 'None'.")
-
+    # --- FIN DEL ARREGLO ---
 
 # --- FUNCIÓN (Conversión a Excel) ---
 @st.cache_data
@@ -479,15 +476,14 @@ def convert_df_to_excel(df, area_name, general_info):
         info_sheet.write('B3', general_info.get('grado', 'N/A'))
         
         sheet = workbook.add_worksheet('Frecuencias')
-        # (El resto de tu lógica de formato de Excel va aquí)
-        # ... (simplificado por brevedad, tu código original está bien) ...
+        # ... (tu lógica de formato de Excel está bien) ...
         df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
 
     return output.getvalue()
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (LÓGICA CORREGIDA PARA EL ERROR 'AttributeError') ===
+# === (LÓGICA CORREGIDA FINAL) ===
 # =========================================================================
 
 def home_page():
@@ -515,12 +511,9 @@ def home_page():
 
     # Botón de cerrar sesión
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
-        logout() # (Asegúrate de que la función logout() esté definida)
+        logout()
 
-    # --- INICIO DE LA CORRECCIÓN DE LÓGICA (Arregla el AttributeError) ---
-    
     # 3. LÓGICA DE CARGA Y PESTAÑAS
-    # Si el DataFrame YA está cargado, mostramos las pestañas.
     if st.session_state.df_cargado:
         
         # Obtenemos los dataframes del estado de sesión
@@ -537,10 +530,12 @@ def home_page():
 
         # Pestaña 1: Análisis General
         with tab_general:
-            mostrar_analisis_general(df, df_config, info_areas)
+            # (Llamamos a la función solo con los datos que necesita)
+            mostrar_analisis_general(info_areas)
 
         # Pestaña 2: Análisis por Estudiante
         with tab_estudiante:
+            # (Llamamos a la función solo con los datos que necesita)
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
             
         # Pestaña 3: Asistente Pedagógico
@@ -560,8 +555,6 @@ def home_page():
     # Si el DataFrame NO está cargado, mostramos el uploader.
     else:
         configurar_uploader()
-    
-    # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -611,6 +604,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
