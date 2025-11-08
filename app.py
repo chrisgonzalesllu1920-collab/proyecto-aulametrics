@@ -510,34 +510,36 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (VERSIÓN LIMPIA - SOLO FORMULARIO DE LOGIN) ===
+# === (VERSIÓN LIMPIA + TÍTULO RESTAURADO) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
 
-    # --- INICIO DE LA MODIFICACIÓN (Formulario Centrado) ---
-    
-    # 1. Centramos el formulario
     _col1, col_form, _col3 = st.columns([1, 1.5, 1])
     
     with col_form:
         
-        # 2. Añadimos el isotipo para continuidad de marca
         ISOTIPO_PATH = "assets/isotipo.png"
-        
-        # (Verificamos si la imagen existe antes de mostrarla)
         try:
             st.image(ISOTIPO_PATH, width=120)
         except Exception as e:
-            # (Si no encuentra la imagen, simplemente no la muestra)
             pass 
+        
+        # --- INICIO DE LA MODIFICACIÓN (Título Restaurado) ---
+        # Re-añadimos el título, usando el estilo CSS de las páginas internas
+        # (Asumiendo que .gradient-title-dashboard está en tu Sección 3)
+        st.markdown(
+            '<h1 class="gradient-title-dashboard" style="text-align: center;">AulaMetrics</h1>', 
+            unsafe_allow_html=True
+        )
+        st.write("") # Añadir un pequeño espacio
+        # --- FIN DE LA MODIFICACIÓN ---
         
         st.header("🔑 Iniciar Sesión")
         
         username = st.text_input("Usuario", key="login_user")
         password = st.text_input("Contraseña", type="password", key="login_pass")
         
-        # Lógica de login
         if st.button("Entrar", key="login_button", type="primary"):
             
             user_level = login_user(username, password)
@@ -557,15 +559,8 @@ if not st.session_state.logged_in:
             else:
                 st.error("Usuario o contraseña incorrectos.")
 
-    # 3. ELIMINAMOS las columnas de "Quiénes Somos", "Planes" y el Footer,
-    # ya que ahora están en la página de inicio (Netlify).
-    
-    # --- FIN DE LA MODIFICACIÓN ---
-
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
-
-
