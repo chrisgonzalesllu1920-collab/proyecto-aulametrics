@@ -198,7 +198,7 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (Nombres de Hojas Corregidos) ===
+# === (Corrección de Mayúsculas en nombre de Hoja) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
@@ -223,11 +223,11 @@ def cargar_datos_pedagogicos():
     Carga las tres hojas del archivo Excel de estándares de aprendizaje.
     """
     try:
-        # --- ¡AQUÍ ESTÁN LOS NOMBRES CORREGIDOS! ---
+        # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DE MAYÚSCULAS! ---
         df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
         df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
         df_estandares = pd.read_excel(RUTA_ESTANDARES, sheet_name="Estandaresdeaprendizaje")
-        # -------------------------------------------
+        # -----------------------------------------------
         
         return df_generalidades, df_ciclos, df_estandares
     
@@ -236,11 +236,10 @@ def cargar_datos_pedagogicos():
         return None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        # (Mensaje de error actualizado para ayudarte a depurar en el futuro)
         st.error("Verifica los nombres de las hojas: 'Generalidades', 'Cicloseducativos', y 'Estandaresdeaprendizaje'.")
         return None, None, None
 
-# --- FUNCIÓN (UPLOADER) - CORREGIDA PARA IGNORAR "Parametros" ---
+# --- FUNCIÓN (UPLOADER) ---
 def configurar_uploader():
     """
     Muestra el file_uploader y maneja la lógica de carga y procesamiento.
@@ -262,7 +261,6 @@ def configurar_uploader():
                 excel_file = pd.ExcelFile(uploaded_file)
                 sheet_names = excel_file.sheet_names
                 
-                # Ignoramos las hojas que NO son de áreas
                 IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros']
                 sheet_names = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
 
@@ -274,7 +272,6 @@ def configurar_uploader():
                 st.session_state.info_areas = results_dict
                 st.session_state.df_cargado = True
                 
-                # (Lógica temporal para la Pestaña 2)
                 st.session_state.df = None 
                 st.session_state.df_config = None
                 try:
@@ -412,7 +409,6 @@ def mostrar_analisis_general(results):
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        # (Llamada a la IA (Función 1)
                         ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
                         st.markdown(ai_report_text, unsafe_allow_html=True)
                 else:
@@ -422,16 +418,14 @@ def mostrar_analisis_general(results):
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
 
-# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - CORREGIDA (Punto 01) ---
+# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
     """
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
     
-    # --- ¡CORRECCIÓN! (Mensaje de advertencia eliminado) ---
     st.info("Esta función está actualmente en desarrollo.")
-    # ----------------------------------------------------
     
     if False and df is not None:
         try:
@@ -469,7 +463,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (CORRECCIÓN FINAL DEL TypeError en st.radio) ===
+# === (Corrección de Nombres en st.radio) ===
 # =========================================================================
 
 def home_page():
@@ -500,7 +494,6 @@ def home_page():
         logout()
 
     # 3. LÓGICA DE CARGA Y PESTAÑAS
-    # Si el DataFrame YA está cargado (df_cargado es True), mostramos las pestañas.
     if st.session_state.df_cargado:
         
         df = st.session_state.df
@@ -525,8 +518,7 @@ def home_page():
         with tab_asistente:
             st.header("🧠 Asistente Pedagógico")
             
-            # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL TypeError! ---
-            # (Se ha eliminado el argumento 'disabled' que causaba el error)
+            # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DE LOS NOMBRES RAROS! ---
             tipo_herramienta = st.radio(
                 "01. Selecciona la herramienta que deseas usar:",
                 options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
@@ -544,8 +536,11 @@ def home_page():
                 df_gen, df_cic, df_est = cargar_datos_pedagogicos()
                 
                 if df_gen is None:
+                    # Este error ahora solo debería aparecer si el archivo REALMENTE no carga
                     st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estándares de aprendizaje.xlsx'.")
+                    st.error("Por favor, verifica que el archivo, los nombres de las hojas y las mayúsculas sean correctas.")
                 else:
+                    # Si df_gen (Generalidades) se carga, mostramos el formulario
                     with st.form(key="session_form"):
                         niveles = df_gen['NIVEL'].dropna().unique()
                         nivel_sel = st.selectbox(
@@ -651,6 +646,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
