@@ -198,7 +198,7 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (Corrección de ffill para celdas combinadas) ===
+# === (Carga las 4 hojas de Estandares) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
@@ -214,36 +214,38 @@ def logout():
     st.session_state.df = None
     st.session_state.df_config = None
     st.session_state.info_areas = None
+    # Reseteamos también las selecciones del asistente
+    keys_asistente = [k for k in st.session_state.keys() if k.startswith('asistente_')]
+    for k in keys_asistente:
+        del st.session_state[k]
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA (Punto 01) ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
-    Carga SOLO la hoja 'Generalidades' y rellena las celdas combinadas.
+    Carga las 4 hojas del archivo Excel de estándares de aprendizaje.
     """
     try:
+        # Cargamos las 4 hojas
         df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
+        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
+        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
         
-        # --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA EL BUG 01! ---
-        # Rellenamos los valores vacíos en 'NIVEL' (para celdas combinadas)
-        # 'ffill' significa "forward fill" (rellenar hacia adelante)
+        # --- ¡CORRECCIÓN! (Rellenamos celdas combinadas en AMBAS hojas) ---
         df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
-        # -----------------------------------------------
+        df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
         
-        df_ciclos = None
-        df_estandares = None
-        
-        return df_generalidades, df_ciclos, df_estandares
+        return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
     
     except FileNotFoundError:
         st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
-        st.error("Por favor, verifica que el archivo 'Estandares de aprendizaje.xlsx' (sin tilde) exista en tu carpeta 'assets'.")
-        return None, None, None
+        return None, None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        st.error("Verifica que la hoja 'Generalidades' exista en tu archivo.")
-        return None, None, None
+        st.error("Verifica los nombres de las 4 hojas: 'Generalidades', 'Cicloseducativos', 'Descriptorsecundaria', 'Descriptorprimaria'.")
+        return None, None, None, None
 
 # --- FUNCIÓN (UPLOADER) ---
 def configurar_uploader():
@@ -301,7 +303,6 @@ def mostrar_analisis_general(results):
     Muestra el contenido de la primera pestaña (Análisis General).
     """
     is_premium = (st.session_state.user_level == "premium")
-
     st.markdown("---")
     st.subheader("Resultados Consolidados por Área")
 
@@ -314,11 +315,7 @@ def mostrar_analisis_general(results):
     st.sidebar.subheader("⚙️ Configuración del Gráfico")
     if is_premium:
         chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
-        st.session_state.chart_type = st.sidebar.radio(
-            "Elige el tipo de visualización:",
-            chart_options,
-            key="chart_radio_premium"
-        )
+        st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
     else:
         st.sidebar.markdown("Tipo de visualización: **Barras (Por Competencia)**")
         st.sidebar.caption("🔒 (Elección entre gráficos estadísticos) es una función Premium.")
@@ -331,18 +328,13 @@ def mostrar_analisis_general(results):
             if 'error' in result:
                 st.error(f"Error al procesar la hoja '{sheet_name}': {result['error']}")
                 continue
-            
             competencias = result['competencias']
-
             if not competencias:
                 st.info(f"No se encontraron datos de competencias en la hoja '{sheet_name}'.")
                 continue
 
             st.markdown("##### 1. Distribución de Logros")
-            data = {
-                'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [],
-                'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []
-            }
+            data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
             for col_original_name, comp_data in competencias.items():
                 counts = comp_data['conteo_niveles']
                 total = comp_data['total_evaluados']
@@ -357,48 +349,26 @@ def mostrar_analisis_general(results):
             st.dataframe(df_table)
             
             excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
-            st.download_button(
-                label=f"⬇️ (Opción de exportar a Excel) ({sheet_name})",
-                data=excel_data,
-                file_name=f'Frecuencias_{sheet_name}.xlsx',
-                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                key=f'download_excel_{sheet_name}'
-            )
+            st.download_button(label=f"⬇️ (Opción de exportar a Excel) ({sheet_name})", data=excel_data, file_name=f'Frecuencias_{sheet_name}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', key=f'download_excel_{sheet_name}')
 
             st.markdown("---")
             competencia_nombres_limpios = df_table.index.tolist()
             selected_comp = None 
 
             if st.session_state.chart_type == 'Barras (Por Competencia)':
-                selected_comp = st.selectbox(
-                    f"Selecciona la competencia para ver el Gráfico de Barras en {sheet_name}:",
-                    options=competencia_nombres_limpios,
-                    key=f'select_comp_bar_{sheet_name}'
-                )
-                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(
-                    index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'}
-                )
+                selected_comp = st.selectbox(f"Selecciona la competencia para ver el Gráfico de Barras en {sheet_name}:", options=competencia_nombres_limpios, key=f'select_comp_bar_{sheet_name}')
+                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'})
                 df_bar = df_bar_data.reset_index()
                 df_bar.columns = ['Nivel', 'Estudiantes']
-                fig = px.bar(df_bar, x='Nivel', y='Estudiantes', 
-                             title=f"Distribución de Logros: {selected_comp}",
-                             color='Nivel',
-                             color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
+                fig = px.bar(df_bar, x='Nivel', y='Estudiantes', title=f"Distribución de Logros: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
                 st.plotly_chart(fig, use_container_width=True)
             
             elif st.session_state.chart_type == 'Pastel (Proporción)':
-                selected_comp = st.selectbox(
-                    f"Selecciona la competencia para el Gráfico de Pastel en {sheet_name}:",
-                    options=competencia_nombres_limpios,
-                    key=f'select_comp_pie_{sheet_name}'
-                )
+                selected_comp = st.selectbox(f"Selecciona la competencia para el Gráfico de Pastel en {sheet_name}:", options=competencia_nombres_limpios, key=f'select_comp_pie_{sheet_name}')
                 data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
                 data_pie = data_pie_data.reset_index()
                 data_pie.columns = ['Nivel', 'Estudiantes']
-                fig = px.pie(data_pie, values='Estudiantes', names='Nivel', 
-                             title=f"Distribución Proporcional de Logros: {selected_comp}",
-                             color='Nivel',
-                             color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
+                fig = px.pie(data_pie, values='Estudiantes', names='Nivel', title=f"Distribución Proporcional de Logros: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
                 st.plotly_chart(fig, use_container_width=True)
 
             st.markdown("---")
@@ -406,12 +376,7 @@ def mostrar_analisis_general(results):
                 st.session_state[f'selected_comp_{sheet_name}'] = selected_comp
             selected_comp_key = f'selected_comp_{sheet_name}'
             
-            if st.button(
-                f"🎯 (Propuestas de mejora)", 
-                key=f"asistente_comp_{sheet_name}", 
-                type="primary",
-                disabled=not is_premium
-            ):
+            if st.button(f"🎯 (Propuestas de mejora)", key=f"asistente_comp_{sheet_name}", type="primary", disabled=not is_premium):
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
@@ -423,14 +388,12 @@ def mostrar_analisis_general(results):
             if not is_premium:
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
-
 # --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
     """
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
-    
     st.info("Esta función está actualmente en desarrollo.")
     
     if False and df is not None:
@@ -469,7 +432,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección de Formulario Dependiente) ===
+# === (Formulario de 6 Pasos Implementado) ===
 # =========================================================================
 
 def home_page():
@@ -520,7 +483,7 @@ def home_page():
         with tab_estudiante:
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
             
-        # Pestaña 3: Asistente Pedagógico (CON EL FORMULARIO CORREGIDO)
+        # Pestaña 3: Asistente Pedagógico (CON EL FORMULARIO COMPLETO)
         with tab_asistente:
             st.header("🧠 Asistente Pedagógico")
             
@@ -529,7 +492,7 @@ def home_page():
                 options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
                 index=0, 
                 horizontal=True,
-                key="asistente_tipo_herramienta" # Añadimos una key
+                key="asistente_tipo_herramienta"
             )
             
             st.markdown("---")
@@ -538,18 +501,18 @@ def home_page():
             if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
                 st.subheader("Generador de Sesión de Aprendizaje")
                 
-                df_gen, df_cic, df_est = cargar_datos_pedagogicos()
+                # --- AHORA CARGAMOS LAS 4 HOJAS ---
+                df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
                 
-                if df_gen is None:
-                    st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estandares de aprendizaje.xlsx'.")
-                    st.error("Por favor, verifica que el archivo (sin tilde) y el nombre de la hoja ('Generalidades') sean correctos.")
+                # Verificación de carga
+                if df_gen is None or df_cic is None or df_desc_sec is None or df_desc_prim is None:
+                    st.error("Error crítico: No se pudieron cargar todas las hojas de 'Estandares de aprendizaje.xlsx'.")
+                    st.error("Por favor, verifica que el archivo y los nombres de las 4 hojas sean correctos.")
                 else:
-                    # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-                    # Pasos 1 y 2 van FUERA del formulario para permitir actualizaciones
+                    # --- FORMULARIO DEPENDIENTE DE 6 PASOS ---
                     
+                    # PASO 1: Nivel (Usa Hoja 'Generalidades')
                     niveles = df_gen['NIVEL'].dropna().unique()
-                    
-                    # Usamos 'key' para guardar la selección en st.session_state
                     nivel_sel = st.selectbox(
                         "Paso 1: Selecciona el Nivel", 
                         options=niveles, 
@@ -558,8 +521,8 @@ def home_page():
                         key="asistente_nivel_sel" 
                     )
                     
+                    # PASO 2: Grado (Depende del Nivel)
                     grados_options = []
-                    # Leemos la selección desde st.session_state
                     if st.session_state.asistente_nivel_sel:
                         grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
                     
@@ -568,24 +531,63 @@ def home_page():
                         options=grados_options, 
                         index=None, 
                         placeholder="Elige un Nivel primero...",
-                        disabled=(not st.session_state.asistente_nivel_sel), # Deshabilitado si no hay Nivel
+                        disabled=(not st.session_state.asistente_nivel_sel),
                         key="asistente_grado_sel"
                     )
 
-                    # Pasos 3 y 4 van DENTRO del formulario
+                    # PASO 3: Área (Depende del Nivel)
+                    areas_options = []
+                    df_hoja_descriptor = None # Para saber qué hoja usar
+                    
+                    if st.session_state.asistente_grado_sel:
+                        # Elegimos la hoja de descriptor correcta
+                        if st.session_state.asistente_nivel_sel == "SECUNDARIA":
+                            df_hoja_descriptor = df_desc_sec
+                        elif st.session_state.asistente_nivel_sel == "PRIMARIA":
+                            df_hoja_descriptor = df_desc_prim
+                        
+                        if df_hoja_descriptor is not None:
+                            # (Tu corrección: filtramos solo por Nivel, no por Ciclo)
+                            areas_options = df_hoja_descriptor['Área'].dropna().unique()
+                    
+                    area_sel = st.selectbox(
+                        "Paso 3: Selecciona el Área", 
+                        options=areas_options,
+                        index=None,
+                        placeholder="Elige un Grado primero...",
+                        disabled=(not st.session_state.asistente_grado_sel),
+                        key="asistente_area_sel"
+                    )
+
+                    # PASO 4: Competencia (Depende del Área)
+                    competencias_options = []
+                    if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
+                        # (Usamos 'multiselect' como pediste)
+                        competencias_options = df_hoja_descriptor[
+                            df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
+                        ]['Competencia'].dropna().unique()
+
+                    competencias_sel = st.multiselect(
+                        "Paso 4: Selecciona la(s) Competencia(s)",
+                        options=competencias_options,
+                        placeholder="Elige un Área primero...",
+                        disabled=(not st.session_state.asistente_area_sel),
+                        key="asistente_competencias_sel"
+                    )
+                    
+                    # PASOS 5 y 6: Dentro de un formulario
                     with st.form(key="session_form"):
                         
-                        # Los deshabilitamos si el Grado (Paso 2) no ha sido seleccionado
-                        form_disabled = not st.session_state.asistente_grado_sel
-
+                        form_disabled = not st.session_state.asistente_competencias_sel
+                        
                         tema_sel = st.text_input(
-                            "Paso 3: Escribe el tema o temática a tratar",
+                            "Paso 5: Escribe el tema o temática a tratar",
                             placeholder="Ej: El sistema solar, La fotosíntesis...",
                             disabled=form_disabled
                         )
                         
                         tiempo_sel = st.selectbox(
-                            "Paso 4: Selecciona la duración de la sesión",
+                            "Paso 6: Selecciona la duración de la sesión",
                             options=["90 minutos", "180 minutos"],
                             index=None,
                             placeholder="Elige una opción...",
@@ -598,13 +600,23 @@ def home_page():
                         )
                         
                         if submitted:
-                            # Leemos los valores del formulario y de session_state
-                            if not st.session_state.asistente_nivel_sel or not st.session_state.asistente_grado_sel or not tema_sel or not tiempo_sel:
-                                st.error("Por favor, completa todos los campos del formulario.")
+                            # --- BÚSQUEDA INTERNA DEL CICLO (Tu Punto Clave) ---
+                            ciclo_encontrado = "No encontrado"
+                            try:
+                                ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == st.session_state.asistente_grado_sel]['ciclo'].iloc[0]
+                            except Exception as e:
+                                st.error(f"Error al buscar el ciclo: {e}")
+                            
+                            # Verificación final
+                            if not tema_sel or not tiempo_sel:
+                                st.error("Por favor, completa los Pasos 5 y 6.")
                             else:
                                 st.success("¡Formulario verificado! (Aún no se genera la sesión).")
                                 st.write(f"**Nivel:** {st.session_state.asistente_nivel_sel}")
                                 st.write(f"**Grado:** {st.session_state.asistente_grado_sel}")
+                                st.write(f"**Ciclo (encontrado):** {ciclo_encontrado}")
+                                st.write(f"**Área:** {st.session_state.asistente_area_sel}")
+                                st.write(f"**Competencias:** {', '.join(st.session_state.asistente_competencias_sel)}")
                                 st.write(f"**Temática:** {tema_sel}")
                                 st.write(f"**Duración:** {tiempo_sel}")
             
@@ -666,6 +678,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
