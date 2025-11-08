@@ -198,7 +198,7 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (Botón de IA re-conectado) ===
+# === (Nombres de Hojas Corregidos) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
@@ -216,23 +216,28 @@ def logout():
     st.session_state.info_areas = None
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
     Carga las tres hojas del archivo Excel de estándares de aprendizaje.
     """
     try:
+        # --- ¡AQUÍ ESTÁN LOS NOMBRES CORREGIDOS! ---
         df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
-        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Ciclos")
-        df_estandares = pd.read_excel(RUTA_ESTANDARES, sheet_name="estandares de aprendizaje")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
+        df_estandares = pd.read_excel(RUTA_ESTANDARES, sheet_name="Estandaresdeaprendizaje")
+        # -------------------------------------------
+        
         return df_generalidades, df_ciclos, df_estandares
+    
     except FileNotFoundError:
         st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
         return None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        st.error("Verifica los nombres de las hojas: 'Generalidades', 'Ciclos', y 'estandares de aprendizaje'.")
+        # (Mensaje de error actualizado para ayudarte a depurar en el futuro)
+        st.error("Verifica los nombres de las hojas: 'Generalidades', 'Cicloseducativos', y 'Estandaresdeaprendizaje'.")
         return None, None, None
 
 # --- FUNCIÓN (UPLOADER) - CORREGIDA PARA IGNORAR "Parametros" ---
@@ -264,7 +269,6 @@ def configurar_uploader():
                 if limite_hojas:
                     sheet_names = sheet_names[:limite_hojas]
                 
-                # Llamamos a la función CORRECTA de analysis_core.py
                 results_dict = analysis_core.analyze_data(excel_file, sheet_names)
                 
                 st.session_state.info_areas = results_dict
@@ -280,7 +284,7 @@ def configurar_uploader():
                          df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
                     st.session_state.df = df_consolidado
                 except Exception as e:
-                    pass # Ignora si falla
+                    pass 
                 
                 st.rerun()
                 
@@ -288,7 +292,7 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
 
-# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) - CORREGIDA ---
+# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) ---
 def mostrar_analisis_general(results):
     """
     Muestra el contenido de la primera pestaña (Análisis General).
@@ -408,13 +412,9 @@ def mostrar_analisis_general(results):
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        
-                        # --- ¡AQUÍ ESTÁ LA RE-CONEXIÓN DE LA IA! ---
-                        # (En lugar de texto de relleno, llamamos a la función real)
+                        # (Llamada a la IA (Función 1)
                         ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
                         st.markdown(ai_report_text, unsafe_allow_html=True)
-                        # -------------------------------------------
-                        
                 else:
                     st.warning("Selecciona una competencia en el desplegable de gráficos antes de generar el informe detallado.")
             
@@ -422,26 +422,25 @@ def mostrar_analisis_general(results):
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
 
-# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - CORREGIDA ---
+# --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - CORREGIDA (Punto 01) ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
     """
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
     
+    # --- ¡CORRECCIÓN! (Mensaje de advertencia eliminado) ---
     st.info("Esta función está actualmente en desarrollo.")
-    st.warning("El motor de análisis ('analysis_core.py') necesita ser actualizado para extraer los datos individuales de los estudiantes, no solo los totales.")
+    # ----------------------------------------------------
     
     if False and df is not None:
         try:
             lista_estudiantes = df['Estudiante'].unique()
             estudiante_seleccionado = st.selectbox("Selecciona un Estudiante", options=lista_estudiantes, key="select_student_tab")
-            
             if estudiante_seleccionado:
                 st.subheader(f"Perfil de: {estudiante_seleccionado}")
                 datos_estudiante = df[df['Estudiante'] == estudiante_seleccionado]
                 st.dataframe(datos_estudiante)
-        
         except KeyError:
             st.error("Error: La columna 'Estudiante' no se encontró en el DataFrame consolidado.")
         except Exception as e:
@@ -464,7 +463,6 @@ def convert_df_to_excel(df, area_name, general_info):
         info_sheet.write('B3', general_info.get('grado', 'N/A'))
         
         sheet = workbook.add_worksheet('Frecuencias')
-        # ... (tu lógica de formato de Excel está bien) ...
         df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
 
     return output.getvalue()
@@ -653,6 +651,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
