@@ -510,135 +510,62 @@ def home_page():
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
-# === (MODIFICADO CON LAYOUT EQUILIBRADO Y COMPACTO) ===
+# === (VERSIÓN LIMPIA - SOLO FORMULARIO DE LOGIN) ===
 # =========================================================================
 
 if not st.session_state.logged_in:
 
-    # 1. TÍTULO, LOGO Y FRASE (HERO SECTION) - BANNER SUPERIOR
-    ISOTIPO_PATH = "assets/isotipo.png" 
-    isotipo_base64 = get_image_as_base64(ISOTIPO_PATH)
+    # --- INICIO DE LA MODIFICACIÓN (Formulario Centrado) ---
     
-    hero_html_img = "" 
-    if isotipo_base64:
-        hero_html_img = f'<img src="data:image/png;base64,{isotipo_base64}" class="hero-logo">'
-    else:
-        st.error(f"No se pudo cargar el isotipo. Verifica la ruta: {ISOTIPO_PATH}")
-
-    # HTML Limpio (sin el slogan)
-    hero_html = f"""
-    <div class="hero-container">
-        {hero_html_img}
-        <h1 class="gradient-title-login">AulaMetrics</h1>
-    </div> 
-    """
-    st.markdown(hero_html, unsafe_allow_html=True)
+    # 1. Centramos el formulario
+    _col1, col_form, _col3 = st.columns([1, 1.5, 1])
     
-    # --- INICIO DE LA MODIFICACIÓN (Columnas espaciadas y Login estrecho) ---
-
-    # Punto 1 y 2: Columnas con espaciador central
-    col1, col_spacer, col2 = st.columns([2.5, 0.5, 2]) # Izquierda, Espacio, Derecha
-
-    with col1:
-        # Punto 3: Formulario más estrecho usando sub-columnas
-        sub_col1, sub_col2, sub_col3 = st.columns([0.5, 2, 0.5]) # Espacio, Formulario, Espacio
+    with col_form:
         
-        with sub_col2:
-            # 2. FORMULARIO DE INICIO DE SESIÓN
-            st.header("🔑 Iniciar Sesión")
-            username = st.text_input("Usuario", key="login_user")
-            password = st.text_input("Contraseña", type="password", key="login_pass")
-            
-            # Lógica de login
-            if st.button("Entrar", key="login_button", type="primary"):
-                user_level = login_user(username, password)
-                if user_level == "premium": 
-                    st.session_state.logged_in = True
-                    st.session_state.user_level = "premium"
-                    st.session_state.show_welcome_message = True 
-                    st.rerun() 
-                elif user_level == "free": 
-                    st.session_state.logged_in = True
-                    st.session_state.user_level = "free"
-                    st.session_state.show_welcome_message = True
-                    st.rerun()
-                else:
-                    st.error("Usuario o contraseña incorrectos.")
-
-    with col2:
-        # (Expanders cerrados y con divisor - Sin cambios)
-
-        # 1.2. SECCIÓN QUIÉNES SOMOS
-        with st.expander("¿Quiénes Somos?"):
-            st.subheader("Quiénes Somos")
-            st.markdown("""
-            Somos una plataforma pedagógica diseñada para transformar datos en conocimiento útil. 
-            Analizamos calificaciones y patrones de desempeño estudiantil para generar informes claros, 
-            interpretaciones estadísticas y propuestas de mejora orientadas al fortalecimiento de la 
-            práctica docente. Nuestro propósito es apoyar a los docentes y equipos directivos en la 
-            toma de decisiones estratégicas que optimicen los aprendizajes.
-            """)
-            st.subheader("Misión")
-            st.markdown("""
-            Brindar a los docentes una herramienta pedagógica confiable que analiza de manera rigurosa 
-            las calificaciones y datos de aprendizaje de los estudiantes, ofreciendo informes y 
-            recomendaciones basadas en evidencia. Contribuimos a la mejora continua de los procesos 
-            de enseñanza, promoviendo decisiones informadas que permitan elevar el logro de 
-            aprendizajes en toda la institución educativa.
-            """)
-            st.subheader("Visión")
-            st.markdown("""
-            Convertirnos en la herramienta líder en el análisis educativo dentro de las instituciones, 
-            reconocida por impulsar una cultura de evaluación formativa, innovación pedagógica y 
-            mejora permanente, donde cada docente cuente con información precisa para potenciar 
-            el rendimiento y desarrollo integral de sus estudiantes.
-            """)
+        # 2. Añadimos el isotipo para continuidad de marca
+        ISOTIPO_PATH = "assets/isotipo.png"
         
-        st.divider() # Divisor horizontal
-
-        # 1.1. SECCIÓN DE PLANES
-        with st.expander("Nuestros Planes"):
-            st.markdown("""
-            <div class="plan-box plan-box-free">
-            <div class="plan-title">Plan Gratuito</div>
-            <p class="plan-feature">✔️ Análisis de archivos</p>
-            <p class="plan-feature">✔️ Análisis de las dos primeras hojas (áreas)</p>
-            <p class="plan-feature">✔️ Tabla de frecuencias y porcentajes</p>
-            <p class="plan-feature">✔️ Gráficos de barras para los datos</p>
-            <p class="plan-feature">✔️ Opción de exportar a Excel</p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown("""
-            <div class="plan-box plan-box-premium">
-            <div class="plan-title">⭐ Plan Premium</div>
-            <p class="plan-feature">✔️ Todas las funciones gratuitas</p>
-            <p class="plan-feature">✔️ Elección entre gráficos estadísticos</p>
-            <p class="plan-feature">✔️ Propuestas de mejora</p>
-            <p class="plan-feature">✔️ Opción de exportar tablas y propuestas de mejora</p>
-            <p class="plan-feature">✔️ Análisis de todas las hojas del archivo (todas las áreas)</p>
-            <p class="plan-feature">✔️ Acceso a todas las nuevas funcionalidades futuras</p>
-            </div>
-            """, unsafe_allow_html=True)
+        # (Verificamos si la imagen existe antes de mostrarla)
+        try:
+            st.image(ISOTIPO_PATH, width=120)
+        except Exception as e:
+            # (Si no encuentra la imagen, simplemente no la muestra)
+            pass 
+        
+        st.header("🔑 Iniciar Sesión")
+        
+        username = st.text_input("Usuario", key="login_user")
+        password = st.text_input("Contraseña", type="password", key="login_pass")
+        
+        # Lógica de login
+        if st.button("Entrar", key="login_button", type="primary"):
             
+            user_level = login_user(username, password)
+            
+            if user_level == "premium": 
+                st.session_state.logged_in = True
+                st.session_state.user_level = "premium"
+                st.session_state.show_welcome_message = True 
+                st.rerun() 
+            
+            elif user_level == "free": 
+                st.session_state.logged_in = True
+                st.session_state.user_level = "free"
+                st.session_state.show_welcome_message = True
+                st.rerun()
+                
+            else:
+                st.error("Usuario o contraseña incorrectos.")
+
+    # 3. ELIMINAMOS las columnas de "Quiénes Somos", "Planes" y el Footer,
+    # ya que ahora están en la página de inicio (Netlify).
+    
     # --- FIN DE LA MODIFICACIÓN ---
-
-    # 3. FOOTER Y REDES SOCIALES (Se queda FUERA de las columnas, 100% ancho)
-    st.markdown("---") # Divisor
-    
-    col1_footer, col2_footer, col3_footer = st.columns([1,2,1]) 
-    
-    with col1_footer:
-        st.link_button("**Contáctanos en WhatsApp**", "https://wa.me/51XXXXXXXXX")
-
-    with col3_footer:
-        st.link_button("**Síguenos en TikTok**", "https://www.tiktok.com/@tu_usuario_tiktok")
-    
-    st.caption("© 2025 AulaMetrics. Todos los derechos reservados.")
-
 
 else:
     # 4. MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
 
