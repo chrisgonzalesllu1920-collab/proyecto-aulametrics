@@ -198,7 +198,7 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (VERSIÓN CORREGIDA FINAL) ===
+# === (Botón de IA re-conectado) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
@@ -257,15 +257,14 @@ def configurar_uploader():
                 excel_file = pd.ExcelFile(uploaded_file)
                 sheet_names = excel_file.sheet_names
                 
-                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN PARA "Parametros"! ---
                 # Ignoramos las hojas que NO son de áreas
                 IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros']
                 sheet_names = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
-                # ----------------------------------------------------
 
                 if limite_hojas:
                     sheet_names = sheet_names[:limite_hojas]
                 
+                # Llamamos a la función CORRECTA de analysis_core.py
                 results_dict = analysis_core.analyze_data(excel_file, sheet_names)
                 
                 st.session_state.info_areas = results_dict
@@ -372,12 +371,8 @@ def mostrar_analisis_general(results):
                 df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(
                     index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'}
                 )
-                
-                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL TypeError! ---
                 df_bar = df_bar_data.reset_index()
                 df_bar.columns = ['Nivel', 'Estudiantes']
-                # -----------------------------------------------
-                
                 fig = px.bar(df_bar, x='Nivel', y='Estudiantes', 
                              title=f"Distribución de Logros: {selected_comp}",
                              color='Nivel',
@@ -390,13 +385,9 @@ def mostrar_analisis_general(results):
                     options=competencia_nombres_limpios,
                     key=f'select_comp_pie_{sheet_name}'
                 )
-                
-                # --- CORRECCIÓN DE TypeError (para el gráfico de pastel) ---
                 data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
                 data_pie = data_pie_data.reset_index()
                 data_pie.columns = ['Nivel', 'Estudiantes']
-                # ----------------------------------------------------
-                
                 fig = px.pie(data_pie, values='Estudiantes', names='Nivel', 
                              title=f"Distribución Proporcional de Logros: {selected_comp}",
                              color='Nivel',
@@ -417,9 +408,13 @@ def mostrar_analisis_general(results):
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        # (Aquí llamaremos a la IA)
-                        ai_report_text = f"Generando reporte para {comp_name_limpio}..."
+                        
+                        # --- ¡AQUÍ ESTÁ LA RE-CONEXIÓN DE LA IA! ---
+                        # (En lugar de texto de relleno, llamamos a la función real)
+                        ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
                         st.markdown(ai_report_text, unsafe_allow_html=True)
+                        # -------------------------------------------
+                        
                 else:
                     st.warning("Selecciona una competencia en el desplegable de gráficos antes de generar el informe detallado.")
             
@@ -433,17 +428,10 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     Muestra el contenido de la segunda pestaña (Análisis por Estudiante).
     """
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
-    st.write("Selecciona un estudiante para ver su perfil de logros detallado.")
-    
-    # --- ARREGLO TEMPORAL ---
-    # Tu 'analysis_core.py' actual NO devuelve los datos por estudiante.
-    # Por lo tanto, esta pestaña no puede funcionar todavía.
-    # Mostramos un mensaje de "En construcción".
     
     st.info("Esta función está actualmente en desarrollo.")
     st.warning("El motor de análisis ('analysis_core.py') necesita ser actualizado para extraer los datos individuales de los estudiantes, no solo los totales.")
     
-    # (El código de abajo no se ejecutará, previniendo el error)
     if False and df is not None:
         try:
             lista_estudiantes = df['Estudiante'].unique()
@@ -458,7 +446,6 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
             st.error("Error: La columna 'Estudiante' no se encontró en el DataFrame consolidado.")
         except Exception as e:
             st.error(f"Ocurrió un error al mostrar el análisis por estudiante: {e}")
-    # --- FIN DEL ARREGLO ---
 
 # --- FUNCIÓN (Conversión a Excel) ---
 @st.cache_data
@@ -605,6 +592,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
