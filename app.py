@@ -198,12 +198,13 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
-# === (Corrección de Mayúsculas en nombre de Hoja) ===
+# === (Corrección de Carga de Hojas y Tilde) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
 ISOTIPO_PATH = "assets/isotipo.png"
-RUTA_ESTANDARES = "assets/Estándares de aprendizaje.xlsx"
+# --- ¡CORRECCIÓN! (Ruta sin tilde) ---
+RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx"
 
 # --- FUNCIÓN DE LOGOUT ---
 def logout():
@@ -216,27 +217,32 @@ def logout():
     st.session_state.info_areas = None
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - CORREGIDA (Punto 02) ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
-    Carga las tres hojas del archivo Excel de estándares de aprendizaje.
+    Carga SOLO la hoja 'Generalidades' por ahora.
+    Las otras hojas se cargarán cuando se necesiten.
     """
     try:
-        # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DE MAYÚSCULAS! ---
+        # --- ¡CORRECCIÓN CLAVE! ---
+        # (Solo cargamos la hoja que necesitamos para el formulario)
         df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
-        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
-        df_estandares = pd.read_excel(RUTA_ESTANDARES, sheet_name="Estandaresdeaprendizaje")
-        # -----------------------------------------------
+        
+        # (Las otras hojas las dejamos como None por ahora)
+        df_ciclos = None
+        df_estandares = None
+        # -------------------------------------------
         
         return df_generalidades, df_ciclos, df_estandares
     
     except FileNotFoundError:
         st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
+        st.error("Por favor, verifica que el archivo 'Estandares de aprendizaje.xlsx' (sin tilde) exista en tu carpeta 'assets'.")
         return None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        st.error("Verifica los nombres de las hojas: 'Generalidades', 'Cicloseducativos', y 'Estandaresdeaprendizaje'.")
+        st.error("Verifica que la hoja 'Generalidades' exista en tu archivo.")
         return None, None, None
 
 # --- FUNCIÓN (UPLOADER) ---
@@ -533,12 +539,13 @@ def home_page():
             if tipo_herramienta == "Sesión de aprendizaje":
                 st.subheader("Generador de Sesión de Aprendizaje")
                 
+                # (Ahora solo cargamos 'Generalidades' por defecto)
                 df_gen, df_cic, df_est = cargar_datos_pedagogicos()
                 
                 if df_gen is None:
                     # Este error ahora solo debería aparecer si el archivo REALMENTE no carga
-                    st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estándares de aprendizaje.xlsx'.")
-                    st.error("Por favor, verifica que el archivo, los nombres de las hojas y las mayúsculas sean correctas.")
+                    st.error("Error crítico: No se pudo cargar la hoja 'Generalidades' desde 'Estandares de aprendizaje.xlsx'.")
+                    st.error("Por favor, verifica que el archivo (sin tilde) y el nombre de la hoja ('Generalidades') sean correctos.")
                 else:
                     # Si df_gen (Generalidades) se carga, mostramos el formulario
                     with st.form(key="session_form"):
@@ -646,6 +653,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
