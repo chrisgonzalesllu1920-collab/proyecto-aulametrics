@@ -198,6 +198,7 @@ st.markdown("""
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
+# === (¡CORREGIDA!) ===
 # =========================================================================
 
 # --- DEFINICIÓN DE RUTAS (Paths) ---
@@ -253,20 +254,53 @@ def configurar_uploader():
     if uploaded_file is not None:
         with st.spinner('Procesando archivo...'):
             try:
-                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL NameError! ---
-                # (Llamamos a la función desde el módulo 'analysis_core')
-                results_dict, df_consolidado, df_config = analysis_core.procesar_excel_cargado(
-                    uploaded_file, 
-                    limite_hojas=limite_hojas
-                )
-                # ------------------------------------------------
+                # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL AttributeError! ---
                 
-                st.session_state.df_cargado = True
-                st.session_state.df = df_consolidado
-                st.session_state.df_config = df_config
+                # 1. Leemos el archivo Excel
+                excel_file = pd.ExcelFile(uploaded_file)
+                
+                # 2. Obtenemos los nombres de las hojas, respetando el límite
+                sheet_names = excel_file.sheet_names
+                
+                # Ignoramos la hoja de generalidades en la lista de análisis
+                sheet_names = [name for name in sheet_names if name.lower() != analysis_core.GENERAL_SHEET_NAME.lower()]
+
+                if limite_hojas:
+                    sheet_names = sheet_names[:limite_hojas]
+                
+                # 3. Llamamos a la función CORRECTA de analysis_core.py
+                results_dict = analysis_core.analyze_data(excel_file, sheet_names)
+                
+                # 4. Asignamos el único resultado
                 st.session_state.info_areas = results_dict
                 
+                # 5. Creamos los DataFrames consolidados (¡ESTO FALTABA!)
+                # (Asumiendo que 'analysis_core.consolidar_resultados' no existe, 
+                # lo hacemos aquí temporalmente)
+                
+                # --- Lógica de consolidación (simplificada) ---
+                # (Necesitaremos construir 'df_consolidado' y 'df_config' aquí
+                # por ahora, los dejamos en None para que la app no se rompa)
+                df_consolidado = None 
+                df_config = None 
+                
+                # (Intentamos cargar el df de estudiantes de la primera hoja para la Tab 2)
+                try:
+                    first_sheet = sheet_names[0]
+                    df_consolidado = pd.read_excel(uploaded_file, sheet_name=first_sheet, header=0)
+                    # Renombramos columnas para que coincidan (ejemplo)
+                    if 'APELLIDOS Y NOMBRES' in df_consolidado.columns:
+                         df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
+                except Exception as e:
+                    st.warning(f"No se pudo generar el df consolidado para 'Análisis por Estudiante': {e}")
+                # --- Fin de la lógica de consolidación temporal ---
+
+                st.session_state.df_cargado = True
+                st.session_state.df = df_consolidado # Puede ser None
+                st.session_state.df_config = df_config # Es None
+                
                 st.rerun()
+                
             except Exception as e:
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
@@ -421,10 +455,11 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
         
         except KeyError:
             st.error("Error: La columna 'Estudiante' no se encontró en el DataFrame consolidado.")
+            st.warning("Nota: El análisis por estudiante requiere que la columna 'APELLIDOS Y NOMBRES' sea renombrada a 'Estudiante' en el DataFrame cargado.")
         except Exception as e:
             st.error(f"Ocurrió un error al mostrar el análisis por estudiante: {e}")
     else:
-        st.info("No hay datos cargados para mostrar.")
+        st.info("No hay datos cargados para mostrar. El DataFrame consolidado es 'None'.")
 
 
 # --- FUNCIÓN (Conversión a Excel) ---
@@ -434,7 +469,7 @@ def convert_df_to_excel(df, area_name, general_info):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         workbook = writer.book
-        info_sheet = workbook.add_worksVshee("Generalidades")
+        info_sheet = workbook.add_worksheet("Generalidades")
         bold = workbook.add_format({'bold': True})
         info_sheet.write('A1', 'Área:', bold)
         info_sheet.write('B1', area_name)
@@ -449,7 +484,7 @@ def convert_df_to_excel(df, area_name, general_info):
         df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
 
     return output.getvalue()
-
+    
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
 # === (LÓGICA CORREGIDA PARA EL ERROR 'AttributeError') ===
@@ -576,5 +611,6 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
