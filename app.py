@@ -403,109 +403,119 @@ def display_analysis_dashboard(results):
             if not is_premium:
                 st.caption("🔒 (Propuestas de mejora) es una función Premium.")
 
+# --- NUEVA FUNCIÓN PARA EL ASISTENTE PEDAGÓGICO ---
+
+# Definimos la ruta a tu nuevo archivo Excel
+RUTA_ESTANDARES = "assets/Estándares de aprendizaje.xlsx"
+
+@st.cache_data(ttl=3600) # Cacheamos los datos por 1 hora
+def cargar_datos_pedagogicos():
+    """
+    Carga las tres hojas del archivo Excel de estándares de aprendizaje.
+    """
+    try:
+        # Leemos las tres hojas especificadas por el usuario
+        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Ciclos")
+        df_estandares = pd.read_excel(RUTA_ESTANDARES, sheet_name="estandares de aprendizaje") # Asegúrate que el nombre de la hoja 3 sea exacto
+        
+        return df_generalidades, df_ciclos, df_estandares
+    
+    except FileNotFoundError:
+        st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
+        st.error("Por favor, asegúrate de que el archivo se llame 'Estándares de aprendizaje.xlsx' (con tildes y mayúsculas) y esté en la carpeta 'assets'.")
+        return None, None, None
+    except Exception as e:
+        st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
+        st.error("Verifica los nombres de las hojas: 'Generalidades', 'Ciclos', y 'estandares de aprendizaje'.")
+        return None, None, None
+
+# ----------------------------------------------------
 
 # =========================================================================
-# === 5. FUNCIÓN PRINCIPAL DEL DASHBOARD (POST-LOGIN) ===
+# === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
+# === (MODIFICADA CON LA 3RA PESTAÑA) ===
 # =========================================================================
 
 def home_page():
-    """Contenido principal de la aplicación después del login."""
     
-    is_premium = (st.session_state.user_level == "premium")
-    
-    # Mensaje de bienvenida
-    if st.session_state.get('show_welcome_message', False):
-        if is_premium:
-            st.toast("¡Bienvenido! Has iniciado sesión como Usuario Premium. ✨", icon="⭐")
-        else:
-            st.toast("¡Bienvenido! Has iniciado sesión como Usuario Gratuito.", icon="👋")
-        st.session_state.show_welcome_message = False
-    
-    # Título del dashboard
-    st.markdown('<h1 class="gradient-title-dashboard">AulaMetrics: Dashboard de Análisis de Logros</h1>', unsafe_allow_html=True)
-    st.markdown("Cargue su archivo Excel para visualizar los datos.")
+    # 1. MENSAJE DE BIENVENIDA (Solo una vez por sesión)
+    if st.session_state.show_welcome_message:
+        nivel_usuario = "Premium" if st.session_state.user_level == "premium" else "Gratuito"
+        st.toast(f"¡Bienvenido! Has iniciado sesión como usuario {nivel_usuario}.", icon="👋")
+        st.session_state.show_welcome_message = False # Lo marcamos como visto
 
-    # --- Sidebar para Carga de Archivo ---
-    st.sidebar.header("📁 Carga de Datos")
-    
-    uploader_key = "file_uploader_logged" if st.session_state.logged_in else "file_uploader_unlogged"
-
-    uploaded_file = st.sidebar.file_uploader(
-        "Sube tu archivo de datos de AulaMetrics (formato .xlsx)",
-        type=["xlsx"],
-        key=uploader_key
-    )
-
-    # Botón Cerrar Sesión (movido aquí para visibilidad)
-    st.sidebar.markdown("---")
-    if st.sidebar.button("Cerrar Sesión", key="logout_button_final_key"):
-        st.session_state.logged_in = False
-        st.session_state.user_level = None
-        st.session_state.show_welcome_message = False
-        st.session_state.analisis_results = None
-        st.session_state.selected_file = None
-        st.session_state.sheet_options = []
-        st.rerun() 
-
-    if uploaded_file is not None:
-        st.session_state.selected_file = uploaded_file
-        
+    # 2. CONFIGURACIÓN DEL DASHBOARD (Logo y Título)
+    col_logo, col_titulo = st.columns([1, 4])
+    with col_logo:
         try:
-            xlsx = pd.ExcelFile(uploaded_file)
-            # Filtro robusto: excluye si 'generalidades' o 'parámetros' están EN CUALQUIER LUGAR del nombre
-            sheet_names = [name for name in xlsx.sheet_names if 'generalidades' not in name.lower() and 'parámetros' not in name.lower()]
-            st.session_state.sheet_options = sheet_names
-            uploaded_file.seek(0)
-        except Exception as e:
-            st.error(f"Error al leer las hojas del archivo: {e}")
-            st.session_state.sheet_options = []
+            st.image(ISOTIPO_PATH, width=120)
+        except:
+            st.warning("No se pudo cargar el isotipo.")
             
-        st.sidebar.subheader("Selecciona Área a Analizar")
-        
-        # --- (Selector de Hojas: Lógica de 'selectbox' - Sin cambios) ---
-        selected_sheet = None 
-        
-        if is_premium:
-            # Premium: Puede seleccionar UNA de TODAS las áreas
-            selected_sheet = st.sidebar.selectbox(
-                "Elige el área que deseas procesar:",
-                options=st.session_state.sheet_options,
-                key="select_premium",
-                index=None,
-                placeholder="Selecciona un área..."
-            )
-        else:
-            # Free: Puede seleccionar UNA de las DOS primeras áreas
-            free_options = st.session_state.sheet_options[:2] 
-            selected_sheet = st.sidebar.selectbox(
-                "Elige una de las dos áreas permitidas:",
-                options=free_options,
-                key="select_free",
-                index=None,
-                placeholder="Selecciona un área..."
-            )
-            st.sidebar.caption("🔒 (Análisis de todas las hojas) es una función Premium.")
-        
-        selected_sheets_list = []
-        if selected_sheet:
-            selected_sheets_list = [selected_sheet]
-        # --- Fin Selector de Hojas ---
+    with col_titulo:
+        st.markdown(
+            '<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', 
+            unsafe_allow_html=True
+        )
+        st.markdown("Sube tu archivo de registro (Excel) para comenzar el análisis.")
 
+    # Botón de cerrar sesión
+    if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
+        logout()
 
-        if st.sidebar.button("▶ Ejecutar Análisis", key="run_analysis_button", type="primary"):
-            if selected_sheets_list: 
-                with st.spinner('Procesando datos y generando análisis...'):
-                    uploaded_file.seek(0) 
-                    analisis_results = analysis_core.analyze_data(uploaded_file, selected_sheets_list)
-                    st.session_state.analisis_results = analisis_results
-                    st.success("✅ Análisis de datos completado.")
+    # 3. CARGADOR DE ARCHIVO
+    if 'df_cargado' not in st.session_state or not st.session_state.df_cargado:
+        configurar_uploader()
+
+    # 4. LÓGICA DE PESTAÑAS (Solo si el archivo está cargado)
+    if st.session_state.df_cargado:
+        
+        # Obtenemos los dataframes del estado de sesión
+        df = st.session_state.df
+        df_config = st.session_state.df_config
+        info_areas = st.session_state.info_areas
+        
+        # --- INICIO DE LA MODIFICACIÓN ---
+        # Creamos las 3 pestañas
+        tab_general, tab_estudiante, tab_asistente = st.tabs([
+            "📊 Análisis General", 
+            "🧑‍🎓 Análisis por Estudiante", 
+            "🧠 Asistente Pedagógico"
+        ])
+        # --- FIN DE LA MODIFICACIÓN ---
+
+        # Pestaña 1: Análisis General
+        with tab_general:
+            mostrar_analisis_general(df, df_config, info_areas)
+
+        # Pestaña 2: Análisis por Estudiante
+        with tab_estudiante:
+            mostrar_analisis_por_estudiante(df, df_config, info_areas)
+            
+        # --- INICIO DE LA MODIFICACIÓN ---
+        # Pestaña 3: Asistente Pedagógico
+        with tab_asistente:
+            st.header("🧠 Asistente Pedagógico (Próximamente)")
+            st.write("Esta sección utilizará la IA para generar sesiones de aprendizaje basadas en los estándares pedagógicos.")
+            
+            st.info("Verificando la carga de la base de datos pedagógica...")
+            
+            # Intentamos cargar los datos del nuevo Excel
+            df_gen, df_cic, df_est = cargar_datos_pedagogicos()
+            
+            if df_gen is not None and df_cic is not None and df_est is not None:
+                st.success("¡Base de datos pedagógica (Estándares de aprendizaje.xlsx) cargada con éxito!")
+                st.write("Hojas cargadas:")
+                st.write(f"- Generalidades ({len(df_gen)} filas)")
+                st.write(f"- Ciclos ({len(df_cic)} filas)")
+                st.write(f"- Estándares de aprendizaje ({len(df_est)} filas)")
+                
+                st.subheader("Vista previa de Estándares:")
+                st.dataframe(df_est.head())
             else:
-                st.sidebar.warning("Por favor, selecciona al menos un área para analizar.")
-        
-        uploaded_file.seek(0)
-
-    if st.session_state.analisis_results:
-        display_analysis_dashboard(st.session_state.analisis_results)
+                st.error("No se pudo cargar la base de datos pedagógica. Revisa los mensajes de error de arriba.")
+        # --- FIN DE LA MODIFICACIÓN ---
 
 
 # =========================================================================
@@ -564,3 +574,4 @@ else:
     home_page()
     
     # 5. BOTÓN CERRAR SESIÓN (Movido a home_page)
+
