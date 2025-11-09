@@ -11,7 +11,23 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import RGBColor
 
 # =========================================================================
-# === FUNCIÓN DE GENERACIÓN DE IA (Prompt Corregido) ===
+# === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
+# === (¡AQUÍ ESTÁ LA CORRECCIÓN!) ===
+# =========================================================================
+
+# Creamos el cliente de IA UNA SOLA VEZ y lo hacemos global
+# Ambas funciones (generate_ai_suggestions y generar_sesion_aprendizaje) usarán este 'client'.
+try:
+    gemini_key = st.secrets['gemini']['api_key']
+    client = genai.Client(api_key=gemini_key)
+except KeyError:
+    st.error("Error de Configuración: No se encontró la clave de Gemini en st.secrets.")
+    client = None
+except Exception as e:
+    st.error(f"Error al inicializar el cliente de Gemini: {e}")
+    client = None
+
+# =I. FUNCIÓN DE PROPUESTAS (Pestaña 1)
 # =========================================================================
 
 def generate_ai_suggestions(critical_comp_info):
@@ -19,22 +35,15 @@ def generate_ai_suggestions(critical_comp_info):
     Genera propuestas de mejora usando el modelo de IA de Google (Gemini) y retorna el texto.
     """
     
-    try:
-        gemini_key = st.secrets['gemini']['api_key']
-        client = genai.Client(api_key=gemini_key) 
-    except KeyError:
-        return "⚠️ **Error de Configuración de IA:** No se encontró la clave de Gemini. Asegúrate de que tienes el archivo `.streamlit/secrets.toml` configurado."
-    except Exception as e:
-        return f"❌ **Error al inicializar el cliente de Gemini:** {e}"
+    # Verificamos si el cliente global falló al cargar
+    if client is None:
+        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
         
-    
     grado = critical_comp_info['grado']
     nivel = critical_comp_info['nivel']
     area = critical_comp_info['area']
     competencia = critical_comp_info['nombre']
     
-    # === INICIO DE LA CORRECCIÓN DEL PROMPT ===
-    # Añadimos instrucciones explícitas para NO usar HTML/CSS.
     prompt = f"""
     Eres un asistente pedagógico experto en currículo escolar para {nivel} - {grado}.
     Tu tarea es generar **5 propuestas** de intervención didáctica **innovadoras, concretas y específicas**
@@ -56,11 +65,12 @@ def generate_ai_suggestions(critical_comp_info):
     5.  El texto debe ser del color estándar (negro).
     6.  No añadas introducciones o conclusiones adicionales.
     """
-    # === FIN DE LA CORRECCIÓN DEL PROMPT ===
     
     try:
+        # --- (CORRECCIÓN) ---
+        # Ahora usa el 'client' global que definimos arriba
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Asegúrate de tener acceso a este modelo
+            model='gemini-pro', # Usamos 'gemini-pro' para consistencia
             contents=prompt,
         )
         return response.text
@@ -71,9 +81,9 @@ def generate_ai_suggestions(critical_comp_info):
 
 
 # =========================================================================
-# === FUNCIÓN DE EXPORTACIÓN A WORD (DOCX) ===
+# === II. FUNCIÓN DE EXPORTACIÓN A WORD (DOCX) ===
 # =========================================================================
-
+# (Esta función no necesita cambios, está bien como está)
 def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_report_text):
     """
     Genera un archivo DOCX a partir del informe de la IA, limpiando los símbolos de Markdown y aplicando formato.
@@ -104,10 +114,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     
     # 3. Contenido de las Propuestas (procesar el texto Markdown de la IA)
     
-    # Función auxiliar para limpiar y formatear texto Markdown
     def process_markdown_to_runs(paragraph, text):
-        # Este regex busca texto envuelto en ** (negrita) o * (cursiva)
-        # y también maneja los que deberían ser literales
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
         for part in parts:
             if part.startswith('**') and part.endswith('**'):
@@ -124,11 +131,9 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
         if not line:
             continue
             
-        # Saltar encabezados genéricos o repetidos
         if "propuestas de intervención didáctica" in line.lower() or "propuestas de intervención (generadas por ia)" in line.lower():
             continue
 
-        # Lógica para manejar títulos
         if line.startswith('###'):
             document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=2)
         elif line.startswith('##'):
@@ -136,27 +141,21 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
         elif line.startswith('#'):
             document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=1)
             
-        # Listas Numeradas (Propuestas principales: 1., 2., 3., etc.)
         elif re.match(r'^\d+\.', line):
             paragraph = document.add_paragraph(style='List Number')
-            # Eliminar el número de lista del inicio de la línea para que Word lo añada
             cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
             process_markdown_to_runs(paragraph, cleaned_line)
             
-        # Listas con asteriscos (Subpuntos dentro de las propuestas: *Saberes clave, *Descripción)
         elif line.startswith('*'):
             paragraph = document.add_paragraph(style='List Bullet')
-            # Eliminar solo el primer asterisco y espacio
             cleaned_line = re.sub(r'^\*\s*', '', line).strip()
             process_markdown_to_runs(paragraph, cleaned_line)
             
-        # Párrafos de texto normal
         else:
-            if line: # Asegurarse de que no sea una línea vacía
+            if line: 
                 paragraph = document.add_paragraph()
                 process_markdown_to_runs(paragraph, line)
                 
-    # Guardar el documento en un buffer en memoria
     buffer = io.BytesIO()
     document.save(buffer)
     buffer.seek(0)
@@ -164,9 +163,9 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
 
 
 # =========================================================================
-# === FUNCIÓN PRINCIPAL LLAMADA DESDE APP.PY (Corregida) ===
+# === III. FUNCIÓN PRINCIPAL LLAMADA DESDE APP.PY (Propuestas) ===
 # =========================================================================
-
+# (Esta función no necesita cambios, está bien como está)
 def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_limpio):
     """
     Calcula la dificultad de la competencia seleccionada por el usuario, genera el informe y lo muestra.
@@ -219,28 +218,23 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
     with st.spinner("🧠 Generando propuestas pedagógicas con Inteligencia Artificial..."):
         ai_response_text = generate_ai_suggestions(critical_comp_info)
         
-        # === INICIO DE LA CORRECCIÓN ===
         # Esta función ya no imprime el resultado (ni st.markdown ni st.error).
         # Solo retorna el texto. app.py se encargará de mostrarlo.
         return ai_response_text 
 
-        # === FIN DE LA CORRECCIÓN ===
-
-# --- (Asegúrate de tener tus imports de genai y el 'model' configurado arriba) ---
-# import google.generativeai as genai
-# ... (tu configuración de API Key y 'model') ...
-
-# --- (Tu función 'generate_suggestions' existente va aquí) ---
-# def generate_suggestions(...):
-#     ...
-
-# --- ¡AÑADE ESTA NUEVA FUNCIÓN AL FINAL! ---
+# =========================================================================
+# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
+# =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
     """
     Genera una sesión de aprendizaje completa usando la IA, basada en la plantilla del usuario.
     """
     
+    # Verificamos si el cliente global falló al cargar
+    if client is None:
+        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
+
     # 1. Convertir listas a texto formateado para el prompt
     competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
@@ -301,7 +295,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **IV. ENFOQUE TRANSVERSAL:**
     * [Dejar en blanco]
 
-    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
+    **V. SECUENCIA DIDÁTICA (Momentos de la Sesión):**
 
     **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Motivación:** [Genera una actividad corta de motivación]
@@ -328,13 +322,15 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     """
     
     try:
-        # --- ¡ASUNCIÓN CRÍTICA! ---
-        # Asumo que tienes una variable 'model' definida en este archivo 
-        # (la misma que usas para 'generate_suggestions')
-        response = model.generate_content(prompt)
+        # --- ¡CORRECCIÓN FINAL! ---
+        # 1. Usamos el 'client' global
+        # 2. Usamos la sintaxis 'client.models.generate_content'
+        # 3. Usamos 'gemini-pro', que es mejor para tareas largas
+        response = client.models.generate_content(
+            model='gemini-pro', 
+            contents=prompt
+        )
         return response.text
-    except NameError:
-        st.error("Error: La variable 'model' de Gemini no está definida en pedagogical_assistant.py")
-        return "Error: La IA no está configurada correctamente en el archivo del asistente."
     except Exception as e:
         return f"Error al contactar la IA: {e}"
+
