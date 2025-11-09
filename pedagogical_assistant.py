@@ -120,7 +120,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
         elif line.startswith('##'):
             document.add_heading(re.sub(r'^##\s*', '', line).strip(), level=1)
         elif line.startswith('#'):
-            document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=1)
+            document.add_heading(re.sub(r'^#s*', '', line).strip(), level=1)
         elif re.match(r'^\d+\.', line):
             paragraph = document.add_paragraph(style='List Number')
             cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
@@ -192,12 +192,12 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
         return ai_response_text 
 
 # =========================================================================
-# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (MODO DE DIAGNÓSTICO) ===
+# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (MODO DE DIAGNÓSTICO v2) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
     """
-    MODO DE DIAGNÓSTICO: Esta función listará los modelos de IA disponibles
+    MODO DE DIAGNÓSTICO v2: Esta función listará los modelos de IA disponibles
     en lugar de generar una sesión.
     """
     
@@ -205,14 +205,14 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
     try:
-        # --- ¡AQUÍ ESTÁ EL CÓDIGO DE DIAGNÓSTICO! ---
-        st.info("Iniciando modo de diagnóstico de IA...")
+        # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+        st.info("Iniciando modo de diagnóstico de IA (v2)...")
         
         lista_de_modelos = []
         for m in client.models.list():
-            # Filtramos solo los modelos que PUEDEN generar contenido
-            if 'generateContent' in m.supported_generation_methods:
-                lista_de_modelos.append(m.name)
+            # Simplemente listamos todos los modelos. 
+            # El filtro 'supported_generation_methods' causó el error anterior.
+            lista_de_modelos.append(m.name)
         
         # Formateamos la lista para mostrarla
         modelos_texto = "\n".join(f"- `{model}`" for model in lista_de_modelos)
@@ -220,7 +220,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return f"""
         **Diagnóstico Completado: Modelos Disponibles**
         
-        Estos son los nombres de modelos exactos que tu API Key gratuita puede usar:
+        Estos son los nombres de modelos exactos que tu API Key puede ver:
         
         {modelos_texto}
         
