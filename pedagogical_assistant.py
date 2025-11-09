@@ -66,9 +66,9 @@ def generate_ai_suggestions(critical_comp_info):
     
     try:
         # --- ¡CORRECCIÓN DEL ERROR 404! ---
-        # Usamos el nombre de modelo correcto y estable
+        # Usamos el modelo 'flash' que sabemos que funciona
         response = client.models.generate_content(
-            model='gemini-1.0-pro', 
+            model='gemini-2.5-flash', 
             contents=prompt,
         )
         return response.text
@@ -236,7 +236,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
     ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
     El docente ha seleccionado el **{grado}**. 
-    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidades**.
+    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidadess**.
 
     ## PLANTILLA DE SALIDA (Formato Requerido):
     Genera la sesión usando este formato Markdown. Completa cada sección según las plantillas e instrucciones.
@@ -292,9 +292,9 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     
     try:
         # --- ¡CORRECCIÓN DEL ERROR 404! ---
-        # Usamos el nombre de modelo correcto y estable
+        # Usamos el modelo 'flash' que sabemos que funciona
         response = client.models.generate_content(
-            model='gemini-1.0-pro', 
+            model='gemini-2.5-flash', 
             contents=prompt
         )
         return response.text
