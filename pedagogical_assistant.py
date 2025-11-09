@@ -196,6 +196,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
+# === (PROMPT AFINADO - Correcciones 1, 2 y 3) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
@@ -206,9 +207,13 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     if client is None:
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
+    # 1. Convertir listas a texto formateado para el prompt
+    # --- ¡CORRECCIÓN 2b! (Formato de viñetas) ---
     competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
+    # --------------------------------------------
 
+    # 2. Construir el Mega-Prompt
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -236,35 +241,36 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
     ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
     El docente ha seleccionado el **{grado}**. 
-    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidadess**.
+    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidades**.
 
     ## PLANTILLA DE SALIDA (Formato Requerido):
     Genera la sesión usando este formato Markdown. Completa cada sección según las plantillas e instrucciones.
 
-    ### SESIÓN DE APRENDIZAJE – N° [Dejar en blanco]
+    ### SESIÓN DE APRENDIZAJE – N° 
 
     **I. DATOS GENERALES:**
     * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
-    * **Unidad de Aprendizaje:** [Dejar en blanco]
-    * **Duración:** {tiempo}
-    * **Fecha:** [Dejar en blanco]
-    * **Ciclo:** {ciclo}
+    
+    {/* --- ¡CORRECCIÓN 1! (Quitar "[Dejar en blanco]") --- */}
+    * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
+    * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** [Dejar en blanco]
-    * **Docente:** [Dejar en blanco]
+    * **Sección:** * **Docente:** {/* ----------------------------------------------- */}
 
     **II. PROPÓSITO DE LA SESIÓN:**
     * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
 
+    {/* --- ¡CORRECCIÓN 2! (Añadir 'DESEMPEÑO' y formato de viñetas) --- */}
     **III. COMPETENCIAS Y CAPACIDADES:**
-    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
-    | :--- | :--- | :--- |
-    | {competencias_str} | {capacidades_str} | [Genera aquí 3-4 Criterios de Evaluación. Deben ser observables, medibles y seguir la REGLA DE ORO (progresión de grado y ciclo) y estar basados en la Temática.] |
+    | COMPETENCIA | CAPACIDAD | DESEMPEÑO (de Grado) | CRITERIOS DE EVALUACIÓN |
+    | :--- | :--- | :--- | :--- |
+    | {competencias_str} | {capacidades_str} | [Genera aquí los Desempeños *específicos del grado* ({grado}), basándote en el Estándar del Ciclo y las capacidades. Usa viñetas (*).] | [Genera aquí 3-4 Criterios de Evaluación. Deben ser observables, medibles, seguir la REGLA DE ORO (progresión de grado y ciclo) y estar basados en la Temática. Usa viñetas (*).] |
+    
+    **REGLA DE FORMATO DE TABLA:** Para las columnas `COMPETENCIA`, `CAPACIDAD`, `DESEMPEÑO` y `CRITERIOS DE EVALUACIÓN`, si hay múltiples ítems, DEBES usar una lista de viñetas (ej: * ítem 1 \n * ítem 2), no texto continuo separado por <br>.
+    {/* ----------------------------------------------- */}
 
     **IV. ENFOQUE TRANSVERSAL:**
-    * [Dejar en blanco]
-
-    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
+    * **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
 
     **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Motivación:** [Genera una actividad corta de motivación]
@@ -275,8 +281,11 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
+    {/* --- ¡CORRECCIÓN 3! (Dividir el Cierre) --- */}
     **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Evaluación o transferencia de lo aprendido:** [Genera una actividad corta de cierre/metacognición. Ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?]
+    * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia, similar a un 'Ticket de salida' (Exit Ticket).]
+    * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
+    {/* ----------------------------------------------- */}
 
     **VI. MATERIALES O RECURSOS:**
     * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
@@ -291,7 +300,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     """
     
     try:
-        # --- ¡CORRECCIÓN DEL ERROR 404! ---
         # Usamos el modelo 'flash' que sabemos que funciona
         response = client.models.generate_content(
             model='gemini-2.5-flash', 
