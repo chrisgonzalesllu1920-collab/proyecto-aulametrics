@@ -96,7 +96,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     p_comp.add_run(f"Competencia a Abordar: ").bold = True
     p_comp.add_run(selected_comp_limpio)
     
-    document.add_heading('Propuestas de Intervención (Generadas por IA)', level=1)
+    document.add_heading('Propuestas de Intervención (GenerADAS por IA)', level=1)
     
     def process_markdown_to_runs(paragraph, text):
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
@@ -212,6 +212,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
     # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
+    #    (Corregido para arreglar los errores de formato de 'image_7ce32c.png' y 'image_7ce709.png')
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -256,12 +257,12 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
-    1.  **NO uses una tabla.** El formato de tabla falla (image_71ebfc.png).
-    2.  En su lugar, usa el siguiente formato de encabezados y listas:
+    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN (image_7ce709.png):**
+    1.  **NO uses una tabla.**
+    2.  Usa el siguiente formato de encabezados y listas:
         - Escribe la competencia en negrita (ej: **Competencia: Nombre de la competencia**).
-        - Debajo, escribe "**Capacidades:**" y una lista de viñetas con **guiones (`-`)**.
-        - Debajo, escribe "**Criterios de Evaluación:**" y una lista de viñetas con **guiones (`-`)**.
+        - Debajo, en una **nueva línea separada**, escribe "**Capacidades:**" y luego la lista de viñetas con **guiones (`-`)**.
+        - Debajo, en una **nueva línea separada**, escribe "**Criterios de Evaluación:**" y luego la lista de viñetas con **guiones (`-`)**.
         - Separa cada bloque de competencia con una regla horizontal (---).
     3.  **¡PROHIBIDO usar la etiqueta HTML `<br>`!**
     4.  **¡NO incluyas 'DESEMPEÑO'!**
@@ -329,5 +330,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
+
 
 
