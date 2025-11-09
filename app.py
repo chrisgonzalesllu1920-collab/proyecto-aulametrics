@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección de 'Ciclo: 6.0') ===
+# === (Corrección del SyntaxError 'else:') ===
 # =========================================================================
 
 def home_page():
@@ -588,30 +588,29 @@ def home_page():
                                     tema = tema_sel
                                     tiempo = tiempo_sel
                                     
-                                    # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL "Ciclo: 6.0"! ---
-                                    # (Paso 01 de mi mensaje anterior)
-                                    ciclo_float = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
-                                    ciclo_encontrado = int(ciclo_float) # Convertimos el 6.0 a 6
-                                    # -----------------------------------------------
-
-                                    # 2. Buscar datos pedagógicos (continuación)
+                                    # 2. Buscar datos pedagógicos
+                                    ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
+                                    
                                     datos_filtrados = df_hoja_descriptor[
                                         (df_hoja_descriptor['Área'] == area) &
                                         (df_hoja_descriptor['Competencia'].isin(competencias))
                                     ]
                                     capacidades_lista = datos_filtrados['capacidad'].dropna().unique().tolist()
                                     
-                                    # (Usamos el nombre de columna correcto que encontraste)
-                                    columna_estandar_correcta = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
-                                    
+                                    # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR! ---
+                                    # (Usamos el nombre de columna correcto con "DEL DESARROLLO" 
+                                    # y el doble espacio que encontraste, o el nombre corregido)
+                                    columna_estandar_correcta = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA" # (Asegúrate que este sea el nombre final en tu Excel)
+
                                     estandares_lista = datos_filtrados[columna_estandar_correcta].dropna().unique().tolist()
                                     estandar_texto_completo = "\n\n".join(estandares_lista)
+                                    # ----------------------------------------
 
                                     # 3. Llamar a la IA
                                     sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
                                         nivel=nivel,
                                         grado=grado,
-                                        ciclo=str(ciclo_encontrado), # Ahora se envía "6" en lugar de "6.0"
+                                        ciclo=str(ciclo_encontrado), 
                                         area=area,
                                         competencias_lista=competencias,
                                         capacidades_lista=capacidades_lista,
@@ -626,7 +625,7 @@ def home_page():
 
                                 except KeyError as e:
                                     st.error(f"Error de columna (KeyError): No se pudo encontrar la columna {e} en el DataFrame.")
-                                    st.error("Verifica que los nombres de las columnas en tu Excel ('capacidad', 'DESCRIPCIÓN...', etc.) coincidan exact.")
+                                    st.error("Verifica que los nombres de las columnas en tu Excel ('capacidad', 'DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA', etc.) coincidan exactamente con el código.")
                                 except Exception as e:
                                     st.error(f"Ocurrió un error al generar la sesión:")
                                     st.error(e)
@@ -685,6 +684,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
