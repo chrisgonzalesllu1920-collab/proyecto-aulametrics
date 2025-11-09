@@ -203,7 +203,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
     # 1. Convertir listas a texto formateado para el prompt
-    # (Usamos tu preferencia de guiones)
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
@@ -252,17 +251,20 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
-    1.  Genera una **tabla Markdown** con exactamente **3 columnas**: 'COMPETENCIA', 'CAPACIDAD', y 'CRITERIOS DE EVALUACIÓN'.
-    2.  **¡NO uses la columna 'DESEMPEÑO'!**
-    3.  **¡PROHIBIDO usar la etiqueta HTML `<br>`!**
-    4.  Para las celdas con múltiples ítems (como Capacidades o Criterios), **DEBES** usar una lista de viñetas.
-    5.  **PRECISIÓN:** Usa **guiones (`-`)** para las viñetas, no asteriscos (`*`).
+    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
+    | :--- | :--- | :--- |
+    [Aquí debes rellenar la tabla, fila por fila, usando los datos de entrada. NO incluyas la columna 'DESEMPEÑO'.]
+
+    **REGLAS ESTRICTAS PARA LA TABLA (image_71ebfc.png):**
+    - Rellena la tabla, fila por fila, con las competencias, capacidades y criterios.
+    - **¡PROHIBIDO usar la etiqueta `<br>`!**
+    - Para saltos de línea dentro de una celda, **DEBES** usar una lista de viñetas con **guiones (`-`)**.
+    - Los Criterios de Evaluación deben alinearse estrictamente con el Estándar y el Grado.
 
     **DATOS PARA LA TABLA:**
-    * **Competencia(s):** {competencias_str}
-    * **Capacidad(es):** {capacidades_str}
-    * **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación. REGLA: Deben alinearse *estrictamente* con el Estándar del Ciclo, el Grado, el Tema y las Capacidades. Usa guiones (`-`).]
+    - **Competencia(s):** {competencias_str}
+    - **Capacidad(es):** {capacidades_str}
+    - **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación por competencia, usando guiones (`-`).]
 
     **IV. ENFOQUE TRANSVERSAL:**
     (Deja esta sección vacía)
@@ -303,4 +305,3 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return response.text
     except Exception as e:
         return f"Error al contactar la IA: {e}"
-
