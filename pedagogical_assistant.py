@@ -4,8 +4,10 @@ import pandas as pd
 import io
 import re 
 from google import genai
-# Importamos la clase de Error específica para capturarla
-from google.api_core.exceptions import GoogleAPIError 
+# --- ¡CORRECCIÓN DEL ERROR 503 (Import)! ---
+# Importamos la clase de Error correcta de la biblioteca genai
+from google.genai.errors import APIError 
+# ---------------------------------------------
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -71,7 +73,7 @@ def generate_ai_suggestions(critical_comp_info):
             contents=prompt,
         )
         return response.text
-    except GoogleAPIError as e:
+    except APIError as e: # <-- (Usamos el tipo de error correcto)
         return f"❌ **Error al contactar la IA:** Se produjo un error en la API de Google (Código: {e}). Revisa tu clave y la cuota de uso."
     except Exception as e:
         return f"❌ **Error desconocido:** {e}"
@@ -212,7 +214,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
     # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
-    #    (Corregido para arreglar los errores de formato de 'image_7d491d.png' y 'image_7ce709.png')
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -286,7 +287,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 1Día minutos])
     * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
     
@@ -312,7 +313,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         )
         return response.text
     
-    except GoogleAPIError as e:
+    except APIError as e: # <-- ¡CORRECCIÓN! Atrapar 'APIError'
         # 2. Si falla por sobrecarga (Error 503), reintentar con "Flash"
         if "503" in str(e) or "overloaded" in str(e).lower():
             try:
