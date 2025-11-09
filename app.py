@@ -440,7 +440,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Formulario de 6 Pasos Implementado) ===
+# === (Arquitectura Refactorizada: Pestañas Independientes) ===
 # =========================================================================
 
 def home_page():
@@ -464,179 +464,187 @@ def home_page():
             '<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', 
             unsafe_allow_html=True
         )
-        st.markdown("Sube tu archivo de registro (Excel) para comenzar el análisis.")
+        # (Texto del subtítulo actualizado)
+        st.markdown("Selecciona una herramienta para comenzar.")
 
     # Botón de cerrar sesión
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
         logout()
 
-    # 3. LÓGICA DE CARGA Y PESTAÑAS
-    if st.session_state.df_cargado:
-        
-        df = st.session_state.df
-        df_config = st.session_state.df_config
-        info_areas = st.session_state.info_areas
-        
-        tab_general, tab_estudiante, tab_asistente = st.tabs([
-            "📊 Análisis General", 
-            "🧑‍🎓 Análisis por Estudiante", 
-            "🧠 Asistente Pedagógico"
-        ])
-
-        # Pestaña 1: Análisis General
-        with tab_general:
-            mostrar_analisis_general(info_areas)
-
-        # Pestaña 2: Análisis por Estudiante
-        with tab_estudiante:
-            mostrar_analisis_por_estudiante(df, df_config, info_areas)
-            
-        # Pestaña 3: Asistente Pedagógico (CON EL FORMULARIO COMPLETO)
-        with tab_asistente:
-            st.header("🧠 Asistente Pedagógico")
-            
-            tipo_herramienta = st.radio(
-                "01. Selecciona la herramienta que deseas usar:",
-                options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
-                index=0, 
-                horizontal=True,
-                key="asistente_tipo_herramienta"
-            )
-            
-            st.markdown("---")
-
-            # 2. Lógica del Formulario
-            if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
-                st.subheader("Generador de Sesión de Aprendizaje")
-                
-                # --- AHORA CARGAMOS LAS 4 HOJAS ---
-                df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
-                
-                # Verificación de carga
-                if df_gen is None or df_cic is None or df_desc_sec is None or df_desc_prim is None:
-                    st.error("Error crítico: No se pudieron cargar todas las hojas de 'Estandares de aprendizaje.xlsx'.")
-                    st.error("Por favor, verifica que el archivo y los nombres de las 4 hojas sean correctos.")
-                else:
-                    # --- FORMULARIO DEPENDIENTE DE 6 PASOS ---
-                    
-                    # PASO 1: Nivel (Usa Hoja 'Generalidades')
-                    niveles = df_gen['NIVEL'].dropna().unique()
-                    nivel_sel = st.selectbox(
-                        "Paso 1: Selecciona el Nivel", 
-                        options=niveles, 
-                        index=None, 
-                        placeholder="Elige una opción...",
-                        key="asistente_nivel_sel" 
-                    )
-                    
-                    # PASO 2: Grado (Depende del Nivel)
-                    grados_options = []
-                    if st.session_state.asistente_nivel_sel:
-                        grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
-                    
-                    grado_sel = st.selectbox(
-                        "Paso 2: Selecciona el Grado", 
-                        options=grados_options, 
-                        index=None, 
-                        placeholder="Elige un Nivel primero...",
-                        disabled=(not st.session_state.asistente_nivel_sel),
-                        key="asistente_grado_sel"
-                    )
-
-                    # PASO 3: Área (Depende del Nivel)
-                    areas_options = []
-                    df_hoja_descriptor = None # Para saber qué hoja usar
-                    
-                    if st.session_state.asistente_grado_sel:
-                        # Elegimos la hoja de descriptor correcta
-                        if st.session_state.asistente_nivel_sel == "SECUNDARIA":
-                            df_hoja_descriptor = df_desc_sec
-                        elif st.session_state.asistente_nivel_sel == "PRIMARIA":
-                            df_hoja_descriptor = df_desc_prim
-                        
-                        if df_hoja_descriptor is not None:
-                            # (Tu corrección: filtramos solo por Nivel, no por Ciclo)
-                            areas_options = df_hoja_descriptor['Área'].dropna().unique()
-                    
-                    area_sel = st.selectbox(
-                        "Paso 3: Selecciona el Área", 
-                        options=areas_options,
-                        index=None,
-                        placeholder="Elige un Grado primero...",
-                        disabled=(not st.session_state.asistente_grado_sel),
-                        key="asistente_area_sel"
-                    )
-
-                    # PASO 4: Competencia (Depende del Área)
-                    competencias_options = []
-                    if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
-                        # (Usamos 'multiselect' como pediste)
-                        competencias_options = df_hoja_descriptor[
-                            df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
-                        ]['Competencia'].dropna().unique()
-
-                    competencias_sel = st.multiselect(
-                        "Paso 4: Selecciona la(s) Competencia(s)",
-                        options=competencias_options,
-                        placeholder="Elige un Área primero...",
-                        disabled=(not st.session_state.asistente_area_sel),
-                        key="asistente_competencias_sel"
-                    )
-                    
-                    # PASOS 5 y 6: Dentro de un formulario
-                    with st.form(key="session_form"):
-                        
-                        form_disabled = not st.session_state.asistente_competencias_sel
-                        
-                        tema_sel = st.text_input(
-                            "Paso 5: Escribe el tema o temática a tratar",
-                            placeholder="Ej: El sistema solar, La fotosíntesis...",
-                            disabled=form_disabled
-                        )
-                        
-                        tiempo_sel = st.selectbox(
-                            "Paso 6: Selecciona la duración de la sesión",
-                            options=["90 minutos", "180 minutos"],
-                            index=None,
-                            placeholder="Elige una opción...",
-                            disabled=form_disabled
-                        )
-                        
-                        submitted = st.form_submit_button(
-                            "Generar Sesión (Prueba)", 
-                            disabled=form_disabled
-                        )
-                        
-                        if submitted:
-                            # --- BÚSQUEDA INTERNA DEL CICLO (Tu Punto Clave) ---
-                            ciclo_encontrado = "No encontrado"
-                            try:
-                                ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == st.session_state.asistente_grado_sel]['ciclo'].iloc[0]
-                            except Exception as e:
-                                st.error(f"Error al buscar el ciclo: {e}")
-                            
-                            # Verificación final
-                            if not tema_sel or not tiempo_sel:
-                                st.error("Por favor, completa los Pasos 5 y 6.")
-                            else:
-                                st.success("¡Formulario verificado! (Aún no se genera la sesión).")
-                                st.write(f"**Nivel:** {st.session_state.asistente_nivel_sel}")
-                                st.write(f"**Grado:** {st.session_state.asistente_grado_sel}")
-                                st.write(f"**Ciclo (encontrado):** {ciclo_encontrado}")
-                                st.write(f"**Área:** {st.session_state.asistente_area_sel}")
-                                st.write(f"**Competencias:** {', '.join(st.session_state.asistente_competencias_sel)}")
-                                st.write(f"**Temática:** {tema_sel}")
-                                st.write(f"**Duración:** {tiempo_sel}")
-            
-            elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
-                st.info("Función de Unidades de Aprendizaje (Próximamente).")
-            
-            elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
-                st.info("Función de Planificación Anual (Próximamente).")
+    # --- ¡AQUÍ ESTÁ LA NUEVA ARQUITECTURA (Opción A)! ---
     
-    # Si el DataFrame NO está cargado (df_cargado es False), mostramos el uploader.
-    else:
-        configurar_uploader()
+    # 3. LÓGICA DE PESTAÑAS (Se muestra SIEMPRE)
+    
+    tab_general, tab_estudiante, tab_asistente = st.tabs([
+        "📊 Análisis General", 
+        "🧑‍🎓 Análisis por Estudiante", 
+        "🧠 Asistente Pedagógico"
+    ])
+
+    # --- Pestaña 1: Análisis General (Contiene el cargador) ---
+    with tab_general:
+        # Verificamos si el archivo de notas está cargado
+        if st.session_state.df_cargado:
+            # Si SÍ está cargado, mostramos el análisis
+            info_areas = st.session_state.info_areas
+            mostrar_analisis_general(info_areas)
+        else:
+            # Si NO está cargado, mostramos el cargador aquí
+            st.subheader("Subir Archivo de Notas")
+            st.info("Para comenzar el análisis de notas, sube tu registro de Excel aquí.")
+            configurar_uploader() # <-- El cargador ahora vive aquí
+
+    # --- Pestaña 2: Análisis por Estudiante (Depende de la Pestaña 1) ---
+    with tab_estudiante:
+        # Verificamos si el archivo de notas está cargado
+        if st.session_state.df_cargado:
+            # Si SÍ está cargado, mostramos el análisis
+            df = st.session_state.df
+            df_config = st.session_state.df_config
+            info_areas = st.session_state.info_areas
+            mostrar_analisis_por_estudiante(df, df_config, info_areas)
+        else:
+            # Si NO está cargado, mostramos el mensaje de ayuda
+            st.header("🧑‍🎓 Análisis Individual por Estudiante")
+            st.info("Esta función requiere un archivo de notas.")
+            st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
+
+        
+    # --- Pestaña 3: Asistente Pedagógico (Es 100% independiente) ---
+    with tab_asistente:
+        st.header("🧠 Asistente Pedagógico")
+        
+        tipo_herramienta = st.radio(
+            "01. Selecciona la herramienta que deseas usar:",
+            options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
+            index=0, 
+            horizontal=True,
+            key="asistente_tipo_herramienta"
+        )
+        
+        st.markdown("---")
+
+        # Lógica del Formulario (esto no cambia)
+        if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
+            st.subheader("Generador de Sesión de Aprendizaje")
+            
+            df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
+            
+            if df_gen is None or df_cic is None or df_desc_sec is None or df_desc_prim is None:
+                st.error("Error crítico: No se pudieron cargar todas las hojas de 'Estandares de aprendizaje.xlsx'.")
+                st.error("Por favor, verifica que el archivo y los nombres de las 4 hojas sean correctos.")
+            else:
+                # --- FORMULARIO DEPENDIENTE DE 6 PASOS ---
+                
+                # PASO 1: Nivel
+                niveles = df_gen['NIVEL'].dropna().unique()
+                nivel_sel = st.selectbox(
+                    "Paso 1: Selecciona el Nivel", 
+                    options=niveles, 
+                    index=None, 
+                    placeholder="Elige una opción...",
+                    key="asistente_nivel_sel" 
+                )
+                
+                # PASO 2: Grado
+                grados_options = []
+                if st.session_state.asistente_nivel_sel:
+                    grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
+                
+                grado_sel = st.selectbox(
+                    "Paso 2: Selecciona el Grado", 
+                    options=grados_options, 
+                    index=None, 
+                    placeholder="Elige un Nivel primero...",
+                    disabled=(not st.session_state.asistente_nivel_sel),
+                    key="asistente_grado_sel"
+                )
+
+                # PASO 3: Área
+                areas_options = []
+                df_hoja_descriptor = None 
+                
+                if st.session_state.asistente_grado_sel:
+                    if st.session_state.asistente_nivel_sel == "SECUNDARIA":
+                        df_hoja_descriptor = df_desc_sec
+                    elif st.session_state.asistente_nivel_sel == "PRIMARIA":
+                        df_hoja_descriptor = df_desc_prim
+                    
+                    if df_hoja_descriptor is not None:
+                        areas_options = df_hoja_descriptor['Área'].dropna().unique()
+                
+                area_sel = st.selectbox(
+                    "Paso 3: Selecciona el Área", 
+                    options=areas_options,
+                    index=None,
+                    placeholder="Elige un Grado primero...",
+                    disabled=(not st.session_state.asistente_grado_sel),
+                    key="asistente_area_sel"
+                )
+
+                # PASO 4: Competencia
+                competencias_options = []
+                if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
+                    competencias_options = df_hoja_descriptor[
+                        df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
+                    ]['Competencia'].dropna().unique()
+
+                competencias_sel = st.multiselect(
+                    "Paso 4: Selecciona la(s) Competencia(s)",
+                    options=competencias_options,
+                    placeholder="Elige un Área primero...",
+                    disabled=(not st.session_state.asistente_area_sel),
+                    key="asistente_competencias_sel"
+                )
+                
+                # PASOS 5 y 6: Dentro de un formulario
+                with st.form(key="session_form"):
+                    
+                    form_disabled = not st.session_state.asistente_competencias_sel
+                    
+                    tema_sel = st.text_input(
+                        "Paso 5: Escribe el tema o temática a tratar",
+                        placeholder="Ej: El sistema solar, La fotosíntesis...",
+                        disabled=form_disabled
+                    )
+                    
+                    tiempo_sel = st.selectbox(
+                        "Paso 6: Selecciona la duración de la sesión",
+                        options=["90 minutos", "180 minutos"],
+                        index=None,
+                        placeholder="Elige una opción...",
+                        disabled=form_disabled
+                    )
+                    
+                    submitted = st.form_submit_button(
+                        "Generar Sesión (Prueba)", 
+                        disabled=form_disabled
+                    )
+                    
+                    if submitted:
+                        ciclo_encontrado = "No encontrado"
+                        try:
+                            ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == st.session_state.asistente_grado_sel]['ciclo'].iloc[0]
+                        except Exception as e:
+                            st.error(f"Error al buscar el ciclo: {e}")
+                        
+                        if not tema_sel or not tiempo_sel:
+                            st.error("Por favor, completa los Pasos 5 y 6.")
+                        else:
+                            st.success("¡Formulario verificado! (Aún no se genera la sesión).")
+                            st.write(f"**Nivel:** {st.session_state.asistente_nivel_sel}")
+                            st.write(f"**Grado:** {st.session_state.asistente_grado_sel}")
+                            st.write(f"**Ciclo (encontrado):** {ciclo_encontrado}")
+                            st.write(f"**Área:** {st.session_state.asistente_area_sel}")
+                            st.write(f"**Competencias:** {', '.join(st.session_state.asistente_competencias_sel)}")
+                            st.write(f"**Temática:** {tema_sel}")
+                            st.write(f"**Duración:** {tiempo_sel}")
+        
+        elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+            st.info("Función de Unidades de Aprendizaje (Próximamente).")
+        
+        elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+            st.info("Función de Planificación Anual (Próximamente).")
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -686,6 +694,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
