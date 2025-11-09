@@ -191,7 +191,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO Y CORREGIDO) ===
+# === (PROMPT AFINADO - Corrección de Formato y Lógica) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
@@ -203,8 +203,9 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
     # 1. Convertir listas a texto formateado para el prompt
-    competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
-    capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
+    # (Usamos tu preferencia de guiones)
+    competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
+    capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
     # 2. Construir el Mega-Prompt
     prompt = f"""
@@ -251,16 +252,17 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO PARA ESTA SECCIÓN (image_702d63.png):** Crea una tabla Markdown con 3 columnas: 'COMPETENCIA', 'CAPACIDAD', 'CRITERIOS DE EVALUACIÓN'.
-    NO incluyas la columna 'DESEMPEÑO'.
-    Pobla la tabla con los datos de entrada.
-    Para las columnas `COMPETENCIA`, `CAPACIDAD` y `CRITERIOS DE EVALUACIÓN`, si hay múltiples ítems, DEBES usar una lista de viñetas (ej: * ítem 1 \n * ítem 2).
-    NO uses texto continuo.
+    **REGLA DE FORMATO PARA ESTA SECCIÓN (image_709622.png):**
+    1.  Genera una **tabla Markdown** con exactamente **3 columnas**: 'COMPETENCIA', 'CAPACIDAD', y 'CRITERIOS DE EVALUACIÓN'.
+    2.  **¡NO uses la columna 'DESEMPEÑO'!**
+    3.  **¡NO uses `<br>`!**
+    4.  Para las celdas con múltiples ítems (como Capacidades o Criterios), **DEBES** usar una lista de viñetas.
+    5.  **PRECISIÓN:** Usa **guiones (`-`)** para las viñetas, no asteriscos (`*`).
 
     **DATOS PARA LA TABLA:**
     * **Competencia(s):** {competencias_str}
     * **Capacidad(es):** {capacidades_str}
-    * **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación. REGLA: Deben alinearse *estrictamente* con el Estándar del Ciclo, el Grado, el Tema y las Capacidades. Usa viñetas (*).]
+    * **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación. REGLA: Deben alinearse *estrictamente* con el Estándar del Ciclo, el Grado, el Tema y las Capacidades. Usa guiones (`-`).]
 
     **IV. ENFOQUE TRANSVERSAL:**
     (Deja esta sección vacía)
