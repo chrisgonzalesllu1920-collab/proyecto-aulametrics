@@ -252,18 +252,12 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO PARA ESTA SECCIÓN (image_709622.png):**
+    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
     1.  Genera una **tabla Markdown** con exactamente **3 columnas**: 'COMPETENCIA', 'CAPACIDAD', y 'CRITERIOS DE EVALUACIÓN'.
     2.  **¡NO uses la columna 'DESEMPEÑO'!**
-    3.  **¡NO uses `<br>`!**
+    3.  **¡PROHIBIDO usar la etiqueta HTML `<br>`!**
     4.  Para las celdas con múltiples ítems (como Capacidades o Criterios), **DEBES** usar una lista de viñetas.
     5.  **PRECISIÓN:** Usa **guiones (`-`)** para las viñetas, no asteriscos (`*`).
-    
-    **EJEMPLO DE LA TABLA (NO COPIES LOS DATOS, SOLO EL FORMATO):**
-    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
-    | :--- | :--- | :--- |
-    | - Competencia 1 | - Capacidad 1.1 <br> - Capacidad 1.2 | - Criterio 1 <br> - Criterio 2 |
-    | - Competencia 2 | - Capacidad 2.1 | - Criterio 3 |
 
     **DATOS PARA LA TABLA:**
     * **Competencia(s):** {competencias_str}
@@ -285,7 +279,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
     **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia, similar a un 'Ticket de salida' (Exit Ticket).]
+    * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
     
     **VI. MATERIALES O RECURSOS:**
@@ -309,3 +303,4 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return response.text
     except Exception as e:
         return f"Error al contactar la IA: {e}"
+
