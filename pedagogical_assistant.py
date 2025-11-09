@@ -332,4 +332,3 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return f"Error inesperado al generar la sesión: {e}"
 
 
-
