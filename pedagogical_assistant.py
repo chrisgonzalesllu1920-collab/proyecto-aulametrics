@@ -4,7 +4,8 @@ import pandas as pd
 import io
 import re 
 from google import genai
-from google.genai.errors import APIError
+# Importamos la clase de Error específica para capturarla
+from google.api_core.exceptions import GoogleAPIError 
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -31,6 +32,7 @@ except Exception as e:
 def generate_ai_suggestions(critical_comp_info):
     """
     Genera propuestas de mejora usando el modelo de IA de Google (Gemini) y retorna el texto.
+    Usa el modelo 'flash' para velocidad.
     """
     
     if client is None:
@@ -69,7 +71,7 @@ def generate_ai_suggestions(critical_comp_info):
             contents=prompt,
         )
         return response.text
-    except APIError as e:
+    except GoogleAPIError as e:
         return f"❌ **Error al contactar la IA:** Se produjo un error en la API de Google (Código: {e}). Revisa tu clave y la cuota de uso."
     except Exception as e:
         return f"❌ **Error desconocido:** {e}"
@@ -191,13 +193,15 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO + CAMBIO DE MOTOR A 'PRO') ===
+# === (SOLUCIÓN DEFINITIVA: Formato de Lista + Fallback) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
     """
-    Genera una sesión de aprendizaje completa usando la IA, basada en la plantilla del usuario.
-    Usa el modelo 'pro' para consistencia y tareas complejas.
+    Genera una sesión de aprendizaje completa usando la IA.
+    Intenta usar el modelo 'pro' para alta calidad.
+    Si el modelo 'pro' está sobrecargado (Error 503), reintenta automáticamente 
+    con el modelo 'flash' para asegurar una respuesta.
     """
     
     if client is None:
@@ -207,7 +211,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
-    # 2. Construir el Mega-Prompt
+    # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -252,20 +256,20 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
-    | :--- | :--- | :--- |
-    [Aquí debes rellenar la tabla, fila por fila, usando los datos de entrada. NO incluyas la columna 'DESEMPEÑO'.]
+    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
+    1.  **NO uses una tabla.** El formato de tabla falla (image_71ebfc.png).
+    2.  En su lugar, usa el siguiente formato de encabezados y listas:
+        - Escribe la competencia en negrita (ej: **Competencia: Nombre de la competencia**).
+        - Debajo, escribe "**Capacidades:**" y una lista de viñetas con **guiones (`-`)**.
+        - Debajo, escribe "**Criterios de Evaluación:**" y una lista de viñetas con **guiones (`-`)**.
+        - Separa cada bloque de competencia con una regla horizontal (---).
+    3.  **¡PROHIBIDO usar la etiqueta HTML `<br>`!**
+    4.  **¡NO incluyas 'DESEMPEÑO'!**
 
-    **REGLAS ESTRICTAS PARA LA TABLA (image_71ebfc.png):**
-    - Rellena la tabla, fila por fila, con las competencias, capacidades y criterios.
-    - **¡PROHIBIDO usar la etiqueta `<br>`!**
-    - Para saltos de línea dentro de una celda, **DEBES** usar una lista de viñetas con **guiones (`-`)**.
-    - Los Criterios de Evaluación deben alinearse estrictamente con el Estándar y el Grado.
-
-    **DATOS PARA LA TABLA:**
+    **DATOS PARA LA SECCIÓN:**
     - **Competencia(s):** {competencias_str}
     - **Capacidad(es):** {capacidades_str}
-    - **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación por competencia, usando guiones (`-`).]
+    - **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación por competencia, usando guiones (`-`). REGLA: Deben alinearse *estrictamente* con el Estándar y el Grado.]
 
     **IV. ENFOQUE TRANSVERSAL:**
     (Deja esta sección vacía)
@@ -298,13 +302,32 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     """
     
     try:
-        # --- ¡CAMBIO DE MOTOR! ---
-        # Usamos el modelo 'pro' para esta tarea compleja.
+        # --- ¡AQUÍ ESTÁ LA LÓGICA DE FALLBACK (Solución al Error 503)! ---
+        
+        # 1. Intentar con el modelo "Pro" (mejor calidad)
         response = client.models.generate_content(
-            model='models/gemini-2.5-pro', # Nombre de modelo correcto de tu lista
+            model='models/gemini-2.5-pro', # Modelo "Pro" de tu lista
             contents=prompt
         )
         return response.text
+    
+    except GoogleAPIError as e:
+        # 2. Si falla por sobrecarga (Error 503), reintentar con "Flash"
+        if "503" in str(e) or "overloaded" in str(e).lower():
+            try:
+                # Reintento silencioso con el modelo Flash
+                response_flash = client.models.generate_content(
+                    model='models/gemini-2.5-flash', # Modelo "Flash" de tu lista
+                    contents=prompt
+                )
+                return response_flash.text
+            except Exception as e_flash:
+                return f"Error al contactar la IA (reintento con Flash fallido): {e_flash}"
+        else:
+            # 3. Si es otro error de API (como 404, 400), mostrarlo
+            return f"Error al contactar la IA (APIError): {e}"
     except Exception as e:
-        return f"Error al contactar la IA: {e}"
+        # 4. Otros errores
+        return f"Error inesperado al generar la sesión: {e}"
+
 
