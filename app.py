@@ -445,7 +445,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Conexión de IA - Generador de Sesión) ===
+# === (Corrección del SyntaxError 'else:') ===
 # =========================================================================
 
 def home_page():
@@ -521,7 +521,6 @@ def home_page():
         if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
             st.subheader("Generador de Sesión de Aprendizaje")
             
-            # (Ahora se cargan los datos 'rellenados' desde la Sección 4)
             df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
             
             if df_gen is None or df_cic is None or df_desc_sec is None or df_desc_prim is None:
@@ -558,7 +557,9 @@ def home_page():
                 # PASO 4: Competencia
                 competencias_options = []
                 if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
-                    competencias_options = df_hoja_descriptor[df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel]['Competencia'].dropna().unique()
+                    competencias_options = df_hoja_descriptor[
+                        df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
+                    ]['Competencia'].dropna().unique()
 
                 competencias_sel = st.multiselect("Paso 4: Selecciona la(s) Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel")
                 
@@ -569,47 +570,38 @@ def home_page():
                     tema_sel = st.text_input("Paso 5: Escribe el tema o temática a tratar", placeholder="Ej: El sistema solar...", disabled=form_disabled)
                     tiempo_sel = st.selectbox("Paso 6: Selecciona la duración de la sesión", options=["90 minutos", "180 minutos"], index=None, placeholder="Elige una opción...", disabled=form_disabled)
                     
-                    # --- ¡BOTÓN ACTUALIZADO! (Respuesta Q3) ---
                     submitted = st.form_submit_button("Generar Sesión de Aprendizaje", disabled=form_disabled)
                     
-                    # --- ¡LÓGICA DE IA CONECTADA! ---
                     if submitted:
                         if not tema_sel or not tiempo_sel:
                             st.error("Por favor, completa los Pasos 5 y 6.")
                         else:
                             with st.spinner("🤖 Generando tu sesión de aprendizaje... Esto puede tomar un minuto..."):
                                 try:
-                                    # 1. Recolectar datos del formulario
+                                    # 1. Recolectar datos
                                     nivel = st.session_state.asistente_nivel_sel
                                     grado = st.session_state.asistente_grado_sel
                                     area = st.session_state.asistente_area_sel
-                                    competencias = st.session_state.asistente_competencias_sel # Es una lista
+                                    competencias = st.session_state.asistente_competencias_sel 
                                     tema = tema_sel
                                     tiempo = tiempo_sel
                                     
-                                    # 2. Buscar datos pedagógicos (Ciclo, Capacidades, Estándar)
-                                    
-                                    # Buscar Ciclo (Respuesta Q1)
+                                    # 2. Buscar datos pedagógicos
                                     ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
                                     
-                                    # Buscar Capacidades (Respuesta Q2)
-                                    # (Gracias al ffill de la Sección 4, esto ahora funciona)
                                     datos_filtrados = df_hoja_descriptor[
                                         (df_hoja_descriptor['Área'] == area) &
                                         (df_hoja_descriptor['Competencia'].isin(competencias))
                                     ]
                                     capacidades_lista = datos_filtrados['capacidad'].dropna().unique().tolist()
-                                    
-                                    # Buscar Estándares (Respuesta Q1)
-                                    # (Obtenemos los estándares únicos para las competencias seleccionadas)
                                     estandares_lista = datos_filtrados['DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA'].dropna().unique().tolist()
                                     estandar_texto_completo = "\n\n".join(estandares_lista)
 
-                                    # 3. Llamar a la IA (El "Mega-Prompt")
+                                    # 3. Llamar a la IA
                                     sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
                                         nivel=nivel,
                                         grado=grado,
-                                        ciclo=str(ciclo_encontrado), # Convertir a string por si acaso
+                                        ciclo=str(ciclo_encontrado), 
                                         area=area,
                                         competencias_lista=competencias,
                                         capacidades_lista=capacidades_lista,
@@ -631,10 +623,9 @@ def home_page():
         
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
-
-    # Si el DataFrame NO está cargado (df_cargado es False), mostramos el uploader.
-    else:
-        configurar_uploader()
+            
+    # --- ¡ERROR CORREGIDO! ---
+    # El 'else:' huérfano que causaba el SyntaxError (`image_636ede.png`) ha sido eliminado.
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -684,6 +675,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
