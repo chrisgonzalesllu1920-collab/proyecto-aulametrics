@@ -212,7 +212,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
     # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
-    #    (Corregido para arreglar los errores de formato de 'image_7ce32c.png' y 'image_7ce709.png')
+    #    (Corregido para arreglar los errores de formato de 'image_7d491d.png' y 'image_7ce709.png')
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -330,5 +330,3 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
-
-
