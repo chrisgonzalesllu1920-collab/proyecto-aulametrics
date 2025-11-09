@@ -31,6 +31,7 @@ except Exception as e:
 def generate_ai_suggestions(critical_comp_info):
     """
     Genera propuestas de mejora usando el modelo de IA de Google (Gemini) y retorna el texto.
+    Usa el modelo 'flash' para velocidad.
     """
     
     if client is None:
@@ -65,7 +66,7 @@ def generate_ai_suggestions(critical_comp_info):
     
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash', 
+            model='gemini-1.5-flash', # Modelo rápido para tarea simple
             contents=prompt,
         )
         return response.text
@@ -191,12 +192,13 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO - Corrección de Formato ESTRICTO) ===
+# === (PROMPT AFINADO + CAMBIO DE MOTOR A 'PRO') ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
     """
     Genera una sesión de aprendizaje completa usando la IA, basada en la plantilla del usuario.
+    Usa el modelo 'pro' para consistencia y tareas complejas.
     """
     
     if client is None:
@@ -246,7 +248,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** * **Docente:** **II. PROPÓSITO DE LA SESIÓN:**
+    * **Sección:** * **Docente:** **II. PROPÓSIO DE LA SESIÓN:**
     * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
 
     **III. COMPETENCIAS Y CAPACIDADES:**
@@ -297,11 +299,13 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     """
     
     try:
-        # Usamos el modelo 'flash' que sabemos que funciona
+        # --- ¡CAMBIO DE MOTOR! ---
+        # Usamos el modelo 'pro' para esta tarea compleja.
         response = client.models.generate_content(
-            model='gemini-2.5-flash', 
+            model='gemini-1.5-pro', 
             contents=prompt
         )
         return response.text
     except Exception as e:
         return f"Error al contactar la IA: {e}"
+
