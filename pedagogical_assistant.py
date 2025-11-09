@@ -27,11 +27,10 @@ except Exception as e:
 # =========================================================================
 # === I. FUNCIÓN DE PROPUESTAS (Pestaña 1) ===
 # =========================================================================
-
+# (Esta sección no ha cambiado)
 def generate_ai_suggestions(critical_comp_info):
     """
     Genera propuestas de mejora usando el modelo de IA de Google (Gemini) y retorna el texto.
-    Usa el modelo 'flash' para velocidad.
     """
     
     if client is None:
@@ -66,7 +65,7 @@ def generate_ai_suggestions(critical_comp_info):
     
     try:
         response = client.models.generate_content(
-            model='gemini-1.5-flash', # Modelo rápido para tarea simple
+            model='gemini-1.5-flash', 
             contents=prompt,
         )
         return response.text
@@ -79,6 +78,7 @@ def generate_ai_suggestions(critical_comp_info):
 # =========================================================================
 # === II. FUNCIÓN DE EXPORTACIÓN A WORD (DOCX) ===
 # =========================================================================
+# (Esta sección no ha cambiado)
 def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_report_text):
     document = Document()
     result = analisis_results[sheet_name]
@@ -142,6 +142,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
 # =========================================================================
 # === III. FUNCIÓN PRINCIPAL LLAMADA DESDE APP.PY (Propuestas) ===
 # =========================================================================
+# (Esta sección no ha cambiado)
 def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_limpio):
     sheet_name = selected_sheet_name
     result = analisis_results[sheet_name]
@@ -191,121 +192,42 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
         return ai_response_text 
 
 # =========================================================================
-# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO + CAMBIO DE MOTOR A 'PRO') ===
+# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (MODO DE DIAGNÓSTICO) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
     """
-    Genera una sesión de aprendizaje completa usando la IA, basada en la plantilla del usuario.
-    Usa el modelo 'pro' para consistencia y tareas complejas.
+    MODO DE DIAGNÓSTICO: Esta función listará los modelos de IA disponibles
+    en lugar de generar una sesión.
     """
     
     if client is None:
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
-    # 1. Convertir listas a texto formateado para el prompt
-    competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
-    capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
-
-    # 2. Construir el Mega-Prompt
-    prompt = f"""
-    Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
-    Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
-    Debes seguir el formato Markdown exacto solicitado.
-
-    ## DATOS DE ENTRADA:
-    - **Nivel:** {nivel}
-    - **Grado:** {grado}
-    - **Ciclo:** {ciclo}
-    - **Área:** {area}
-    - **Tema (Temática):** {tematica}
-    - **Duración:** {tiempo}
-
-    ## RECURSOS PEDAGÓGICOS (Contexto):
-    
-    **Competencia(s) Seleccionada(s):**
-    {competencias_str}
-
-    **Capacidad(es) Correspondiente(s):**
-    {capacidades_str}
-
-    **Estándar(es) del Ciclo (Descripción del Nivel de Desarrollo):**
-    "{estandar_texto}"
-
-    ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
-    ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
-    El docente ha seleccionado el **{grado}**. 
-    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidades**.
-
-    ## PLANTILLA DE SALIDA (Formato Requerido):
-    Genera la sesión usando este formato Markdown. Completa cada sección según las plantillas e instrucciones.
-
-    ### SESIÓN DE APRENDIZAJE – N° 
-
-    **I. DATOS GENERALES:**
-    * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
-    * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
-    * **Fecha:** * **Ciclo:** {ciclo}
-    * **Grado:** {grado}
-    * **Sección:** * **Docente:** **II. PROPÓSIO DE LA SESIÓN:**
-    * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
-
-    **III. COMPETENCIAS Y CAPACIDADES:**
-    
-    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
-    | :--- | :--- | :--- |
-    [Aquí debes rellenar la tabla, fila por fila, usando los datos de entrada. NO incluyas la columna 'DESEMPEÑO'.]
-
-    **REGLAS ESTRICTAS PARA LA TABLA (image_71ebfc.png):**
-    - Rellena la tabla, fila por fila, con las competencias, capacidades y criterios.
-    - **¡PROHIBIDO usar la etiqueta `<br>`!**
-    - Para saltos de línea dentro de una celda, **DEBES** usar una lista de viñetas con **guiones (`-`)**.
-    - Los Criterios de Evaluación deben alinearse estrictamente con el Estándar y el Grado.
-
-    **DATOS PARA LA TABLA:**
-    - **Competencia(s):** {competencias_str}
-    - **Capacidad(es):** {capacidades_str}
-    - **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación por competencia, usando guiones (`-`).]
-
-    **IV. ENFOQUE TRANSVERSAL:**
-    (Deja esta sección vacía)
-    
-    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
-
-    **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Motivación:** [Genera una actividad corta de motivación]
-    * **Saberes previos:** [Genera 2-3 preguntas para explorar saberes previos sobre {tematica}]
-    * **Conflicto cognitivo:** [Genera 1 pregunta de conflicto cognitivo]
-    * **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
-
-    **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
-    * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
-
-    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
-    * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
-    
-    **VI. MATERIALES O RECURSOS:**
-    * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
-
-    **VII. FIRMAS:**
-
-    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    DIRECTOR
-
-    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    DOCENTE DE ({area})
-    """
-    
     try:
-        # --- ¡CAMBIO DE MOTOR! ---
-        # Usamos el modelo 'pro' para esta tarea compleja.
-        response = client.models.generate_content(
-            model='gemini-1.5-pro', 
-            contents=prompt
-        )
-        return response.text
+        # --- ¡AQUÍ ESTÁ EL CÓDIGO DE DIAGNÓSTICO! ---
+        st.info("Iniciando modo de diagnóstico de IA...")
+        
+        lista_de_modelos = []
+        for m in client.models.list():
+            # Filtramos solo los modelos que PUEDEN generar contenido
+            if 'generateContent' in m.supported_generation_methods:
+                lista_de_modelos.append(m.name)
+        
+        # Formateamos la lista para mostrarla
+        modelos_texto = "\n".join(f"- `{model}`" for model in lista_de_modelos)
+        
+        return f"""
+        **Diagnóstico Completado: Modelos Disponibles**
+        
+        Estos son los nombres de modelos exactos que tu API Key gratuita puede usar:
+        
+        {modelos_texto}
+        
+        (Por favor, copia esta lista y pégala en nuestro chat para que pueda elegir el motor correcto)
+        """
+
     except Exception as e:
-        return f"Error al contactar la IA: {e}"
+        return f"Error al intentar listar los modelos: {e}"
+
 
