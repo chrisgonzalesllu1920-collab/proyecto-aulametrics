@@ -191,7 +191,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO - Corrección de Formato y Lógica) ===
+# === (PROMPT AFINADO - Corrección de Formato ESTRICTO) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
@@ -258,6 +258,12 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     3.  **¡NO uses `<br>`!**
     4.  Para las celdas con múltiples ítems (como Capacidades o Criterios), **DEBES** usar una lista de viñetas.
     5.  **PRECISIÓN:** Usa **guiones (`-`)** para las viñetas, no asteriscos (`*`).
+    
+    **EJEMPLO DE LA TABLA (NO COPIES LOS DATOS, SOLO EL FORMATO):**
+    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
+    | :--- | :--- | :--- |
+    | - Competencia 1 | - Capacidad 1.1 <br> - Capacidad 1.2 | - Criterio 1 <br> - Criterio 2 |
+    | - Competencia 2 | - Capacidad 2.1 | - Criterio 3 |
 
     **DATOS PARA LA TABLA:**
     * **Competencia(s):** {competencias_str}
