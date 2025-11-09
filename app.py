@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección del SyntaxError 'else:') ===
+# === (Corrección de KeyError en 'estandares_lista') ===
 # =========================================================================
 
 def home_page():
@@ -596,8 +596,15 @@ def home_page():
                                         (df_hoja_descriptor['Competencia'].isin(competencias))
                                     ]
                                     capacidades_lista = datos_filtrados['capacidad'].dropna().unique().tolist()
-                                    estandares_lista = datos_filtrados['DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA'].dropna().unique().tolist()
+                                    
+                                    # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR! ---
+                                    # (Usamos el nombre de columna correcto con "DEL DESARROLLO" 
+                                    # y el doble espacio que encontraste, o el nombre corregido)
+                                    columna_estandar_correcta = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA" # (Asegúrate que este sea el nombre final en tu Excel)
+
+                                    estandares_lista = datos_filtrados[columna_estandar_correcta].dropna().unique().tolist()
                                     estandar_texto_completo = "\n\n".join(estandares_lista)
+                                    # ----------------------------------------
 
                                     # 3. Llamar a la IA
                                     sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
@@ -616,6 +623,9 @@ def home_page():
                                     st.success("¡Sesión de aprendizaje generada!")
                                     st.markdown(sesion_generada)
 
+                                except KeyError as e:
+                                    st.error(f"Error de columna (KeyError): No se pudo encontrar la columna {e} en el DataFrame.")
+                                    st.error("Verifica que los nombres de las columnas en tu Excel ('capacidad', 'DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA', etc.) coincidan exactamente con el código.")
                                 except Exception as e:
                                     st.error(f"Ocurrió un error al generar la sesión:")
                                     st.error(e)
@@ -625,9 +635,6 @@ def home_page():
         
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
-            
-    # --- ¡ERROR CORREGIDO! ---
-    # El 'else:' huérfano que causaba el SyntaxError (`image_636ede.png`) ha sido eliminado.
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -677,6 +684,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
