@@ -220,9 +220,7 @@ def logout():
         del st.session_state[k]
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA ---
-@st.cache_data(ttl=3600)
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con ffill para Área) ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con ffill completo) ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
@@ -235,14 +233,21 @@ def cargar_datos_pedagogicos():
         df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
         df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
         
-        # --- ¡CORRECCIÓN! (Rellenamos celdas combinadas en 3 lugares) ---
+        # --- ¡CORRECCIÓN CLAVE! (Rellenamos todas las celdas combinadas) ---
+        
+        # Hoja 1: Generalidades
         df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
+        
+        # Hoja 2: Cicloseducativos
         df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
         
-        # --- ¡AQUÍ ESTÁ LA NUEVA CORRECCIÓN! ---
-        # (Esto arregla el bug de que solo carga una competencia)
-        df_desc_sec['Área'] = df_desc_sec['Área'].ffill()
-        df_desc_prim['Área'] = df_desc_prim['Área'].ffill()
+        # Hojas de Descriptores (Primaria y Secundaria)
+        # Rellenamos todas las columnas que tienen celdas combinadas
+        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', 'DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA']
+        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', 'DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA']
+        
+        df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
+        df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
         # -----------------------------------------------
         
         return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
@@ -440,7 +445,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Arquitectura Refactorizada: Pestañas Independientes) ===
+# === (Conexión de IA - Generador de Sesión) ===
 # =========================================================================
 
 def home_page():
@@ -464,17 +469,13 @@ def home_page():
             '<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', 
             unsafe_allow_html=True
         )
-        # (Texto del subtítulo actualizado)
         st.markdown("Selecciona una herramienta para comenzar.")
 
     # Botón de cerrar sesión
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
         logout()
 
-    # --- ¡AQUÍ ESTÁ LA NUEVA ARQUITECTURA (Opción A)! ---
-    
     # 3. LÓGICA DE PESTAÑAS (Se muestra SIEMPRE)
-    
     tab_general, tab_estudiante, tab_asistente = st.tabs([
         "📊 Análisis General", 
         "🧑‍🎓 Análisis por Estudiante", 
@@ -483,34 +484,28 @@ def home_page():
 
     # --- Pestaña 1: Análisis General (Contiene el cargador) ---
     with tab_general:
-        # Verificamos si el archivo de notas está cargado
         if st.session_state.df_cargado:
-            # Si SÍ está cargado, mostramos el análisis
             info_areas = st.session_state.info_areas
             mostrar_analisis_general(info_areas)
         else:
-            # Si NO está cargado, mostramos el cargador aquí
             st.subheader("Subir Archivo de Notas")
             st.info("Para comenzar el análisis de notas, sube tu registro de Excel aquí.")
-            configurar_uploader() # <-- El cargador ahora vive aquí
+            configurar_uploader() 
 
     # --- Pestaña 2: Análisis por Estudiante (Depende de la Pestaña 1) ---
     with tab_estudiante:
-        # Verificamos si el archivo de notas está cargado
         if st.session_state.df_cargado:
-            # Si SÍ está cargado, mostramos el análisis
             df = st.session_state.df
             df_config = st.session_state.df_config
             info_areas = st.session_state.info_areas
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
         else:
-            # Si NO está cargado, mostramos el mensaje de ayuda
             st.header("🧑‍🎓 Análisis Individual por Estudiante")
             st.info("Esta función requiere un archivo de notas.")
             st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
 
         
-    # --- Pestaña 3: Asistente Pedagógico (Es 100% independiente) ---
+    # --- Pestaña 3: Asistente Pedagógico (CONEXIÓN A IA) ---
     with tab_asistente:
         st.header("🧠 Asistente Pedagógico")
         
@@ -521,44 +516,29 @@ def home_page():
             horizontal=True,
             key="asistente_tipo_herramienta"
         )
-        
         st.markdown("---")
 
-        # Lógica del Formulario (esto no cambia)
         if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
             st.subheader("Generador de Sesión de Aprendizaje")
             
+            # (Ahora se cargan los datos 'rellenados' desde la Sección 4)
             df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
             
             if df_gen is None or df_cic is None or df_desc_sec is None or df_desc_prim is None:
                 st.error("Error crítico: No se pudieron cargar todas las hojas de 'Estandares de aprendizaje.xlsx'.")
-                st.error("Por favor, verifica que el archivo y los nombres de las 4 hojas sean correctos.")
             else:
                 # --- FORMULARIO DEPENDIENTE DE 6 PASOS ---
                 
                 # PASO 1: Nivel
                 niveles = df_gen['NIVEL'].dropna().unique()
-                nivel_sel = st.selectbox(
-                    "Paso 1: Selecciona el Nivel", 
-                    options=niveles, 
-                    index=None, 
-                    placeholder="Elige una opción...",
-                    key="asistente_nivel_sel" 
-                )
+                nivel_sel = st.selectbox("Paso 1: Selecciona el Nivel", options=niveles, index=None, placeholder="Elige una opción...", key="asistente_nivel_sel" )
                 
                 # PASO 2: Grado
                 grados_options = []
                 if st.session_state.asistente_nivel_sel:
                     grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
                 
-                grado_sel = st.selectbox(
-                    "Paso 2: Selecciona el Grado", 
-                    options=grados_options, 
-                    index=None, 
-                    placeholder="Elige un Nivel primero...",
-                    disabled=(not st.session_state.asistente_nivel_sel),
-                    key="asistente_grado_sel"
-                )
+                grado_sel = st.selectbox("Paso 2: Selecciona el Grado", options=grados_options, index=None, placeholder="Elige un Nivel primero...", disabled=(not st.session_state.asistente_nivel_sel), key="asistente_grado_sel")
 
                 # PASO 3: Área
                 areas_options = []
@@ -573,78 +553,88 @@ def home_page():
                     if df_hoja_descriptor is not None:
                         areas_options = df_hoja_descriptor['Área'].dropna().unique()
                 
-                area_sel = st.selectbox(
-                    "Paso 3: Selecciona el Área", 
-                    options=areas_options,
-                    index=None,
-                    placeholder="Elige un Grado primero...",
-                    disabled=(not st.session_state.asistente_grado_sel),
-                    key="asistente_area_sel"
-                )
+                area_sel = st.selectbox("Paso 3: Selecciona el Área", options=areas_options, index=None, placeholder="Elige un Grado primero...", disabled=(not st.session_state.asistente_grado_sel), key="asistente_area_sel")
 
                 # PASO 4: Competencia
                 competencias_options = []
                 if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
-                    competencias_options = df_hoja_descriptor[
-                        df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
-                    ]['Competencia'].dropna().unique()
+                    competencias_options = df_hoja_descriptor[df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel]['Competencia'].dropna().unique()
 
-                competencias_sel = st.multiselect(
-                    "Paso 4: Selecciona la(s) Competencia(s)",
-                    options=competencias_options,
-                    placeholder="Elige un Área primero...",
-                    disabled=(not st.session_state.asistente_area_sel),
-                    key="asistente_competencias_sel"
-                )
+                competencias_sel = st.multiselect("Paso 4: Selecciona la(s) Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel")
                 
                 # PASOS 5 y 6: Dentro de un formulario
                 with st.form(key="session_form"):
-                    
                     form_disabled = not st.session_state.asistente_competencias_sel
                     
-                    tema_sel = st.text_input(
-                        "Paso 5: Escribe el tema o temática a tratar",
-                        placeholder="Ej: El sistema solar, La fotosíntesis...",
-                        disabled=form_disabled
-                    )
+                    tema_sel = st.text_input("Paso 5: Escribe el tema o temática a tratar", placeholder="Ej: El sistema solar...", disabled=form_disabled)
+                    tiempo_sel = st.selectbox("Paso 6: Selecciona la duración de la sesión", options=["90 minutos", "180 minutos"], index=None, placeholder="Elige una opción...", disabled=form_disabled)
                     
-                    tiempo_sel = st.selectbox(
-                        "Paso 6: Selecciona la duración de la sesión",
-                        options=["90 minutos", "180 minutos"],
-                        index=None,
-                        placeholder="Elige una opción...",
-                        disabled=form_disabled
-                    )
+                    # --- ¡BOTÓN ACTUALIZADO! (Respuesta Q3) ---
+                    submitted = st.form_submit_button("Generar Sesión de Aprendizaje", disabled=form_disabled)
                     
-                    submitted = st.form_submit_button(
-                        "Generar Sesión (Prueba)", 
-                        disabled=form_disabled
-                    )
-                    
+                    # --- ¡LÓGICA DE IA CONECTADA! ---
                     if submitted:
-                        ciclo_encontrado = "No encontrado"
-                        try:
-                            ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == st.session_state.asistente_grado_sel]['ciclo'].iloc[0]
-                        except Exception as e:
-                            st.error(f"Error al buscar el ciclo: {e}")
-                        
                         if not tema_sel or not tiempo_sel:
                             st.error("Por favor, completa los Pasos 5 y 6.")
                         else:
-                            st.success("¡Formulario verificado! (Aún no se genera la sesión).")
-                            st.write(f"**Nivel:** {st.session_state.asistente_nivel_sel}")
-                            st.write(f"**Grado:** {st.session_state.asistente_grado_sel}")
-                            st.write(f"**Ciclo (encontrado):** {ciclo_encontrado}")
-                            st.write(f"**Área:** {st.session_state.asistente_area_sel}")
-                            st.write(f"**Competencias:** {', '.join(st.session_state.asistente_competencias_sel)}")
-                            st.write(f"**Temática:** {tema_sel}")
-                            st.write(f"**Duración:** {tiempo_sel}")
+                            with st.spinner("🤖 Generando tu sesión de aprendizaje... Esto puede tomar un minuto..."):
+                                try:
+                                    # 1. Recolectar datos del formulario
+                                    nivel = st.session_state.asistente_nivel_sel
+                                    grado = st.session_state.asistente_grado_sel
+                                    area = st.session_state.asistente_area_sel
+                                    competencias = st.session_state.asistente_competencias_sel # Es una lista
+                                    tema = tema_sel
+                                    tiempo = tiempo_sel
+                                    
+                                    # 2. Buscar datos pedagógicos (Ciclo, Capacidades, Estándar)
+                                    
+                                    # Buscar Ciclo (Respuesta Q1)
+                                    ciclo_encontrado = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
+                                    
+                                    # Buscar Capacidades (Respuesta Q2)
+                                    # (Gracias al ffill de la Sección 4, esto ahora funciona)
+                                    datos_filtrados = df_hoja_descriptor[
+                                        (df_hoja_descriptor['Área'] == area) &
+                                        (df_hoja_descriptor['Competencia'].isin(competencias))
+                                    ]
+                                    capacidades_lista = datos_filtrados['capacidad'].dropna().unique().tolist()
+                                    
+                                    # Buscar Estándares (Respuesta Q1)
+                                    # (Obtenemos los estándares únicos para las competencias seleccionadas)
+                                    estandares_lista = datos_filtrados['DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA'].dropna().unique().tolist()
+                                    estandar_texto_completo = "\n\n".join(estandares_lista)
+
+                                    # 3. Llamar a la IA (El "Mega-Prompt")
+                                    sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
+                                        nivel=nivel,
+                                        grado=grado,
+                                        ciclo=str(ciclo_encontrado), # Convertir a string por si acaso
+                                        area=area,
+                                        competencias_lista=competencias,
+                                        capacidades_lista=capacidades_lista,
+                                        estandar_texto=estandar_texto_completo,
+                                        tematica=tema,
+                                        tiempo=tiempo
+                                    )
+                                    
+                                    # 4. Mostrar el resultado
+                                    st.success("¡Sesión de aprendizaje generada!")
+                                    st.markdown(sesion_generada)
+
+                                except Exception as e:
+                                    st.error(f"Ocurrió un error al generar la sesión:")
+                                    st.error(e)
         
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
         
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
+
+    # Si el DataFrame NO está cargado (df_cargado es False), mostramos el uploader.
+    else:
+        configurar_uploader()
 
 # =========================================================================
 # === 6. LÓGICA DE INICIO (LOGIN) Y PANTALLA INICIAL ===
@@ -694,6 +684,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
