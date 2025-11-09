@@ -4,10 +4,8 @@ import pandas as pd
 import io
 import re 
 from google import genai
-# --- ¡CORRECCIÓN DEL ERROR 503 (Import)! ---
-# Importamos la clase de Error correcta de la biblioteca genai
+# Importamos la clase de Error específica para capturarla
 from google.genai.errors import APIError 
-# ---------------------------------------------
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -73,7 +71,7 @@ def generate_ai_suggestions(critical_comp_info):
             contents=prompt,
         )
         return response.text
-    except APIError as e: # <-- (Usamos el tipo de error correcto)
+    except APIError as e: 
         return f"❌ **Error al contactar la IA:** Se produjo un error en la API de Google (Código: {e}). Revisa tu clave y la cuota de uso."
     except Exception as e:
         return f"❌ **Error desconocido:** {e}"
@@ -195,15 +193,14 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (SOLUCIÓN DEFINITIVA: Formato de Lista + Fallback) ===
+# === (Añadida la función de Contextualización) ===
 # =========================================================================
 
-def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
+# --- ¡NUEVA FIRMA DE FUNCIÓN! ---
+def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, region=None, provincia=None, distrito=None):
     """
     Genera una sesión de aprendizaje completa usando la IA.
-    Intenta usar el modelo 'pro' para alta calidad.
-    Si el modelo 'pro' está sobrecargado (Error 503), reintenta automáticamente 
-    con el modelo 'flash' para asegurar una respuesta.
+    Ahora incluye lógica de contextualización y fallback de modelo.
     """
     
     if client is None:
@@ -212,6 +209,20 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     # 1. Convertir listas a texto formateado para el prompt
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
+
+    # --- ¡NUEVO BLOQUE DE CONTEXTO! ---
+    contexto_str = ""
+    if region and region.strip(): # Si el usuario escribió algo en Región
+        contexto_str = f"""
+## CONTEXTO GEOGRÁFICO (Opcional)
+- **Región:** {region}
+- **Provincia:** {provincia}
+- **Distrito:** {distrito}
+
+**REGLA DE CONTEXTUALIZACIÓN:**
+DEBES usar estos datos geográficos para generar ejemplos, situaciones, problemas y actividades que sean relevantes para esa ubicación específica. Por ejemplo, si el tema es "contaminación", usa ejemplos de esa región. Si el tema es "historia", usa personajes o eventos de esa provincia.
+"""
+    # --- FIN DEL NUEVO BLOQUE ---
 
     # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
     prompt = f"""
@@ -226,6 +237,8 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     - **Área:** {area}
     - **Tema (Temática):** {tematica}
     - **Duración:** {tiempo}
+
+    {contexto_str} 
 
     ## RECURSOS PEDAGÓGICOS (Contexto):
     
@@ -258,7 +271,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN (image_7ce709.png):**
+    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
     1.  **NO uses una tabla.**
     2.  Usa el siguiente formato de encabezados y listas:
         - Escribe la competencia en negrita (ej: **Competencia: Nombre de la competencia**).
@@ -287,7 +300,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 1Día minutos])
+    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
     
