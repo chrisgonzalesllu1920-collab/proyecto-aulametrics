@@ -223,4 +223,118 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
         # Esta función ya no imprime el resultado (ni st.markdown ni st.error).
         # Solo retorna el texto. app.py se encargará de mostrarlo.
         return ai_response_text 
+
         # === FIN DE LA CORRECCIÓN ===
+
+# --- (Asegúrate de tener tus imports de genai y el 'model' configurado arriba) ---
+# import google.generativeai as genai
+# ... (tu configuración de API Key y 'model') ...
+
+# --- (Tu función 'generate_suggestions' existente va aquí) ---
+# def generate_suggestions(...):
+#     ...
+
+# --- ¡AÑADE ESTA NUEVA FUNCIÓN AL FINAL! ---
+
+def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
+    """
+    Genera una sesión de aprendizaje completa usando la IA, basada en la plantilla del usuario.
+    """
+    
+    # 1. Convertir listas a texto formateado para el prompt
+    competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
+    capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
+
+    # 2. Construir el Mega-Prompt
+    prompt = f"""
+    Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
+    Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
+    Debes seguir el formato Markdown exacto solicitado.
+
+    ## DATOS DE ENTRADA:
+    - **Nivel:** {nivel}
+    - **Grado:** {grado}
+    - **Ciclo:** {ciclo}
+    - **Área:** {area}
+    - **Tema (Temática):** {tematica}
+    - **Duración:** {tiempo}
+
+    ## RECURSOS PEDAGÓGICOS (Contexto):
+    
+    **Competencia(s) Seleccionada(s):**
+    {competencias_str}
+
+    **Capacidad(es) Correspondiente(s):**
+    {capacidades_str}
+
+    **Estándar(es) del Ciclo (Descripción del Nivel de Desarrollo):**
+    "{estandar_texto}"
+
+    ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
+    ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
+    El docente ha seleccionado el **{grado}**. 
+    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidades**.
+
+    ## PLANTILLA DE SALIDA (Formato Requerido):
+    Genera la sesión usando este formato Markdown. Completa cada sección según las plantillas e instrucciones.
+
+    ### SESIÓN DE APRENDIZAJE – N° [Dejar en blanco]
+
+    **I. DATOS GENERALES:**
+    * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
+    * **Unidad de Aprendizaje:** [Dejar en blanco]
+    * **Duración:** {tiempo}
+    * **Fecha:** [Dejar en blanco]
+    * **Ciclo:** {ciclo}
+    * **Grado:** {grado}
+    * **Sección:** [Dejar en blanco]
+    * **Docente:** [Dejar en blanco]
+
+    **II. PROPÓSITO DE LA SESIÓN:**
+    * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
+
+    **III. COMPETENCIAS Y CAPACIDADES:**
+    | COMPETENCIA | CAPACIDAD | CRITERIOS DE EVALUACIÓN |
+    | :--- | :--- | :--- |
+    | {competencias_str} | {capacidades_str} | [Genera aquí 3-4 Criterios de Evaluación. Deben ser observables, medibles y seguir la REGLA DE ORO (progresión de grado y ciclo) y estar basados en la Temática.] |
+
+    **IV. ENFOQUE TRANSVERSAL:**
+    * [Dejar en blanco]
+
+    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
+
+    **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    * **Motivación:** [Genera una actividad corta de motivación]
+    * **Saberes previos:** [Genera 2-3 preguntas para explorar saberes previos sobre {tematica}]
+    * **Conflicto cognitivo:** [Genera 1 pregunta de conflicto cognitivo]
+    * **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
+
+    **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
+    * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
+
+    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    * **Evaluación o transferencia de lo aprendido:** [Genera una actividad corta de cierre/metacognición. Ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?]
+
+    **VI. MATERIALES O RECURSOS:**
+    * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
+
+    **VII. FIRMAS:**
+
+    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+    DIRECTOR
+
+    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+    DOCENTE DE ({area})
+    """
+    
+    try:
+        # --- ¡ASUNCIÓN CRÍTICA! ---
+        # Asumo que tienes una variable 'model' definida en este archivo 
+        # (la misma que usas para 'generate_suggestions')
+        response = model.generate_content(prompt)
+        return response.text
+    except NameError:
+        st.error("Error: La variable 'model' de Gemini no está definida en pedagogical_assistant.py")
+        return "Error: La IA no está configurada correctamente en el archivo del asistente."
+    except Exception as e:
+        return f"Error al contactar la IA: {e}"
