@@ -191,7 +191,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (PROMPT AFINADO - Correcciones 1, 2 y 3) ===
+# === (PROMPT AFINADO Y CORREGIDO) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo):
@@ -203,7 +203,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
     # 1. Convertir listas a texto formateado para el prompt
-    # (Corrección 2b - Formato de viñetas)
     competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
 
@@ -244,26 +243,27 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 
     **I. DATOS GENERALES:**
     * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
-    
-    # --- ¡CORRECCIÓN 1! (Quitar "[Dejar en blanco]") ---
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** * **Docente:** # -----------------------------------------------
-
-    **II. PROPÓSITO DE LA SESIÓN:**
+    * **Sección:** * **Docente:** **II. PROPÓSITO DE LA SESIÓN:**
     * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
 
-    # --- ¡CORRECCIÓN 2! (Añadir 'DESEMPEÑO' y formato de viñetas) ---
     **III. COMPETENCIAS Y CAPACIDADES:**
-    | COMPETENCIA | CAPACIDAD | DESEMPEÑO (de Grado) | CRITERIOS DE EVALUACIÓN |
-    | :--- | :--- | :--- | :--- |
-    | {competencias_str} | {capacidades_str} | [Genera aquí los Desempeños *específicos del grado* ({grado}), basándote en el Estándar del Ciclo y las capacidades. Usa viñetas (*).] | [Genera aquí 3-4 Criterios de Evaluación. Deben ser observables, medibles, seguir la REGLA DE ORO (progresión de grado y ciclo) y estar basados en la Temática. Usa viñetas (*).] |
     
-    **REGLA DE FORMATO DE TABLA:** Para las columnas `COMPETENCIA`, `CAPACIDAD`, `DESEMPEÑO` y `CRITERIOS DE EVALUACIÓN`, si hay múltiples ítems, DEBES usar una lista de viñetas (ej: * ítem 1 \n * ítem 2), no texto continuo separado por <br>.
-    # -----------------------------------------------
+    **REGLA DE FORMATO PARA ESTA SECCIÓN (image_702d63.png):** Crea una tabla Markdown con 3 columnas: 'COMPETENCIA', 'CAPACIDAD', 'CRITERIOS DE EVALUACIÓN'.
+    NO incluyas la columna 'DESEMPEÑO'.
+    Pobla la tabla con los datos de entrada.
+    Para las columnas `COMPETENCIA`, `CAPACIDAD` y `CRITERIOS DE EVALUACIÓN`, si hay múltiples ítems, DEBES usar una lista de viñetas (ej: * ítem 1 \n * ítem 2).
+    NO uses texto continuo.
+
+    **DATOS PARA LA TABLA:**
+    * **Competencia(s):** {competencias_str}
+    * **Capacidad(es):** {capacidades_str}
+    * **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación. REGLA: Deben alinearse *estrictamente* con el Estándar del Ciclo, el Grado, el Tema y las Capacidades. Usa viñetas (*).]
 
     **IV. ENFOQUE TRANSVERSAL:**
+    (Deja esta sección vacía)
     
     **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
 
@@ -276,12 +276,10 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    # --- ¡CORRECCIÓN 3! (Dividir el Cierre) ---
     **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia, similar a un 'Ticket de salida' (Exit Ticket).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
-    # -----------------------------------------------
-
+    
     **VI. MATERIALES O RECURSOS:**
     * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
 
@@ -303,4 +301,3 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return response.text
     except Exception as e:
         return f"Error al contactar la IA: {e}"
-
