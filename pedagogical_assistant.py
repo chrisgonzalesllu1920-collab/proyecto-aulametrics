@@ -14,7 +14,6 @@ from docx.shared import RGBColor
 # === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
 # =========================================================================
 
-# Creamos el cliente de IA UNA SOLA VEZ y lo hacemos global
 try:
     gemini_key = st.secrets['gemini']['api_key']
     client = genai.Client(api_key=gemini_key)
@@ -65,8 +64,6 @@ def generate_ai_suggestions(critical_comp_info):
     """
     
     try:
-        # --- ¡CORRECCIÓN DEL ERROR 404! ---
-        # Usamos el modelo 'flash' que sabemos que funciona
         response = client.models.generate_content(
             model='gemini-2.5-flash', 
             contents=prompt,
@@ -81,7 +78,6 @@ def generate_ai_suggestions(critical_comp_info):
 # =========================================================================
 # === II. FUNCIÓN DE EXPORTACIÓN A WORD (DOCX) ===
 # =========================================================================
-# (Esta función no necesita cambios)
 def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_report_text):
     document = Document()
     result = analisis_results[sheet_name]
@@ -145,7 +141,6 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
 # =========================================================================
 # === III. FUNCIÓN PRINCIPAL LLAMADA DESDE APP.PY (Propuestas) ===
 # =========================================================================
-# (Esta función no necesita cambios)
 def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_limpio):
     sheet_name = selected_sheet_name
     result = analisis_results[sheet_name]
@@ -208,10 +203,9 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
 
     # 1. Convertir listas a texto formateado para el prompt
-    # --- ¡CORRECCIÓN 2b! (Formato de viñetas) ---
+    # (Corrección 2b - Formato de viñetas)
     competencias_str = "\n".join(f"* {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"* {cap}" for cap in capacidades_lista)
-    # --------------------------------------------
 
     # 2. Construir el Mega-Prompt
     prompt = f"""
@@ -251,26 +245,27 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **I. DATOS GENERALES:**
     * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
     
-    {/* --- ¡CORRECCIÓN 1! (Quitar "[Dejar en blanco]") --- */}
+    # --- ¡CORRECCIÓN 1! (Quitar "[Dejar en blanco]") ---
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** * **Docente:** {/* ----------------------------------------------- */}
+    * **Sección:** * **Docente:** # -----------------------------------------------
 
     **II. PROPÓSITO DE LA SESIÓN:**
     * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
 
-    {/* --- ¡CORRECCIÓN 2! (Añadir 'DESEMPEÑO' y formato de viñetas) --- */}
+    # --- ¡CORRECCIÓN 2! (Añadir 'DESEMPEÑO' y formato de viñetas) ---
     **III. COMPETENCIAS Y CAPACIDADES:**
     | COMPETENCIA | CAPACIDAD | DESEMPEÑO (de Grado) | CRITERIOS DE EVALUACIÓN |
     | :--- | :--- | :--- | :--- |
     | {competencias_str} | {capacidades_str} | [Genera aquí los Desempeños *específicos del grado* ({grado}), basándote en el Estándar del Ciclo y las capacidades. Usa viñetas (*).] | [Genera aquí 3-4 Criterios de Evaluación. Deben ser observables, medibles, seguir la REGLA DE ORO (progresión de grado y ciclo) y estar basados en la Temática. Usa viñetas (*).] |
     
     **REGLA DE FORMATO DE TABLA:** Para las columnas `COMPETENCIA`, `CAPACIDAD`, `DESEMPEÑO` y `CRITERIOS DE EVALUACIÓN`, si hay múltiples ítems, DEBES usar una lista de viñetas (ej: * ítem 1 \n * ítem 2), no texto continuo separado por <br>.
-    {/* ----------------------------------------------- */}
+    # -----------------------------------------------
 
     **IV. ENFOQUE TRANSVERSAL:**
-    * **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
+    
+    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
 
     **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Motivación:** [Genera una actividad corta de motivación]
@@ -281,11 +276,11 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
     * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    {/* --- ¡CORRECCIÓN 3! (Dividir el Cierre) --- */}
+    # --- ¡CORRECCIÓN 3! (Dividir el Cierre) ---
     **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
     * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia, similar a un 'Ticket de salida' (Exit Ticket).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
-    {/* ----------------------------------------------- */}
+    # -----------------------------------------------
 
     **VI. MATERIALES O RECURSOS:**
     * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
