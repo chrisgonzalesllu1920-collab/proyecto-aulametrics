@@ -220,7 +220,7 @@ def logout():
         del st.session_state[k]
     st.rerun()
 
-# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con ffill completo) ---
+# --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con nombre de columna CORRECTO) ---
 @st.cache_data(ttl=3600)
 def cargar_datos_pedagogicos():
     """
@@ -241,10 +241,12 @@ def cargar_datos_pedagogicos():
         # Hoja 2: Cicloseducativos
         df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
         
-        # Hojas de Descriptores (Primaria y Secundaria)
-        # Rellenamos todas las columnas que tienen celdas combinadas
-        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', 'DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA']
-        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', 'DESCRIPCIÓN DE LOS NIVELES DE LA COMPETENCIA']
+        # --- ¡AQUÍ ESTÁ LA CORRECIÓN DEL NOMBRE DE LA COLUMNA! ---
+        # (Usamos el nombre correcto que tú identificaste)
+        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
+        
+        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
+        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
         
         df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
         df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
@@ -257,7 +259,7 @@ def cargar_datos_pedagogicos():
         return None, None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        st.error("Verifica los nombres de las 4 hojas: 'Generalidades', 'Cicloseducativos', 'Descriptorsecundaria', 'Descriptorprimaria'.")
+        st.error("Verifica los nombres de las 4 hojas: 'Generalidades', 'Cicloseducativos', 'Descriptorsecundaria', 'Descriptorprimaria' y sus columnas.")
         return None, None, None, None
 
 # --- FUNCIÓN (UPLOADER) ---
@@ -675,6 +677,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
