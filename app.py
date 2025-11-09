@@ -589,7 +589,7 @@ def home_page():
                                     tiempo = tiempo_sel
                                     
                                     # --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL "Ciclo: 6.0"! ---
-                                    # (Paso 01 de mi mensaje anterior)
+                                    # (Punto 01 de tu captura image_6f3c47.png)
                                     ciclo_float = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
                                     ciclo_encontrado = int(ciclo_float) # Convertimos el 6.0 a 6
                                     # -----------------------------------------------
@@ -685,6 +685,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
