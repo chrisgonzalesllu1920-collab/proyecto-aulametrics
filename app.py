@@ -243,7 +243,7 @@ def cargar_datos_pedagogicos():
         
         # --- ¡AQUÍ ESTÁ LA CORRECIÓN DEL NOMBRE DE LA COLUMNA! ---
         # (Usamos el nombre correcto que tú identificaste)
-        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO  DE LA COMPETENCIA"
+        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
         
         cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
         cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
@@ -677,6 +677,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
