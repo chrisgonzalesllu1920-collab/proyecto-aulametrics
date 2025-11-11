@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Añadida la función de Instrucciones Adicionales) ===
+# === (Añadido el botón de Exportar a Word) ===
 # =========================================================================
 
 def home_page():
@@ -592,15 +592,14 @@ def home_page():
                     
                     st.markdown("---")
                     
-                    # --- ¡NUEVA SECCIÓN DE INSTRUCCIONES! ---
+                    # PASO 6: Instrucciones Adicionales
                     st.subheader("Paso 6: Instrucciones Adicionales (Opcional)")
                     instrucciones_sel = st.text_area(
                         "Indica un enfoque específico para la IA", 
                         placeholder="Ej: Quiero reforzar el cálculo de porcentajes, ya que mis estudiantes tuvieron problemas la clase pasada.",
-                        max_chars=500, # Límite de 500 caracteres
+                        max_chars=500,
                         disabled=form_disabled
                     )
-                    # --- FIN DE LA NUEVA SECCIÓN ---
 
                     st.markdown("---")
                     st.subheader("Paso 7: Detalles de la Sesión")
@@ -638,7 +637,7 @@ def home_page():
                                     estandares_lista = datos_filtrados[columna_estandar_correcta].dropna().unique().tolist()
                                     estandar_texto_completo = "\n\n".join(estandares_lista)
 
-                                    # 3. Llamar a la IA (¡CON LOS NUEVOS DATOS!)
+                                    # 3. Llamar a la IA
                                     sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
                                         nivel=nivel,
                                         grado=grado,
@@ -652,12 +651,28 @@ def home_page():
                                         region=region_sel,
                                         provincia=provincia_sel,
                                         distrito=distrito_sel,
-                                        instrucciones_docente=instrucciones_sel # ¡Nuevo!
+                                        instrucciones_docente=instrucciones_sel 
                                     )
                                     
                                     # 4. Mostrar el resultado
                                     st.success("¡Sesión de aprendizaje generada!")
                                     st.markdown(sesion_generada)
+
+                                    # --- ¡NUEVO BLOQUE DE DESCARGA! ---
+                                    # 5. Generar el archivo Word en memoria
+                                    docx_bytes = pedagogical_assistant.generar_docx_sesion(
+                                        sesion_markdown_text=sesion_generada,
+                                        area_docente=area 
+                                    )
+                                    
+                                    # 6. Añadir el botón de descarga
+                                    st.download_button(
+                                        label="Exportar Sesión a Word (.docx)",
+                                        data=docx_bytes,
+                                        file_name=f"sesion_{tema.replace(' ', '_')}.docx",
+                                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                    )
+                                    # --- FIN DEL NUEVO BLOQUE ---
 
                                 except KeyError as e:
                                     st.error(f"Error de columna (KeyError): No se pudo encontrar la columna {e} en el DataFrame.")
@@ -720,6 +735,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
