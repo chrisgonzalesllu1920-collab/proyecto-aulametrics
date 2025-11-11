@@ -5,7 +5,7 @@ import io
 import re 
 from google import genai
 # Importamos la clase de Error específica para capturarla
-from google.api_core.exceptions import GoogleAPIError 
+from google.genai.errors import APIError 
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -71,7 +71,7 @@ def generate_ai_suggestions(critical_comp_info):
             contents=prompt,
         )
         return response.text
-    except GoogleAPIError as e: 
+    except APIError as e: 
         return f"❌ **Error al contactar la IA:** Se produjo un error en la API de Google (Código: {e}). Revisa tu clave y la cuota de uso."
     except Exception as e:
         return f"❌ **Error desconocido:** {e}"
@@ -80,7 +80,6 @@ def generate_ai_suggestions(critical_comp_info):
 # =========================================================================
 # === II-A. FUNCIÓN DE EXPORTACIÓN A WORD (Propuestas) ===
 # =========================================================================
-# (Esta es tu función original, la dejamos intacta)
 def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_report_text):
     document = Document()
     result = analisis_results[sheet_name]
@@ -156,7 +155,7 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         # Separa el texto por **negritas**
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            if part.startswith('**') and part.endswith('**'):
+            if part.startswith('**') and part.endsWith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
                 paragraph.add_run(part)
@@ -268,7 +267,6 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 # === (Corrección de 'NameError' y Formato de Datos Generales) ===
 # =========================================================================
 
-# --- ¡NUEVA FIRMA DE FUNCIÓN! ---
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
                                 region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
@@ -350,11 +348,11 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     **I. DATOS GENERALES:**
     * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
     
-    {/* --- ¡CORRECCIÓN DE FORMATO (image_de941a.png)! --- */}
+    # --- ¡CORRECCIÓN DE FORMATO (image_de941a.png)! ---
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** * **Docente:** {/* ----------------------------------------------- */}
+    * **Sección:** * **Docente:** # -----------------------------------------------
 
     **II. PROPÓSITO DE LA SESIÓN:**
     * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
@@ -403,9 +401,9 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     DIRECTOR
 
     \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    {/* --- ¡CORRECCIÓN DE 'NameError' (image_a2787b.png)! --- */}
+    # --- ¡CORRECCIÓN DE 'NameError' (image_a2787b.png)! ---
     DOCENTE DE ({area}) 
-    {/* ----------------------------------------------- */}
+    # -----------------------------------------------
     """
     
     try:
@@ -436,4 +434,3 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
-
