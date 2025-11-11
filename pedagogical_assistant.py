@@ -1,3 +1,4 @@
+
 import streamlit as st
 import os
 import pandas as pd
@@ -239,19 +240,11 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             elif line.startswith('-') or line.startswith('*'):
                 # Asumimos que las viñetas después de 'Competencia' son capacidades
                 # y las viñetas después de 'Criterios' son criterios.
-                if current_competencia_text and not current_criterios_list:
-                     # Si ya tenemos una competencia pero no hemos empezado criterios, es una capacidad
-                     is_capacidad = True
-                     try:
-                         # Intentamos ver si la línea anterior fue 'Criterios'
-                         if "**Criterios de Evaluación:**" in lines[lines.index(line)-1]:
-                             is_capacidad = False
-                     except: pass
-                     
-                     if is_capacidad and not "**Criterios de Evaluación:**" in line: # Doble chequeo
-                         current_capacidades_list.append(line)
-                     else:
-                         current_criterios_list.append(line)
+                # Esta lógica es simple: si 'Criterios' ya apareció, es un criterio.
+                if current_criterios_list or "**Criterios de Evaluación:**" in lines[lines.index(line)-1] if lines.index(line) > 0 else False:
+                     current_criterios_list.append(line)
+                elif current_competencia_text:
+                     current_capacidades_list.append(line)
 
             elif line.startswith('---'):
                 # Fin del bloque de competencia, añadimos la fila a la tabla
@@ -264,12 +257,14 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                     for i, item in enumerate(current_capacidades_list):
                         # Añade un nuevo párrafo para cada item, excepto el primero
                         p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
+                        if i == 0: p.text = "" # Limpiamos el párrafo default si es el primero
                         p.style = 'List Bullet'
                         add_list_item(p, item)
                         
                     # Celda 2: Criterios (como lista de viñetas)
                     for i, item in enumerate(current_criterios_list):
                         p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
+                        if i == 0: p.text = "" # Limpiamos el párrafo default si es el primero
                         p.style = 'List Bullet'
                         add_list_item(p, item)
                 
@@ -300,6 +295,25 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             if line: 
                 paragraph = document.add_paragraph()
                 process_markdown_to_runs(paragraph, line)
+    
+    # --- ¡CORRECCIÓN DE LÓGICA (image_a42bd0.png)! ---
+    # Chequeo final: Si el bucle terminó y aún hay datos guardados 
+    # (porque era la última o única competencia y no había '---'),
+    # los escribimos en la tabla ahora.
+    if current_competencia_text and table is not None:
+        row_cells = table.add_row().cells
+        process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
+        for i, item in enumerate(current_capacidades_list):
+            p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
+            if i == 0: p.text = ""
+            p.style = 'List Bullet'
+            add_list_item(p, item)
+        for i, item in enumerate(current_criterios_list):
+            p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
+            if i == 0: p.text = ""
+            p.style = 'List Bullet'
+            add_list_item(p, item)
+    # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
     
     # Búfer de memoria para guardar el archivo
     buffer = io.BytesIO()
