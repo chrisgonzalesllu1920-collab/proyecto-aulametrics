@@ -146,6 +146,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
 
 # =========================================================================
 # === II-B. ¡NUEVA FUNCIÓN INTELIGENTE! EXPORTACIÓN A WORD (Sesión) ===
+# === (Arregla image_a42bd0.png y image_a3b3d4.png) ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
@@ -165,23 +166,59 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             else:
                 paragraph.add_run(part)
 
-    def add_list_item(paragraph, text):
+    def add_list_item(paragraph, text, style='List Bullet'):
         """Limpia la viñeta de Markdown y añade el texto."""
         cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', text).strip()
+        # Asegurarse de que el párrafo tiene el estilo correcto
+        paragraph.style = style
         process_markdown_to_runs(paragraph, cleaned_line)
 
     lines = sesion_markdown_text.split('\n')
     
     # --- Lógica de Parseo Inteligente (Nivel 2) ---
-    
-    # Banderas para saber dónde estamos
     in_competencies_section = False
     current_competencia_text = ""
     current_capacidades_list = []
     current_criterios_list = []
+    table = None
     
-    table = None # Variable para guardar la tabla
+    # --- ¡NUEVAS BANDERAS DE ESTADO! (Arregla image_a42bd0.png) ---
+    # Estados: 0 = Buscando, 1 = Leyendo Capacidades, 2 = Leyendo Criterios
+    current_state = 0 
 
+    def flush_competencia_to_table(table, comp_text, cap_list, crit_list):
+        """Función interna para escribir los datos en una nueva fila de la tabla."""
+        if not comp_text:
+            return # No hacer nada si no hay competencia
+            
+        row_cells = table.add_row().cells
+        
+        # Celda 0: Competencia
+        process_markdown_to_runs(row_cells[0].paragraphs[0], comp_text)
+        
+        # Celda 1: Capacidades (como lista de viñetas)
+        if cap_list:
+            # Limpiamos el párrafo default que se crea
+            row_cells[1].paragraphs[0].text = "" 
+            for item in cap_list:
+                p = row_cells[1].add_paragraph()
+                add_list_item(p, item)
+            # Eliminamos el primer párrafo vacío que se crea
+            if len(row_cells[1].paragraphs) > 1:
+                p_to_delete = row_cells[1].paragraphs[0]
+                p_to_delete.clear()
+        
+        # Celda 2: Criterios (como lista de viñetas)
+        if crit_list:
+            row_cells[2].paragraphs[0].text = ""
+            for item in crit_list:
+                p = row_cells[2].add_paragraph()
+                add_list_item(p, item)
+            if len(row_cells[2].paragraphs) > 1:
+                p_to_delete = row_cells[2].paragraphs[0]
+                p_to_delete.clear()
+
+    # --- Comienza el bucle de parseo ---
     for line in lines:
         line = line.strip()
         if not line:
@@ -190,10 +227,9 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         # 1. Encabezados (### Título)
         if line.startswith('###'):
             document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=1)
-            # Centramos el título de la sesión
             if "SESIÓN DE APRENDIZAJE" in line:
                 document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-            in_competencies_section = False # Salimos de la sección de competencias
+            in_competencies_section = False
             
         elif line.startswith('##'):
             document.add_heading(re.sub(r'^##\s*', '', line).strip(), level=1)
@@ -210,19 +246,19 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             document.add_heading(line.replace('**', ''), level=2)
             in_competencies_section = False
         
-        # --- ¡AQUÍ ESTÁ LA LÓGICA DE LA TABLA! ---
+        # --- ¡LÓGICA DE LA TABLA CORREGIDA! ---
         elif line.startswith('**III. COMPETENCIAS'):
             document.add_heading(line.replace('**', ''), level=2)
             in_competencies_section = True
+            current_state = 0 # Reiniciamos estado
             
             # Creamos el encabezado de la tabla
             table = document.add_table(rows=1, cols=3)
-            table.style = 'Table Grid' # Añadimos bordes
+            table.style = 'Table Grid'
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = 'COMPETENCIA'
             hdr_cells[1].text = 'CAPACIDAD'
             hdr_cells[2].text = 'CRITERIOS DE EVALUACIÓN'
-            # Poner encabezado en negrita
             for cell in hdr_cells:
                 cell.paragraphs[0].runs[0].bold = True
                 
@@ -231,43 +267,26 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 current_competencia_text = line.replace('**Competencia:**', '').strip()
                 current_capacidades_list = []
                 current_criterios_list = []
+                current_state = 0 # Buscando
             elif line.startswith('**Capacidades:**'):
-                pass # Solo es un subtítulo, lo ignoramos
+                current_state = 1 # Cambiamos a "Modo Capacidades"
             elif line.startswith('**Criterios de Evaluación:**'):
-                pass # Solo es un subtítulo, lo ignoramos
+                current_state = 2 # Cambiamos a "Modo Criterios"
             elif line.startswith('-') or line.startswith('*'):
-                # Esta lógica es simple: si 'Criterios' ya apareció, es un criterio.
-                if current_criterios_list or "**Criterios de Evaluación:**" in lines[lines.index(line)-1] if lines.index(line) > 0 else False:
-                     current_criterios_list.append(line)
-                elif current_competencia_text:
-                     current_capacidades_list.append(line)
-
+                if current_state == 1:
+                    current_capacidades_list.append(line)
+                elif current_state == 2:
+                    current_criterios_list.append(line)
             elif line.startswith('---'):
                 # Fin del bloque de competencia, añadimos la fila a la tabla
-                if current_competencia_text and table is not None:
-                    row_cells = table.add_row().cells
-                    # Celda 0: Competencia
-                    process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
-                    
-                    # Celda 1: Capacidades (como lista de viñetas)
-                    for i, item in enumerate(current_capacidades_list):
-                        # Añade un nuevo párrafo para cada item, excepto el primero
-                        p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
-                        if i == 0: p.text = "" # Limpiamos el párrafo default si es el primero
-                        p.style = 'List Bullet'
-                        add_list_item(p, item)
-                        
-                    # Celda 2: Criterios (como lista de viñetas)
-                    for i, item in enumerate(current_criterios_list):
-                        p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
-                        if i == 0: p.text = "" # Limpiamos el párrafo default si es el primero
-                        p.style = 'List Bullet'
-                        add_list_item(p, item)
+                if table is not None:
+                    flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
                 
-                # Reseteamos para la siguiente competencia
+                # Reseteamos
                 current_competencia_text = ""
                 current_capacidades_list = []
                 current_criterios_list = []
+                current_state = 0
         # --- FIN DE LA LÓGICA DE LA TABLA ---
         
         # 3. Listas de Viñetas (Para el resto del documento)
@@ -296,27 +315,8 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     # Chequeo final: Si el bucle terminó y aún hay datos guardados 
     # (porque era la última o única competencia y no había '---'),
     # los escribimos en la tabla ahora.
-    if current_competencia_text and table is not None:
-        row_cells = table.add_row().cells
-        process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
-        
-        p_cap = row_cells[1].paragraphs[0]
-        p_cap.text = "" # Limpiamos el párrafo default
-        for item in current_capacidades_list:
-            p = row_cells[1].add_paragraph(style='List Bullet')
-            add_list_item(p, item)
-        # Eliminamos el primer párrafo vacío que se crea
-        if len(row_cells[1].paragraphs) > 1:
-            row_cells[1].text = "" 
-            
-        p_crit = row_cells[2].paragraphs[0]
-        p_crit.text = "" # Limpiamos el párrafo default
-        for item in current_criterios_list:
-            p = row_cells[2].add_paragraph(style='List Bullet')
-            add_list_item(p, item)
-        if len(row_cells[2].paragraphs) > 1:
-            row_cells[2].text = ""
-            
+    if in_competencies_section and current_competencia_text and table is not None:
+        flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
     # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
     
     # Búfer de memoria para guardar el archivo
