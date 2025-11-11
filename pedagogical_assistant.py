@@ -104,7 +104,6 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     def process_markdown_to_runs(paragraph, text):
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
         for part in parts:
-            # --- ¡CORRECCIÓN DE SINTAXIS! (endsWith -> endswith) ---
             if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             elif part.startswith('*') and part.endswith('*'):
@@ -160,7 +159,6 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         """Traduce negritas simples a formato de Word."""
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            # --- ¡CORRECCIÓN DE SINTAXIS! (endsWith -> endswith) ---
             if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
@@ -169,7 +167,6 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     def add_list_item(paragraph, text, style='List Bullet'):
         """Limpia la viñeta de Markdown y añade el texto."""
         cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', text).strip()
-        # Asegurarse de que el párrafo tiene el estilo correcto
         paragraph.style = style
         process_markdown_to_runs(paragraph, cleaned_line)
 
@@ -182,14 +179,13 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     current_criterios_list = []
     table = None
     
-    # --- ¡NUEVAS BANDERAS DE ESTADO! (Arregla image_a42bd0.png) ---
     # Estados: 0 = Buscando, 1 = Leyendo Capacidades, 2 = Leyendo Criterios
     current_state = 0 
 
     def flush_competencia_to_table(table, comp_text, cap_list, crit_list):
         """Función interna para escribir los datos en una nueva fila de la tabla."""
         if not comp_text:
-            return # No hacer nada si no hay competencia
+            return 
             
         row_cells = table.add_row().cells
         
@@ -200,23 +196,29 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         if cap_list:
             # Limpiamos el párrafo default que se crea
             row_cells[1].paragraphs[0].text = "" 
+            # Eliminamos el párrafo vacío si existe
+            if len(row_cells[1].paragraphs) > 0:
+                p = row_cells[1].paragraphs[0]
+                if not p.text:
+                    elem = p._element
+                    elem.getparent().remove(elem)
+
             for item in cap_list:
                 p = row_cells[1].add_paragraph()
                 add_list_item(p, item)
-            # Eliminamos el primer párrafo vacío que se crea
-            if len(row_cells[1].paragraphs) > 1:
-                p_to_delete = row_cells[1].paragraphs[0]
-                p_to_delete.clear()
         
         # Celda 2: Criterios (como lista de viñetas)
         if crit_list:
             row_cells[2].paragraphs[0].text = ""
+            if len(row_cells[2].paragraphs) > 0:
+                p = row_cells[2].paragraphs[0]
+                if not p.text:
+                    elem = p._element
+                    elem.getparent().remove(elem)
+                    
             for item in crit_list:
                 p = row_cells[2].add_paragraph()
                 add_list_item(p, item)
-            if len(row_cells[2].paragraphs) > 1:
-                p_to_delete = row_cells[2].paragraphs[0]
-                p_to_delete.clear()
 
     # --- Comienza el bucle de parseo ---
     for line in lines:
@@ -243,6 +245,11 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         elif line.startswith('**I.') or line.startswith('**II.') or \
              line.startswith('**IV.') or line.startswith('**V.') or \
              line.startswith('**VI.') or line.startswith('**VII.'):
+            # Escribimos la última competencia si estábamos en esa sección
+            if in_competencies_section and current_competencia_text and table is not None:
+                flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
+                current_competencia_text = "" # Reseteamos
+                
             document.add_heading(line.replace('**', ''), level=2)
             in_competencies_section = False
         
@@ -263,14 +270,15 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 cell.paragraphs[0].runs[0].bold = True
                 
         elif in_competencies_section:
-            if line.startswith('**Competencia:'):
-                current_competencia_text = line.replace('**Competencia:**', '').strip()
+            # Buscamos con o sin negrita
+            if line.startswith('**Competencia:') or line.startswith('Competencia:'):
+                current_competencia_text = re.sub(r'^\*\*Competencia:\*\*|Competencia:', '', line).strip()
                 current_capacidades_list = []
                 current_criterios_list = []
                 current_state = 0 # Buscando
-            elif line.startswith('**Capacidades:**'):
+            elif line.startswith('**Capacidades:') or line.startswith('Capacidades:'):
                 current_state = 1 # Cambiamos a "Modo Capacidades"
-            elif line.startswith('**Criterios de Evaluación:**'):
+            elif line.startswith('**Criterios de Evaluación:') or line.startswith('Criterios de Evaluación:'):
                 current_state = 2 # Cambiamos a "Modo Criterios"
             elif line.startswith('-') or line.startswith('*'):
                 if current_state == 1:
@@ -378,7 +386,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Corrección de 'NameError' y Formato de Datos Generales) ===
+# === (Versión Final Limpia y Corregida) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
