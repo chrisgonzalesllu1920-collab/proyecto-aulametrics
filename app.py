@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección del flujo de Contextualización) ===
+# === (Añadida la función de Instrucciones Adicionales) ===
 # =========================================================================
 
 def home_page():
@@ -571,29 +571,39 @@ def home_page():
                 
                 form_disabled = not st.session_state.asistente_competencias_sel
 
-                # --- ¡CORRECCIÓN DE FLUJO DE USUARIO! ---
                 # PASO 5: Contextualización (FUERA DEL FORMULARIO)
                 st.markdown("---")
                 st.subheader("Paso 5: Contextualización (Opcional)")
                 contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
 
-                # PASO 6: Formulario de Detalles (DENTRO DEL FORMULARIO)
+                # PASO 6 y 7: Formulario de Detalles (DENTRO DEL FORMULARIO)
                 with st.form(key="session_form"):
                     
-                    # Estos campos ahora aparecen/desaparecen instantáneamente
+                    # Campos de contextualización (Paso 5)
                     if st.session_state.asistente_contexto:
                         st.info("La IA usará estos datos para generar ejemplos y situaciones relevantes.")
                         region_sel = st.text_input("Región de su I.E.", placeholder="Ej: Lambayeque", disabled=form_disabled)
                         provincia_sel = st.text_input("Provincia de su I.E.", placeholder="Ej: Chiclayo", disabled=form_disabled)
                         distrito_sel = st.text_input("Distrito de su I.E.", placeholder="Ej: Monsefú", disabled=form_disabled)
                     else:
-                        # Aseguramos que se envíe None si el toggle está apagado
                         region_sel = None
                         provincia_sel = None
                         distrito_sel = None
                     
                     st.markdown("---")
-                    st.subheader("Paso 6: Detalles de la Sesión")
+                    
+                    # --- ¡NUEVA SECCIÓN DE INSTRUCCIONES! ---
+                    st.subheader("Paso 6: Instrucciones Adicionales (Opcional)")
+                    instrucciones_sel = st.text_area(
+                        "Indica un enfoque específico para la IA", 
+                        placeholder="Ej: Quiero reforzar el cálculo de porcentajes, ya que mis estudiantes tuvieron problemas la clase pasada.",
+                        max_chars=500, # Límite de 500 caracteres
+                        disabled=form_disabled
+                    )
+                    # --- FIN DE LA NUEVA SECCIÓN ---
+
+                    st.markdown("---")
+                    st.subheader("Paso 7: Detalles de la Sesión")
                     
                     tema_sel = st.text_input("Escribe el tema o temática a tratar", placeholder="Ej: El sistema solar...", disabled=form_disabled)
                     tiempo_sel = st.selectbox("Selecciona la duración de la sesión", options=["90 minutos", "180 minutos"], index=None, placeholder="Elige una opción...", disabled=form_disabled)
@@ -602,7 +612,7 @@ def home_page():
                     
                     if submitted:
                         if not tema_sel or not tiempo_sel:
-                            st.error("Por favor, completa los campos del Paso 6.")
+                            st.error("Por favor, completa los campos del Paso 7.")
                         else:
                             with st.spinner("🤖 Generando tu sesión de aprendizaje... Esto puede tomar un minuto..."):
                                 try:
@@ -639,9 +649,10 @@ def home_page():
                                         estandar_texto=estandar_texto_completo,
                                         tematica=tema,
                                         tiempo=tiempo,
-                                        region=region_sel,      # Nuevo
-                                        provincia=provincia_sel, # Nuevo
-                                        distrito=distrito_sel   # Nuevo
+                                        region=region_sel,
+                                        provincia=provincia_sel,
+                                        distrito=distrito_sel,
+                                        instrucciones_docente=instrucciones_sel # ¡Nuevo!
                                     )
                                     
                                     # 4. Mostrar el resultado
@@ -709,6 +720,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
