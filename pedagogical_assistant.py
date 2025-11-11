@@ -155,7 +155,7 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         # Separa el texto por **negritas**
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            if part.startswith('**') and part.endsWith('**'):
+            if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
                 paragraph.add_run(part)
@@ -386,9 +386,9 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     * **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
 
     **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
-    * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
+    * **Gestión y accompaniment:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 1Día minutos])
     * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
     * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
     
