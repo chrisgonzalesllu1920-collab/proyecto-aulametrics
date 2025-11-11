@@ -78,8 +78,9 @@ def generate_ai_suggestions(critical_comp_info):
 
 
 # =========================================================================
-# === II. FUNCIÓN DE EXPORTACIÓN A WORD (DOCX) ===
+# === II-A. FUNCIÓN DE EXPORTACIÓN A WORD (Propuestas) ===
 # =========================================================================
+# (Esta es tu función original, la dejamos intacta)
 def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_report_text):
     document = Document()
     result = analisis_results[sheet_name]
@@ -141,6 +142,79 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
+# === II-B. ¡NUEVA FUNCIÓN! EXPORTACIÓN A WORD (Sesión) ===
+# =========================================================================
+def generar_docx_sesion(sesion_markdown_text, area_docente):
+    """
+    Convierte el texto Markdown de la sesión generada por la IA en un 
+    documento de Word (.docx) y lo devuelve en bytes.
+    """
+    document = Document()
+    
+    # Esta función interna "traduce" el formato Markdown (negritas) a Word
+    def process_markdown_to_runs(paragraph, text):
+        # Separa el texto por **negritas**
+        parts = re.split(r'(\*\*.*?\*\*)', text)
+        for part in parts:
+            if part.startswith('**') and part.endsWith('**'):
+                paragraph.add_run(part[2:-2]).bold = True
+            else:
+                paragraph.add_run(part)
+
+    lines = sesion_markdown_text.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # --- Lógica de "Traducción" de Markdown a Word ---
+        
+        # 1. Encabezados (### Título)
+        if line.startswith('###'):
+            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=1)
+        elif line.startswith('##'):
+            document.add_heading(re.sub(r'^##\s*', '', line).strip(), level=1)
+        elif line.startswith('#'):
+            document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=0)
+        
+        # 2. Listas de Viñetas (Maneja * y -)
+        elif line.startswith('*') or line.startswith('-'):
+            paragraph = document.add_paragraph(style='List Bullet')
+            # Limpia el * o - del inicio
+            cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', line).strip()
+            process_markdown_to_runs(paragraph, cleaned_line)
+            
+        # 3. Listas Numeradas (ej: 1. Título)
+        elif re.match(r'^\d+\.', line):
+            paragraph = document.add_paragraph(style='List Number')
+            cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
+            process_markdown_to_runs(paragraph, cleaned_line)
+            
+        # 4. Reglas Horizontales (---)
+        elif line.startswith('---'):
+            document.add_paragraph().add_run().add_break(docx.enum.text.WD_BREAK.PAGE) # Usamos un salto de página o similar, o simplemente un párrafo
+            # Una forma simple de hacer una "línea" es un borde de párrafo
+            p = document.add_paragraph()
+            p.paragraph_format.border_bottom(Pt(1), 0, 0, 0) # Borde inferior
+            
+        # 5. Firmas (_______)
+        elif line.startswith('___'):
+            document.add_paragraph(line)
+            
+        # 6. Texto Normal (Párrafos)
+        else:
+            if line: 
+                paragraph = document.add_paragraph()
+                process_markdown_to_runs(paragraph, line)
+    
+    # Búfer de memoria para guardar el archivo
+    buffer = io.BytesIO()
+    document.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+# =========================================================================
 # === III. FUNCIÓN PRINCIPAL LLAMADA DESDE APP.PY (Propuestas) ===
 # =========================================================================
 def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_limpio):
@@ -196,7 +270,6 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 # === (Añadida la función de Instrucciones Adicionales) ===
 # =========================================================================
 
-# --- ¡NUEVA FIRMA DE FUNCIÓN! ---
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
                                 region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
@@ -327,7 +400,7 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     DIRECTOR
 
     \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    DOCENTE DE ({area})
+    DOCENTE DE ({area_docente}) 
     """
     
     try:
