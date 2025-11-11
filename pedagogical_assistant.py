@@ -104,8 +104,10 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     def process_markdown_to_runs(paragraph, text):
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
         for part in parts:
+            # --- ¡CORRECCIÓN DE SINTAXIS! ---
             if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
+            # --- ¡CORRECCIÓN DE SINTAXIS! ---
             elif part.startswith('*') and part.endswith('*'):
                 paragraph.add_run(part[1:-1]).italic = True
             else:
@@ -158,7 +160,8 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         """Traduce negritas simples a formato de Word."""
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            if part.startswith('**') and part.endsWith('**'):
+            # --- ¡CORRECCIÓN DE SINTAXIS! ---
+            if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
                 paragraph.add_run(part)
@@ -177,6 +180,8 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     current_competencia_text = ""
     current_capacidades_list = []
     current_criterios_list = []
+    
+    table = None # Variable para guardar la tabla
 
     for line in lines:
         line = line.strip()
@@ -234,26 +239,38 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             elif line.startswith('-') or line.startswith('*'):
                 # Asumimos que las viñetas después de 'Competencia' son capacidades
                 # y las viñetas después de 'Criterios' son criterios.
-                # Esta es una simplificación, asumimos que 'Criterios' siempre viene después.
-                if current_criterios_list:
-                    current_criterios_list.append(line)
-                else:
-                    current_capacidades_list.append(line)
+                if current_competencia_text and not current_criterios_list:
+                     # Si ya tenemos una competencia pero no hemos empezado criterios, es una capacidad
+                     is_capacidad = True
+                     try:
+                         # Intentamos ver si la línea anterior fue 'Criterios'
+                         if "**Criterios de Evaluación:**" in lines[lines.index(line)-1]:
+                             is_capacidad = False
+                     except: pass
+                     
+                     if is_capacidad and not "**Criterios de Evaluación:**" in line: # Doble chequeo
+                         current_capacidades_list.append(line)
+                     else:
+                         current_criterios_list.append(line)
+
             elif line.startswith('---'):
                 # Fin del bloque de competencia, añadimos la fila a la tabla
-                if current_competencia_text:
+                if current_competencia_text and table is not None:
                     row_cells = table.add_row().cells
                     # Celda 0: Competencia
                     process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
                     
                     # Celda 1: Capacidades (como lista de viñetas)
                     for i, item in enumerate(current_capacidades_list):
+                        # Añade un nuevo párrafo para cada item, excepto el primero
                         p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
+                        p.style = 'List Bullet'
                         add_list_item(p, item)
                         
                     # Celda 2: Criterios (como lista de viñetas)
                     for i, item in enumerate(current_criterios_list):
                         p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
+                        p.style = 'List Bullet'
                         add_list_item(p, item)
                 
                 # Reseteamos para la siguiente competencia
