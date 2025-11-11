@@ -193,14 +193,15 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Añadida la función de Contextualización) ===
+# === (Añadida la función de Instrucciones Adicionales) ===
 # =========================================================================
 
 # --- ¡NUEVA FIRMA DE FUNCIÓN! ---
-def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, region=None, provincia=None, distrito=None):
+def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
+                                region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
     Genera una sesión de aprendizaje completa usando la IA.
-    Ahora incluye lógica de contextualización y fallback de modelo.
+    Ahora incluye lógica de contextualización, instrucciones y fallback de modelo.
     """
     
     if client is None:
@@ -210,7 +211,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
-    # --- ¡NUEVO BLOQUE DE CONTEXTO! ---
+    # --- BLOQUE DE CONTEXTO (Opcional) ---
     contexto_str = ""
     if region and region.strip(): # Si el usuario escribió algo en Región
         contexto_str = f"""
@@ -220,11 +221,22 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 - **Distrito:** {distrito}
 
 **REGLA DE CONTEXTUALIZACIÓN:**
-DEBES usar estos datos geográficos para generar ejemplos, situaciones, problemas y actividades que sean relevantes para esa ubicación específica. Por ejemplo, si el tema es "contaminación", usa ejemplos de esa región. Si el tema es "historia", usa personajes o eventos de esa provincia.
+DEBES usar estos datos geográficos para generar ejemplos, situaciones, problemas y actividades que sean relevantes para esa ubicación específica.
+"""
+    
+    # --- ¡NUEVO BLOQUE DE INSTRUCCIONES! (Opcional) ---
+    instrucciones_str = ""
+    if instrucciones_docente and instrucciones_docente.strip():
+        instrucciones_str = f"""
+## INSTRUCCIONES ADICIONALES DEL DOCENTE
+- {instrucciones_docente}
+
+**REGLA DE PRIORIDAD:**
+¡Esta es la instrucción más importante! DEBES modificar la sesión (especialmente las actividades de 'DESARROLLO' y 'CIERRE') para cumplir con este enfoque específico. Si el docente quiere 'reforzar' algo, la sesión debe ser de refuerzo.
 """
     # --- FIN DEL NUEVO BLOQUE ---
 
-    # 2. Construir el Mega-Prompt (con formato de lista, no tabla)
+    # 2. Construir el Mega-Prompt
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
     Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
@@ -250,6 +262,8 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
 
     **Estándar(es) del Ciclo (Descripción del Nivel de Desarrollo):**
     "{estandar_texto}"
+
+    {instrucciones_str}
 
     ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
     ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
@@ -317,7 +331,7 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     """
     
     try:
-        # --- ¡AQUÍ ESTÁ LA LÓGICA DE FALLBACK (Solución al Error 503)! ---
+        # --- ¡LÓGICA DE FALLBACK (Solución al Error 503)! ---
         
         # 1. Intentar con el modelo "Pro" (mejor calidad)
         response = client.models.generate_content(
