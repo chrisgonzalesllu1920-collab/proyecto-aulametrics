@@ -10,6 +10,9 @@ from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import RGBColor
+# Necesitamos 'parse' para la nueva función de Word
+from docx.text.paragraph import Paragraph
+from docx.table import _Cell
 
 # =========================================================================
 # === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
@@ -141,63 +144,139 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
-# === II-B. FUNCIÓN DE EXPORTACIÓN A WORD (Sesión) ===
+# === II-B. ¡NUEVA FUNCIÓN INTELIGENTE! EXPORTACIÓN A WORD (Sesión) ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
     Convierte el texto Markdown de la sesión generada por la IA en un 
     documento de Word (.docx) y lo devuelve en bytes.
+    Esta versión "inteligente" reconstruye la tabla de competencias.
     """
     document = Document()
     
-    # Esta función interna "traduce" el formato Markdown (negritas) a Word
     def process_markdown_to_runs(paragraph, text):
-        # Separa el texto por **negritas**
+        """Traduce negritas simples a formato de Word."""
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            if part.startswith('**') and part.endswith('**'):
+            if part.startswith('**') and part.endsWith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
                 paragraph.add_run(part)
 
+    def add_list_item(paragraph, text):
+        """Limpia la viñeta de Markdown y añade el texto."""
+        cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', text).strip()
+        process_markdown_to_runs(paragraph, cleaned_line)
+
     lines = sesion_markdown_text.split('\n')
     
+    # --- Lógica de Parseo Inteligente (Nivel 2) ---
+    
+    # Banderas para saber dónde estamos
+    in_competencies_section = False
+    current_competencia_text = ""
+    current_capacidades_list = []
+    current_criterios_list = []
+
     for line in lines:
         line = line.strip()
         if not line:
             continue
-            
-        # --- Lógica de "Traducción" de Markdown a Word ---
         
         # 1. Encabezados (### Título)
         if line.startswith('###'):
             document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=1)
+            # Centramos el título de la sesión
+            if "SESIÓN DE APRENDIZAJE" in line:
+                document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            in_competencies_section = False # Salimos de la sección de competencias
+            
         elif line.startswith('##'):
             document.add_heading(re.sub(r'^##\s*', '', line).strip(), level=1)
+            in_competencies_section = False
+            
         elif line.startswith('#'):
             document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=0)
+            in_competencies_section = False
         
-        # 2. Listas de Viñetas (Maneja * y -)
+        # 2. Encabezados de Sección (I. DATOS...)
+        elif line.startswith('**I.') or line.startswith('**II.') or \
+             line.startswith('**IV.') or line.startswith('**V.') or \
+             line.startswith('**VI.') or line.startswith('**VII.'):
+            document.add_heading(line.replace('**', ''), level=2)
+            in_competencies_section = False
+        
+        # --- ¡AQUÍ ESTÁ LA LÓGICA DE LA TABLA! ---
+        elif line.startswith('**III. COMPETENCIAS'):
+            document.add_heading(line.replace('**', ''), level=2)
+            in_competencies_section = True
+            
+            # Creamos el encabezado de la tabla
+            table = document.add_table(rows=1, cols=3)
+            table.style = 'Table Grid' # Añadimos bordes
+            hdr_cells = table.rows[0].cells
+            hdr_cells[0].text = 'COMPETENCIA'
+            hdr_cells[1].text = 'CAPACIDAD'
+            hdr_cells[2].text = 'CRITERIOS DE EVALUACIÓN'
+            # Poner encabezado en negrita
+            for cell in hdr_cells:
+                cell.paragraphs[0].runs[0].bold = True
+                
+        elif in_competencies_section:
+            if line.startswith('**Competencia:'):
+                current_competencia_text = line.replace('**Competencia:**', '').strip()
+                current_capacidades_list = []
+                current_criterios_list = []
+            elif line.startswith('**Capacidades:**'):
+                pass # Solo es un subtítulo, lo ignoramos
+            elif line.startswith('**Criterios de Evaluación:**'):
+                pass # Solo es un subtítulo, lo ignoramos
+            elif line.startswith('-') or line.startswith('*'):
+                # Asumimos que las viñetas después de 'Competencia' son capacidades
+                # y las viñetas después de 'Criterios' son criterios.
+                # Esta es una simplificación, asumimos que 'Criterios' siempre viene después.
+                if current_criterios_list:
+                    current_criterios_list.append(line)
+                else:
+                    current_capacidades_list.append(line)
+            elif line.startswith('---'):
+                # Fin del bloque de competencia, añadimos la fila a la tabla
+                if current_competencia_text:
+                    row_cells = table.add_row().cells
+                    # Celda 0: Competencia
+                    process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
+                    
+                    # Celda 1: Capacidades (como lista de viñetas)
+                    for i, item in enumerate(current_capacidades_list):
+                        p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
+                        add_list_item(p, item)
+                        
+                    # Celda 2: Criterios (como lista de viñetas)
+                    for i, item in enumerate(current_criterios_list):
+                        p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
+                        add_list_item(p, item)
+                
+                # Reseteamos para la siguiente competencia
+                current_competencia_text = ""
+                current_capacidades_list = []
+                current_criterios_list = []
+        # --- FIN DE LA LÓGICA DE LA TABLA ---
+        
+        # 3. Listas de Viñetas (Para el resto del documento)
         elif line.startswith('*') or line.startswith('-'):
             paragraph = document.add_paragraph(style='List Bullet')
-            # Limpia el * o - del inicio
-            cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', line).strip()
-            process_markdown_to_runs(paragraph, cleaned_line)
+            add_list_item(paragraph, line)
             
-        # 3. Listas Numeradas (ej: 1. Título)
+        # 4. Listas Numeradas
         elif re.match(r'^\d+\.', line):
             paragraph = document.add_paragraph(style='List Number')
             cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
             process_markdown_to_runs(paragraph, cleaned_line)
             
-        # 4. Reglas Horizontales (---)
-        elif line.startswith('---'):
-            # Simplemente añadimos un párrafo vacío para espaciar
-            document.add_paragraph() 
-            
         # 5. Firmas (_______)
         elif line.startswith('___'):
-            document.add_paragraph(line)
+            p = document.add_paragraph(line)
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         # 6. Texto Normal (Párrafos)
         else:
@@ -360,7 +439,7 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     **III. COMPETENCIAS Y CAPACIDADES:**
     
     **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
-    1.  **NO uses una tabla.**
+    1.  **NO uses una tabla.** (El código de Python la reconstruirá en Word)
     2.  Usa el siguiente formato de encabezados y listas:
         - Escribe la competencia en negrita (ej: **Competencia: Nombre de la competencia**).
         - Debajo, en una **nueva línea separada**, escribe "**Capacidades:**" y luego la lista de viñetas con **guiones (`-`)**.
@@ -434,4 +513,3 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
-
