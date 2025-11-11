@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Añadido el botón de Exportar a Word) ===
+# === (Corrección del error 'st.download_button in st.form') ===
 # =========================================================================
 
 def home_page():
@@ -457,6 +457,16 @@ def home_page():
         nivel_usuario = "Premium" if st.session_state.user_level == "premium" else "Gratuito"
         st.toast(f"¡Bienvenido! Has iniciado sesión como usuario {nivel_usuario}.", icon="👋")
         st.session_state.show_welcome_message = False
+
+    # --- ¡NUEVO BLOQUE DE INICIALIZACIÓN! ---
+    # (Necesario para que el bloque de 'mostrar' no falle la primera vez)
+    if 'sesion_generada' not in st.session_state:
+        st.session_state.sesion_generada = None
+    if 'docx_bytes' not in st.session_state:
+        st.session_state.docx_bytes = None
+    if 'tema_sesion' not in st.session_state:
+        st.session_state.tema_sesion = ""
+    # ----------------------------------------
 
     # 2. CONFIGURACIÓN DEL DASHBOARD (Logo y Título)
     col_logo, col_titulo = st.columns([1, 4])
@@ -612,6 +622,9 @@ def home_page():
                     if submitted:
                         if not tema_sel or not tiempo_sel:
                             st.error("Por favor, completa los campos del Paso 7.")
+                            # Si falla la validación, borramos la sesión anterior
+                            st.session_state.sesion_generada = None
+                            st.session_state.docx_bytes = None
                         else:
                             with st.spinner("🤖 Generando tu sesión de aprendizaje... Esto puede tomar un minuto..."):
                                 try:
@@ -654,33 +667,51 @@ def home_page():
                                         instrucciones_docente=instrucciones_sel 
                                     )
                                     
-                                    # 4. Mostrar el resultado
-                                    st.success("¡Sesión de aprendizaje generada!")
-                                    st.markdown(sesion_generada)
-
-                                    # --- ¡NUEVO BLOQUE DE DESCARGA! ---
-                                    # 5. Generar el archivo Word en memoria
+                                    # 4. Generar el archivo Word en memoria
                                     docx_bytes = pedagogical_assistant.generar_docx_sesion(
                                         sesion_markdown_text=sesion_generada,
                                         area_docente=area 
                                     )
                                     
-                                    # 6. Añadir el botón de descarga
-                                    st.download_button(
-                                        label="Exportar Sesión a Word (.docx)",
-                                        data=docx_bytes,
-                                        file_name=f"sesion_{tema.replace(' ', '_')}.docx",
-                                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                                    )
-                                    # --- FIN DEL NUEVO BLOQUE ---
+                                    # --- ¡CAMBIO ARQUITECTURAL! ---
+                                    # 5. Guardamos todo en la 'memoria' (session_state)
+                                    st.session_state.sesion_generada = sesion_generada
+                                    st.session_state.docx_bytes = docx_bytes
+                                    st.session_state.tema_sesion = tema_sel
+                                    
+                                    st.success("¡Sesión de aprendizaje generada!")
+                                    # (El st.markdown y st.download_button se eliminan de aquí)
+                                    # -------------------------------
 
                                 except KeyError as e:
                                     st.error(f"Error de columna (KeyError): No se pudo encontrar la columna {e} en el DataFrame.")
                                     st.error("Verifica que los nombres de las columnas en tu Excel ('capacidad', 'DESCRIPCIÓN...', etc.) coincidan exact.")
+                                    st.session_state.sesion_generada = None
+                                    st.session_state.docx_bytes = None
                                 except Exception as e:
                                     st.error(f"Ocurrió un error al generar la sesión:")
                                     st.error(e)
-        
+                                    st.session_state.sesion_generada = None
+                                    st.session_state.docx_bytes = None
+                
+                # --- ¡NUEVO BLOQUE DE CÓDIGO! (FUERA DEL FORMULARIO) ---
+                # Este bloque revisa la 'memoria' después de que el formulario se envía
+                # y muestra el resultado y el botón de descarga.
+                if st.session_state.sesion_generada:
+                    st.markdown("---")
+                    st.subheader("Resultado de la Generación")
+                    st.markdown(st.session_state.sesion_generada)
+                    
+                    # ¡Ahora el botón de descarga es 'legal' porque está FUERA del form!
+                    st.download_button(
+                        label="Exportar Sesión a Word (.docx)",
+                        data=st.session_state.docx_bytes,
+                        file_name=f"sesion_{st.session_state.tema_sesion.replace(' ', '_')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key="download_button_sesion"
+                    )
+                # ----------------------------------------------------
+
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
         
@@ -735,6 +766,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
