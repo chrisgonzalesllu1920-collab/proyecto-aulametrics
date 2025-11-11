@@ -447,7 +447,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Añadida la función de Contextualización) ===
+# === (Corrección del flujo de Contextualización) ===
 # =========================================================================
 
 def home_page():
@@ -569,25 +569,28 @@ def home_page():
 
                 competencias_sel = st.multiselect("Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel", label_visibility="collapsed")
                 
-                # --- ¡NUEVA SECCIÓN DE CONTEXTUALIZACIÓN! ---
-                with st.form(key="session_form"):
-                    form_disabled = not st.session_state.asistente_competencias_sel
-                    
-                    st.markdown("---")
-                    st.subheader("Paso 5: Contextualización (Opcional)")
-                    contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
-                    
-                    region_sel = None
-                    provincia_sel = None
-                    distrito_sel = None
+                form_disabled = not st.session_state.asistente_competencias_sel
 
+                # --- ¡CORRECCIÓN DE FLUJO DE USUARIO! ---
+                # PASO 5: Contextualización (FUERA DEL FORMULARIO)
+                st.markdown("---")
+                st.subheader("Paso 5: Contextualización (Opcional)")
+                contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
+
+                # PASO 6: Formulario de Detalles (DENTRO DEL FORMULARIO)
+                with st.form(key="session_form"):
+                    
+                    # Estos campos ahora aparecen/desaparecen instantáneamente
                     if st.session_state.asistente_contexto:
                         st.info("La IA usará estos datos para generar ejemplos y situaciones relevantes.")
                         region_sel = st.text_input("Región de su I.E.", placeholder="Ej: Lambayeque", disabled=form_disabled)
                         provincia_sel = st.text_input("Provincia de su I.E.", placeholder="Ej: Chiclayo", disabled=form_disabled)
                         distrito_sel = st.text_input("Distrito de su I.E.", placeholder="Ej: Monsefú", disabled=form_disabled)
-                    
-                    # --- FIN DE LA NUEVA SECCIÓN ---
+                    else:
+                        # Aseguramos que se envíe None si el toggle está apagado
+                        region_sel = None
+                        provincia_sel = None
+                        distrito_sel = None
                     
                     st.markdown("---")
                     st.subheader("Paso 6: Detalles de la Sesión")
@@ -706,6 +709,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
