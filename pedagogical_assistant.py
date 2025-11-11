@@ -1,4 +1,3 @@
-
 import streamlit as st
 import os
 import pandas as pd
@@ -105,10 +104,9 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     def process_markdown_to_runs(paragraph, text):
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
         for part in parts:
-            # --- ¡CORRECCIÓN DE SINTAXIS! ---
+            # --- ¡CORRECCIÓN DE SINTAXIS! (endsWith -> endswith) ---
             if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
-            # --- ¡CORRECCIÓN DE SINTAXIS! ---
             elif part.startswith('*') and part.endswith('*'):
                 paragraph.add_run(part[1:-1]).italic = True
             else:
@@ -161,7 +159,7 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         """Traduce negritas simples a formato de Word."""
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
-            # --- ¡CORRECCIÓN DE SINTAXIS! ---
+            # --- ¡CORRECCIÓN DE SINTAXIS! (endsWith -> endswith) ---
             if part.startswith('**') and part.endswith('**'):
                 paragraph.add_run(part[2:-2]).bold = True
             else:
@@ -238,8 +236,6 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             elif line.startswith('**Criterios de Evaluación:**'):
                 pass # Solo es un subtítulo, lo ignoramos
             elif line.startswith('-') or line.startswith('*'):
-                # Asumimos que las viñetas después de 'Competencia' son capacidades
-                # y las viñetas después de 'Criterios' son criterios.
                 # Esta lógica es simple: si 'Criterios' ya apareció, es un criterio.
                 if current_criterios_list or "**Criterios de Evaluación:**" in lines[lines.index(line)-1] if lines.index(line) > 0 else False:
                      current_criterios_list.append(line)
@@ -303,16 +299,24 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     if current_competencia_text and table is not None:
         row_cells = table.add_row().cells
         process_markdown_to_runs(row_cells[0].paragraphs[0], current_competencia_text)
-        for i, item in enumerate(current_capacidades_list):
-            p = row_cells[1].add_paragraph(style='List Bullet') if i > 0 else row_cells[1].paragraphs[0]
-            if i == 0: p.text = ""
-            p.style = 'List Bullet'
+        
+        p_cap = row_cells[1].paragraphs[0]
+        p_cap.text = "" # Limpiamos el párrafo default
+        for item in current_capacidades_list:
+            p = row_cells[1].add_paragraph(style='List Bullet')
             add_list_item(p, item)
-        for i, item in enumerate(current_criterios_list):
-            p = row_cells[2].add_paragraph(style='List Bullet') if i > 0 else row_cells[2].paragraphs[0]
-            if i == 0: p.text = ""
-            p.style = 'List Bullet'
+        # Eliminamos el primer párrafo vacío que se crea
+        if len(row_cells[1].paragraphs) > 1:
+            row_cells[1].text = "" 
+            
+        p_crit = row_cells[2].paragraphs[0]
+        p_crit.text = "" # Limpiamos el párrafo default
+        for item in current_criterios_list:
+            p = row_cells[2].add_paragraph(style='List Bullet')
             add_list_item(p, item)
+        if len(row_cells[2].paragraphs) > 1:
+            row_cells[2].text = ""
+            
     # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
     
     # Búfer de memoria para guardar el archivo
