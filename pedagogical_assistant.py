@@ -179,6 +179,7 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     current_criterios_list = []
     table = None
     
+    # --- ¡NUEVAS BANDERAS DE ESTADO! (Arregla image_a42bd0.png) ---
     # Estados: 0 = Buscando, 1 = Leyendo Capacidades, 2 = Leyendo Criterios
     current_state = 0 
 
