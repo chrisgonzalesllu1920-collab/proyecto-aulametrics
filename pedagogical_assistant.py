@@ -179,7 +179,6 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     current_criterios_list = []
     table = None
     
-    # --- ¡NUEVAS BANDERAS DE ESTADO! (Arregla image_a42bd0.png) ---
     # Estados: 0 = Buscando, 1 = Leyendo Capacidades, 2 = Leyendo Criterios
     current_state = 0 
 
@@ -195,9 +194,7 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         
         # Celda 1: Capacidades (como lista de viñetas)
         if cap_list:
-            # Limpiamos el párrafo default que se crea
             row_cells[1].paragraphs[0].text = "" 
-            # Eliminamos el párrafo vacío si existe
             if len(row_cells[1].paragraphs) > 0:
                 p = row_cells[1].paragraphs[0]
                 if not p.text:
@@ -229,9 +226,16 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         
         # 1. Encabezados (### Título)
         if line.startswith('###'):
-            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=1)
+            # Si estábamos en la sección de competencias, escribimos la última fila
+            if in_competencies_section and current_competencia_text and table is not None:
+                flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
+                current_competencia_text = "" # Reseteamos
+            
+            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=3) # Nivel 3 para INICIO, etc.
             if "SESIÓN DE APRENDIZAJE" in line:
                 document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                document.paragraphs[-1].style = 'Title' # Usar un estilo más grande
+            
             in_competencies_section = False
             
         elif line.startswith('##'):
@@ -271,22 +275,9 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 cell.paragraphs[0].runs[0].bold = True
                 
         elif in_competencies_section:
-            # Buscamos con o sin negrita
-            if line.startswith('**Competencia:') or line.startswith('Competencia:'):
-                current_competencia_text = re.sub(r'^\*\*Competencia:\*\*|Competencia:', '', line).strip()
-                current_capacidades_list = []
-                current_criterios_list = []
-                current_state = 0 # Buscando
-            elif line.startswith('**Capacidades:') or line.startswith('Capacidades:'):
-                current_state = 1 # Cambiamos a "Modo Capacidades"
-            elif line.startswith('**Criterios de Evaluación:') or line.startswith('Criterios de Evaluación:'):
-                current_state = 2 # Cambiamos a "Modo Criterios"
-            elif line.startswith('-') or line.startswith('*'):
-                if current_state == 1:
-                    current_capacidades_list.append(line)
-                elif current_state == 2:
-                    current_criterios_list.append(line)
-            elif line.startswith('---'):
+            # --- ¡CORRECCIÓN DE LÓGICA (image_29adc7.png)! ---
+            # 1. Manejamos el separador PRIMERO
+            if line.startswith('---'):
                 # Fin del bloque de competencia, añadimos la fila a la tabla
                 if table is not None:
                     flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
@@ -296,6 +287,22 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 current_capacidades_list = []
                 current_criterios_list = []
                 current_state = 0
+            # 2. Luego buscamos los subtítulos
+            elif line.startswith('**Competencia:') or line.startswith('Competencia:'):
+                current_competencia_text = re.sub(r'^\*\*Competencia:\*\*|Competencia:', '', line).strip()
+                current_capacidades_list = []
+                current_criterios_list = []
+                current_state = 0 # Buscando
+            elif line.startswith('**Capacidades:') or line.startswith('Capacidades:'):
+                current_state = 1 # Cambiamos a "Modo Capacidades"
+            elif line.startswith('**Criterios de Evaluación:') or line.startswith('Criterios de Evaluación:'):
+                current_state = 2 # Cambiamos a "Modo Criterios"
+            # 3. Finalmente, procesamos las viñetas
+            elif line.startswith('-') or line.startswith('*'):
+                if current_state == 1:
+                    current_capacidades_list.append(line)
+                elif current_state == 2:
+                    current_criterios_list.append(line)
         # --- FIN DE LA LÓGICA DE LA TABLA ---
         
         # 3. Listas de Viñetas (Para el resto del documento)
@@ -470,15 +477,11 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
 
     **I. DATOS GENERALES:**
     * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
-    
-    # --- ¡CORRECCIÓN DE FORMATO (image_de941a.png)! ---
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
-    * **Sección:** * **Docente:** # -----------------------------------------------
-
-    **II. PROPÓSITO DE LA SESIÓN:**
-    * [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
+    * **Sección:** * **Docente:** **II. PROPÓSITO DE LA SESIÓN:**
+    [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
@@ -502,18 +505,27 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     
     **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
 
-    **INICIO** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Motivación:** [Genera una actividad corta de motivación]
-    * **Saberes previos:** [Genera 2-3 preguntas para explorar saberes previos sobre {tematica}]
-    * **Conflicto cognitivo:** [Genera 1 pregunta de conflicto cognitivo]
-    * **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
+    # --- ¡CORRECCIÓN DE JERARQUÍA (image_29ae61.png)! ---
+    
+    ### INICIO
+    (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    
+    **Motivación:** [Genera una actividad corta de motivación]
+    **Saberes previos:** [Genera 2-3 preguntas para explorar saberes previos sobre {tematica}]
+    **Conflicto cognitivo:** [Genera 1 pregunta de conflicto cognitivo]
+    **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
 
-    **DESARROLLO** (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
-    * **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
+    ### DESARROLLO
+    (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
+    
+    **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
 
-    **CIERRE** (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    * **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
-    * **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
+    ### CIERRE
+    (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
+    
+    **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
+    **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
+    # -----------------------------------------------
     
     **VI. MATERIALES O RECURSOS:**
     * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
@@ -524,9 +536,7 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     DIRECTOR
 
     \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    # --- ¡CORRECCIÓN DE 'NameError' (image_a2787b.png)! ---
     DOCENTE DE ({area}) 
-    # -----------------------------------------------
     """
     
     try:
@@ -557,3 +567,4 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
+
