@@ -30,47 +30,47 @@ except Exception as e:
 
 # =========================================================================
 # === I. FUNCIÓN DE PROPUESTAS (Pestaña 1) ===
+# === (¡ACTUALIZADO CON TU NUEVO PROMPT!) ===
 # =========================================================================
 
 def generate_ai_suggestions(critical_comp_info):
     """
-    Genera propuestas de mejora usando el modelo de IA de Google (Gemini) y retorna el texto.
+    Genera un plan de acción (propuestas de mejora) usando la IA.
     Usa el modelo 'flash' para velocidad.
     """
     
     if client is None:
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
         
+    # Extraemos las variables dinámicas
     grado = critical_comp_info['grado']
     nivel = critical_comp_info['nivel']
     area = critical_comp_info['area']
     competencia = critical_comp_info['nombre']
+    analisis = critical_comp_info['analisis'] # Ej: "El 36.7% de los estudiantes..."
     
+    # --- ¡ESTE ES TU NUEVO PROMPT MEJORADO! ---
     prompt = f"""
-    Eres un asistente pedagógico experto en currículo escolar para {nivel} - {grado}.
-    Tu tarea es generar **5 propuestas** de intervención didáctica **innovadoras, concretas y específicas**
-    para abordar la dificultad identificada en la siguiente competencia:
+    Quiero que elabores un **cuadro claro y completo** con acciones, indicadores y evidencias de mejora, dirigido a un docente de **{area}** de **{grado}** de {nivel}.
 
-    **Área:** {area}
-    **Grado:** {grado}
+    El enfoque debe estar orientado a mejorar el desempeño de los estudiantes que presentan dificultades, basado en el siguiente diagnóstico:
+    **Diagnóstico:** {analisis}
     **Competencia a mejorar:** "{competencia}"
-    **Análisis de dificultad:** {critical_comp_info['analisis']}
 
-    Las **5 propuestas** deben estar directamente orientadas al desarrollo de los **saberes clave de esa competencia específica**.
-    Evita sugerencias genéricas.
+    El cuadro debe contener **5 acciones concretas** que el docente puede implementar. Por cada acción, debes incluir:
+    1.  **Indicadores de mejora:** (Cómo se evidencia el progreso del estudiante o de la práctica docente).
+    2.  **Evidencias esperadas:** (Documentos, actitudes, producciones u observaciones visibles que demuestran ese progreso).
 
     **REGLAS DE FORMATO ESTRICTAS:**
-    1.  Usa **exclusivamente Markdown simple**.
-    2.  Formatea la respuesta con un encabezado principal y una lista numerada del 1 al 5.
+    1.  Formatea la respuesta como una **tabla Markdown** (usando |, ---, etc.).
+    2.  Las columnas deben ser: **Acción Concreta**, **Indicadores de Mejora**, y **Evidencias Esperadas**.
     3.  **NO** incluyas **ningún** código HTML, CSS, o etiquetas <div>, <span> o <style>.
-    4.  El fondo debe ser transparente (sin color).
-    5.  El texto debe ser del color estándar (negro).
-    6.  No añadas introducciones o conclusiones adicionales.
+    4.  No añadas introducciones o conclusiones fuera de la tabla. La respuesta debe ser *solo* la tabla.
     """
     
     try:
         response = client.models.generate_content(
-            model='models/gemini-2.5-flash', # Nombre de modelo correcto de tu lista
+            model='models/gemini-2.5-flash', # Usamos 'flash' para esta tarea
             contents=prompt,
         )
         return response.text
@@ -567,4 +567,5 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
+
 
