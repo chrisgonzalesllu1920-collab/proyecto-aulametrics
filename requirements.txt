@@ -7,5 +7,6 @@ xlsxwriter
 plotly
 passlib
 google-genai
-supabase-py
+supabase
+
 
