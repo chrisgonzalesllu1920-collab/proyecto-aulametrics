@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import analysis_core
 import pedagogical_assistant
-from auth import login_user
 import plotly.express as px
 import io 
 import xlsxwriter 
@@ -69,9 +68,6 @@ except Exception as e:
 
 if 'logged_in' not in st.session_state:
   st.session_state.logged_in = False
-  
-if 'user_level' not in st.session_state:
-  st.session_state.user_level = None
   
 if 'show_welcome_message' not in st.session_state:
   st.session_state.show_welcome_message = False
@@ -891,4 +887,5 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
