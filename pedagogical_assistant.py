@@ -30,13 +30,13 @@ except Exception as e:
 
 # =========================================================================
 # === I. FUNCIÓN DE PROPUESTAS (Pestaña 1) ===
-# === (¡ACTUALIZADO CON TU NUEVO PROMPT!) ===
+# === (¡ACTUALIZADO AL MODELO 'PRO' PARA MEJOR CONSISTENCIA!) ===
 # =========================================================================
 
 def generate_ai_suggestions(critical_comp_info):
     """
     Genera un plan de acción (propuestas de mejora) usando la IA.
-    Usa el modelo 'flash' para velocidad.
+    Usa el modelo 'pro' para alta consistencia de formato.
     """
     
     if client is None:
@@ -70,7 +70,8 @@ def generate_ai_suggestions(critical_comp_info):
     
     try:
         response = client.models.generate_content(
-            model='models/gemini-2.5-flash', # Usamos 'flash' para esta tarea
+            # --- ¡CAMBIO REALIZADO! De 'flash' a 'pro' ---
+            model='models/gemini-2.5-pro', 
             contents=prompt,
         )
         return response.text
@@ -567,5 +568,6 @@ DEBES usar estos datos geográficos para generar ejemplos, situaciones, problema
     except Exception as e:
         # 4. Otros errores
         return f"Error inesperado al generar la sesión: {e}"
+
 
 
