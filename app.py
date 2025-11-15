@@ -8,13 +8,16 @@ import io
 import xlsxwriter 
 import os 
 import base64 
+# --- NUEVOS IMPORTS PARA SUPABASE (FASE 3) ---
+from supabase import create_client, Client
+# -----------------------------------------------
 
 # =========================================================================
 # === 1. IMPORTS Y CONFIGURACIÓN INICIAL ===
 # =========================================================================
 import streamlit as st
 import pandas as pd
-import analysis_core          # <--- Importante
+import analysis_core       # <--- Importante
 import pedagogical_assistant  # <--- Importante
 from auth import login_user
 import plotly.express as px
@@ -26,45 +29,62 @@ import base64
 # --- CONFIGURACIÓN DE PÁGINA (SOLO UNA VEZ) ---
 # (Este es el st.set_page_config de tu Sección 1, que es el correcto)
 st.set_page_config(
-    page_title="AulaMetrics", 
-    page_icon="assets/isotipo.png",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+  page_title="AulaMetrics", 
+  page_icon="assets/isotipo.png",
+  layout="wide",
+  initial_sidebar_state="collapsed"
 )
 
 @st.cache_data 
 def get_image_as_base64(file_path):
-    """Carga una imagen y la convierte a Base64 string."""
-    try:
-        with open(file_path, "rb") as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    except FileNotFoundError:
-        return None
+  """Carga una imagen y la convierte a Base64 string."""
+  try:
+      with open(file_path, "rb") as f:
+          data = f.read()
+      return base64.b64encode(data).decode()
+  except FileNotFoundError:
+      return None
 
 # =========================================================================
-# === 2. INICIALIZACIÓN DEL ESTADO DE SESIÓN ===
+# === 2.1 INICIALIZACIÓN DEL CLIENTE SUPABASE (FASE 3) ===
+# =========================================================================
+try:
+    supabase_url = st.secrets['supabase']['url']
+    supabase_key = st.secrets['supabase']['anon_key']
+    # Nota: Usamos 'supabase' como el nombre de variable para el cliente
+    supabase: Client = create_client(supabase_url, supabase_key)
+except KeyError:
+    st.error("Error: Faltan las claves de Supabase en 'secrets.toml'.")
+    st.info("Asegúrate de haber añadido [supabase] con 'url' y 'anon_key' a tu archivo secrets.toml.")
+    st.stop()
+except Exception as e:
+    st.error(f"Error al conectar con Supabase: {e}")
+    st.stop()
+# -------------------------------------------------------------------------
+
+# =========================================================================
+# === 2.2 INICIALIZACIÓN DEL ESTADO DE SESIÓN ===
 # =========================================================================
 # (Este es tu bloque de Sección 2, está perfecto)
 
 if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-    
+  st.session_state.logged_in = False
+  
 if 'user_level' not in st.session_state:
-    st.session_state.user_level = None
-    
+  st.session_state.user_level = None
+  
 if 'show_welcome_message' not in st.session_state:
-    st.session_state.show_welcome_message = False
-    
+  st.session_state.show_welcome_message = False
+  
 if 'df_cargado' not in st.session_state:
-    st.session_state.df_cargado = False
+  st.session_state.df_cargado = False
 
 if 'df' not in st.session_state:
-    st.session_state.df = None
+  st.session_state.df = None
 if 'df_config' not in st.session_state:
-    st.session_state.df_config = None
+  st.session_state.df_config = None
 if 'info_areas' not in st.session_state:
-    st.session_state.info_areas = None
+  st.session_state.info_areas = None
 # ----------------------------------------------------
 
 # =========================================================================
@@ -766,6 +786,7 @@ if not st.session_state.logged_in:
 else:
     # MOSTRAR EL DASHBOARD (POST-LOGIN)
     home_page()
+
 
 
 
