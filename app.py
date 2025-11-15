@@ -597,10 +597,14 @@ def convert_df_to_excel(df, area_name, general_info):
 
 def home_page():
     
-    # 1. MENSAJE DE BIENVENIDA
+    # 1. MENSAJE DE BIENVENIDA (ACTUALIZADO PARA SUPABASE)
     if st.session_state.show_welcome_message:
-        nivel_usuario = "Premium" if st.session_state.user_level == "premium" else "Gratuito"
-        st.toast(f"¡Bienvenido! Has iniciado sesión como usuario {nivel_usuario}.", icon="👋")
+        # Obtenemos el email del usuario desde el objeto 'user' de Supabase
+        user_email = "Usuario"
+        if hasattr(st.session_state, 'user') and st.session_state.user:
+            user_email = st.session_state.user.email
+            
+        st.toast(f"¡Bienvenido, {user_email}!", icon="👋")
         st.session_state.show_welcome_message = False
 
     # --- ¡NUEVO BLOQUE DE INICIALIZACIÓN! ---
@@ -628,9 +632,21 @@ def home_page():
         )
         st.markdown("Selecciona una herramienta para comenzar.")
 
-    # Botón de cerrar sesión
+    # --- Botón de cerrar sesión (ACTUALIZADO PARA SUPABASE) ---
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
-        logout()
+        try:
+            # Avisar a Supabase que cierre sesión
+            supabase.auth.sign_out()
+        except Exception as e:
+            st.warning(f"Error al cerrar sesión en Supabase: {e}")
+        
+        # Limpiar el estado de sesión local
+        st.session_state.logged_in = False
+        if hasattr(st.session_state, 'user'):
+            del st.session_state.user
+        
+        st.rerun() # Recargar para mostrar la página de login
+    # ---------------------------------------------------------
 
     # 3. LÓGICA DE PESTAÑAS (Se muestra SIEMPRE)
     tab_general, tab_estudiante, tab_asistente = st.tabs([
@@ -887,5 +903,6 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
