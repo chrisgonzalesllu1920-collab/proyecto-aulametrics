@@ -350,20 +350,6 @@ def login_page():
 ISOTIPO_PATH = "assets/isotipo.png"
 RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" # (Nombre sin tilde)
 
-# --- FUNCIÓN DE LOGOUT ---
-def logout():
-    """Resetea el estado de sesión y vuelve a la página de login."""
-    st.session_state.logged_in = False
-    st.session_state.user_level = None
-    st.session_state.df_cargado = False
-    st.session_state.df = None
-    st.session_state.df_config = None
-    st.session_state.info_areas = None
-    # Reseteamos también las selecciones del asistente
-    keys_asistente = [k for k in st.session_state.keys() if k.startswith('asistente_')]
-    for k in keys_asistente:
-        del st.session_state[k]
-    st.rerun()
 
 # --- FUNCIÓN (ASISTENTE PEDAGÓGICO) - ACTUALIZADA (con nombre de columna CORRECTO) ---
 @st.cache_data(ttl=3600)
@@ -903,6 +889,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
