@@ -231,7 +231,7 @@ def login_page():
     try:
         with open(logo_path, "rb") as f:
             logo_bytes = f.read()
-        st.image(logo_bytes, use_column_width=True)
+        st.image(logo_bytes, use_container_width=True)
     except FileNotFoundError:
         st.error("Error: No se encontró el logotipo.")
 
@@ -393,15 +393,17 @@ def cargar_datos_pedagogicos():
         st.error("Verifica los nombres de las 4 hojas: 'Generalidades', 'Cicloseducativos', 'Descriptorsecundaria', 'Descriptorprimaria' y sus columnas.")
         return None, None, None, None
 
-# --- FUNCIÓN (UPLOADER) ---
+# --- FUNCIÓN (UPLOADER) - ¡CORREGIDA PARA SUPABASE! ---
 def configurar_uploader():
     """
     Muestra el file_uploader y maneja la lógica de carga y procesamiento.
+    (Se eliminó la lógica de 'user_level' de "premium"/"free")
     """
-    limite_hojas = None if st.session_state.user_level == "premium" else 2
-    
-    if st.session_state.user_level == "free":
-        st.warning("Estás en el **Plan Gratuito**. Solo se analizarán las dos primeras hojas (áreas) de tu archivo.")
+    # --- LÓGICA ANTIGUA ELIMINADA ---
+    # limite_hojas = None if st.session_state.user_level == "premium" else 2
+    # if st.session_state.user_level == "free":
+    #     st.warning("Estás en el **Plan Gratuito**...")
+    # -----------------------------------
 
     uploaded_file = st.file_uploader(
         "Sube tu archivo de Excel aquí", 
@@ -418,8 +420,10 @@ def configurar_uploader():
                 IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros']
                 sheet_names = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
 
-                if limite_hojas:
-                    sheet_names = sheet_names[:limite_hojas]
+                # --- LÓGICA DE LÍMITE ELIMINADA ---
+                # (Ahora procesará todas las hojas por defecto)
+                # if limite_hojas:
+                #     sheet_names = sheet_names[:limite_hojas]
                 
                 results_dict = analysis_core.analyze_data(excel_file, sheet_names)
                 
@@ -432,7 +436,7 @@ def configurar_uploader():
                     first_sheet = sheet_names[0]
                     df_consolidado = pd.read_excel(uploaded_file, sheet_name=first_sheet, header=0)
                     if 'APELLIDOS Y NOMBRES' in df_consolidado.columns:
-                         df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
+                            df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
                     st.session_state.df = df_consolidado
                 except Exception as e:
                     pass 
@@ -443,12 +447,16 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
 
-# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) ---
+# --- FUNCIÓN (TAB 1: ANÁLISIS GENERAL) - ¡CORREGIDA (DE VERDAD)! ---
 def mostrar_analisis_general(results):
     """
     Muestra el contenido de la primera pestaña (Análisis General).
+    (Se eliminó la lógica de 'user_level' de "premium"/"free")
     """
-    is_premium = (st.session_state.user_level == "premium")
+    # --- LÓGICA ANTIGUA ELIMINADA ---
+    # is_premium = (st.session_state.user_level == "premium")
+    # -----------------------------------
+    
     st.markdown("---")
     st.subheader("Resultados Consolidados por Área")
 
@@ -459,13 +467,12 @@ def mostrar_analisis_general(results):
         st.info(f"Datos del Grupo: Nivel: **{general_data.get('nivel', 'Desconocido')}** | Grado: **{general_data.get('grado', 'Desconocido')}**")
     
     st.sidebar.subheader("⚙️ Configuración del Gráfico")
-    if is_premium:
-        chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
-        st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
-    else:
-        st.sidebar.markdown("Tipo de visualización: **Barras (Por Competencia)**")
-        st.sidebar.caption("🔒 (Elección entre gráficos estadísticos) es una función Premium.")
-        st.session_state.chart_type = 'Barras (Por Competencia)'
+    
+    # --- LÓGICA ANTIGUA ELIMINADA ---
+    # (Ahora todos los usuarios tienen todas las funciones premium por defecto)
+    chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
+    st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
+    # -----------------------------------
 
     tabs = st.tabs([f"Área: {sheet_name}" for sheet_name in results.keys()])
 
@@ -480,7 +487,12 @@ def mostrar_analisis_general(results):
                 continue
 
             st.markdown("##### 1. Distribución de Logros")
+            
+            # --- ¡LÍNEA CORREGIDA! ---
+            # (El error "KeyError: '% A'" estaba aquí. Faltaba '% A' y 'A (Est.)')
             data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
+            # --------------------------
+            
             for col_original_name, comp_data in competencias.items():
                 counts = comp_data['conteo_niveles']
                 total = comp_data['total_evaluados']
@@ -522,7 +534,9 @@ def mostrar_analisis_general(results):
                 st.session_state[f'selected_comp_{sheet_name}'] = selected_comp
             selected_comp_key = f'selected_comp_{sheet_name}'
             
-            if st.button(f"🎯 (Propuestas de mejora)", key=f"asistente_comp_{sheet_name}", type="primary", disabled=not is_premium):
+            # --- LÓGICA ANTIGUA ELIMINADA ---
+            # (El botón ahora está siempre habilitado)
+            if st.button(f"🎯 (Propuestas de mejora)", key=f"asistente_comp_{sheet_name}", type="primary"):
                 if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
                     comp_name_limpio = st.session_state[selected_comp_key]
                     with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
@@ -531,8 +545,8 @@ def mostrar_analisis_general(results):
                 else:
                     st.warning("Selecciona una competencia en el desplegable de gráficos antes de generar el informe detallado.")
             
-            if not is_premium:
-                st.caption("🔒 (Propuestas de mejora) es una función Premium.")
+            # --- LÓGICA ANTIGUA ELIMINADA ---
+            # (Se eliminó el caption "función Premium")
 
 # --- FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ---
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
@@ -889,7 +903,4 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
-
-
-
 
