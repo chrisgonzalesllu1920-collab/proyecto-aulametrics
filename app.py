@@ -212,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.2 - ¡CON GOOGLE CORREGIDO (DE VERDAD)! ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.3 - ¡LA SINTAXIS CORRECTA! ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro.
@@ -246,14 +246,17 @@ def login_page():
 
         st.divider()
         
-        # --- ¡BLOQUE CORREGIDO (v2.2)! ---
+        # --- ¡BLOQUE CORREGIDO (v2.3)! ---
         if st.button("Ingresar con Google", use_container_width=True, type="secondary"):
             try:
-                # El error "unexpected keyword argument 'options'" estaba aquí.
-                # Se corrigió quitando 'options='
+                # El error 'takes 2 arguments but 3 were given' significa que
+                # la función solo espera UN argumento (un diccionario)
+                # que contenga TODO.
                 oauth_response = supabase.auth.sign_in_with_oauth(
-                    "google", # El proveedor
-                    {"redirect_to": st.secrets["supabase"]["APP_URL"]} # Las opciones (¡sin 'options=')
+                    { # <-- INICIO DEL ÚNICO ARGUMENTO
+                        "provider": "google",
+                        "options": {"redirect_to": st.secrets["supabase"]["APP_URL"]}
+                    } # <-- FIN DEL ÚNICO ARGUMENTO
                 )
                 if oauth_response.url:
                     st.switch_page(oauth_response.url)
@@ -866,6 +869,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
