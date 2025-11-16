@@ -879,39 +879,47 @@ def home_page():
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
 
-# ==============================================================
-# MANEJO REAL DE OAUTH DESDE SUPABASE (GOOGLE)
-# ==============================================================
+# =========================================================================
+# === EJECUCIÓN PRINCIPAL (EL "GUARDIAN") - v2.0 CON MANEJO DE CÓDIGO ===
+# =========================================================================
 
+# --- ¡NUEVA LÓGICA DE MANEJO DE CÓDIGO OAuth! ---
+# Esto revisa si la URL tiene un "code" (viene de vuelta de Google)
 query_params = st.query_params
+auth_code = query_params.get("code")
 
-# Si Supabase devolvió los tokens después de Google
-if "access_token" in query_params and "refresh_token" in query_params:
+if auth_code and not st.session_state.logged_in:
+    try:
+        # 1. Intercambia el código por una sesión
+        # ¡Este era el paso que faltaba!
+        session_data = supabase.auth.exchange_code_for_session(auth_code)
+        
+        # 2. Si tiene éxito, la sesión está en session_data.session
+        if session_data.session:
+            st.session_state.logged_in = True
+            st.session_state.user = session_data.session.user
+            st.session_state.show_welcome_message = True
+            
+            # 3. Limpia la URL (quita el ?code=...) y recarga
+            st.query_params.clear() 
+            st.rerun()
 
-    # 1. Guardamos la sesión en Supabase (esto crea la sesión correcta)
-    supabase.auth.set_session({
-        "access_token": query_params["access_token"],
-        "refresh_token": query_params["refresh_token"]
-    })
-
-    # 2. Activamos el estado interno
-    st.session_state.logged_in = True
-    st.session_state.user = supabase.auth.get_user().user
-    st.session_state.show_welcome_message = True
-
-    # 3. Limpiamos la URL
-    st.query_params.clear()
-    st.rerun()
-
-# ==============================================================
-# GUARDIÁN 
-# ==============================================================
-
-session = supabase.auth.get_session()
-
-if not session:
+    except Exception as e:
+        # Si el código ya se usó o expiró, dará un error.
+        # Simplemente lo ignoramos y limpiamos la URL.
+        st.query_params.clear() 
+        pass # Continúa para mostrar la página de login
+    
+# --- El "Guardia de Seguridad" (La Puerta) ---
+# Esta lógica solo se ejecuta si el bloque anterior no inició sesión
+if not st.session_state.logged_in:
+    # Si el usuario NO está logueado, muestra la página de login
     login_page()
 else:
+    # Si el usuario SÍ está logueado, ejecuta la app principal
     home_page()
+
+# -------------------------------------------------------------------------
+
 
 
