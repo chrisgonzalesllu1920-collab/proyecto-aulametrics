@@ -212,134 +212,77 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================================
-# === 4.0 PÁGINA DE AUTENTICACIÓN (LOGIN) ===
-# =========================================================================
-
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.0 - ¡CORREGIDA! ---
 def login_page():
-    """Muestra la página de inicio de sesión y registro."""
+    """
+    Muestra la página de inicio de sesión y registro.
+    Maneja la lógica de autenticación.
+    """
+    st.image("assets/logotipo-aulametrics.png", width=300)
+    st.subheader("Bienvenido a AulaMetrics", anchor=False)
+    st.markdown("Tu asistente pedagógico para el análisis de notas.")
     
-    st.set_page_config(
-        page_title="AulaMetrics - Inicio",
-        page_icon="assets/isotipo.png",
-        layout="centered", # Usamos 'centered' para la página de login
-        initial_sidebar_state="collapsed"
-    )
-    
-    # --- Cargar Logo ---
-    logo_path = "assets/logotipo-aulametrics.png"
-    try:
-        with open(logo_path, "rb") as f:
-            logo_bytes = f.read()
-        st.image(logo_bytes, use_container_width=True)
-    except FileNotFoundError:
-        st.error("Error: No se encontró el logotipo.")
-
-    st.markdown("<h2 style='text-align: center;'>Inicia Sesión o Regístrate</h2>", unsafe_allow_html=True)
-    
-    # --- Pestañas de Login y Registro ---
-    tab1, tab2 = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarse"])
+    tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
     # --- Pestaña de Iniciar Sesión ---
-    with tab1:
+    with tab_login:
         with st.form("login_form"):
             email = st.text_input("Correo Electrónico", key="login_email")
             password = st.text_input("Contraseña", type="password", key="login_password")
+            submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
             
-            st.markdown("---")
-            
-            # --- Botón de Login con Email ---
-            if st.form_submit_button("Ingresar", use_container_width=True, type="primary"):
-                if email and password:
-                    try:
-                        # Intenta iniciar sesión con Supabase
-                        user_session = supabase.auth.sign_in_with_password({
-                            "email": email,
-                            "password": password
-                        })
-                        
-                        # Guardar el usuario en el estado
-                        st.session_state.logged_in = True
-                        st.session_state.user = user_session.user
-                        st.session_state.show_welcome_message = True # Para el mensaje de bienvenida
-                        st.rerun() # Recargar la app
-                        
-                    except Exception as e:
-                        if "invalid login credentials" in str(e).lower():
-                            st.error("Error: Correo o contraseña incorrectos.")
-                        else:
-                            st.error(f"Error al iniciar sesión: {e}")
-                else:
-                    st.warning("Por favor, ingresa tu correo y contraseña.")
-            
-            st.markdown(
-                "<p style='text-align: center; margin-top: 10px;'>o continúa con</p>", 
-                unsafe_allow_html=True
-            )
-            
-            # --- Botón de Login con Google ---
-            # Este es un botón especial que redirige a la URL de Google Auth
-            google_auth_url = supabase.auth.sign_in_with_oauth({
-                "provider": "google",
-                "options": {
-                    # Redirige de vuelta a la URL donde está desplegada tu app
-                    "redirect_to": st.secrets.get("APP_URL", "http://localhost:8501") 
-                }
-            })
-            
-            # Usamos st.link_button para crear un enlace que parece un botón
-            st.link_button(
-                "Ingresar con Google", 
-                google_auth_url.url, 
-                use_container_width=True
-            )
+            if submitted:
+                try:
+                    session = supabase.auth.sign_in_with_password({
+                        "email": email,
+                        "password": password
+                    })
+                    st.session_state.logged_in = True
+                    st.session_state.user = session.user
+                    st.session_state.show_welcome_message = True
+                    st.rerun() # <-- ¡Importante para recargar!
+                except Exception as e:
+                    st.error(f"Error al iniciar sesión: {e}")
 
-    # --- Pestaña de Registrarse ---
-    with tab2:
+        st.divider()
+        if st.button("Ingresar con Google", use_container_width=True, type="secondary"):
+            try:
+                oauth_response = supabase.auth.sign_in_with_oauth(
+                    provider="google",
+                    options={"redirect_to": st.secrets["supabase"]["APP_URL"]}
+                )
+                if oauth_response.url:
+                    st.switch_page(oauth_response.url)
+            except Exception as e:
+                st.error(f"Error al contactar con Google: {e}")
+
+    # --- Pestaña de Registrarme ---
+    with tab_register:
         with st.form("register_form"):
-            new_email = st.text_input("Correo Electrónico", key="register_email")
-            new_password = st.text_input("Crea una Contraseña", type="password", key="register_password")
+            name = st.text_input("Nombre", key="register_name")
+            email = st.text_input("Correo Electrónico", key="register_email")
+            password = st.text_input("Contraseña", type="password", key="register_password")
+            submitted = st.form_submit_button("Registrarme", use_container_width=True)
             
-            st.markdown("---")
-            
-            # --- Botón de Registro con Email ---
-            if st.form_submit_button("Registrarme", use_container_width=True, type="primary"):
-                if new_email and new_password:
-                    try:
-                        # Intenta registrar al usuario en Supabase
-                        user_credentials = supabase.auth.sign_up({
-                            "email": new_email,
-                            "password": new_password
-                        })
-                        
-                        # Supabase envía un correo de confirmación
-                        st.success("¡Registro exitoso! Revisa tu correo electrónico para confirmar tu cuenta.")
-                        st.info("Una vez confirmada, ve a la pestaña 'Iniciar Sesión' para ingresar.")
-                        
-                    except Exception as e:
-                        if "User already registered" in str(e):
-                            st.error("Error: Este correo electrónico ya está registrado.")
-                        elif "Password should be at least 6 characters" in str(e):
-                            st.error("Error: La contraseña debe tener al menos 6 caracteres.")
-                        else:
-                            st.error(f"Error en el registro: {e}")
+            if submitted:
+                if not name or not email or not password:
+                    st.warning("Por favor, completa todos los campos.")
                 else:
-                    st.warning("Por favor, ingresa un correo y contraseña válidos.")
-            
-            st.markdown(
-                "<p style='text-align: center; margin-top: 10px;'>o regístrate con</p>", 
-                unsafe_allow_html=True
-            )
-            
-            # --- Botón de Registro con Google ---
-            # Es el mismo botón que el de login, Supabase maneja ambos casos
-            st.link_button(
-                "Registrarme con Google", 
-                google_auth_url.url, 
-                use_container_width=True
-            )
-
-# -------------------------------------------------------------------------
+                    try:
+                        user = supabase.auth.sign_up({
+                            "email": email,
+                            "password": password,
+                            "options": {
+                                "data": {
+                                    'full_name': name
+                                }
+                            }
+                        })
+                        st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
+                        st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
+                        # ¡No agregamos st.rerun() aquí para que el mensaje de éxito se quede!
+                    except Exception as e:
+                        st.error(f"Error en el registro: {e}")
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
@@ -920,6 +863,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
