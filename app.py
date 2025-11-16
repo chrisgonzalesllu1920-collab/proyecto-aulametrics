@@ -212,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.0 - ¡CORREGIDA! ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.1 - ¡CON GOOGLE CORREGIDO! ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro.
@@ -245,10 +245,14 @@ def login_page():
                     st.error(f"Error al iniciar sesión: {e}")
 
         st.divider()
+        
+        # --- ¡BLOQUE CORREGIDO! ---
         if st.button("Ingresar con Google", use_container_width=True, type="secondary"):
             try:
+                # El error "unexpected keyword argument 'provider'" estaba aquí.
+                # Se corrigió quitando 'provider='
                 oauth_response = supabase.auth.sign_in_with_oauth(
-                    provider="google",
+                    "google", # <-- ¡ARREGLADO!
                     options={"redirect_to": st.secrets["supabase"]["APP_URL"]}
                 )
                 if oauth_response.url:
@@ -280,7 +284,6 @@ def login_page():
                         })
                         st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
                         st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
-                        # ¡No agregamos st.rerun() aquí para que el mensaje de éxito se quede!
                     except Exception as e:
                         st.error(f"Error en el registro: {e}")
 
@@ -863,6 +866,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
