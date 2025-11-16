@@ -880,21 +880,38 @@ def home_page():
             st.info("Función de Planificación Anual (Próximamente).")
 
 # =========================================================================
-# === EJECUCIÓN PRINCIPAL (EL "GUARDIAN") ===
+# === EJECUCIÓN PRINCIPAL (EL "GUARDIAN") - v2.0 CON MANEJO DE CÓDIGO ===
 # =========================================================================
 
-# --- Manejo del token de sesión de Google/OAuth ---
-# Esto revisa si el usuario viene de vuelta de Google
-session = supabase.auth.get_session()
-if session and not st.session_state.logged_in:
-    # Si Supabase dice que hay una sesión (de Google) y 
-    # nuestro estado dice que no, actualizamos el estado.
-    st.session_state.logged_in = True
-    st.session_state.user = session.user
-    st.session_state.show_welcome_message = True
-    st.rerun() # Recargar la app ya logueado
+# --- ¡NUEVA LÓGICA DE MANEJO DE CÓDIGO OAuth! ---
+# Esto revisa si la URL tiene un "code" (viene de vuelta de Google)
+query_params = st.query_params
+auth_code = query_params.get("code")
 
+if auth_code and not st.session_state.logged_in:
+    try:
+        # 1. Intercambia el código por una sesión
+        # ¡Este era el paso que faltaba!
+        session_data = supabase.auth.exchange_code_for_session(auth_code)
+        
+        # 2. Si tiene éxito, la sesión está en session_data.session
+        if session_data.session:
+            st.session_state.logged_in = True
+            st.session_state.user = session_data.session.user
+            st.session_state.show_welcome_message = True
+            
+            # 3. Limpia la URL (quita el ?code=...) y recarga
+            st.query_params.clear() 
+            st.rerun()
+
+    except Exception as e:
+        # Si el código ya se usó o expiró, dará un error.
+        # Simplemente lo ignoramos y limpiamos la URL.
+        st.query_params.clear() 
+        pass # Continúa para mostrar la página de login
+    
 # --- El "Guardia de Seguridad" (La Puerta) ---
+# Esta lógica solo se ejecuta si el bloque anterior no inició sesión
 if not st.session_state.logged_in:
     # Si el usuario NO está logueado, muestra la página de login
     login_page()
@@ -903,4 +920,3 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
-
