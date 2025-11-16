@@ -212,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.1 - ¡CON GOOGLE CORREGIDO! ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.2 - ¡CON GOOGLE CORREGIDO (DE VERDAD)! ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro.
@@ -246,14 +246,14 @@ def login_page():
 
         st.divider()
         
-        # --- ¡BLOQUE CORREGIDO! ---
+        # --- ¡BLOQUE CORREGIDO (v2.2)! ---
         if st.button("Ingresar con Google", use_container_width=True, type="secondary"):
             try:
-                # El error "unexpected keyword argument 'provider'" estaba aquí.
-                # Se corrigió quitando 'provider='
+                # El error "unexpected keyword argument 'options'" estaba aquí.
+                # Se corrigió quitando 'options='
                 oauth_response = supabase.auth.sign_in_with_oauth(
-                    "google", # <-- ¡ARREGLADO!
-                    options={"redirect_to": st.secrets["supabase"]["APP_URL"]}
+                    "google", # El proveedor
+                    {"redirect_to": st.secrets["supabase"]["APP_URL"]} # Las opciones (¡sin 'options=')
                 )
                 if oauth_response.url:
                     st.switch_page(oauth_response.url)
@@ -866,6 +866,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
