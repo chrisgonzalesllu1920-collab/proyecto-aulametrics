@@ -212,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.3 - ¡LA SINTAXIS CORRECTA! ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.4 - ¡EL ARREGLO DE REDIRECCIÓN! ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro.
@@ -240,32 +240,40 @@ def login_page():
                     st.session_state.logged_in = True
                     st.session_state.user = session.user
                     st.session_state.show_welcome_message = True
-                    st.rerun() # <-- ¡Importante para recargar!
+                    st.rerun() 
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
 
         st.divider()
         
-        # --- ¡BLOQUE CORREGIDO (v2.3)! ---
-        if st.button("Ingresar con Google", use_container_width=True, type="secondary"):
-            try:
-                # El error 'takes 2 arguments but 3 were given' significa que
-                # la función solo espera UN argumento (un diccionario)
-                # que contenga TODO.
-                oauth_response = supabase.auth.sign_in_with_oauth(
-                    { # <-- INICIO DEL ÚNICO ARGUMENTO
-                        "provider": "google",
-                        "options": {"redirect_to": st.secrets["supabase"]["APP_URL"]}
-                    } # <-- FIN DEL ÚNICO ARGUMENTO
-                )
-                if oauth_response.url:
-                    st.switch_page(oauth_response.url)
-            except Exception as e:
-                st.error(f"Error al contactar con Google: {e}")
+        # --- ¡BLOQUE CORREGIDO (v2.4)! ---
+        # El error "Could not find page" es porque NUNCA debimos usar st.switch_page()
+        # st.switch_page() es para páginas INTERNAS (en /pages)
+        # Para ir a una URL EXTERNA (como la de Google), debemos usar st.link_button()
+        
+        try:
+            # 1. Generamos el enlace (con la sintaxis v2.3 correcta)
+            oauth_response = supabase.auth.sign_in_with_oauth(
+                { 
+                    "provider": "google",
+                    "options": {"redirect_to": st.secrets["supabase"]["APP_URL"]}
+                }
+            )
+            
+            # 2. Usamos st.link_button para MOSTRAR el enlace
+            st.link_button(
+                "Ingresar con Google",
+                oauth_response.url, # <-- La URL externa
+                use_container_width=True,
+                type="secondary"
+            )
+        except Exception as e:
+            st.error(f"Error al contactar con Google: {e}")
 
     # --- Pestaña de Registrarme ---
     with tab_register:
         with st.form("register_form"):
+            # ... (El formulario de registro está perfecto, no se toca) ...
             name = st.text_input("Nombre", key="register_name")
             email = st.text_input("Correo Electrónico", key="register_email")
             password = st.text_input("Contraseña", type="password", key="register_password")
@@ -869,6 +877,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
