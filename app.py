@@ -530,7 +530,7 @@ def convert_df_to_excel(df, area_name, general_info):
     
 # =========================================================================
 # === 5. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) ===
-# === (Corrección del error 'st.download_button in st.form') ===
+# === (¡VERSIÓN ACTUALIZADA CON CÓDIGO DE DONACIÓN YAPE!) ===
 # =========================================================================
 
 def home_page():
@@ -540,9 +540,11 @@ def home_page():
         # Obtenemos el email del usuario desde el objeto 'user' de Supabase
         user_email = "Usuario"
         if hasattr(st.session_state, 'user') and st.session_state.user:
-            user_email = st.session_state.user.email
-            
-        st.toast(f"¡Bienvenido, {user_email}!", icon="👋")
+            # --- ¡MEJORA DE BIENVENIDA! ---
+            # (Usamos el 'full_name' si existe, si no, el email)
+            user_name = st.session_state.user.user_metadata.get('full_name', st.session_state.user.email)
+            st.toast(f"¡Bienvenido, {user_name}!", icon="👋")
+        
         st.session_state.show_welcome_message = False
 
     # --- ¡NUEVO BLOQUE DE INICIALIZACIÓN! ---
@@ -569,6 +571,19 @@ def home_page():
             unsafe_allow_html=True
         )
         st.markdown("Selecciona una herramienta para comenzar.")
+
+    # --- ¡NUEVO BLOQUE DE DONACIÓN (YAPE)! ---
+    # (Insertado en la barra lateral, encima del botón de logout)
+    st.sidebar.divider() 
+    st.sidebar.image("assets/qr-yape.png") # <-- ¡AQUÍ ESTÁ TU QR!
+    st.sidebar.markdown(
+        "<div style='text-align: center;'>"
+        "¡Ayúdanos con tu colaboración para seguir sosteniendo nuestra página!"
+        "</div>", 
+        unsafe_allow_html=True
+    )
+    st.sidebar.divider()
+    # --- FIN DEL BLOQUE DE DONACIÓN ---
 
     # --- Botón de cerrar sesión (ACTUALIZADO PARA SUPABASE) ---
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
@@ -858,3 +873,4 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
