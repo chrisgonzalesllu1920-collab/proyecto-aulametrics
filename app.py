@@ -212,66 +212,72 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.4 - ¡EL ARREGLO DE REDIRECCIÓN! ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.6 - (¡VERSIÓN CENTRADA!) ---
 def login_page():
     """
-    Muestra la página de inicio de sesión y registro.
-    Maneja la lógica de autenticación.
+    Muestra la página de inicio de sesión y registro, centrada en la pantalla.
+    Maneja la lógica de autenticación (SOLO EMAIL/CONTRASEÑA).
     """
-    st.image("assets/logotipo-aulametrics.png", width=300)
-    st.subheader("Bienvenido a AulaMetrics", anchor=False)
-    st.markdown("Tu asistente pedagógico para el análisis de notas.")
     
-    tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
+    # --- ¡NUEVO TRUCO DE CENTRADO! ---
+    # Creamos 3 columnas: [vacía, contenido, vacía]
+    # El '2' hace que la columna central sea el doble de ancha que las laterales.
+    col1, col_centro, col3 = st.columns([1, 2, 1])
+    
+    # Todo el contenido de la página ahora va DENTRO de la columna central
+    with col_centro:
+        st.image("assets/logotipo-aulametrics.png", width=300)
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("Tu asistente pedagógico para el análisis de notas.")
+        
+        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-    # --- Pestaña de Iniciar Sesión ---
-    with tab_login:
-        with st.form("login_form"):
-            email = st.text_input("Correo Electrónico", key="login_email")
-            password = st.text_input("Contraseña", type="password", key="login_password")
-            submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-            
-            if submitted:
-                try:
-                    session = supabase.auth.sign_in_with_password({
-                        "email": email,
-                        "password": password
-                    })
-                    st.session_state.logged_in = True
-                    st.session_state.user = session.user
-                    st.session_state.show_welcome_message = True
-                    st.rerun() 
-                except Exception as e:
-                    st.error(f"Error al iniciar sesión: {e}")
-
-      
-    # --- Pestaña de Registrarme ---
-    with tab_register:
-        with st.form("register_form"):
-            # ... (El formulario de registro está perfecto, no se toca) ...
-            name = st.text_input("Nombre", key="register_name")
-            email = st.text_input("Correo Electrónico", key="register_email")
-            password = st.text_input("Contraseña", type="password", key="register_password")
-            submitted = st.form_submit_button("Registrarme", use_container_width=True)
-            
-            if submitted:
-                if not name or not email or not password:
-                    st.warning("Por favor, completa todos los campos.")
-                else:
+        # --- Pestaña de Iniciar Sesión ---
+        with tab_login:
+            with st.form("login_form"):
+                email = st.text_input("Correo Electrónico", key="login_email")
+                password = st.text_input("Contraseña", type="password", key="login_password")
+                submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                
+                if submitted:
                     try:
-                        user = supabase.auth.sign_up({
+                        session = supabase.auth.sign_in_with_password({
                             "email": email,
-                            "password": password,
-                            "options": {
-                                "data": {
-                                    'full_name': name
-                                }
-                            }
+                            "password": password
                         })
-                        st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
-                        st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
+                        st.session_state.logged_in = True
+                        st.session_state.user = session.user
+                        st.session_state.show_welcome_message = True
+                        st.rerun() 
                     except Exception as e:
-                        st.error(f"Error en el registro: {e}")
+                        st.error(f"Error al iniciar sesión: {e}")
+
+        # --- Pestaña de Registrarme ---
+        with tab_register:
+            with st.form("register_form"):
+                name = st.text_input("Nombre", key="register_name")
+                email = st.text_input("Correo Electrónico", key="register_email")
+                password = st.text_input("Contraseña", type="password", key="register_password")
+                submitted = st.form_submit_button("Registrarme", use_container_width=True)
+                
+                if submitted:
+                    if not name or not email or not password:
+                        st.warning("Por favor, completa todos los campos.")
+                    else:
+                        try:
+                            user = supabase.auth.sign_up({
+                                "email": email,
+                                "password": password,
+                                "options": {
+                                    "data": {
+                                        'full_name': name
+                                    }
+                                }
+                            })
+                            st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
+                            st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
+                        except Exception as e:
+                            st.error(f"Error en el registro: {e}")
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
@@ -852,6 +858,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
