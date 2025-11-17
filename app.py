@@ -244,32 +244,7 @@ def login_page():
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
 
-        st.divider()
-        
-        # --- ¡BLOQUE CORREGIDO (v2.4)! ---
-        # El error "Could not find page" es porque NUNCA debimos usar st.switch_page()
-        # st.switch_page() es para páginas INTERNAS (en /pages)
-        # Para ir a una URL EXTERNA (como la de Google), debemos usar st.link_button()
-        
-        try:
-            # 1. Generamos el enlace (con la sintaxis v2.3 correcta)
-            oauth_response = supabase.auth.sign_in_with_oauth(
-                { 
-                    "provider": "google",
-                    "options": {"redirect_to": st.secrets["supabase"]["APP_URL"]}
-                }
-            )
-            
-            # 2. Usamos st.link_button para MOSTRAR el enlace
-            st.link_button(
-                "Ingresar con Google",
-                oauth_response.url, # <-- La URL externa
-                use_container_width=True,
-                type="secondary"
-            )
-        except Exception as e:
-            st.error(f"Error al contactar con Google: {e}")
-
+      
     # --- Pestaña de Registrarme ---
     with tab_register:
         with st.form("register_form"):
@@ -877,6 +852,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
