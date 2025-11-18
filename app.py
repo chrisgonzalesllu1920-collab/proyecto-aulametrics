@@ -594,12 +594,15 @@ def home_page():
         )
         st.markdown("Selecciona una herramienta para comenzar.")
 
-    # --- ¡NUEVO BLOQUE DE DONACIÓN (YAPE)! ---
-    # (Insertado en la barra lateral, encima del botón de logout)
+    # --- BLOQUE DE DONACIÓN (YAPE) ---
     st.sidebar.divider() 
-    st.sidebar.image("assets/qr-yape.png") # <-- ¡AQUÍ ESTÁ TU QR!
+    
+    # --- ¡CAMBIO AQUÍ! ---
+    # Hemos añadido 'width=150' para hacerlo más pequeño y menos intrusivo.
+    st.sidebar.image("assets/qr-yape.png", width=150) 
+    
     st.sidebar.markdown(
-        "<div style='text-align: center;'>"
+        "<div style='text-align: left; font-size: 0.9em;'>"
         "¡Ayúdanos con tu colaboración para seguir sosteniendo nuestra página!"
         "</div>", 
         unsafe_allow_html=True
@@ -895,6 +898,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
