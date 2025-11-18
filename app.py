@@ -597,12 +597,19 @@ def home_page():
     # --- BLOQUE DE DONACIÓN (YAPE) ---
     st.sidebar.divider() 
     
-    # --- ¡CAMBIO AQUÍ! ---
-    # Hemos añadido 'width=150' para hacerlo más pequeño y menos intrusivo.
-    st.sidebar.image("assets/qr-yape.png", width=150) 
+    # --- ¡EL TRUCO DEL SANDWICH! ---
+    # Creamos 3 columnas en la sidebar: [espacio, imagen, espacio]
+    # El [1, 2, 1] significa: "25% vacío, 50% imagen, 25% vacío"
+    col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
+    
+    with col_centro:
+        # Ponemos la imagen AQUÍ, sin 'width'. 
+        # Se ajustará al ancho de la columna (pequeña), 
+        # pero al ampliarla se verá GRANDE.
+        st.image("assets/qr-yape.png") 
     
     st.sidebar.markdown(
-        "<div style='text-align: left; font-size: 0.9em;'>"
+        "<div style='text-align: center; font-size: 0.9em;'>"
         "¡Ayúdanos con tu colaboración para seguir sosteniendo nuestra página!"
         "</div>", 
         unsafe_allow_html=True
@@ -898,6 +905,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
