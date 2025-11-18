@@ -212,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.7 - (CENTRADA Y CON BOTÓN DE CONTACTO) ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.8 - (¡BOTÓN DE CONTACTO MEJORADO!) ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro, centrada en la pantalla.
@@ -277,17 +277,28 @@ def login_page():
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
-        # --- ¡NUEVO BLOQUE DE CONTACTO! ---
-        # (Se coloca después de las pestañas, pero dentro de la columna central)
+        # --- ¡NUEVO BLOQUE DE CONTACTO (HTML/CSS)! ---
         st.divider()
         
         # ¡¡¡IMPORTANTE: REEMPLAZA LA URL DE AQUÍ ABAJO!!!
-        st.link_button(
-            "¿Dudas? Contáctanos (WhatsApp/TikTok)",
-            "https://bejewelled-moonbeam-7c18d0.netlify.app/", # <-- PEGA TU URL DE NETLIFY AQUÍ
-            use_container_width=True,
-            type="secondary" # Un estilo más sutil
-        )
+        url_netlify = "https://TU-PAGINA-DE-NETLIFY.netlify.app" # <-- PEGA TU URL DE NETLIFY AQUÍ
+        
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #25D366; /* Color verde WhatsApp */
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
+        ">
+            ¿Dudas? Contáctanos (WhatsApp/TikTok)
+        </a>
+        """, unsafe_allow_html=True)
         # --- FIN DEL NUEVO BLOQUE ---
 
 # =========================================================================
@@ -884,6 +895,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
