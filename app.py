@@ -288,7 +288,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 10px 0;
-            background-color: #25D366; /* Color verde WhatsApp */
+            background-color: #FFA500; /* Color verde WhatsApp */
             color: white;
             text-align: center;
             text-decoration: none;
@@ -296,7 +296,7 @@ def login_page():
             font-weight: bold;
             box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
         ">
-            ¿Dudas? Contáctanos (WhatsApp/TikTok)
+            ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
         </a>
         """, unsafe_allow_html=True)
         # --- FIN DEL NUEVO BLOQUE ---
@@ -895,6 +895,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
