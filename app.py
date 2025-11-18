@@ -288,7 +288,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 10px 0;
-            background-color: #FFA500; /* Color verde WhatsApp */
+            background-color: #FF5733; /* Color verde WhatsApp */
             color: white;
             text-align: center;
             text-decoration: none;
@@ -895,6 +895,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
