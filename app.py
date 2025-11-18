@@ -212,16 +212,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNCIÓN (LOGIN / REGISTRO) v2.6 - (¡VERSIÓN CENTRADA!) ---
+# --- FUNCIÓN (LOGIN / REGISTRO) v2.7 - (CENTRADA Y CON BOTÓN DE CONTACTO) ---
 def login_page():
     """
     Muestra la página de inicio de sesión y registro, centrada en la pantalla.
     Maneja la lógica de autenticación (SOLO EMAIL/CONTRASEÑA).
     """
     
-    # --- ¡NUEVO TRUCO DE CENTRADO! ---
-    # Creamos 3 columnas: [vacía, contenido, vacía]
-    # El '2' hace que la columna central sea el doble de ancha que las laterales.
+    # --- ¡TRUCO DE CENTRADO! ---
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     # Todo el contenido de la página ahora va DENTRO de la columna central
@@ -278,6 +276,19 @@ def login_page():
                             st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
+
+        # --- ¡NUEVO BLOQUE DE CONTACTO! ---
+        # (Se coloca después de las pestañas, pero dentro de la columna central)
+        st.divider()
+        
+        # ¡¡¡IMPORTANTE: REEMPLAZA LA URL DE AQUÍ ABAJO!!!
+        st.link_button(
+            "¿Dudas? Contáctanos (WhatsApp/TikTok)",
+            "https://app.netlify.com/projects/bejewelled-moonbeam-7c18d0/overview", # <-- PEGA TU URL DE NETLIFY AQUÍ
+            use_container_width=True,
+            type="secondary" # Un estilo más sutil
+        )
+        # --- FIN DEL NUEVO BLOQUE ---
 
 # =========================================================================
 # === 4. FUNCIONES AUXILIARES (CÁLCULO, DISPLAY, UPLOADERS) ===
@@ -873,4 +884,5 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
