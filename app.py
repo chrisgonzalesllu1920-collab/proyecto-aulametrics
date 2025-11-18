@@ -284,7 +284,7 @@ def login_page():
         # ¡¡¡IMPORTANTE: REEMPLAZA LA URL DE AQUÍ ABAJO!!!
         st.link_button(
             "¿Dudas? Contáctanos (WhatsApp/TikTok)",
-            "https://app.netlify.com/projects/bejewelled-moonbeam-7c18d0/overview", # <-- PEGA TU URL DE NETLIFY AQUÍ
+            "https://bejewelled-moonbeam-7c18d0.netlify.app/", # <-- PEGA TU URL DE NETLIFY AQUÍ
             use_container_width=True,
             type="secondary" # Un estilo más sutil
         )
@@ -884,5 +884,6 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
