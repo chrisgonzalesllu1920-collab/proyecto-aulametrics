@@ -281,7 +281,7 @@ def login_page():
         st.divider()
         
         # ¡¡¡IMPORTANTE: REEMPLAZA LA URL DE AQUÍ ABAJO!!!
-        url_netlify = "https://TU-PAGINA-DE-NETLIFY.netlify.app" # <-- PEGA TU URL DE NETLIFY AQUÍ
+        url_netlify = "https://bejewelled-moonbeam-7c18d0.netlify.app/" # <-- PEGA TU URL DE NETLIFY AQUÍ
         
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
@@ -895,6 +895,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
