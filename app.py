@@ -288,7 +288,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 10px 0;
-            background-color: #FF5733; /* Color naranja rojizo */
+            background-color: #0068C9; /* Color naranja rojizo */
             color: white;
             text-align: center;
             text-decoration: none;
@@ -895,6 +895,7 @@ else:
     home_page()
 
 # -------------------------------------------------------------------------
+
 
 
 
