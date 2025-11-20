@@ -30,7 +30,6 @@ except Exception as e:
 
 # =========================================================================
 # === I. FUNCIÓN DE PROPUESTAS (Pestaña 1) ===
-# === (¡ACTUALIZADO AL MODELO 'PRO' PARA MEJOR CONSISTENCIA!) ===
 # =========================================================================
 
 def generate_ai_suggestions(critical_comp_info):
@@ -40,16 +39,15 @@ def generate_ai_suggestions(critical_comp_info):
     """
     
     if client is None:
-        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
+        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar."
         
     # Extraemos las variables dinámicas
     grado = critical_comp_info['grado']
     nivel = critical_comp_info['nivel']
     area = critical_comp_info['area']
     competencia = critical_comp_info['nombre']
-    analisis = critical_comp_info['analisis'] # Ej: "El 36.7% de los estudiantes..."
+    analisis = critical_comp_info['analisis'] 
     
-    # --- ¡ESTE ES TU NUEVO PROMPT MEJORADO! ---
     prompt = f"""
     Quiero que elabores un **cuadro claro y completo** con acciones, indicadores y evidencias de mejora, dirigido a un docente de **{area}** de **{grado}** de {nivel}.
 
@@ -70,7 +68,6 @@ def generate_ai_suggestions(critical_comp_info):
     
     try:
         response = client.models.generate_content(
-            # --- ¡CAMBIO REALIZADO! De 'flash' a 'pro' ---
             model='models/gemini-2.5-pro', 
             contents=prompt,
         )
@@ -100,7 +97,7 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     p_comp.add_run(f"Competencia a Abordar: ").bold = True
     p_comp.add_run(selected_comp_limpio)
     
-    document.add_heading('Propuestas de Intervención (GenerADAS por IA)', level=1)
+    document.add_heading('Propuestas de Intervención (Generadas por IA)', level=1)
     
     def process_markdown_to_runs(paragraph, text):
         parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', text)
@@ -145,19 +142,17 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
-# === II-B. ¡NUEVA FUNCIÓN INTELIGENTE! EXPORTACIÓN A WORD (Sesión) ===
-# === (Arregla image_a42bd0.png y image_a3b3d4.png) ===
+# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
     Convierte el texto Markdown de la sesión generada por la IA en un 
     documento de Word (.docx) y lo devuelve en bytes.
-    Esta versión "inteligente" reconstruye la tabla de competencias.
+    Reconstruye la tabla de competencias y formatea correctamente.
     """
     document = Document()
     
     def process_markdown_to_runs(paragraph, text):
-        """Traduce negritas simples a formato de Word."""
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
             if part.startswith('**') and part.endswith('**'):
@@ -166,77 +161,57 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 paragraph.add_run(part)
 
     def add_list_item(paragraph, text, style='List Bullet'):
-        """Limpia la viñeta de Markdown y añade el texto."""
         cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', text).strip()
         paragraph.style = style
         process_markdown_to_runs(paragraph, cleaned_line)
 
     lines = sesion_markdown_text.split('\n')
     
-    # --- Lógica de Parseo Inteligente (Nivel 2) ---
+    # Variables de estado para la tabla
     in_competencies_section = False
     current_competencia_text = ""
     current_capacidades_list = []
     current_criterios_list = []
     table = None
-    
-    # Estados: 0 = Buscando, 1 = Leyendo Capacidades, 2 = Leyendo Criterios
     current_state = 0 
 
     def flush_competencia_to_table(table, comp_text, cap_list, crit_list):
-        """Función interna para escribir los datos en una nueva fila de la tabla."""
-        if not comp_text:
-            return 
+        if not comp_text: return 
             
         row_cells = table.add_row().cells
-        
-        # Celda 0: Competencia
         process_markdown_to_runs(row_cells[0].paragraphs[0], comp_text)
         
-        # Celda 1: Capacidades (como lista de viñetas)
         if cap_list:
             row_cells[1].paragraphs[0].text = "" 
             if len(row_cells[1].paragraphs) > 0:
                 p = row_cells[1].paragraphs[0]
-                if not p.text:
-                    elem = p._element
-                    elem.getparent().remove(elem)
-
+                if not p.text: p._element.getparent().remove(p._element)
             for item in cap_list:
                 p = row_cells[1].add_paragraph()
                 add_list_item(p, item)
         
-        # Celda 2: Criterios (como lista de viñetas)
         if crit_list:
             row_cells[2].paragraphs[0].text = ""
             if len(row_cells[2].paragraphs) > 0:
                 p = row_cells[2].paragraphs[0]
-                if not p.text:
-                    elem = p._element
-                    elem.getparent().remove(elem)
-                    
+                if not p.text: p._element.getparent().remove(p._element)
             for item in crit_list:
                 p = row_cells[2].add_paragraph()
                 add_list_item(p, item)
 
-    # --- Comienza el bucle de parseo ---
     for line in lines:
         line = line.strip()
-        if not line:
-            continue
+        if not line: continue
         
-        # 1. Encabezados (### Título)
         if line.startswith('###'):
-            # Si estábamos en la sección de competencias, escribimos la última fila
             if in_competencies_section and current_competencia_text and table is not None:
                 flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                current_competencia_text = "" # Reseteamos
+                current_competencia_text = "" 
             
-            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=3) # Nivel 3 para INICIO, etc.
+            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=3) 
             if "SESIÓN DE APRENDIZAJE" in line:
                 document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-                document.paragraphs[-1].style = 'Title' # Usar un estilo más grande
-            
+                document.paragraphs[-1].style = 'Title' 
             in_competencies_section = False
             
         elif line.startswith('##'):
@@ -247,25 +222,21 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=0)
             in_competencies_section = False
         
-        # 2. Encabezados de Sección (I. DATOS...)
         elif line.startswith('**I.') or line.startswith('**II.') or \
              line.startswith('**IV.') or line.startswith('**V.') or \
              line.startswith('**VI.') or line.startswith('**VII.'):
-            # Escribimos la última competencia si estábamos en esa sección
             if in_competencies_section and current_competencia_text and table is not None:
                 flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                current_competencia_text = "" # Reseteamos
+                current_competencia_text = "" 
                 
             document.add_heading(line.replace('**', ''), level=2)
             in_competencies_section = False
         
-        # --- ¡LÓGICA DE LA TABLA CORREGIDA! ---
+        # Lógica Tabla Competencias
         elif line.startswith('**III. COMPETENCIAS'):
             document.add_heading(line.replace('**', ''), level=2)
             in_competencies_section = True
-            current_state = 0 # Reiniciamos estado
-            
-            # Creamos el encabezado de la tabla
+            current_state = 0 
             table = document.add_table(rows=1, cols=3)
             table.style = 'Table Grid'
             hdr_cells = table.rows[0].cells
@@ -276,67 +247,47 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 cell.paragraphs[0].runs[0].bold = True
                 
         elif in_competencies_section:
-            # --- ¡CORRECCIÓN DE LÓGICA (image_29adc7.png)! ---
-            # 1. Manejamos el separador PRIMERO
             if line.startswith('---'):
-                # Fin del bloque de competencia, añadimos la fila a la tabla
                 if table is not None:
                     flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                
-                # Reseteamos
                 current_competencia_text = ""
                 current_capacidades_list = []
                 current_criterios_list = []
                 current_state = 0
-            # 2. Luego buscamos los subtítulos
             elif line.startswith('**Competencia:') or line.startswith('Competencia:'):
                 current_competencia_text = re.sub(r'^\*\*Competencia:\*\*|Competencia:', '', line).strip()
                 current_capacidades_list = []
                 current_criterios_list = []
-                current_state = 0 # Buscando
+                current_state = 0 
             elif line.startswith('**Capacidades:') or line.startswith('Capacidades:'):
-                current_state = 1 # Cambiamos a "Modo Capacidades"
+                current_state = 1 
             elif line.startswith('**Criterios de Evaluación:') or line.startswith('Criterios de Evaluación:'):
-                current_state = 2 # Cambiamos a "Modo Criterios"
-            # 3. Finalmente, procesamos las viñetas
+                current_state = 2 
             elif line.startswith('-') or line.startswith('*'):
-                if current_state == 1:
-                    current_capacidades_list.append(line)
-                elif current_state == 2:
-                    current_criterios_list.append(line)
-        # --- FIN DE LA LÓGICA DE LA TABLA ---
+                if current_state == 1: current_capacidades_list.append(line)
+                elif current_state == 2: current_criterios_list.append(line)
         
-        # 3. Listas de Viñetas (Para el resto del documento)
         elif line.startswith('*') or line.startswith('-'):
             paragraph = document.add_paragraph(style='List Bullet')
             add_list_item(paragraph, line)
             
-        # 4. Listas Numeradas
         elif re.match(r'^\d+\.', line):
             paragraph = document.add_paragraph(style='List Number')
             cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
             process_markdown_to_runs(paragraph, cleaned_line)
             
-        # 5. Firmas (_______)
         elif line.startswith('___'):
             p = document.add_paragraph(line)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
-        # 6. Texto Normal (Párrafos)
         else:
             if line: 
                 paragraph = document.add_paragraph()
                 process_markdown_to_runs(paragraph, line)
     
-    # --- ¡CORRECCIÓN DE LÓGICA (image_a42bd0.png)! ---
-    # Chequeo final: Si el bucle terminó y aún hay datos guardados 
-    # (porque era la última o única competencia y no había '---'),
-    # los escribimos en la tabla ahora.
     if in_competencies_section and current_competencia_text and table is not None:
         flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-    # --- FIN DE LA CORRECCIÓN DE LÓGICA ---
     
-    # Búfer de memoria para guardar el archivo
     buffer = io.BytesIO()
     document.save(buffer)
     buffer.seek(0)
@@ -395,180 +346,171 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Versión Final Limpia y Corregida) ===
+# === (Versión ACTUALIZADA CON METODOLOGÍA DINÁMICA Y PENSAMIENTO CRÍTICO) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
                                 region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
     Genera una sesión de aprendizaje completa usando la IA.
-    Ahora incluye lógica de contextualización, instrucciones y fallback de modelo.
+    Incluye SELECTOR METODOLÓGICO y MANDATO DE ALTA DEMANDA COGNITIVA.
     """
     
     if client is None:
-        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar. Revisa tus secretos (secrets.toml)."
+        return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar."
 
-    # 1. Convertir listas a texto formateado para el prompt
+    # 1. Convertir listas a texto formateado
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
-    # --- BLOQUE DE CONTEXTO (Opcional) ---
+    # --- CONTEXTO GEOGRÁFICO ---
     contexto_str = ""
-    if region and region.strip(): # Si el usuario escribió algo en Región
+    if region and region.strip(): 
         contexto_str = f"""
 ## CONTEXTO GEOGRÁFICO (Opcional)
 - **Región:** {region}
 - **Provincia:** {provincia}
 - **Distrito:** {distrito}
-
-**REGLA DE CONTEXTUALIZACIÓN:**
-DEBES usar estos datos geográficos para generar ejemplos, situaciones, problemas y actividades que sean relevantes para esa ubicación específica.
+**REGLA DE CONTEXTUALIZACIÓN:** DEBES usar estos datos para generar ejemplos relevantes.
 """
     
-    # --- ¡NUEVO BLOQUE DE INSTRUCCIONES! (Opcional) ---
+    # --- INSTRUCCIONES ADICIONALES ---
     instrucciones_str = ""
     if instrucciones_docente and instrucciones_docente.strip():
         instrucciones_str = f"""
 ## INSTRUCCIONES ADICIONALES DEL DOCENTE
 - {instrucciones_docente}
-
-**REGLA DE PRIORIDAD:**
-¡Esta es la instrucción más importante! DEBES modificar la sesión (especialmente las actividades de 'DESARROLLO' y 'CIERRE') para cumplir con este enfoque específico. Si el docente quiere 'reforzar' algo, la sesión debe ser de refuerzo.
+**REGLA DE PRIORIDAD:** ¡Esta es la instrucción más importante! Modifica la sesión para cumplir esto.
 """
-    # --- FIN DEL NUEVO BLOQUE ---
 
-    # 2. Construir el Mega-Prompt
+    # --- MENÚ DE METODOLOGÍAS ACTIVAS (NUEVO) ---
+    menu_metodologias = """
+    1. Aprendizaje Basado en Problemas (ABP)
+    2. Aprendizaje Basado en Indagación (Indagación Científica)
+    3. Aprendizaje Colaborativo / Cooperativo
+    4. Gamificación (Uso de mecánicas de juego)
+    5. Estudio de Casos
+    6. Aula Invertida (Flipped Classroom)
+    """
+
+    # 2. Construir el Mega-Prompt con ESTRATEGIA PEDAGÓGICA
     prompt = f"""
     Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
-    Tu tarea es generar una sesión de aprendizaje completa basada en los siguientes datos y plantillas.
-    Debes seguir el formato Markdown exacto solicitado.
+    
+    ## ESTRATEGIA PEDAGÓGICA (SELECTOR METODOLÓGICO):
+    Antes de generar la sesión, ANALIZA el Grado ({grado}), el Área ({area}) y el Tema ({tematica}).
+    Basado en este análisis, **ELIGE** la metodología más apropiada de la siguiente lista:
+    {menu_metodologias}
+    
+    ## MANDATO DE ALTA DEMANDA COGNITIVA:
+    En la sección de **'DESARROLLO'**, es **OBLIGATORIO** incluir una actividad explícita que promueva:
+    - El Razonamiento Complejo.
+    - La Creatividad.
+    - O el Pensamiento Crítico.
+    
+    Evita a toda costa que los estudiantes sean pasivos. La sesión debe centrarse en lo que el estudiante HACE, no solo en lo que el docente explica.
 
     ## DATOS DE ENTRADA:
     - **Nivel:** {nivel}
     - **Grado:** {grado}
     - **Ciclo:** {ciclo}
     - **Área:** {area}
-    - **Tema (Temática):** {tematica}
+    - **Tema:** {tematica}
     - **Duración:** {tiempo}
 
     {contexto_str} 
 
-    ## RECURSOS PEDAGÓGICOS (Contexto):
-    
-    **Competencia(s) Seleccionada(s):**
+    ## RECURSOS PEDAGÓGICOS:
+    **Competencia(s):**
     {competencias_str}
-
-    **Capacidad(es) Correspondiente(s):**
+    **Capacidad(es):**
     {capacidades_str}
-
-    **Estándar(es) del Ciclo (Descripción del Nivel de Desarrollo):**
+    **Estándar(es):**
     "{estandar_texto}"
 
     {instrucciones_str}
 
-    ## REGLA DE ORO (CRITERIOS DE EVALUACIÓN):
-    ¡Atención! El estándar de competencia que te he dado (en "Descripción del Nivel de Desarrollo") es la meta para el **final** del Ciclo {ciclo}.
-    El docente ha seleccionado el **{grado}**. 
-    Tu tarea es generar **Criterios de Evaluación** que estén *adaptados* a ese {grado} específico. Los criterios deben ser un paso intermedio y progresivo para alcanzar el estándar final, y deben estar directamente relacionados con el **Tema ({tematica})** y las **Capacidades**.
-
     ## PLANTILLA DE SALIDA (Formato Requerido):
-    Genera la sesión usando este formato Markdown. Completa cada sección según las plantillas e instrucciones.
+    Genera la sesión usando este formato Markdown exacto.
 
     ### SESIÓN DE APRENDIZAJE – N° 
 
     **I. DATOS GENERALES:**
-    * **Título:** [Genera un título creativo para la sesión, basado en la Temática: {tematica}]
+    * **Título:** [Genera un título creativo para la sesión]
     * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
     * **Fecha:** * **Ciclo:** {ciclo}
     * **Grado:** {grado}
+    * **Metodología:** [¡IMPORTANTE! Escribe aquí la metodología que elegiste del menú]
     * **Sección:** * **Docente:** **II. PROPÓSITO DE LA SESIÓN:**
-    [Genera el propósito siguiendo esta estructura: (Verbo en infinitivo) + ¿qué? (el tema) + ¿cómo? (estrategia metodológica) + ¿para qué? (el fin de la sesión)]
+    [Genera el propósito: Verbo + tema + estrategia + finalidad]
 
     **III. COMPETENCIAS Y CAPACIDADES:**
     
-    **REGLA DE FORMATO ESTRICTA PARA ESTA SECCIÓN:**
-    1.  **NO uses una tabla.** (El código de Python la reconstruirá en Word)
-    2.  Usa el siguiente formato de encabezados y listas:
-        - Escribe la competencia en negrita (ej: **Competencia: Nombre de la competencia**).
-        - Debajo, en una **nueva línea separada**, escribe "**Capacidades:**" y luego la lista de viñetas con **guiones (`-`)**.
-        - Debajo, en una **nueva línea separada**, escribe "**Criterios de Evaluación:**" y luego la lista de viñetas con **guiones (`-`)**.
-        - Separa cada bloque de competencia con una regla horizontal (---).
-    3.  **¡PROHIBIDO usar la etiqueta HTML `<br>`!**
-    4.  **¡NO incluyas 'DESEMPEÑO'!**
+    **REGLA DE FORMATO:**
+    - **Competencia: [Nombre]**
+    - **Capacidades:** (Lista con guiones `-`)
+    - **Criterios de Evaluación:** (Lista con guiones `-`. Genera 3-4 criterios adaptados estrictamente al grado {grado} y al tema).
+    --- (Separador)
 
-    **DATOS PARA LA SECCIÓN:**
+    **DATOS:**
     - **Competencia(s):** {competencias_str}
     - **Capacidad(es):** {capacidades_str}
-    - **Criterios de Evaluación:** [Genera aquí 3-4 Criterios de Evaluación por competencia, usando guiones (`-`). REGLA: Deben alinearse *estrictamente* con el Estándar y el Grado.]
 
     **IV. ENFOQUE TRANSVERSAL:**
-    (Deja esta sección vacía)
+    (Espacio vacío)
     
-    **V. SECUENCIA DIDÁCTICA (Momentos de la Sesión):**
+    **V. SECUENCIA DIDÁCTICA:**
 
-    # --- ¡CORRECCIÓN DE JERARQUÍA (image_29ae61.png)! ---
-    
     ### INICIO
-    (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    
-    **Motivación:** [Genera una actividad corta de motivación]
-    **Saberes previos:** [Genera 2-3 preguntas para explorar saberes previos sobre {tematica}]
-    **Conflicto cognitivo:** [Genera 1 pregunta de conflicto cognitivo]
-    **Presentación del propósito:** [Indica que el docente presenta el propósito (definido en la sección II) y los criterios de evaluación.]
+    (Tiempo estimado: [Corto])
+    **Motivación:** [Actividad corta y motivadora]
+    **Saberes previos:** [Preguntas]
+    **Conflicto cognitivo:** [Pregunta retadora]
+    **Presentación del propósito:** [El docente presenta propósito y criterios]
 
     ### DESARROLLO
-    (Tiempo estimado: [Especificar, debe ser la mayor parte de la Duración total])
+    (Tiempo estimado: [Largo])
     
-    **Gestión y acompañamiento:** [Describe aquí los procesos didácticos, métodos y estrategias que el docente usará para desarrollar las competencias seleccionadas, abordando el tema: {tematica}]
+    **Gestión y acompañamiento:** [Describe la secuencia didáctica paso a paso usando la **Metodología** elegida.]
+    
+    **ACTIVIDAD DE ALTA DEMANDA COGNITIVA:**
+    [Describe aquí detalladamente el reto, problema, debate o creación que realizarán los estudiantes para desarrollar su pensamiento crítico/creativo.]
 
     ### CIERRE
-    (Tiempo estimado: [Especificar un tiempo corto, ej: 15 minutos])
-    
-    **Evaluación o transferencia de lo aprendido:** [Genera aquí una actividad corta de evaluación formativa o transferencia (por ejemplo, un reto breve, una pregunta de aplicación práctica).]
-    **Metacognición:** [Genera aquí 2-3 preguntas de metacognición (ej: ¿Qué aprendimos hoy? ¿Cómo lo aprendimos? ¿Para qué nos sirve?)]
-    # -----------------------------------------------
+    (Tiempo estimado: [Corto])
+    **Evaluación/Transferencia:** [Actividad de cierre]
+    **Metacognición:** [Preguntas de reflexión]
     
     **VI. MATERIALES O RECURSOS:**
-    * [Presenta una lista (bullet points) de materiales o recursos necesarios para esta sesión]
+    * [Lista de materiales]
 
     **VII. FIRMAS:**
-
-    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+    ___
     DIRECTOR
-
-    \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-    DOCENTE DE ({area}) 
+    ___
+    DOCENTE
     """
     
     try:
-        # --- ¡LÓGICA DE FALLBACK (Solución al Error 503)! ---
-        
-        # 1. Intentar con el modelo "Pro" (mejor calidad)
+        # 1. Intentar con modelo Pro
         response = client.models.generate_content(
-            model='models/gemini-2.5-pro', # Modelo "Pro" de tu lista
+            model='models/gemini-2.5-pro',
             contents=prompt
         )
         return response.text
     
-    except APIError as e: # <-- ¡CORRECCIÓN! Atrapar 'APIError'
-        # 2. Si falla por sobrecarga (Error 503), reintentar con "Flash"
+    except APIError as e: 
+        # 2. Reintento con Flash si falla
         if "503" in str(e) or "overloaded" in str(e).lower():
             try:
-                # Reintento silencioso con el modelo Flash
                 response_flash = client.models.generate_content(
-                    model='models/gemini-2.5-flash', # Modelo "Flash" de tu lista
+                    model='models/gemini-2.5-flash',
                     contents=prompt
                 )
                 return response_flash.text
             except Exception as e_flash:
-                return f"Error al contactar la IA (reintento con Flash fallido): {e_flash}"
+                return f"Error al contactar la IA (reintento fallido): {e_flash}"
         else:
-            # 3. Si es otro error de API (como 404, 400), mostrarlo
             return f"Error al contactar la IA (APIError): {e}"
     except Exception as e:
-        # 4. Otros errores
-        return f"Error inesperado al generar la sesión: {e}"
-
-
-
-
+        return f"Error inesperado: {e}"
