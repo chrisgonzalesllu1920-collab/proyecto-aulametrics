@@ -189,7 +189,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 10px 0;
-            background-color: #FF5733; /* Naranja Rojizo */
+            background-color: #0068C9; /* Azul Profesional */
             color: white;
             text-align: center;
             text-decoration: none;
@@ -655,5 +655,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
