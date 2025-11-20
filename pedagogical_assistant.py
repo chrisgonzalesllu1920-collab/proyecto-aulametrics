@@ -142,17 +142,39 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
-# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) ===
+# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - ¡REPARADO! ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
-    Convierte el texto Markdown de la sesión generada por la IA en un 
-    documento de Word (.docx) y lo devuelve en bytes.
-    Reconstruye la tabla de competencias y formatea correctamente.
+    Convierte la sesión a Word solucionando:
+    1. Filtro de inicio (elimina análisis previo).
+    2. Tabla de competencias (llena correctamente las celdas).
+    3. Limpieza de asteriscos mal formados.
     """
     document = Document()
     
-    def process_markdown_to_runs(paragraph, text):
+    # --- ESTILOS BÁSICOS ---
+    style = document.styles['Normal']
+    font = style.font
+    font.name = 'Arial'
+    font.size = Pt(11)
+
+    # --- FUNCIONES DE LIMPIEZA (Helpers) ---
+    def clean_asterisks(text):
+        """Elimina ** y * del texto para dejarlo limpio."""
+        return text.replace('**', '').replace('*', '').strip()
+
+    def process_formatted_text(paragraph, text):
+        """Procesa negritas correctamente si están bien formadas, sino limpia."""
+        # Si detectamos formato "roto" (ej: *Texto**), limpiamos y ponemos todo en negrita si parece título
+        if text.startswith('*') and not text.startswith('**'):
+             # Caso sucio: *Título:** -> Título (en Negrita)
+             clean = clean_asterisks(text)
+             run = paragraph.add_run(clean)
+             if ':' in text: # Si parece un subtítulo
+                 run.bold = True
+             return
+
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
             if part.startswith('**') and part.endswith('**'):
@@ -160,134 +182,183 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             else:
                 paragraph.add_run(part)
 
-    def add_list_item(paragraph, text, style='List Bullet'):
-        cleaned_line = re.sub(r'^\*\s*|^\-\s*', '', text).strip()
-        paragraph.style = style
-        process_markdown_to_runs(paragraph, cleaned_line)
+    def add_bullet(paragraph, text):
+        """Añade viñeta limpia."""
+        clean_text = re.sub(r'^[\*\-]\s*', '', text).strip() # Quita el guion o asterisco inicial
+        clean_text = clean_asterisks(clean_text) # Quita negritas internas rotas
+        paragraph.style = 'List Bullet'
+        paragraph.add_run(clean_text)
 
     lines = sesion_markdown_text.split('\n')
     
-    # Variables de estado para la tabla
+    # --- VARIABLES DE ESTADO ---
+    printing_started = False # 1. FILTRO DE INICIO (Solución Error 01)
+    
+    # Variables para la tabla
     in_competencies_section = False
-    current_competencia_text = ""
-    current_capacidades_list = []
-    current_criterios_list = []
     table = None
-    current_state = 0 
+    
+    # Variables temporales para llenar la tabla
+    curr_comp = ""
+    curr_caps = []
+    curr_crits = []
+    
+    # Modo de captura de lista: 0=Nada, 1=Capacidades, 2=Criterios
+    capture_mode = 0 
 
-    def flush_competencia_to_table(table, comp_text, cap_list, crit_list):
-        if not comp_text: return 
-            
-        row_cells = table.add_row().cells
-        process_markdown_to_runs(row_cells[0].paragraphs[0], comp_text)
+    def flush_row(tbl, c, caps, crits):
+        """Escribe la fila en la tabla y limpia las variables."""
+        if not c and not caps and not crits: return
+        row = tbl.add_row()
+        row.cells[0].text = clean_asterisks(c)
         
-        if cap_list:
-            row_cells[1].paragraphs[0].text = "" 
-            if len(row_cells[1].paragraphs) > 0:
-                p = row_cells[1].paragraphs[0]
-                if not p.text: p._element.getparent().remove(p._element)
-            for item in cap_list:
-                p = row_cells[1].add_paragraph()
-                add_list_item(p, item)
-        
-        if crit_list:
-            row_cells[2].paragraphs[0].text = ""
-            if len(row_cells[2].paragraphs) > 0:
-                p = row_cells[2].paragraphs[0]
-                if not p.text: p._element.getparent().remove(p._element)
-            for item in crit_list:
-                p = row_cells[2].add_paragraph()
-                add_list_item(p, item)
+        # Capacidades
+        if caps:
+            row.cells[1].paragraphs[0].text = "" # Limpiar celda por defecto
+            for cap in caps:
+                p = row.cells[1].add_paragraph()
+                add_bullet(p, cap)
+        # Criterios
+        if crits:
+            row.cells[2].paragraphs[0].text = ""
+            for crit in crits:
+                p = row.cells[2].add_paragraph()
+                add_bullet(p, crit)
 
+    # --- BUCLE PRINCIPAL (Línea por línea) ---
     for line in lines:
         line = line.strip()
         if not line: continue
+
+        # 1. LÓGICA DEL FILTRO DE INICIO (Ignorar texto de la IA antes del título)
+        # Buscamos el título principal para empezar a "imprimir"
+        if "SESIÓN DE APRENDIZAJE" in line.upper() and not printing_started:
+            printing_started = True
+            p = document.add_heading('SESIÓN DE APRENDIZAJE', level=0)
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            continue # Ya imprimimos el título
         
-        if line.startswith('###'):
-            if in_competencies_section and current_competencia_text and table is not None:
-                flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                current_competencia_text = "" 
+        if not printing_started:
+            continue # Ignoramos todo el análisis previo (metodología, grado, etc.)
+
+        # --- YA ESTAMOS IMPRIMIENDO ---
+
+        # Detección de Títulos Principales (I., II., III...)
+        if line.startswith('**I.') or line.startswith('I.') or \
+           line.startswith('**II.') or line.startswith('II.') or \
+           line.startswith('**III.') or line.startswith('III.') or \
+           line.startswith('**IV.') or line.startswith('IV.') or \
+           line.startswith('**V.') or line.startswith('V.') or \
+           line.startswith('**VI.') or line.startswith('VI.') or \
+           line.startswith('**VII.') or line.startswith('VII.'):
             
-            document.add_heading(re.sub(r'^###\s*', '', line).strip(), level=3) 
-            if "SESIÓN DE APRENDIZAJE" in line:
-                document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-                document.paragraphs[-1].style = 'Title' 
-            in_competencies_section = False
+            # Si estábamos en tabla y cambiamos de sección, cerramos la última fila
+            if in_competencies_section and table:
+                flush_row(table, curr_comp, curr_caps, curr_crits)
+                curr_comp, curr_caps, curr_crits = "", [], []
+                in_competencies_section = False
+
+            clean_title = clean_asterisks(line)
+            document.add_heading(clean_title, level=1)
+
+            # Si es la sección de competencias, PREPARAMOS LA TABLA
+            if "COMPETENCIAS" in line.upper():
+                in_competencies_section = True
+                table = document.add_table(rows=1, cols=3)
+                table.style = 'Table Grid'
+                hdr = table.rows[0].cells
+                hdr[0].text = 'COMPETENCIA'
+                hdr[1].text = 'CAPACIDAD'
+                hdr[2].text = 'CRITERIOS DE EVALUACIÓN'
+                for cell in hdr: cell.paragraphs[0].runs[0].bold = True
             
-        elif line.startswith('##'):
-            document.add_heading(re.sub(r'^##\s*', '', line).strip(), level=1)
-            in_competencies_section = False
+            continue
+
+        # --- LÓGICA ESPECÍFICA DE LA TABLA (Solución Error 02) ---
+        if in_competencies_section:
+            # Detectar separador (fin de una competencia)
+            if "---" in line:
+                flush_row(table, curr_comp, curr_caps, curr_crits)
+                curr_comp, curr_caps, curr_crits = "", [], []
+                capture_mode = 0
+                continue
+
+            # Detectar Competencia (Flexible: busca la palabra clave)
+            if "Competencia:" in line: 
+                # Si ya teníamos datos de una competencia anterior sin separador, guardamos
+                if curr_comp: 
+                     flush_row(table, curr_comp, curr_caps, curr_crits)
+                     curr_caps, curr_crits = [], []
+
+                # Limpiamos "Competencia:" y asteriscos para dejar solo el nombre
+                text_parts = line.split("ompetencia:") # Split por 'ompetencia:' para ser flexible con C/c
+                if len(text_parts) > 1:
+                    curr_comp = clean_asterisks(text_parts[1])
+                capture_mode = 0
             
-        elif line.startswith('#'):
-            document.add_heading(re.sub(r'^#\s*', '', line).strip(), level=0)
-            in_competencies_section = False
-        
-        elif line.startswith('**I.') or line.startswith('**II.') or \
-             line.startswith('**IV.') or line.startswith('**V.') or \
-             line.startswith('**VI.') or line.startswith('**VII.'):
-            if in_competencies_section and current_competencia_text and table is not None:
-                flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                current_competencia_text = "" 
-                
-            document.add_heading(line.replace('**', ''), level=2)
-            in_competencies_section = False
-        
-        # Lógica Tabla Competencias
-        elif line.startswith('**III. COMPETENCIAS'):
-            document.add_heading(line.replace('**', ''), level=2)
-            in_competencies_section = True
-            current_state = 0 
-            table = document.add_table(rows=1, cols=3)
-            table.style = 'Table Grid'
-            hdr_cells = table.rows[0].cells
-            hdr_cells[0].text = 'COMPETENCIA'
-            hdr_cells[1].text = 'CAPACIDAD'
-            hdr_cells[2].text = 'CRITERIOS DE EVALUACIÓN'
-            for cell in hdr_cells:
-                cell.paragraphs[0].runs[0].bold = True
-                
-        elif in_competencies_section:
-            if line.startswith('---'):
-                if table is not None:
-                    flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-                current_competencia_text = ""
-                current_capacidades_list = []
-                current_criterios_list = []
-                current_state = 0
-            elif line.startswith('**Competencia:') or line.startswith('Competencia:'):
-                current_competencia_text = re.sub(r'^\*\*Competencia:\*\*|Competencia:', '', line).strip()
-                current_capacidades_list = []
-                current_criterios_list = []
-                current_state = 0 
-            elif line.startswith('**Capacidades:') or line.startswith('Capacidades:'):
-                current_state = 1 
-            elif line.startswith('**Criterios de Evaluación:') or line.startswith('Criterios de Evaluación:'):
-                current_state = 2 
+            # Detectar Capacidades
+            elif "Capacidades:" in line:
+                capture_mode = 1
+            
+            # Detectar Criterios
+            elif "Criterios" in line and "Evaluación" in line:
+                capture_mode = 2
+            
+            # Detectar Viñetas (Contenido)
             elif line.startswith('-') or line.startswith('*'):
-                if current_state == 1: current_capacidades_list.append(line)
-                elif current_state == 2: current_criterios_list.append(line)
+                content = re.sub(r'^[\*\-]\s*', '', line).strip() # Quita viñeta
+                if capture_mode == 1:
+                    curr_caps.append(content)
+                elif capture_mode == 2:
+                    curr_crits.append(content)
+            
+            continue # Fin de lógica de tabla para esta línea
+
+        # --- LÓGICA DEL CONTENIDO NORMAL (Solución Error 03 - Limpieza) ---
         
+        # Títulos de sección (INICIO, DESARROLLO, CIERRE)
+        if "###" in line:
+            clean_h = clean_asterisks(line.replace('###', ''))
+            document.add_heading(clean_h, level=2)
+        
+        # Subtítulos rotos (ej: *Motivación:**)
+        elif line.strip().startswith('*') and "**" in line:
+             p = document.add_paragraph()
+             # Limpiamos todo y lo ponemos en negrita
+             clean_line = clean_asterisks(line)
+             run = p.add_run(clean_line)
+             run.bold = True
+        
+        # Negritas normales (**Texto**)
+        elif line.startswith('**') and line.endswith('**'):
+            p = document.add_paragraph()
+            clean_line = clean_asterisks(line)
+            run = p.add_run(clean_line)
+            run.bold = True # Asumimos que es un subtítulo fuerte
+            
+        # Listas de viñetas
         elif line.startswith('*') or line.startswith('-'):
-            paragraph = document.add_paragraph(style='List Bullet')
-            add_list_item(paragraph, line)
-            
+            p = document.add_paragraph(style='List Bullet')
+            add_bullet(p, line)
+        
+        # Listas Numeradas
         elif re.match(r'^\d+\.', line):
-            paragraph = document.add_paragraph(style='List Number')
-            cleaned_line = re.sub(r'^\d+\.\s*', '', line).strip()
-            process_markdown_to_runs(paragraph, cleaned_line)
+            p = document.add_paragraph(style='List Number')
+            # Limpiamos el numero para que Word ponga el suyo automático
+            clean_text = re.sub(r'^\d+\.\s*', '', line)
+            process_formatted_text(p, clean_text)
             
-        elif line.startswith('___'):
+        # Firmas
+        elif line.startswith('_'):
             p = document.add_paragraph(line)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
+        # Texto plano
         else:
-            if line: 
-                paragraph = document.add_paragraph()
-                process_markdown_to_runs(paragraph, line)
-    
-    if in_competencies_section and current_competencia_text and table is not None:
-        flush_competencia_to_table(table, current_competencia_text, current_capacidades_list, current_criterios_list)
-    
+            p = document.add_paragraph()
+            process_formatted_text(p, line)
+
+    # Guardar
     buffer = io.BytesIO()
     document.save(buffer)
     buffer.seek(0)
@@ -514,3 +585,4 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
             return f"Error al contactar la IA (APIError): {e}"
     except Exception as e:
         return f"Error inesperado: {e}"
+
