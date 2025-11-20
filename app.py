@@ -592,15 +592,25 @@ def home_page():
             st.subheader("📝 Formatos Editables")
             st.info("Plantillas en Word y Excel listas para usar.")
             
-            # RECURSO 1
-            ruta_archivo_1 = "Registro automatizado nivel secundario.xlsm"
+           # RECURSO 1: Registro Automatizado (Excel)
+            # 1. Agregamos "recursos/" antes del nombre
+            ruta_archivo_1 = "recursos/Registro automatizado nivel secundario.xlsm" 
+            
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
-                    st.download_button("📥 Descargar Modelo Sesión (Word)", file, "Modelo_Sesion.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
+                    st.download_button(
+                        label="📥 Descargar Registro Automatizado (Excel)", # 2. Corregimos la etiqueta
+                        data=file,
+                        file_name="Registro_Secundaria.xlsm", # 3. Nombre limpio para la descarga
+                        # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
+                        mime="application/vnd.ms-excel.sheet.macroEnabled.12", 
+                        use_container_width=True
+                    )
             else:
-                st.caption("❌ Archivo 'plantilla_sesion.docx' no disponible.")
+                # Esto te ayudará a ver si el nombre está mal escrito
+                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_1}")
 
-            st.write("") 
+            st.write("")
             
             # RECURSO 2
             ruta_archivo_2 = "recursos/registro_auxiliar.xlsx" 
@@ -645,4 +655,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
