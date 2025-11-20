@@ -142,14 +142,16 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
-# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - ¡REPARADO! ===
+# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - v3.0 FINAL ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
-    Convierte la sesión a Word solucionando:
-    1. Filtro de inicio (elimina análisis previo).
-    2. Tabla de competencias (llena correctamente las celdas).
-    3. Limpieza de asteriscos mal formados.
+    Convierte la sesión a Word.
+    v3.0 Correcciones:
+    - Filtro de inicio ESTRICTO (Solo arranca con ### SESIÓN...).
+    - Tabla de competencias INTACTA (Lógica v2.0 preservada).
+    - Formato de texto REPARADO (Negritas dentro de viñetas funcionan bien).
+    - Limpieza de símbolos '>' (blockquotes).
     """
     document = Document()
     
@@ -159,109 +161,104 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     font.name = 'Arial'
     font.size = Pt(11)
 
-    # --- FUNCIONES DE LIMPIEZA (Helpers) ---
-    def clean_asterisks(text):
-        """Elimina ** y * del texto para dejarlo limpio."""
-        return text.replace('**', '').replace('*', '').strip()
+    # --- HELPERS DE TEXTO (MEJORADOS) ---
+    def clean_markdown_symbols(text):
+        """Limpia símbolos extraños como > de las citas."""
+        return text.replace('>', '').strip()
 
     def process_formatted_text(paragraph, text):
-        """Procesa negritas correctamente si están bien formadas, sino limpia."""
-        # Si detectamos formato "roto" (ej: *Texto**), limpiamos y ponemos todo en negrita si parece título
-        if text.startswith('*') and not text.startswith('**'):
-             # Caso sucio: *Título:** -> Título (en Negrita)
-             clean = clean_asterisks(text)
-             run = paragraph.add_run(clean)
-             if ':' in text: # Si parece un subtítulo
-                 run.bold = True
-             return
-
+        """
+        Detecta **Negritas** y las aplica al párrafo.
+        Ahora soporta texto mixto: "Esto es **importante** y esto no."
+        """
+        # Limpieza inicial básica
+        text = clean_markdown_symbols(text)
+        
+        # Dividimos por los marcadores de negrita **
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
             if part.startswith('**') and part.endswith('**'):
-                paragraph.add_run(part[2:-2]).bold = True
+                # Es negrita: quitamos los asteriscos y aplicamos estilo
+                clean_part = part[2:-2]
+                run = paragraph.add_run(clean_part)
+                run.bold = True
             else:
+                # Texto normal
                 paragraph.add_run(part)
 
-    def add_bullet(paragraph, text):
-        """Añade viñeta limpia."""
-        clean_text = re.sub(r'^[\*\-]\s*', '', text).strip() # Quita el guion o asterisco inicial
-        clean_text = clean_asterisks(clean_text) # Quita negritas internas rotas
-        paragraph.style = 'List Bullet'
-        paragraph.add_run(clean_text)
+    def add_bullet(paragraph, text, style='List Bullet'):
+        """
+        Añade una viñeta procesando el formato interno (negritas).
+        Antes borraba las negritas, ¡ahora las respeta!
+        """
+        # Quitamos el marcador de lista (*, -, +) y los espacios
+        clean_text = re.sub(r'^[\*\-\+]\s*', '', text)
+        paragraph.style = style
+        # Usamos el procesador inteligente en lugar de solo texto plano
+        process_formatted_text(paragraph, clean_text)
 
     lines = sesion_markdown_text.split('\n')
     
     # --- VARIABLES DE ESTADO ---
-    printing_started = False # 1. FILTRO DE INICIO (Solución Error 01)
+    printing_started = False 
     
     # Variables para la tabla
     in_competencies_section = False
     table = None
-    
-    # Variables temporales para llenar la tabla
     curr_comp = ""
     curr_caps = []
     curr_crits = []
-    
-    # Modo de captura de lista: 0=Nada, 1=Capacidades, 2=Criterios
     capture_mode = 0 
 
     def flush_row(tbl, c, caps, crits):
-        """Escribe la fila en la tabla y limpia las variables."""
+        """Escribe la fila en la tabla (LÓGICA ORIGINAL INTACTA)."""
         if not c and not caps and not crits: return
         row = tbl.add_row()
-        row.cells[0].text = clean_asterisks(c)
+        # Limpiamos asteriscos del título de la competencia por si acaso
+        row.cells[0].text = c.replace('**', '').strip()
         
-        # Capacidades
         if caps:
-            row.cells[1].paragraphs[0].text = "" # Limpiar celda por defecto
+            row.cells[1].paragraphs[0].text = "" 
             for cap in caps:
                 p = row.cells[1].add_paragraph()
                 add_bullet(p, cap)
-        # Criterios
         if crits:
             row.cells[2].paragraphs[0].text = ""
             for crit in crits:
                 p = row.cells[2].add_paragraph()
                 add_bullet(p, crit)
 
-    # --- BUCLE PRINCIPAL (Línea por línea) ---
+    # --- BUCLE PRINCIPAL ---
     for line in lines:
         line = line.strip()
         if not line: continue
 
-        # 1. LÓGICA DEL FILTRO DE INICIO (Ignorar texto de la IA antes del título)
-        # Buscamos el título principal para empezar a "imprimir"
-        if "SESIÓN DE APRENDIZAJE" in line.upper() and not printing_started:
+        # 1. FILTRO DE INICIO ESTRICTO (Corrección Captura 01)
+        # Ahora solo arranca si la línea empieza explícitamente con "### SESIÓN"
+        # Esto evita que el análisis previo ("Análisis del grado...") active la impresión.
+        if line.upper().startswith("### SESIÓN DE APRENDIZAJE") and not printing_started:
             printing_started = True
             p = document.add_heading('SESIÓN DE APRENDIZAJE', level=0)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            continue # Ya imprimimos el título
+            continue 
         
         if not printing_started:
-            continue # Ignoramos todo el análisis previo (metodología, grado, etc.)
+            continue # Ignoramos todo lo anterior
 
-        # --- YA ESTAMOS IMPRIMIENDO ---
+        # --- IMPRESIÓN ---
 
-        # Detección de Títulos Principales (I., II., III...)
-        if line.startswith('**I.') or line.startswith('I.') or \
-           line.startswith('**II.') or line.startswith('II.') or \
-           line.startswith('**III.') or line.startswith('III.') or \
-           line.startswith('**IV.') or line.startswith('IV.') or \
-           line.startswith('**V.') or line.startswith('V.') or \
-           line.startswith('**VI.') or line.startswith('VI.') or \
-           line.startswith('**VII.') or line.startswith('VII.'):
-            
-            # Si estábamos en tabla y cambiamos de sección, cerramos la última fila
+        # Títulos Principales (I., II., III...)
+        if re.match(r'^(\*\*)?(I|II|III|IV|V|VI|VII)\.', line):
+            # Cerramos tabla si estaba abierta
             if in_competencies_section and table:
                 flush_row(table, curr_comp, curr_caps, curr_crits)
                 curr_comp, curr_caps, curr_crits = "", [], []
                 in_competencies_section = False
 
-            clean_title = clean_asterisks(line)
+            clean_title = line.replace('**', '').strip()
             document.add_heading(clean_title, level=1)
 
-            # Si es la sección de competencias, PREPARAMOS LA TABLA
+            # Detectamos sección de competencias para iniciar la tabla
             if "COMPETENCIAS" in line.upper():
                 in_competencies_section = True
                 table = document.add_table(rows=1, cols=3)
@@ -274,77 +271,68 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             
             continue
 
-        # --- LÓGICA ESPECÍFICA DE LA TABLA (Solución Error 02) ---
+        # --- LÓGICA DE TABLA (INTACTA - NO TOCAR) ---
         if in_competencies_section:
-            # Detectar separador (fin de una competencia)
             if "---" in line:
                 flush_row(table, curr_comp, curr_caps, curr_crits)
                 curr_comp, curr_caps, curr_crits = "", [], []
                 capture_mode = 0
                 continue
-
-            # Detectar Competencia (Flexible: busca la palabra clave)
             if "Competencia:" in line: 
-                # Si ya teníamos datos de una competencia anterior sin separador, guardamos
                 if curr_comp: 
                      flush_row(table, curr_comp, curr_caps, curr_crits)
                      curr_caps, curr_crits = [], []
-
-                # Limpiamos "Competencia:" y asteriscos para dejar solo el nombre
-                text_parts = line.split("ompetencia:") # Split por 'ompetencia:' para ser flexible con C/c
+                text_parts = line.split("ompetencia:") 
                 if len(text_parts) > 1:
-                    curr_comp = clean_asterisks(text_parts[1])
+                    curr_comp = text_parts[1].replace('**', '').strip()
                 capture_mode = 0
-            
-            # Detectar Capacidades
             elif "Capacidades:" in line:
                 capture_mode = 1
-            
-            # Detectar Criterios
             elif "Criterios" in line and "Evaluación" in line:
                 capture_mode = 2
-            
-            # Detectar Viñetas (Contenido)
             elif line.startswith('-') or line.startswith('*'):
-                content = re.sub(r'^[\*\-]\s*', '', line).strip() # Quita viñeta
-                if capture_mode == 1:
-                    curr_caps.append(content)
-                elif capture_mode == 2:
-                    curr_crits.append(content)
-            
-            continue # Fin de lógica de tabla para esta línea
+                content = re.sub(r'^[\*\-]\s*', '', line).strip()
+                if capture_mode == 1: curr_caps.append(content)
+                elif capture_mode == 2: curr_crits.append(content)
+            continue 
 
-        # --- LÓGICA DEL CONTENIDO NORMAL (Solución Error 03 - Limpieza) ---
+        # --- CONTENIDO NORMAL (Corrección Captura 04) ---
         
-        # Títulos de sección (INICIO, DESARROLLO, CIERRE)
-        if "###" in line:
-            clean_h = clean_asterisks(line.replace('###', ''))
+        # Subtítulos de sección (### INICIO)
+        if line.startswith("###"):
+            clean_h = line.replace('###', '').strip()
             document.add_heading(clean_h, level=2)
         
-        # Subtítulos rotos (ej: *Motivación:**)
-        elif line.strip().startswith('*') and "**" in line:
+        # Subtítulos en negrita (ej: **Motivación:**)
+        elif line.startswith('**') and line.endswith('**') and ":" in line:
+             # Es un subtítulo fuerte, lo ponemos como párrafo normal pero todo en negrita
              p = document.add_paragraph()
-             # Limpiamos todo y lo ponemos en negrita
-             clean_line = clean_asterisks(line)
+             clean_line = line.replace('**', '').strip()
              run = p.add_run(clean_line)
              run.bold = True
         
-        # Negritas normales (**Texto**)
-        elif line.startswith('**') and line.endswith('**'):
+        # Listas de viñetas (ej: * Punto 1 o - Punto 2)
+        elif line.startswith('* ') or line.startswith('- '):
+            # ¡AQUÍ ESTABA EL ERROR ANTES!
+            # Ahora usamos add_bullet que llama a process_formatted_text
+            # así que las negritas internas se respetan.
             p = document.add_paragraph()
-            clean_line = clean_asterisks(line)
-            run = p.add_run(clean_line)
-            run.bold = True # Asumimos que es un subtítulo fuerte
+            add_bullet(p, line, style='List Bullet')
             
-        # Listas de viñetas
-        elif line.startswith('*') or line.startswith('-'):
-            p = document.add_paragraph(style='List Bullet')
-            add_bullet(p, line)
-        
+        # Citas o Bloques (>) - Corrección de símbolos raros
+        elif line.startswith('>'):
+            # A veces la IA usa > para resaltar el caso. Lo tratamos como texto normal o viñeta.
+            clean_line = line.replace('>', '').strip()
+            if clean_line.startswith('*') or clean_line.startswith('-'):
+                p = document.add_paragraph()
+                add_bullet(p, clean_line)
+            else:
+                p = document.add_paragraph()
+                process_formatted_text(p, clean_line)
+
         # Listas Numeradas
         elif re.match(r'^\d+\.', line):
             p = document.add_paragraph(style='List Number')
-            # Limpiamos el numero para que Word ponga el suyo automático
             clean_text = re.sub(r'^\d+\.\s*', '', line)
             process_formatted_text(p, clean_text)
             
@@ -353,12 +341,11 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             p = document.add_paragraph(line)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
-        # Texto plano
+        # Texto normal
         else:
             p = document.add_paragraph()
             process_formatted_text(p, line)
 
-    # Guardar
     buffer = io.BytesIO()
     document.save(buffer)
     buffer.seek(0)
@@ -585,4 +572,5 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
             return f"Error al contactar la IA (APIError): {e}"
     except Exception as e:
         return f"Error inesperado: {e}"
+
 
