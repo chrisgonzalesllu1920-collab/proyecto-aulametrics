@@ -593,7 +593,7 @@ def home_page():
             st.info("Plantillas en Word y Excel listas para usar.")
             
             # RECURSO 1
-            ruta_archivo_1 = "recursos/plantilla_sesion.docx"
+            ruta_archivo_1 = "Registro automatizado nivel secundario.xlsm"
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button("📥 Descargar Modelo Sesión (Word)", file, "Modelo_Sesion.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
@@ -645,3 +645,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
