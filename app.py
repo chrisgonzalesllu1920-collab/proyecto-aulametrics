@@ -358,22 +358,74 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     st.header("🧑‍🎓 Análisis Individual por Estudiante")
     st.info("Esta función está actualmente en desarrollo.")
 
+# --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
 @st.cache_data
 def convert_df_to_excel(df, area_name, general_info):
+    """
+    Convierte DataFrame a formato Excel (xlsx) con formato profesional:
+    - Columna de Competencias ancha.
+    - Encabezados de colores (AD=Verde, B=Naranja, C=Rojo).
+    """
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # 1. Escribir las hojas
         workbook = writer.book
+        
+        # --- Hoja Generalidades ---
         info_sheet = workbook.add_worksheet("Generalidades")
-        bold = workbook.add_format({'bold': True})
-        info_sheet.write('A1', 'Área:', bold)
+        bold_fmt = workbook.add_format({'bold': True})
+        info_sheet.write('A1', 'Área:', bold_fmt)
         info_sheet.write('B1', area_name)
-        info_sheet.write('A2', 'Nivel:', bold)
+        info_sheet.write('A2', 'Nivel:', bold_fmt)
         info_sheet.write('B2', general_info.get('nivel', 'N/A'))
-        info_sheet.write('A3', 'Grado:', bold)
+        info_sheet.write('A3', 'Grado:', bold_fmt)
         info_sheet.write('B3', general_info.get('grado', 'N/A'))
         
-        sheet = workbook.add_worksheet('Frecuencias')
+        # --- Hoja Frecuencias (Aquí está la magia) ---
         df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
+        worksheet = writer.sheets['Frecuencias']
+
+        # 2. Definir Formatos de Colores (Estilo Pastel Profesional)
+        # AD y A (Verdes)
+        fmt_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # B (Naranja/Amarillo)
+        fmt_orange = workbook.add_format({'bg_color': '#FFEB9C', 'font_color': '#9C5700', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # C (Rojo)
+        fmt_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # Cabecera Genérica (Gris)
+        fmt_header = workbook.add_format({'bg_color': '#D3D3D3', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # Texto normal (Alineado a la izquierda para competencias)
+        fmt_text = workbook.add_format({'text_wrap': True, 'valign': 'vcenter'})
+
+        # 3. Ajustar Ancho de Columnas
+        # Columna A (Índice/Competencia): Muy ancha (60)
+        worksheet.set_column('A:A', 60, fmt_text)
+        # Columnas B en adelante (Datos): Ancho estándar (15) y centradas
+        worksheet.set_column('B:Z', 15)
+
+        # 4. Pintar los Encabezados con Lógica
+        # (Sobrescribimos la fila 0 con los colores correctos)
+        
+        # Primero pintamos la celda A1 (El título "Competencia")
+        worksheet.write(0, 0, "Competencia", fmt_header)
+
+        # Ahora recorremos las columnas de datos (AD, % AD, etc.)
+        # df.columns son los nombres. enumerate nos da (0, 'AD'), (1, '% AD')...
+        for col_num, value in enumerate(df.columns.values):
+            val_str = str(value).upper() # Convertimos a mayúsculas para comparar
+            
+            # Elegimos el color según la letra
+            if "AD" in val_str or ("A" in val_str and "% A" in val_str) or "A (EST.)" in val_str:
+                cell_format = fmt_green
+            elif "B" in val_str:
+                cell_format = fmt_orange
+            elif "C" in val_str:
+                cell_format = fmt_red
+            else:
+                cell_format = fmt_header # Por defecto (ej: Total)
+
+            # Escribimos en la fila 0, columna (col_num + 1 porque la A es el índice)
+            worksheet.write(0, col_num + 1, value, cell_format)
 
     return output.getvalue()
 
@@ -655,6 +707,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
