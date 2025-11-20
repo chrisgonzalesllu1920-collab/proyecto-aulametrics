@@ -14,6 +14,11 @@ from docx.shared import RGBColor
 from docx.text.paragraph import Paragraph
 from docx.table import _Cell
 
+# --- 👇 NUEVOS IMPORTS NECESARIOS PARA EL COLOR DE FONDO 👇 ---
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+# --------------------------------------------------------------
+
 # =========================================================================
 # === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
 # =========================================================================
@@ -142,16 +147,14 @@ def generate_docx_report(analisis_results, sheet_name, selected_comp_limpio, ai_
     return buffer
 
 # =========================================================================
-# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - v3.0 FINAL ===
+# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - v4.0 COLOR ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
-    Convierte la sesión a Word.
-    v3.0 Correcciones:
-    - Filtro de inicio ESTRICTO (Solo arranca con ### SESIÓN...).
-    - Tabla de competencias INTACTA (Lógica v2.0 preservada).
-    - Formato de texto REPARADO (Negritas dentro de viñetas funcionan bien).
-    - Limpieza de símbolos '>' (blockquotes).
+    Convierte la sesión a Word con:
+    - Filtro de inicio estricto.
+    - Tabla de competencias con ENCABEZADOS DE COLOR.
+    - Limpieza y formato de texto reparados.
     """
     document = Document()
     
@@ -161,48 +164,47 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     font.name = 'Arial'
     font.size = Pt(11)
 
-    # --- HELPERS DE TEXTO (MEJORADOS) ---
+    # --- FUNCIÓN TRUCO PARA PINTAR CELDAS (XML) ---
+    def set_cell_shading(cell, fill_color):
+        """
+        Pinta el fondo de una celda. 
+        fill_color: Código Hexadecimal sin # (ej: 'E7F3FF').
+        """
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'), 'clear')
+        shd.set(qn('w:color'), 'auto')
+        shd.set(qn('w:fill'), fill_color)
+        tcPr.append(shd)
+
+    # --- HELPERS DE TEXTO ---
     def clean_markdown_symbols(text):
-        """Limpia símbolos extraños como > de las citas."""
         return text.replace('>', '').strip()
 
+    def clean_asterisks(text):
+        return text.replace('**', '').replace('*', '').strip()
+
     def process_formatted_text(paragraph, text):
-        """
-        Detecta **Negritas** y las aplica al párrafo.
-        Ahora soporta texto mixto: "Esto es **importante** y esto no."
-        """
-        # Limpieza inicial básica
         text = clean_markdown_symbols(text)
-        
-        # Dividimos por los marcadores de negrita **
         parts = re.split(r'(\*\*.*?\*\*)', text)
         for part in parts:
             if part.startswith('**') and part.endswith('**'):
-                # Es negrita: quitamos los asteriscos y aplicamos estilo
                 clean_part = part[2:-2]
                 run = paragraph.add_run(clean_part)
                 run.bold = True
             else:
-                # Texto normal
                 paragraph.add_run(part)
 
     def add_bullet(paragraph, text, style='List Bullet'):
-        """
-        Añade una viñeta procesando el formato interno (negritas).
-        Antes borraba las negritas, ¡ahora las respeta!
-        """
-        # Quitamos el marcador de lista (*, -, +) y los espacios
         clean_text = re.sub(r'^[\*\-\+]\s*', '', text)
         paragraph.style = style
-        # Usamos el procesador inteligente en lugar de solo texto plano
         process_formatted_text(paragraph, clean_text)
 
     lines = sesion_markdown_text.split('\n')
     
     # --- VARIABLES DE ESTADO ---
     printing_started = False 
-    
-    # Variables para la tabla
     in_competencies_section = False
     table = None
     curr_comp = ""
@@ -211,12 +213,9 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     capture_mode = 0 
 
     def flush_row(tbl, c, caps, crits):
-        """Escribe la fila en la tabla (LÓGICA ORIGINAL INTACTA)."""
         if not c and not caps and not crits: return
         row = tbl.add_row()
-        # Limpiamos asteriscos del título de la competencia por si acaso
-        row.cells[0].text = c.replace('**', '').strip()
-        
+        row.cells[0].text = clean_asterisks(c)
         if caps:
             row.cells[1].paragraphs[0].text = "" 
             for cap in caps:
@@ -233,23 +232,15 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
         line = line.strip()
         if not line: continue
 
-        # 1. FILTRO DE INICIO ESTRICTO (Corrección Captura 01)
-        # Ahora solo arranca si la línea empieza explícitamente con "### SESIÓN"
-        # Esto evita que el análisis previo ("Análisis del grado...") active la impresión.
         if line.upper().startswith("### SESIÓN DE APRENDIZAJE") and not printing_started:
             printing_started = True
             p = document.add_heading('SESIÓN DE APRENDIZAJE', level=0)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             continue 
         
-        if not printing_started:
-            continue # Ignoramos todo lo anterior
+        if not printing_started: continue 
 
-        # --- IMPRESIÓN ---
-
-        # Títulos Principales (I., II., III...)
         if re.match(r'^(\*\*)?(I|II|III|IV|V|VI|VII)\.', line):
-            # Cerramos tabla si estaba abierta
             if in_competencies_section and table:
                 flush_row(table, curr_comp, curr_caps, curr_crits)
                 curr_comp, curr_caps, curr_crits = "", [], []
@@ -258,20 +249,30 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             clean_title = line.replace('**', '').strip()
             document.add_heading(clean_title, level=1)
 
-            # Detectamos sección de competencias para iniciar la tabla
             if "COMPETENCIAS" in line.upper():
                 in_competencies_section = True
                 table = document.add_table(rows=1, cols=3)
                 table.style = 'Table Grid'
-                hdr = table.rows[0].cells
-                hdr[0].text = 'COMPETENCIA'
-                hdr[1].text = 'CAPACIDAD'
-                hdr[2].text = 'CRITERIOS DE EVALUACIÓN'
-                for cell in hdr: cell.paragraphs[0].runs[0].bold = True
+                
+                # --- CONFIGURACIÓN DE ENCABEZADOS CON COLOR ---
+                hdr_row = table.rows[0]
+                hdr = hdr_row.cells
+                
+                headers = ['COMPETENCIA', 'CAPACIDAD', 'CRITERIOS DE EVALUACIÓN']
+                # Color Azul Suave (Hex: D9EAD3 es verde suave, usaremos E7F3FF para azul suave)
+                color_header = "E7F3FF" 
+                
+                for i, text in enumerate(headers):
+                    hdr[i].text = text
+                    # ¡Aquí aplicamos el color!
+                    set_cell_shading(hdr[i], color_header) 
+                    # Ponemos negrita
+                    hdr[i].paragraphs[0].runs[0].bold = True
+                # ---------------------------------------------
             
             continue
 
-        # --- LÓGICA DE TABLA (INTACTA - NO TOCAR) ---
+        # --- LÓGICA DE TABLA (INTACTA) ---
         if in_competencies_section:
             if "---" in line:
                 flush_row(table, curr_comp, curr_caps, curr_crits)
@@ -286,42 +287,27 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
                 if len(text_parts) > 1:
                     curr_comp = text_parts[1].replace('**', '').strip()
                 capture_mode = 0
-            elif "Capacidades:" in line:
-                capture_mode = 1
-            elif "Criterios" in line and "Evaluación" in line:
-                capture_mode = 2
+            elif "Capacidades:" in line: capture_mode = 1
+            elif "Criterios" in line and "Evaluación" in line: capture_mode = 2
             elif line.startswith('-') or line.startswith('*'):
                 content = re.sub(r'^[\*\-]\s*', '', line).strip()
                 if capture_mode == 1: curr_caps.append(content)
                 elif capture_mode == 2: curr_crits.append(content)
             continue 
 
-        # --- CONTENIDO NORMAL (Corrección Captura 04) ---
-        
-        # Subtítulos de sección (### INICIO)
+        # --- CONTENIDO NORMAL ---
         if line.startswith("###"):
             clean_h = line.replace('###', '').strip()
             document.add_heading(clean_h, level=2)
-        
-        # Subtítulos en negrita (ej: **Motivación:**)
         elif line.startswith('**') and line.endswith('**') and ":" in line:
-             # Es un subtítulo fuerte, lo ponemos como párrafo normal pero todo en negrita
              p = document.add_paragraph()
              clean_line = line.replace('**', '').strip()
              run = p.add_run(clean_line)
              run.bold = True
-        
-        # Listas de viñetas (ej: * Punto 1 o - Punto 2)
         elif line.startswith('* ') or line.startswith('- '):
-            # ¡AQUÍ ESTABA EL ERROR ANTES!
-            # Ahora usamos add_bullet que llama a process_formatted_text
-            # así que las negritas internas se respetan.
             p = document.add_paragraph()
             add_bullet(p, line, style='List Bullet')
-            
-        # Citas o Bloques (>) - Corrección de símbolos raros
         elif line.startswith('>'):
-            # A veces la IA usa > para resaltar el caso. Lo tratamos como texto normal o viñeta.
             clean_line = line.replace('>', '').strip()
             if clean_line.startswith('*') or clean_line.startswith('-'):
                 p = document.add_paragraph()
@@ -329,19 +315,13 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
             else:
                 p = document.add_paragraph()
                 process_formatted_text(p, clean_line)
-
-        # Listas Numeradas
         elif re.match(r'^\d+\.', line):
             p = document.add_paragraph(style='List Number')
             clean_text = re.sub(r'^\d+\.\s*', '', line)
             process_formatted_text(p, clean_text)
-            
-        # Firmas
         elif line.startswith('_'):
             p = document.add_paragraph(line)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-        # Texto normal
         else:
             p = document.add_paragraph()
             process_formatted_text(p, line)
@@ -572,5 +552,6 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
             return f"Error al contactar la IA (APIError): {e}"
     except Exception as e:
         return f"Error inesperado: {e}"
+
 
 
