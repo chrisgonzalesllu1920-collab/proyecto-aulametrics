@@ -370,34 +370,29 @@ def mostrar_analisis_general(results):
                     st.warning("Selecciona una competencia en el desplegable de gráficos.")
 
 # =========================================================================
-# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v3.0 GLOBAL (TODAS LAS ÁREAS) ===
+# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v4.0 DESGLOSE POR ÁREAS ===
 # =========================================================================
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """
-    Muestra el perfil INTEGRAL del estudiante.
-    Busca sus notas en TODAS las hojas cargadas (Matemática, Arte, etc.)
+    Muestra el perfil INTEGRAL del estudiante con DESGLOSE.
+    Indica en qué áreas específicas obtuvo cada calificación.
     """
     st.markdown("---")
     st.header("🧑‍🎓 Perfil Integral del Estudiante")
     
-    # Verificamos que tengamos el diccionario de todas las hojas
     if 'all_dataframes' not in st.session_state or not st.session_state.all_dataframes:
         st.warning("⚠️ No se han cargado datos. Sube un archivo en la Pestaña 1.")
         return
 
-    # Usamos el diccionario global
     all_dfs = st.session_state.all_dataframes
     
-    # --- 1. DETECCIÓN DE COLUMNA DE NOMBRES (Tu lista personalizada) ---
+    # 1. DETECCIÓN DE COLUMNA
     posibles_nombres = [
-        "Estudiante", "ESTUDIANTE", 
-        "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
-        "ALUMNO", "Alumno", 
-        "Nombres y Apellidos", "Nombre Completo", 
+        "Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
+        "ALUMNO", "Alumno", "Nombres y Apellidos", "Nombre Completo", 
         "Nombres", "NOMBRES"
     ]
     
-    # Usamos la primera hoja para sacar la lista de alumnos
     first_sheet_name = next(iter(all_dfs))
     df_base = all_dfs[first_sheet_name]
     
@@ -411,7 +406,7 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         st.error(f"❌ No encontramos la columna de nombres en la hoja '{first_sheet_name}'.")
         return
 
-    # --- 2. SELECTOR DE ESTUDIANTE ---
+    # 2. SELECTOR
     lista_estudiantes = df_base[col_nombre].dropna().unique()
     estudiante_sel = st.selectbox("🔍 Busca al estudiante:", options=lista_estudiantes, index=None, placeholder="Escribe nombre...")
 
@@ -419,22 +414,21 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         st.divider()
         st.subheader(f"📊 Reporte Global: {estudiante_sel}")
         
-        # --- 3. LA MAGIA: BARRIDO POR TODAS LAS ÁREAS ---
-        # Inicializamos contadores globales
+        # --- 3. BARRIDO CON MEMORIA DE ÁREAS ---
+        # Inicializamos contadores Y listas de áreas
         total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
-        areas_encontradas = []
+        # Aquí guardaremos qué áreas tienen cada nota. Ej: 'C': ['Matemática', 'Religión']
+        desglose_areas = {'AD': [], 'A': [], 'B': [], 'C': []}
         
-        # Barra de progreso visual
-        progress_text = "Analizando todas las áreas..."
-        my_bar = st.progress(0, text=progress_text)
+        areas_analizadas = 0
         
+        # Barra de progreso
+        my_bar = st.progress(0, text="Analizando áreas...")
         total_sheets = len(all_dfs)
         
         for i, (area_name, df_area) in enumerate(all_dfs.items()):
-            # Actualizar barra
-            my_bar.progress((i + 1) / total_sheets, text=f"Analizando: {area_name}")
+            my_bar.progress((i + 1) / total_sheets, text=f"Revisando: {area_name}")
             
-            # Buscamos columna nombre en ESTA hoja específica
             c_name_local = None
             for c in df_area.columns:
                 if str(c).strip() in posibles_nombres:
@@ -442,51 +436,86 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
                     break
             
             if c_name_local:
-                # Buscamos al alumno en esta área
                 fila = df_area[df_area[c_name_local] == estudiante_sel]
                 if not fila.empty:
-                    areas_encontradas.append(area_name)
-                    # Extraemos notas y sumamos al total
+                    areas_analizadas += 1
                     vals = [str(v).upper().strip() for v in fila.iloc[0].values]
-                    total_conteo['AD'] += vals.count('AD')
-                    total_conteo['A'] += vals.count('A')
-                    total_conteo['B'] += vals.count('B')
-                    total_conteo['C'] += vals.count('C')
+                    
+                    # Contamos localmente para ver si agregamos el nombre del área
+                    c_ad = vals.count('AD')
+                    c_a = vals.count('A')
+                    c_b = vals.count('B')
+                    c_c = vals.count('C')
+                    
+                    # Sumamos al total general
+                    total_conteo['AD'] += c_ad
+                    total_conteo['A'] += c_a
+                    total_conteo['B'] += c_b
+                    total_conteo['C'] += c_c
+                    
+                    # Si tiene notas en esta área, guardamos el nombre del curso
+                    if c_ad > 0: desglose_areas['AD'].append(f"{area_name} ({c_ad})")
+                    if c_a > 0: desglose_areas['A'].append(f"{area_name} ({c_a})")
+                    if c_b > 0: desglose_areas['B'].append(f"{area_name} ({c_b})")
+                    if c_c > 0: desglose_areas['C'].append(f"{area_name} ({c_c})")
+
+        my_bar.empty()
         
-        my_bar.empty() # Limpiar barra al terminar
-        
-        # --- 4. MOSTRAR RESULTADOS CONSOLIDADOS ---
+        # --- 4. MOSTRAR RESULTADOS CON DETALLE ---
         suma_total = sum(total_conteo.values())
         
-        col_izq, col_der = st.columns([1, 2])
+        col_izq, col_der = st.columns([1, 1.5])
         
         with col_izq:
-            st.markdown("#### 📈 Consolidado")
-            st.write(f"**Áreas analizadas:** {len(areas_encontradas)}")
-            with st.expander("Ver áreas incluidas"):
-                for a in areas_encontradas: st.write(f"- {a}")
+            st.markdown("#### 📈 Detalle por Nivel")
+            st.caption(f"Se analizaron {areas_analizadas} áreas en total.")
             
-            st.success(f"🏆 **AD:** {total_conteo['AD']}")
-            st.info(f"✅ **A:** {total_conteo['A']}")
-            st.warning(f"⚠️ **B:** {total_conteo['B']}")
-            st.error(f"🛑 **C:** {total_conteo['C']}")
-            st.caption(f"Total notas halladas: {suma_total}")
+            # --- AQUÍ ESTÁ EL CAMBIO VISUAL (EXPANDERS) ---
+            
+            # AD (Verde)
+            if total_conteo['AD'] > 0:
+                with st.expander(f"🏆 Logro Destacado (AD): {total_conteo['AD']}", expanded=False):
+                    for area in desglose_areas['AD']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"🏆 **AD:** 0")
+
+            # A (Azul/Verde Claro)
+            if total_conteo['A'] > 0:
+                with st.expander(f"✅ Logro Esperado (A): {total_conteo['A']}", expanded=False):
+                    for area in desglose_areas['A']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"✅ **A:** 0")
+
+            # B (Amarillo)
+            if total_conteo['B'] > 0:
+                with st.expander(f"⚠️ En Proceso (B): {total_conteo['B']}", expanded=True): # Expandido por defecto para llamar la atención
+                    st.markdown("**:orange[Áreas a reforzar:]**")
+                    for area in desglose_areas['B']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"⚠️ **B:** 0")
+
+            # C (Rojo)
+            if total_conteo['C'] > 0:
+                with st.expander(f"🛑 En Inicio (C): {total_conteo['C']}", expanded=True): # Expandido por defecto
+                    st.markdown("**:red[Requiere atención urgente en:]**")
+                    for area in desglose_areas['C']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"🛑 **C:** 0")
 
         with col_der:
             if suma_total > 0:
                 df_chart = pd.DataFrame({'Nivel': list(total_conteo.keys()), 'Cantidad': list(total_conteo.values())})
                 df_chart = df_chart[df_chart['Cantidad'] > 0]
-                
                 fig = px.pie(
                     df_chart, values='Cantidad', names='Nivel', 
-                    title=f"Rendimiento Académico Global (Todas las Áreas)",
+                    title=f"Mapa de Calor Académico",
                     color='Nivel',
                     color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'},
                     hole=0.4
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.warning("No se encontraron calificaciones (AD, A, B, C) para este alumno en las áreas analizadas.")
+                st.info("Sin registros de notas.")
 
 # --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
 @st.cache_data
@@ -860,6 +889,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
