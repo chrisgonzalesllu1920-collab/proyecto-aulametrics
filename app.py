@@ -644,14 +644,14 @@ def home_page():
             st.subheader("📝 Formatos Editables")
             st.info("Plantillas en Word y Excel listas para usar.")
             
-           # RECURSO 1: Registro Automatizado (Excel)
+           # RECURSO 1: SECUNDARIA (Excel)
             # 1. Agregamos "recursos/" antes del nombre
             ruta_archivo_1 = "recursos/Registro automatizado nivel secundario.xlsm" 
             
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button(
-                        label="📥 Descargar registro automatizado - secundaria (Excel)", # 2. Corregimos la etiqueta
+                        label="📥 Descargar Registro Automatizado - Secundaria (Excel)", # 2. Corregimos la etiqueta
                         data=file,
                         file_name="Registro_Secundaria.xlsm", # 3. Nombre limpio para la descarga
                         # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
@@ -664,17 +664,25 @@ def home_page():
 
             st.write("")
             
-            # RECURSO 2
-            ruta_archivo_2 = "recursos/registro_auxiliar.xlsx" 
-            if os.path.exists(ruta_archivo_2):
-                with open(ruta_archivo_2, "rb") as file:
-                    st.download_button("📥 Descargar Registro Auxiliar (Excel)", file, "Registro_Auxiliar_2025.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+   # RECURSO 1: PRIMARIA (Excel)
+            # 1. Agregamos "recursos/" antes del nombre
+            ruta_archivo_1 = "recursos/Registro automatizado nivel primario.xlsm" 
+            
+            if os.path.exists(ruta_archivo_1):
+                with open(ruta_archivo_1, "rb") as file:
+                    st.download_button(
+                        label="📥 Descargar Registro Automatizado - Primaria (Excel)", # 2. Corregimos la etiqueta
+                        data=file,
+                        file_name="Registro_Primaria.xlsm", # 3. Nombre limpio para la descarga
+                        # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
+                        mime="application/vnd.ms-excel.sheet.macroEnabled.12", 
+                        use_container_width=True
+                    )
             else:
-                st.caption("❌ Archivo 'registro_auxiliar.xlsx' no disponible.")
+                # Esto te ayudará a ver si el nombre está mal escrito
+                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_1}")
 
-        with col_guias:
-            st.subheader("📚 Documentos Normativos")
-            st.info("PDFs oficiales y guías rápidas.")
+            st.write("")
             
             # RECURSO 3
             ruta_archivo_3 = "recursos/calendario_2025.pdf" 
@@ -707,6 +715,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
