@@ -181,7 +181,7 @@ def login_page():
 
         st.divider()
         
-        # URL de tu página de Netlify
+        # URL de tu página de github
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -651,7 +651,7 @@ def home_page():
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button(
-                        label="📥 Descargar Registro Automatizado (Excel)", # 2. Corregimos la etiqueta
+                        label="📥 Descargar registro automatizado - secundaria (Excel)", # 2. Corregimos la etiqueta
                         data=file,
                         file_name="Registro_Secundaria.xlsm", # 3. Nombre limpio para la descarga
                         # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
@@ -707,6 +707,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
