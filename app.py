@@ -375,7 +375,7 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
         "Estudiante", "ESTUDIANTE", 
         "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
         "ALUMNO", "Alumno", 
-        "Nombres y Apellidos", "Nombre Completo"
+        "Nombres y Apellidos", "Nombre Completo" ,
         "Nombres" , "NOMBRES"
     ]
     
@@ -823,6 +823,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
