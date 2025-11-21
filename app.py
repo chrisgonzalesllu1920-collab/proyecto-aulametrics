@@ -235,7 +235,12 @@ def cargar_datos_pedagogicos():
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
         return None, None, None, None
 
+# --- FUNCIÓN (UPLOADER) - v3.0 MULTI-HOJA ---
 def configurar_uploader():
+    """
+    Procesa el archivo Excel.
+    AHORA GUARDA TODAS LAS HOJAS EN MEMORIA para el análisis integral.
+    """
     uploaded_file = st.file_uploader(
         "Sube tu archivo de Excel aquí", 
         type=["xlsx", "xls"], 
@@ -243,29 +248,39 @@ def configurar_uploader():
     )
 
     if uploaded_file is not None:
-        with st.spinner('Procesando archivo...'):
+        with st.spinner('Procesando todas las áreas...'):
             try:
+                # 1. Leer el archivo Excel
                 excel_file = pd.ExcelFile(uploaded_file)
                 sheet_names = excel_file.sheet_names
                 
-                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros']
-                sheet_names = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
+                # 2. Filtrar hojas que no son áreas (Generalidades, etc.)
+                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros', 'generalidades']
+                valid_sheets = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
 
-                results_dict = analysis_core.analyze_data(excel_file, sheet_names)
-                
+                # 3. Ejecutar análisis de frecuencias (Tab 1)
+                results_dict = analysis_core.analyze_data(excel_file, valid_sheets)
                 st.session_state.info_areas = results_dict
                 st.session_state.df_cargado = True
                 
-                st.session_state.df = None 
-                st.session_state.df_config = None
-                try:
-                    first_sheet = sheet_names[0]
-                    df_consolidado = pd.read_excel(uploaded_file, sheet_name=first_sheet, header=0)
-                    if 'APELLIDOS Y NOMBRES' in df_consolidado.columns:
-                            df_consolidado = df_consolidado.rename(columns={'APELLIDOS Y NOMBRES': 'Estudiante'})
-                    st.session_state.df = df_consolidado
-                except Exception as e:
-                    pass 
+                # --- 4. ¡LA CLAVE! LEER Y GUARDAR TODAS LAS HOJAS ---
+                # Creamos un diccionario donde guardaremos: {'Matemática': df_mate, 'Arte': df_arte...}
+                all_dataframes = {}
+                
+                for sheet in valid_sheets:
+                    try:
+                        # Leemos cada hoja individualmente
+                        df_temp = pd.read_excel(uploaded_file, sheet_name=sheet, header=0)
+                        all_dataframes[sheet] = df_temp
+                    except:
+                        pass # Si una hoja falla, la saltamos para no romper todo
+                
+                # Guardamos este "Tesoro" en la memoria de la App
+                st.session_state.all_dataframes = all_dataframes
+
+                # Mantenemos st.session_state.df solo para compatibilidad (usamos la primera hoja)
+                if valid_sheets:
+                    st.session_state.df = all_dataframes[valid_sheets[0]]
                 
                 st.rerun()
                 
@@ -355,118 +370,123 @@ def mostrar_analisis_general(results):
                     st.warning("Selecciona una competencia en el desplegable de gráficos.")
 
 # =========================================================================
-# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v2.0 DETECCIÓN INTELIGENTE ===
+# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v3.0 GLOBAL (TODAS LAS ÁREAS) ===
 # =========================================================================
-def mostrar_analisis_por_estudiante(df, df_config, info_areas):
+def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """
-    Muestra el perfil individual de un estudiante.
-    Incluye detección automática de la columna de nombres (SIAGIE).
+    Muestra el perfil INTEGRAL del estudiante.
+    Busca sus notas en TODAS las hojas cargadas (Matemática, Arte, etc.)
     """
     st.markdown("---")
-    st.header("🧑‍🎓 Perfil Individual del Estudiante")
+    st.header("🧑‍🎓 Perfil Integral del Estudiante")
     
-    if df is None:
+    # Verificamos que tengamos el diccionario de todas las hojas
+    if 'all_dataframes' not in st.session_state or not st.session_state.all_dataframes:
         st.warning("⚠️ No se han cargado datos. Sube un archivo en la Pestaña 1.")
         return
 
-    # --- 2. DETECCIÓN INTELIGENTE DE LA COLUMNA DE NOMBRES ---
-    # Lista de posibles nombres que suelen tener los Excels docentes
+    # Usamos el diccionario global
+    all_dfs = st.session_state.all_dataframes
+    
+    # --- 1. DETECCIÓN DE COLUMNA DE NOMBRES (Tu lista personalizada) ---
     posibles_nombres = [
         "Estudiante", "ESTUDIANTE", 
         "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
         "ALUMNO", "Alumno", 
-        "Nombres y Apellidos", "Nombre Completo" ,
-        "Nombres" , "NOMBRES"
+        "Nombres y Apellidos", "Nombre Completo", 
+        "Nombres", "NOMBRES"
     ]
     
-    columna_encontrada = None
+    # Usamos la primera hoja para sacar la lista de alumnos
+    first_sheet_name = next(iter(all_dfs))
+    df_base = all_dfs[first_sheet_name]
     
-    # Buscamos si alguna de las columnas del Excel coincide con nuestra lista
-    # (Usamos .strip() para ignorar espacios vacíos al final)
-    for col in df.columns:
-        nombre_limpio = str(col).strip()
-        if nombre_limpio in posibles_nombres:
-            columna_encontrada = col
+    col_nombre = None
+    for col in df_base.columns:
+        if str(col).strip() in posibles_nombres:
+            col_nombre = col
             break
-            
-    # Si después de buscar no encontramos nada, mostramos error
-    if not columna_encontrada:
-        st.error("❌ No pudimos encontrar la columna con los nombres de los alumnos.")
-        st.write("Tu Excel tiene estas columnas:")
-        st.write(list(df.columns)) # Muestra las columnas para que veas el error
-        st.info("Por favor, asegúrate de que la columna se llame 'APELLIDOS Y NOMBRES' o 'Estudiante'.")
+    
+    if not col_nombre:
+        st.error(f"❌ No encontramos la columna de nombres en la hoja '{first_sheet_name}'.")
         return
-    # -----------------------------------------------------------
 
-    # 3. Selector de Estudiante (Usando la columna encontrada)
-    lista_estudiantes = df[columna_encontrada].dropna().unique()
-    estudiante_seleccionado = st.selectbox(
-        "🔍 Busca y selecciona un estudiante:", 
-        options=lista_estudiantes,
-        index=None,
-        placeholder="Escribe o selecciona un nombre..."
-    )
+    # --- 2. SELECTOR DE ESTUDIANTE ---
+    lista_estudiantes = df_base[col_nombre].dropna().unique()
+    estudiante_sel = st.selectbox("🔍 Busca al estudiante:", options=lista_estudiantes, index=None, placeholder="Escribe nombre...")
 
-    if estudiante_seleccionado:
+    if estudiante_sel:
         st.divider()
-        st.subheader(f"Boleta de Resumen: {estudiante_seleccionado}")
+        st.subheader(f"📊 Reporte Global: {estudiante_sel}")
         
-        # 4. Extraer datos del alumno
-        try:
-            datos_fila = df[df[columna_encontrada] == estudiante_seleccionado].iloc[0]
+        # --- 3. LA MAGIA: BARRIDO POR TODAS LAS ÁREAS ---
+        # Inicializamos contadores globales
+        total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
+        areas_encontradas = []
+        
+        # Barra de progreso visual
+        progress_text = "Analizando todas las áreas..."
+        my_bar = st.progress(0, text=progress_text)
+        
+        total_sheets = len(all_dfs)
+        
+        for i, (area_name, df_area) in enumerate(all_dfs.items()):
+            # Actualizar barra
+            my_bar.progress((i + 1) / total_sheets, text=f"Analizando: {area_name}")
             
-            # Convertimos toda la fila a texto para contar
-            valores_fila = [str(v).upper().strip() for v in datos_fila.values]
+            # Buscamos columna nombre en ESTA hoja específica
+            c_name_local = None
+            for c in df_area.columns:
+                if str(c).strip() in posibles_nombres:
+                    c_name_local = c
+                    break
             
-            # 5. Contamos las notas
-            conteo = {
-                'AD': valores_fila.count('AD'),
-                'A': valores_fila.count('A'),
-                'B': valores_fila.count('B'),
-                'C': valores_fila.count('C')
-            }
+            if c_name_local:
+                # Buscamos al alumno en esta área
+                fila = df_area[df_area[c_name_local] == estudiante_sel]
+                if not fila.empty:
+                    areas_encontradas.append(area_name)
+                    # Extraemos notas y sumamos al total
+                    vals = [str(v).upper().strip() for v in fila.iloc[0].values]
+                    total_conteo['AD'] += vals.count('AD')
+                    total_conteo['A'] += vals.count('A')
+                    total_conteo['B'] += vals.count('B')
+                    total_conteo['C'] += vals.count('C')
+        
+        my_bar.empty() # Limpiar barra al terminar
+        
+        # --- 4. MOSTRAR RESULTADOS CONSOLIDADOS ---
+        suma_total = sum(total_conteo.values())
+        
+        col_izq, col_der = st.columns([1, 2])
+        
+        with col_izq:
+            st.markdown("#### 📈 Consolidado")
+            st.write(f"**Áreas analizadas:** {len(areas_encontradas)}")
+            with st.expander("Ver áreas incluidas"):
+                for a in areas_encontradas: st.write(f"- {a}")
             
-            total_notas = sum(conteo.values())
+            st.success(f"🏆 **AD:** {total_conteo['AD']}")
+            st.info(f"✅ **A:** {total_conteo['A']}")
+            st.warning(f"⚠️ **B:** {total_conteo['B']}")
+            st.error(f"🛑 **C:** {total_conteo['C']}")
+            st.caption(f"Total notas halladas: {suma_total}")
 
-            # 6. Mostrar Métricas y Gráfico
-            col_metrics, col_chart = st.columns([1, 2])
-
-            with col_metrics:
-                st.markdown("#### 📊 Resumen de Logros")
-                st.caption("Conteo de calificaciones en esta hoja:")
+        with col_der:
+            if suma_total > 0:
+                df_chart = pd.DataFrame({'Nivel': list(total_conteo.keys()), 'Cantidad': list(total_conteo.values())})
+                df_chart = df_chart[df_chart['Cantidad'] > 0]
                 
-                st.success(f"🏆 **AD:** {conteo['AD']}")
-                st.info(f"✅ **A:** {conteo['A']}")
-                st.warning(f"⚠️ **B:** {conteo['B']}")
-                st.error(f"🛑 **C:** {conteo['C']}")
-                
-                st.write(f"**Total Eval.:** {total_notas}")
-
-            with col_chart:
-                if total_notas > 0:
-                    # Preparamos datos para el gráfico
-                    df_chart = pd.DataFrame({
-                        'Nivel': list(conteo.keys()),
-                        'Cantidad': list(conteo.values())
-                    })
-                    df_chart = df_chart[df_chart['Cantidad'] > 0]
-                    
-                    fig = px.pie(
-                        df_chart, 
-                        values='Cantidad', 
-                        names='Nivel', 
-                        title=f"Distribución de Aprendizajes",
-                        color='Nivel',
-                        color_discrete_map={
-                            'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'
-                        },
-                        hole=0.4 
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("Este estudiante no tiene notas registradas en esta hoja.")
-        except Exception as e:
-            st.error(f"Ocurrió un error al procesar los datos del estudiante: {e}")
+                fig = px.pie(
+                    df_chart, values='Cantidad', names='Nivel', 
+                    title=f"Rendimiento Académico Global (Todas las Áreas)",
+                    color='Nivel',
+                    color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'},
+                    hole=0.4
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("No se encontraron calificaciones (AD, A, B, C) para este alumno en las áreas analizadas.")
 
 # --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
 @st.cache_data
@@ -823,6 +843,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
