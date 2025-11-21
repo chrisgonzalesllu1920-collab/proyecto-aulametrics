@@ -132,7 +132,7 @@ def login_page():
     with col_centro:
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("Tu asistente pedagógico y analizador de notas.")
+        st.markdown("Tu asistente pedagógico y analista de datos.")
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
@@ -707,6 +707,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
