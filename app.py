@@ -665,22 +665,20 @@ def home_page():
             st.write("")
             
    # RECURSO 2: PRIMARIA (Excel)
-            # 1. Agregamos "recursos/" antes del nombre
-            ruta_archivo_1 = "recursos/Registro automatizado nivel primario.xlsm" 
+            # CAMBIO IMPORTANTE: Usamos 'ruta_archivo_2' para no mezclar con el anterior
+            ruta_archivo_2 = "recursos/Registro automatizado nivel primario.xlsm" 
             
             if os.path.exists(ruta_archivo_2):
-                with open(ruta_archivo_1, "rb") as file:
+                with open(ruta_archivo_2, "rb") as file:
                     st.download_button(
-                        label="📥 Descargar Registro Automatizado - Primaria (Excel)", # 2. Corregimos la etiqueta
+                        label="📥 Descargar Registro Automatizado - Primaria (Excel)",
                         data=file,
-                        file_name="Registro_Primaria.xlsm", # 3. Nombre limpio para la descarga
-                        # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
+                        file_name="Registro_Primaria.xlsm",
                         mime="application/vnd.ms-excel.sheet.macroEnabled.12", 
                         use_container_width=True
                     )
             else:
-                # Esto te ayudará a ver si el nombre está mal escrito
-                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_1}")
+                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_2}")
 
             st.write("")
             
@@ -715,6 +713,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
