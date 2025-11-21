@@ -132,7 +132,7 @@ def login_page():
     with col_centro:
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("Tu asistente pedagógico para el análisis de notas.")
+        st.markdown("Tu asistente pedagógico y analizador de notas.")
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
@@ -182,7 +182,7 @@ def login_page():
         st.divider()
         
         # URL de tu página de Netlify
-        url_netlify = "https://bejewelled-moonbeam-7c18d0.netlify.app/" 
+        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
@@ -707,6 +707,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
