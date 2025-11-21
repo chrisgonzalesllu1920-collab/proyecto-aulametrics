@@ -355,30 +355,51 @@ def mostrar_analisis_general(results):
                     st.warning("Selecciona una competencia en el desplegable de gráficos.")
 
 # =========================================================================
-# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - ¡ACTIVADA! ===
+# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v2.0 DETECCIÓN INTELIGENTE ===
 # =========================================================================
 def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
-    Muestra el perfil individual de un estudiante:
-    - Selector de alumno.
-    - Conteo de sus notas (AD, A, B, C).
-    - Gráfico de rendimiento personal.
+    Muestra el perfil individual de un estudiante.
+    Incluye detección automática de la columna de nombres (SIAGIE).
     """
     st.markdown("---")
     st.header("🧑‍🎓 Perfil Individual del Estudiante")
     
     if df is None:
-        st.warning("⚠️ No se han cargado datos o no se pudo leer la hoja correctamente.")
+        st.warning("⚠️ No se han cargado datos. Sube un archivo en la Pestaña 1.")
         return
 
-    # 1. Verificamos que exista la columna 'Estudiante'
-    columna_nombre = 'Estudiante'
-    if columna_nombre not in df.columns:
-        st.error(f"No se encuentra la columna '{columna_nombre}'.")
+    # --- 2. DETECCIÓN INTELIGENTE DE LA COLUMNA DE NOMBRES ---
+    # Lista de posibles nombres que suelen tener los Excels docentes
+    posibles_nombres = [
+        "Estudiante", "ESTUDIANTE", 
+        "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
+        "ALUMNO", "Alumno", 
+        "Nombres y Apellidos", "Nombre Completo"
+        "Nombres" , "NOMBRES"
+    ]
+    
+    columna_encontrada = None
+    
+    # Buscamos si alguna de las columnas del Excel coincide con nuestra lista
+    # (Usamos .strip() para ignorar espacios vacíos al final)
+    for col in df.columns:
+        nombre_limpio = str(col).strip()
+        if nombre_limpio in posibles_nombres:
+            columna_encontrada = col
+            break
+            
+    # Si después de buscar no encontramos nada, mostramos error
+    if not columna_encontrada:
+        st.error("❌ No pudimos encontrar la columna con los nombres de los alumnos.")
+        st.write("Tu Excel tiene estas columnas:")
+        st.write(list(df.columns)) # Muestra las columnas para que veas el error
+        st.info("Por favor, asegúrate de que la columna se llame 'APELLIDOS Y NOMBRES' o 'Estudiante'.")
         return
+    # -----------------------------------------------------------
 
-    # 2. Selector de Estudiante (Buscador)
-    lista_estudiantes = df[columna_nombre].dropna().unique()
+    # 3. Selector de Estudiante (Usando la columna encontrada)
+    lista_estudiantes = df[columna_encontrada].dropna().unique()
     estudiante_seleccionado = st.selectbox(
         "🔍 Busca y selecciona un estudiante:", 
         options=lista_estudiantes,
@@ -390,59 +411,62 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
         st.divider()
         st.subheader(f"Boleta de Resumen: {estudiante_seleccionado}")
         
-        # 3. Extraer datos del alumno
-        datos_fila = df[df[columna_nombre] == estudiante_seleccionado].iloc[0]
-        
-        # Convertimos toda la fila a texto para contar
-        valores_fila = [str(v).upper().strip() for v in datos_fila.values]
-        
-        # 4. Contamos las notas
-        conteo = {
-            'AD': valores_fila.count('AD'),
-            'A': valores_fila.count('A'),
-            'B': valores_fila.count('B'),
-            'C': valores_fila.count('C')
-        }
-        
-        total_notas = sum(conteo.values())
-
-        # 5. Mostrar Métricas y Gráfico
-        col_metrics, col_chart = st.columns([1, 2])
-
-        with col_metrics:
-            st.markdown("#### 📊 Resumen de Logros")
-            st.write(f"En esta hoja, el estudiante tiene:")
+        # 4. Extraer datos del alumno
+        try:
+            datos_fila = df[df[columna_encontrada] == estudiante_seleccionado].iloc[0]
             
-            st.success(f"🏆 **Logro Destacado (AD):** {conteo['AD']}")
-            st.info(f"✅ **Logro Esperado (A):** {conteo['A']}")
-            st.warning(f"⚠️ **En Proceso (B):** {conteo['B']}")
-            st.error(f"🛑 **En Inicio (C):** {conteo['C']}")
+            # Convertimos toda la fila a texto para contar
+            valores_fila = [str(v).upper().strip() for v in datos_fila.values]
             
-            st.caption(f"Total de calificaciones: {total_notas}")
+            # 5. Contamos las notas
+            conteo = {
+                'AD': valores_fila.count('AD'),
+                'A': valores_fila.count('A'),
+                'B': valores_fila.count('B'),
+                'C': valores_fila.count('C')
+            }
+            
+            total_notas = sum(conteo.values())
 
-        with col_chart:
-            if total_notas > 0:
-                # Preparamos datos para el gráfico
-                df_chart = pd.DataFrame({
-                    'Nivel': list(conteo.keys()),
-                    'Cantidad': list(conteo.values())
-                })
-                df_chart = df_chart[df_chart['Cantidad'] > 0]
+            # 6. Mostrar Métricas y Gráfico
+            col_metrics, col_chart = st.columns([1, 2])
+
+            with col_metrics:
+                st.markdown("#### 📊 Resumen de Logros")
+                st.caption("Conteo de calificaciones en esta hoja:")
                 
-                fig = px.pie(
-                    df_chart, 
-                    values='Cantidad', 
-                    names='Nivel', 
-                    title=f"Distribución de Aprendizajes",
-                    color='Nivel',
-                    color_discrete_map={
-                        'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'
-                    },
-                    hole=0.4 
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Este estudiante no tiene notas registradas en esta hoja.")
+                st.success(f"🏆 **AD:** {conteo['AD']}")
+                st.info(f"✅ **A:** {conteo['A']}")
+                st.warning(f"⚠️ **B:** {conteo['B']}")
+                st.error(f"🛑 **C:** {conteo['C']}")
+                
+                st.write(f"**Total Eval.:** {total_notas}")
+
+            with col_chart:
+                if total_notas > 0:
+                    # Preparamos datos para el gráfico
+                    df_chart = pd.DataFrame({
+                        'Nivel': list(conteo.keys()),
+                        'Cantidad': list(conteo.values())
+                    })
+                    df_chart = df_chart[df_chart['Cantidad'] > 0]
+                    
+                    fig = px.pie(
+                        df_chart, 
+                        values='Cantidad', 
+                        names='Nivel', 
+                        title=f"Distribución de Aprendizajes",
+                        color='Nivel',
+                        color_discrete_map={
+                            'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'
+                        },
+                        hole=0.4 
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Este estudiante no tiene notas registradas en esta hoja.")
+        except Exception as e:
+            st.error(f"Ocurrió un error al procesar los datos del estudiante: {e}")
 
 # --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
 @st.cache_data
@@ -799,6 +823,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
