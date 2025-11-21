@@ -664,7 +664,7 @@ def home_page():
 
             st.write("")
             
-   # RECURSO 1: PRIMARIA (Excel)
+   # RECURSO 2: PRIMARIA (Excel)
             # 1. Agregamos "recursos/" antes del nombre
             ruta_archivo_1 = "recursos/Registro automatizado nivel primario.xlsm" 
             
@@ -715,6 +715,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
