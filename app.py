@@ -588,7 +588,7 @@ def home_page():
         st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
         st.markdown("Selecciona una herramienta para comenzar.")
 
-    # SIDEBAR
+  # SIDEBAR
     st.sidebar.divider() 
     col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
     with col_centro:
@@ -597,14 +597,31 @@ def home_page():
     st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos con tu colaboración!</div>", unsafe_allow_html=True)
     st.sidebar.divider()
 
+    # --- 👇 NUEVO BOTÓN: RESETEAR / CARGAR NUEVO ---
+    if st.sidebar.button("📂 Subir Nuevo Archivo", use_container_width=True):
+        # 1. Borramos las memorias de datos
+        st.session_state.df_cargado = False
+        st.session_state.info_areas = None
+        st.session_state.all_dataframes = None
+        st.session_state.df = None
+        
+        # 2. Truco Pro: Borramos la memoria del widget de carga para que aparezca vacío
+        if 'file_uploader' in st.session_state:
+            del st.session_state['file_uploader']
+            
+        st.rerun()
+    # -----------------------------------------------
+
     if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
         try:
             supabase.auth.sign_out()
         except:
             pass
         st.session_state.logged_in = False
-        del st.session_state.user
-        st.rerun() 
+        # Verificamos si existe antes de borrar para evitar errores
+        if hasattr(st.session_state, 'user'):
+            del st.session_state.user
+        st.rerun()
 
     # --- TABS PRINCIPALES (4 PESTAÑAS) ---
     tab_general, tab_estudiante, tab_asistente, tab_recursos = st.tabs([
@@ -843,6 +860,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
