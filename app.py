@@ -668,7 +668,7 @@ def home_page():
             # 1. Agregamos "recursos/" antes del nombre
             ruta_archivo_1 = "recursos/Registro automatizado nivel primario.xlsm" 
             
-            if os.path.exists(ruta_archivo_1):
+            if os.path.exists(ruta_archivo_2):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button(
                         label="📥 Descargar Registro Automatizado - Primaria (Excel)", # 2. Corregimos la etiqueta
@@ -715,6 +715,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
