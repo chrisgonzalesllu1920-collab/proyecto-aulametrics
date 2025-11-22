@@ -674,7 +674,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     
     p1 = f_cells[0].paragraphs[0]
     p1.add_run("_________________________").bold = True
-    p1.add_run("\nPADRE O APODERADO\nDNI:")
+    p1.add_run("\nAPODERADO(A)")
     p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
     p2 = f_cells[1].paragraphs[0]
@@ -687,6 +687,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     document.save(buffer)
     buffer.seek(0)
     return buffer
+
 
 
 
