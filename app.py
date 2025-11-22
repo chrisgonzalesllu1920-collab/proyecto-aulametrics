@@ -524,13 +524,31 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
                     desglose_areas
                 )
             
+# 1. INSERTAMOS EL ESTILO AZUL (CSS)
+            st.markdown("""
+                <style>
+                div.stDownloadButton > button:first-child {
+                    background-color: #0056b3; /* Azul Profesional */
+                    color: white;
+                    border-radius: 8px;
+                    border: 1px solid #004494;
+                }
+                div.stDownloadButton > button:first-child:hover {
+                    background-color: #004494; /* Azul más oscuro al pasar el mouse */
+                    color: white;
+                    border-color: #002a5c;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # 2. EL BOTÓN (Sin type="primary")
             st.download_button(
                 label="📄 Descargar Informe de Progreso (Word)",
                 data=doc_buffer,
                 file_name=f"Informe_Progreso_{estudiante_sel}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True,
-                type="primary" # Botón destacado
+                use_container_width=True
+                # Nota: He borrado la línea 'type="primary"' para que el azul funcione
             )
 
 # --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
@@ -905,6 +923,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
