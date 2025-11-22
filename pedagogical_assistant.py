@@ -553,5 +553,133 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     except Exception as e:
         return f"Error inesperado: {e}"
 
+# =========================================================================
+# === V. GENERADOR DE INFORME DEL ESTUDIANTE (Word con Colores) ===
+# =========================================================================
+def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
+    """
+    Genera un informe individual en Word con formato semáforo (colores).
+    """
+    document = Document()
+    
+    # --- ESTILOS ---
+    style = document.styles['Normal']
+    font = style.font
+    font.name = 'Arial'
+    font.size = Pt(11)
+
+    # --- FUNCIÓN INTERNA PARA COLOR (Para pintar celdas en Word) ---
+    def set_cell_shading(cell, fill_color):
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'), 'clear')
+        shd.set(qn('w:color'), 'auto')
+        shd.set(qn('w:fill'), fill_color)
+        tcPr.append(shd)
+
+    # 1. ENCABEZADO
+    h1 = document.add_heading('INFORME DE PROGRESO DEL APRENDIZAJE', 0)
+    h1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    document.add_paragraph(f"Estudiante: {nombre_estudiante}")
+    document.add_paragraph("Fecha de emisión: _______________________")
+    document.add_paragraph("")
+
+    # 2. SEMÁFORO ACADÉMICO (Tabla de Resumen)
+    document.add_heading('1. Resumen de Logros (Semáforo)', level=1)
+    
+    table = document.add_table(rows=1, cols=2)
+    table.style = 'Table Grid'
+    
+    # Encabezados
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'NIVEL DE LOGRO'
+    hdr_cells[1].text = 'CANTIDAD DE ÁREAS'
+    for cell in hdr_cells: 
+        cell.paragraphs[0].runs[0].bold = True
+        set_cell_shading(cell, "D9D9D9") # Gris claro para encabezado
+
+    # Datos del semáforo
+    data = [
+        ("LOGRO DESTACADO (AD)", total_conteo['AD'], "C6EFCE"), # Verde Claro
+        ("LOGRO ESPERADO (A)", total_conteo['A'], "E7F3FF"),   # Azul Claro
+        ("EN PROCESO (B)", total_conteo['B'], "FFEB9C"),       # Amarillo
+        ("EN INICIO (C)", total_conteo['C'], "FFC7CE")         # Rojo Claro
+    ]
+
+    for nivel, cantidad, color_hex in data:
+        row_cells = table.add_row().cells
+        row_cells[0].text = nivel
+        row_cells[1].text = str(cantidad)
+        
+        # Pintamos la celda del nivel
+        set_cell_shading(row_cells[0], color_hex)
+        row_cells[0].paragraphs[0].runs[0].bold = True
+        
+        # Centramos la cantidad
+        row_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    document.add_paragraph("")
+
+    # 3. DETALLE DE ÁREAS CRÍTICAS
+    if total_conteo['B'] > 0 or total_conteo['C'] > 0:
+        document.add_heading('2. Áreas que requieren atención', level=1)
+        
+        if total_conteo['C'] > 0:
+            p = document.add_paragraph()
+            run = p.add_run("🛑 EN INICIO (C) - Requiere Recuperación:")
+            run.bold = True
+            run.font.color.rgb = RGBColor(200, 0, 0) # Rojo oscuro
+            
+            for area_txt in desglose_areas['C']:
+                document.add_paragraph(f"   • {area_txt}", style='List Bullet')
+        
+        if total_conteo['B'] > 0:
+            p = document.add_paragraph()
+            run = p.add_run("⚠️ EN PROCESO (B) - Requiere Refuerzo:")
+            run.bold = True
+            run.font.color.rgb = RGBColor(200, 150, 0) # Naranja oscuro
+            
+            for area_txt in desglose_areas['B']:
+                document.add_paragraph(f"   • {area_txt}", style='List Bullet')
+
+    document.add_paragraph("")
+
+    # 4. RECOMENDACIONES PEDAGÓGICAS (Automáticas)
+    document.add_heading('3. Recomendaciones y Compromisos', level=1)
+    
+    recomendacion = ""
+    if total_conteo['C'] > 0:
+        recomendacion = "El estudiante presenta dificultades significativas en las áreas señaladas. Se requiere ASISTENCIA OBLIGATORIA a recuperación y un control estricto de tareas en el hogar. Se sugiere establecer un horario fijo de estudio sin distracciones."
+    elif total_conteo['B'] > 0:
+        recomendacion = "El estudiante está en proceso de lograr los aprendizajes. Se recomienda revisar sus cuadernos diariamente y reforzar los temas tratados en clase para evitar que descienda de nivel."
+    else:
+        recomendacion = "¡Felicitaciones! El estudiante demuestra un alto nivel de compromiso y logro de competencias. Se sugiere mantener la motivación, leer libros de interés y explorar nuevos retos académicos."
+    
+    document.add_paragraph(recomendacion)
+    document.add_paragraph("")
+    document.add_paragraph("")
+
+    # 5. FIRMAS
+    table_firmas = document.add_table(rows=1, cols=2)
+    f_cells = table_firmas.rows[0].cells
+    
+    p1 = f_cells[0].paragraphs[0]
+    p1.add_run("_________________________").bold = True
+    p1.add_run("\nPADRE O APODERADO\nDNI:")
+    p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    p2 = f_cells[1].paragraphs[0]
+    p2.add_run("_________________________").bold = True
+    p2.add_run("\nDOCENTE / TUTOR")
+    p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # Guardar en memoria
+    buffer = io.BytesIO()
+    document.save(buffer)
+    buffer.seek(0)
+    return buffer
+
 
 
