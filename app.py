@@ -370,12 +370,11 @@ def mostrar_analisis_general(results):
                     st.warning("Selecciona una competencia en el desplegable de gráficos.")
 
 # =========================================================================
-# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v4.0 DESGLOSE POR ÁREAS ===
+# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v5.0 FINAL CON WORD ===
 # =========================================================================
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """
-    Muestra el perfil INTEGRAL del estudiante con DESGLOSE.
-    Indica en qué áreas específicas obtuvo cada calificación.
+    Muestra el perfil INTEGRAL y permite descargar INFORME WORD.
     """
     st.markdown("---")
     st.header("🧑‍🎓 Perfil Integral del Estudiante")
@@ -415,11 +414,8 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         st.subheader(f"📊 Reporte Global: {estudiante_sel}")
         
         # --- 3. BARRIDO CON MEMORIA DE ÁREAS ---
-        # Inicializamos contadores Y listas de áreas
         total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
-        # Aquí guardaremos qué áreas tienen cada nota. Ej: 'C': ['Matemática', 'Religión']
         desglose_areas = {'AD': [], 'A': [], 'B': [], 'C': []}
-        
         areas_analizadas = 0
         
         # Barra de progreso
@@ -441,19 +437,16 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
                     areas_analizadas += 1
                     vals = [str(v).upper().strip() for v in fila.iloc[0].values]
                     
-                    # Contamos localmente para ver si agregamos el nombre del área
                     c_ad = vals.count('AD')
                     c_a = vals.count('A')
                     c_b = vals.count('B')
                     c_c = vals.count('C')
                     
-                    # Sumamos al total general
                     total_conteo['AD'] += c_ad
                     total_conteo['A'] += c_a
                     total_conteo['B'] += c_b
                     total_conteo['C'] += c_c
                     
-                    # Si tiene notas en esta área, guardamos el nombre del curso
                     if c_ad > 0: desglose_areas['AD'].append(f"{area_name} ({c_ad})")
                     if c_a > 0: desglose_areas['A'].append(f"{area_name} ({c_a})")
                     if c_b > 0: desglose_areas['B'].append(f"{area_name} ({c_b})")
@@ -470,33 +463,31 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
             st.markdown("#### 📈 Detalle por Nivel")
             st.caption(f"Se analizaron {areas_analizadas} áreas en total.")
             
-            # --- AQUÍ ESTÁ EL CAMBIO VISUAL (EXPANDERS) ---
-            
-            # AD (Verde)
+            # AD
             if total_conteo['AD'] > 0:
                 with st.expander(f"🏆 Logro Destacado (AD): {total_conteo['AD']}", expanded=False):
                     for area in desglose_areas['AD']: st.markdown(f"- {area}")
             else:
                 st.markdown(f"🏆 **AD:** 0")
 
-            # A (Azul/Verde Claro)
+            # A
             if total_conteo['A'] > 0:
                 with st.expander(f"✅ Logro Esperado (A): {total_conteo['A']}", expanded=False):
                     for area in desglose_areas['A']: st.markdown(f"- {area}")
             else:
                 st.markdown(f"✅ **A:** 0")
 
-            # B (Amarillo)
+            # B
             if total_conteo['B'] > 0:
-                with st.expander(f"⚠️ En Proceso (B): {total_conteo['B']}", expanded=True): # Expandido por defecto para llamar la atención
+                with st.expander(f"⚠️ En Proceso (B): {total_conteo['B']}", expanded=True):
                     st.markdown("**:orange[Áreas a reforzar:]**")
                     for area in desglose_areas['B']: st.markdown(f"- {area}")
             else:
                 st.markdown(f"⚠️ **B:** 0")
 
-            # C (Rojo)
+            # C
             if total_conteo['C'] > 0:
-                with st.expander(f"🛑 En Inicio (C): {total_conteo['C']}", expanded=True): # Expandido por defecto
+                with st.expander(f"🛑 En Inicio (C): {total_conteo['C']}", expanded=True):
                     st.markdown("**:red[Requiere atención urgente en:]**")
                     for area in desglose_areas['C']: st.markdown(f"- {area}")
             else:
@@ -516,6 +507,31 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("Sin registros de notas.")
+
+        # --- 5. BOTÓN DE DESCARGA DE INFORME (NUEVO) ---
+        st.write("---")
+        st.write("#### 📥 Opciones de Exportación")
+        
+        if suma_total > 0:
+            # Llamamos a la función que creamos en pedagogical_assistant.py
+            # Asumimos que lo tienes importado como 'pedagogical_assistant'
+            import pedagogical_assistant # Importación local por seguridad
+            
+            with st.spinner("Generando informe en Word..."):
+                doc_buffer = pedagogical_assistant.generar_reporte_estudiante(
+                    estudiante_sel, 
+                    total_conteo, 
+                    desglose_areas
+                )
+            
+            st.download_button(
+                label="📄 Descargar Informe de Progreso (Word)",
+                data=doc_buffer,
+                file_name=f"Informe_Progreso_{estudiante_sel}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True,
+                type="primary" # Botón destacado
+            )
 
 # --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
 @st.cache_data
@@ -889,6 +905,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
