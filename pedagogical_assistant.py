@@ -651,9 +651,9 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     
     recomendacion = ""
     if total_conteo['C'] > 0:
-        recomendacion = "El estudiante presenta dificultades significativas en las áreas señaladas. Se requiere ASISTENCIA OBLIGATORIA a recuperación y un control estricto de tareas en el hogar. Se sugiere establecer un horario fijo de estudio sin distracciones."
+        recomendacion = "El estudiante requiere un mayor acompañamiento para consolidar los aprendizajes en las áreas señaladas. Se sugiere reforzar los hábitos de estudio en casa y mantener comunicación constante con los docentes para asegurar su proceso de aprendizaje."
     elif total_conteo['B'] > 0:
-        recomendacion = "El estudiante está en proceso de lograr los aprendizajes. Se recomienda revisar sus cuadernos diariamente y reforzar los temas tratados en clase para evitar que descienda de nivel."
+        recomendacion = "Va por buen camino. Sugerimos motivar al estudiante a participar más activamente y revisar juntos sus avances semanales para que logre alcanzar el nivel de logro esperado en el corto plazo."
     else:
         recomendacion = "¡Felicitaciones! El estudiante demuestra un alto nivel de compromiso y logro de competencias. Se sugiere mantener la motivación, leer libros de interés y explorar nuevos retos académicos."
     
@@ -680,6 +680,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     document.save(buffer)
     buffer.seek(0)
     return buffer
+
 
 
 
