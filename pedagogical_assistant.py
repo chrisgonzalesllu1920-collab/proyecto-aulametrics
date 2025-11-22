@@ -578,7 +578,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
         shd.set(qn('w:fill'), fill_color)
         tcPr.append(shd)
 
-# 1. ENCABEZADO
+    # 1. ENCABEZADO
     # Creamos el título pero accedemos a su "run" (el texto) para cambiarle el tamaño
     h1 = document.add_heading('INFORME DE PROGRESO DEL APRENDIZAJE', 0)
     h1.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -687,6 +687,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     document.save(buffer)
     buffer.seek(0)
     return buffer
+
 
 
 
