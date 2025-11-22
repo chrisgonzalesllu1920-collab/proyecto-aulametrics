@@ -578,9 +578,16 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
         shd.set(qn('w:fill'), fill_color)
         tcPr.append(shd)
 
-    # 1. ENCABEZADO
+# 1. ENCABEZADO
+    # Creamos el título pero accedemos a su "run" (el texto) para cambiarle el tamaño
     h1 = document.add_heading('INFORME DE PROGRESO DEL APRENDIZAJE', 0)
     h1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # AJUSTE DE TAMAÑO (Arial 18)
+    run = h1.runs[0]
+    run.font.name = 'Arial'
+    run.font.size = Pt(18)  # <--- AQUÍ ESTÁ EL EQUIVALENTE A ARIAL 18
+    run.font.color.rgb = RGBColor(0, 0, 0) # Aseguramos color negro
     
     document.add_paragraph(f"Estudiante: {nombre_estudiante}")
     document.add_paragraph("Fecha de emisión: _______________________")
@@ -680,6 +687,7 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     document.save(buffer)
     buffer.seek(0)
     return buffer
+
 
 
 
