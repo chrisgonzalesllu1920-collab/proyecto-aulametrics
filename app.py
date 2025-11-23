@@ -645,29 +645,32 @@ def home_page():
     if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
     if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
 
-    # ENCABEZADO DASHBOARD
-    col_logo, col_titulo = st.columns([1, 4])
+# ENCABEZADO DASHBOARD
+    # Modificamos para tener 3 columnas: Logo (1) | Título (4) | Robot (1)
+    col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
+
     with col_logo:
         try:
+            # Mantenemos tu logo original
             st.image(ISOTIPO_PATH, width=120)
         except:
             st.warning("No isotipo.")
             
     with col_titulo:
+        # Mantenemos tu título con el estilo degradado que ya tenías
         st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
         st.markdown("Selecciona una herramienta para comenzar.")
 
+    with col_bot:
+        # 👇 Aquí ponemos al Robot saludando a la derecha
+        try:
+            lottie_hello = cargar_lottie("robot_hello.json")
+            st_lottie(lottie_hello, height=110, key="robot_header")
+        except:
+            pass
+
   # SIDEBAR
     st.sidebar.divider() 
-    
-    # 👇 INICIO CÓDIGO ROBOT 👇
-    try:
-        lottie_hello = cargar_lottie("robot_hello.json")
-        st_lottie(lottie_hello, height=150, key="robot_saludo")
-    except Exception as e:
-        pass # Si falla, no pasa nada
-    # 👆 FIN CÓDIGO ROBOT 👆
-
     # (Aquí sigue tu código existente de Yape...)
     col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
     # ...
@@ -940,6 +943,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
