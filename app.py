@@ -665,7 +665,7 @@ def home_page():
         # 👇 Aquí ponemos al Robot saludando a la derecha
         try:
             lottie_hello = cargar_lottie("robot_hello.json")
-            st_lottie(lottie_hello, height=110, key="robot_header")
+            st_lottie(lottie_hello, height=180, key="robot_header")
         except:
             pass
 
@@ -943,6 +943,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
