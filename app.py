@@ -852,35 +852,35 @@ def home_page():
                                     st.session_state.sesion_generada = None
                 
 # MOSTRAR RESULTADOS
-        if st.session_state.sesion_generada:
-        st.markdown("---")
-        st.subheader("Resultado")
-        st.markdown(st.session_state.sesion_generada)
-        
-        # --- ZONA DE DESCARGA Y CELEBRACIÓN ---
-        # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria antes de intentar usarlo
-        if 'doc_buffer' in locals():
+            if st.session_state.sesion_generada:
+            st.markdown("---")
+            st.subheader("Resultado")
+            st.markdown(st.session_state.sesion_generada)
             
-            st.success("¡Sesión generada con éxito! Descárgala ahora.")
-            
-            # Columnas: Botón (2) | Robot (1)
-            col_btn, col_celebracion = st.columns([2, 1])
-            
-            with col_btn:
-                st.download_button(
-                    label="📄 Descargar Sesión (Word)",
-                    data=doc_buffer,
-                    file_name=f"Sesion_Aprendizaje.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+            # --- ZONA DE DESCARGA Y CELEBRACIÓN ---
+            # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria antes de intentar usarlo
+            if 'doc_buffer' in locals():
                 
-            with col_celebracion:
-                try:
-                    # El robot celebra el éxito
-                    lottie_success = cargar_lottie("robot_logrado.json")
-                    st_lottie(lottie_success, height=100, key="robot_success")
-                except:
+                st.success("¡Sesión generada con éxito! Descárgala ahora.")
+                
+                # Columnas: Botón (2) | Robot (1)
+                col_btn, col_celebracion = st.columns([2, 1])
+                
+                with col_btn:
+                    st.download_button(
+                        label="📄 Descargar Sesión (Word)",
+                        data=doc_buffer,
+                        file_name=f"Sesion_Aprendizaje.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+                    
+                with col_celebracion:
+                    try:
+                        # El robot celebra el éxito
+                        lottie_success = cargar_lottie("robot_logrado.json")
+                        st_lottie(lottie_success, height=100, key="robot_success")
+                    except:
                     pass
         else:
             # Si el usuario recargó la página y se perdió el archivo temporal:
@@ -972,6 +972,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
