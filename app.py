@@ -852,7 +852,7 @@ def home_page():
                                     st.session_state.sesion_generada = None
                 
 # MOSTRAR RESULTADOS
-    if st.session_state.sesion_generada:
+        if st.session_state.sesion_generada:
         st.markdown("---")
         st.subheader("Resultado")
         st.markdown(st.session_state.sesion_generada)
@@ -972,6 +972,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
