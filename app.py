@@ -739,18 +739,7 @@ def home_page():
 # TAB 3: ASISTENTE
     with tab_asistente:
         st.header("🧠 Asistente Pedagógico")
-        
-        # 👇 1. ROBOT TRABAJANDO (ACOMPAÑANTE) 👇
-        # Nota: Mira como todo esto tiene espacio a la izquierda
-        c1, c2, c3 = st.columns([1, 1, 1])
-        
-        with c2:
-            try:
-                lottie_work = cargar_lottie("robot_trabajando.json")
-                st_lottie(lottie_work, height=130, key="robot_working")
-            except:
-                pass
-        # 👆 ---------------------------------- 👆
+              
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
@@ -862,34 +851,40 @@ def home_page():
                                     st.error(f"Error: {e}")
                                     st.session_state.sesion_generada = None
                 
-                if st.session_state.sesion_generada:
-                    st.markdown("---")
-                    st.subheader("Resultado")
-                    st.markdown(st.session_state.sesion_generada)
-                    # 👇 2. ROBOT CELEBRANDO (AL FINAL) 👇
+# MOSTRAR RESULTADOS
+    if st.session_state.sesion_generada:
+        st.markdown("---")
+        st.subheader("Resultado")
+        st.markdown(st.session_state.sesion_generada)
+        
+        # --- ZONA DE DESCARGA Y CELEBRACIÓN ---
+        # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria antes de intentar usarlo
+        if 'doc_buffer' in locals():
+            
             st.success("¡Sesión generada con éxito! Descárgala ahora.")
             
-            # Creamos columnas: Botón a la izquierda (2) | Robot celebrando a la derecha (1)
-            # Esto pone al robot justo al lado del botón
+            # Columnas: Botón (2) | Robot (1)
             col_btn, col_celebracion = st.columns([2, 1])
             
             with col_btn:
                 st.download_button(
                     label="📄 Descargar Sesión (Word)",
                     data=doc_buffer,
-                    file_name=f"Sesion_Aprendizaje_{tema}.docx",
+                    file_name=f"Sesion_Aprendizaje.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
                 
             with col_celebracion:
                 try:
-                    # Asegúrate de usar el nombre exacto de tu archivo
+                    # El robot celebra el éxito
                     lottie_success = cargar_lottie("robot_logrado.json")
                     st_lottie(lottie_success, height=100, key="robot_success")
                 except:
                     pass
-            # 👆 ---------------------------------- 👆
+        else:
+            # Si el usuario recargó la página y se perdió el archivo temporal:
+            st.info("⚠️ Para descargar el archivo Word nuevamente, por favor vuelve a hacer clic en 'Generar Sesión'.")
 
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
@@ -977,6 +972,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
