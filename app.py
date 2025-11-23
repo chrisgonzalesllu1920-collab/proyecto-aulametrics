@@ -1,3 +1,5 @@
+import json
+from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
 import analysis_core
@@ -8,6 +10,10 @@ import xlsxwriter
 import os 
 import base64 
 from supabase import create_client, Client
+# --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
+def cargar_lottie(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
@@ -653,7 +659,18 @@ def home_page():
 
   # SIDEBAR
     st.sidebar.divider() 
+    
+    # 👇 INICIO CÓDIGO ROBOT 👇
+    try:
+        lottie_hello = cargar_lottie("robot_hello.json")
+        st_lottie(lottie_hello, height=150, key="robot_saludo")
+    except Exception as e:
+        pass # Si falla, no pasa nada
+    # 👆 FIN CÓDIGO ROBOT 👆
+
+    # (Aquí sigue tu código existente de Yape...)
     col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
+    # ...
     with col_centro:
         st.image("assets/qr-yape.png") 
     
@@ -923,6 +940,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
