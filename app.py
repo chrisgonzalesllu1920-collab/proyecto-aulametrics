@@ -736,10 +736,21 @@ def home_page():
             st.info("Esta función requiere un archivo de notas.")
             st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
 
-    # TAB 3: ASISTENTE
+# TAB 3: ASISTENTE
     with tab_asistente:
         st.header("🧠 Asistente Pedagógico")
         
+        # 👇 1. ROBOT TRABAJANDO (ACOMPAÑANTE) 👇
+        # Nota: Mira como todo esto tiene espacio a la izquierda
+        c1, c2, c3 = st.columns([1, 1, 1])
+        
+        with c2:
+            try:
+                lottie_work = cargar_lottie("robot_trabajando.json")
+                st_lottie(lottie_work, height=130, key="robot_working")
+            except:
+                pass
+        # 👆 ---------------------------------- 👆
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
@@ -855,7 +866,30 @@ def home_page():
                     st.markdown("---")
                     st.subheader("Resultado")
                     st.markdown(st.session_state.sesion_generada)
-                    st.download_button("Exportar Sesión (.docx)", st.session_state.docx_bytes, f"sesion_{st.session_state.tema_sesion}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                    # 👇 2. ROBOT CELEBRANDO (AL FINAL) 👇
+            st.success("¡Sesión generada con éxito! Descárgala ahora.")
+            
+            # Creamos columnas: Botón a la izquierda (2) | Robot celebrando a la derecha (1)
+            # Esto pone al robot justo al lado del botón
+            col_btn, col_celebracion = st.columns([2, 1])
+            
+            with col_btn:
+                st.download_button(
+                    label="📄 Descargar Sesión (Word)",
+                    data=doc_buffer,
+                    file_name=f"Sesion_Aprendizaje_{tema}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+                
+            with col_celebracion:
+                try:
+                    # Asegúrate de usar el nombre exacto de tu archivo
+                    lottie_success = cargar_lottie("robot_logrado.json")
+                    st_lottie(lottie_success, height=100, key="robot_success")
+                except:
+                    pass
+            # 👆 ---------------------------------- 👆
 
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
@@ -943,6 +977,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
