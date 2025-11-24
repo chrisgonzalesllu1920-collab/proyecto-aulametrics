@@ -691,7 +691,7 @@ def home_page():
     with col_centro:
         st.image("assets/qr-yape.png") 
     
-    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos con tu colaboración!</div>", unsafe_allow_html=True)
+    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos a mantener la página gratuita!</div>", unsafe_allow_html=True)
     st.sidebar.divider()
 
     # --- 👇 NUEVO BOTÓN: RESETEAR / CARGAR NUEVO ---
@@ -866,29 +866,28 @@ def home_page():
                                     st.session_state.sesion_generada = None
                 
 # MOSTRAR RESULTADOS
-    if st.session_state.sesion_generada:
-        st.markdown("---")
-        st.subheader("Resultado")
-        st.markdown(st.session_state.sesion_generada)
-        
-        st.success("¡Sesión generada con éxito!")
-        
-        # 🛡️ ZONA DE DESCARGA SEGURA
-        if 'doc_buffer' in locals():
-            doc_buffer.seek(0)
+        if st.session_state.sesion_generada:
+            st.markdown("---")
+            st.subheader("Resultado")
+            st.markdown(st.session_state.sesion_generada)
             
-            # Botón simple y robusto (Sin columnas, sin llaves extrañas)
-            st.download_button(
-                label="📄 Descargar Sesión en Word",
-                data=doc_buffer,
-                file_name="Sesion_Aprendizaje.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
-            )
-        else:
-            st.warning("⚠️ Error temporal. Por favor genera la sesión de nuevo.")
+            st.success("¡Sesión generada con éxito!")
+            
+            # 🛡️ ZONA DE DESCARGA (CORREGIDA)
+            # Verificamos si los bytes del archivo existen en la memoria permanente
+            if st.session_state.get('docx_bytes'):
+                
+                st.download_button(
+                    label="📄 Descargar Sesión en Word",
+                    data=st.session_state.docx_bytes, # <--- ¡AQUÍ ESTABA LA CLAVE!
+                    file_name="Sesion_Aprendizaje.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+            else:
+                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
-# 👇 ALINEAR ELIF A LA IZQUIERDA
+    # 👇 ESTOS ELIF DEBEN IR ALINEADOS A LA IZQUIERDA (AL MISMO NIVEL QUE EL IF PRINCIPAL)
     elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
         st.info("Función de Unidades de Aprendizaje (Próximamente).")
     
@@ -976,6 +975,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
