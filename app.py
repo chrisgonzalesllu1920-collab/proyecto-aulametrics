@@ -28,14 +28,23 @@ st.set_page_config(
 )
 
 # 👇👇👇 PEGA ESTO AQUÍ ARRIBA 👇👇👇
-# --- ESTILOS CSS: BOTÓN AZUL Y LIMPIEZA ---
+# --- ESTILOS CSS: MAQUILLAJE FINAL (AGRESIVO) ---
 st.markdown("""
     <style>
-    /* Ocultar cadenas */
-    h1 > a, h2 > a, h3 > a {display: none !important;}
+    /* 1. Ocultar cadenas (enlaces) buscando en cualquier profundidad */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+        display: none !important;
+    }
+    
+    /* 2. Ocultar el contenedor específico de iconos de acción (para versiones nuevas) */
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    
+    /* 3. Ocultar pie de página */
     footer {visibility: hidden;}
     
-    /* ESTILO BOTÓN AZUL */
+    /* 4. ESTILO BOTÓN AZUL */
     div[data-testid="stDownloadButton"] > button {
         background-color: #007bff !important;
         color: white !important;
@@ -983,6 +992,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
