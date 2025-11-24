@@ -1,12 +1,11 @@
 import io
 import json
 from pptx import Presentation
-from pptx.util import Pt # <--- Importante para el tamaño de letra
+from pptx.util import Pt
 
 def crear_ppt_desde_data(json_texto):
     """
-    Crea una presentación de 6 diapositivas con control de tamaño de fuente
-    para evitar desbordamientos.
+    Crea una presentación de 7 diapositivas.
     """
     prs = Presentation()
     
@@ -22,42 +21,41 @@ def crear_ppt_desde_data(json_texto):
         info = data['slide_1']
         slide = prs.slides.add_slide(prs.slide_layouts[0]) 
         
-        # Título Grande (40pt)
+        # Título
         title = slide.shapes.title
         title.text = info.get('titulo', 'Sin Título')
         title.text_frame.paragraphs[0].font.size = Pt(40)
         
-        # Subtítulo (24pt)
+        # Subtítulo
         if len(slide.placeholders) > 1:
             subtitle = slide.placeholders[1]
             subtitle.text = info.get('subtitulo', '')
             subtitle.text_frame.paragraphs[0].font.size = Pt(24)
 
-    # --- DIAPOSITIVAS 2 a 6: CONTENIDO ---
-    # Ahora buscamos hasta slide_6
-    keys_contenido = ['slide_2', 'slide_3', 'slide_4', 'slide_5', 'slide_6']
+    # --- DIAPOSITIVAS 2 a 7: CONTENIDO ---
+    # Actualizamos la lista para incluir slide_7
+    keys_contenido = ['slide_2', 'slide_3', 'slide_4', 'slide_5', 'slide_6', 'slide_7']
     
     for key in keys_contenido:
         if key in data:
             info = data[key]
             slide = prs.slides.add_slide(prs.slide_layouts[1]) 
             
-            # Título de la diapositiva (32pt)
+            # Título
             title = slide.shapes.title
             title.text = info.get('titulo', '')
             title.text_frame.paragraphs[0].font.size = Pt(32)
             
-            # Cuerpo (Texto o Puntos) - TAMAÑO SEGURO (20pt)
+            # Cuerpo
             contenido_raw = info.get('contenido') or info.get('puntos') or ""
             
             tf = slide.placeholders[1].text_frame
             tf.clear() 
 
-            # Función auxiliar para añadir texto con tamaño fijo
             def add_text(frame, text, bullet=False):
                 p = frame.add_paragraph()
                 p.text = str(text)
-                p.font.size = Pt(20) # <--- AQUÍ ESTÁ EL TRUCO (Letra mediana)
+                p.font.size = Pt(20) # Tamaño seguro
                 if not bullet:
                     p.level = 0
 
