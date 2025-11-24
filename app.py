@@ -886,10 +886,10 @@ def home_page():
             st.info("⚠️ Para descargar, por favor vuelve a hacer clic en 'Generar Sesión'.")
 
 # 👇 ATENCIÓN: Estos 'elif' vuelven atrás (a la izquierda) para cerrar la cadena correctamente
-elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+    elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
     st.info("Función de Unidades de Aprendizaje (Próximamente).")
 
-elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+    elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
     st.info("Función de Planificación Anual (Próximamente).")
 
     # --- TAB 4: RECURSOS (¡NUEVA!) ---
@@ -973,6 +973,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
