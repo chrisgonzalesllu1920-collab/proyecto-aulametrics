@@ -8,5 +8,6 @@ plotly
 passlib
 google-genai
 supabase
+streamlit-lottie
 
 

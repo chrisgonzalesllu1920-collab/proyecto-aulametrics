@@ -1,3 +1,5 @@
+import json
+from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
 import analysis_core
@@ -8,6 +10,10 @@ import xlsxwriter
 import os 
 import base64 
 from supabase import create_client, Client
+# --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
+def cargar_lottie(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
@@ -21,6 +27,37 @@ st.set_page_config(
   initial_sidebar_state="collapsed"
 )
 
+# 👇👇👇 PEGA ESTO AQUÍ ARRIBA 👇👇👇
+# --- ESTILOS CSS: MAQUILLAJE FINAL (AGRESIVO) ---
+st.markdown("""
+    <style>
+    /* 1. Ocultar cadenas (enlaces) buscando en cualquier profundidad */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+        display: none !important;
+    }
+    
+    /* 2. Ocultar el contenedor específico de iconos de acción (para versiones nuevas) */
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    
+    /* 3. Ocultar pie de página */
+    footer {visibility: hidden;}
+    
+    /* 4. ESTILO BOTÓN AZUL */
+    div[data-testid="stDownloadButton"] > button {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 5px !important;
+    }
+    div[data-testid="stDownloadButton"] > button:hover {
+        background-color: #0056b3 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+# 👆👆👆 FIN DEL ESTILO 👆👆👆
+
 @st.cache_data 
 def get_image_as_base64(file_path):
   """Carga una imagen y la convierte a Base64 string."""
@@ -30,7 +67,7 @@ def get_image_as_base64(file_path):
       return base64.b64encode(data).decode()
   except FileNotFoundError:
       return None
-
+      
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
 # =========================================================================
@@ -591,10 +628,12 @@ def convert_df_to_excel(df, area_name, general_info):
         fmt_text = workbook.add_format({'text_wrap': True, 'valign': 'vcenter'})
 
         # 3. Ajustar Ancho de Columnas
-        # Columna A (Índice/Competencia): Muy ancha (60)
+        # Columna A (Índice/Competencia): Muy ancha (60) para que entre todo el texto
         worksheet.set_column('A:A', 60, fmt_text)
-        # Columnas B en adelante (Datos): Ancho estándar (15) y centradas
-        worksheet.set_column('B:Z', 15)
+
+        # 👇 CAMBIO FINAL: Ancho 9 (Equilibrio perfecto) 👇
+        # Aplica a todas las columnas de datos (AD, A, B, C, Porcentajes...)
+        worksheet.set_column('B:Z', 9)
 
         # 4. Pintar los Encabezados con Lógica
         # (Sobrescribimos la fila 0 con los colores correctos)
@@ -639,25 +678,39 @@ def home_page():
     if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
     if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
 
-    # ENCABEZADO DASHBOARD
-    col_logo, col_titulo = st.columns([1, 4])
+# ENCABEZADO DASHBOARD
+    # Modificamos para tener 3 columnas: Logo (1) | Título (4) | Robot (1)
+    col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
+
     with col_logo:
         try:
+            # Mantenemos tu logo original
             st.image(ISOTIPO_PATH, width=120)
         except:
             st.warning("No isotipo.")
             
     with col_titulo:
+        # Mantenemos tu título con el estilo degradado que ya tenías
         st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
         st.markdown("Selecciona una herramienta para comenzar.")
 
+    with col_bot:
+        # 👇 Aquí ponemos al Robot saludando a la derecha
+        try:
+            lottie_hello = cargar_lottie("robot_hello.json")
+            st_lottie(lottie_hello, height=180, key="robot_header")
+        except:
+            pass
+
   # SIDEBAR
     st.sidebar.divider() 
+    # (Aquí sigue tu código existente de Yape...)
     col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
+    # ...
     with col_centro:
         st.image("assets/qr-yape.png") 
     
-    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos con tu colaboración!</div>", unsafe_allow_html=True)
+    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos a mantener la página gratuita!</div>", unsafe_allow_html=True)
     st.sidebar.divider()
 
     # --- 👇 NUEVO BOTÓN: RESETEAR / CARGAR NUEVO ---
@@ -716,14 +769,26 @@ def home_page():
             st.info("Esta función requiere un archivo de notas.")
             st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
 
-    # TAB 3: ASISTENTE
+# TAB 3: ASISTENTE
     with tab_asistente:
         st.header("🧠 Asistente Pedagógico")
-        
+
+        # 👇 1. DEFINIMOS LA FUNCIÓN DE LIMPIEZA
+        # Esta función borra la memoria de la sesión anterior
+        def limpiar_resultados():
+            keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+        # 👇 2. CONECTAMOS LA LIMPIEZA AL CAMBIO DE HERRAMIENTA
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
-            index=0, horizontal=True, key="asistente_tipo_herramienta"
+            index=0, 
+            horizontal=True, 
+            key="asistente_tipo_herramienta",
+            on_change=limpiar_resultados # <--- ¡AQUÍ ESTÁ LA MAGIA!
         )
         st.markdown("---")
 
@@ -736,13 +801,36 @@ def home_page():
             else:
                 st.subheader("Paso 1: Selecciona el Nivel")
                 niveles = df_gen['NIVEL'].dropna().unique()
-                nivel_sel = st.selectbox("Nivel", options=niveles, index=None, placeholder="Elige una opción...", key="asistente_nivel_sel", label_visibility="collapsed")
+                
+                # 👇 3. CONECTAMOS LA LIMPIEZA AL CAMBIO DE NIVEL
+                nivel_sel = st.selectbox(
+                    "Nivel", 
+                    options=niveles, 
+                    index=None, 
+                    placeholder="Elige una opción...", 
+                    key="asistente_nivel_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                )
                 
                 st.subheader("Paso 2: Selecciona el Grado")
                 grados_options = []
                 if st.session_state.asistente_nivel_sel:
                     grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
-                grado_sel = st.selectbox("Grado", options=grados_options, index=None, placeholder="Elige un Nivel primero...", disabled=(not st.session_state.asistente_nivel_sel), key="asistente_grado_sel", label_visibility="collapsed")
+                
+                # 👇 4. CONECTAMOS LA LIMPIEZA AL CAMBIO DE GRADO
+                grado_sel = st.selectbox(
+                    "Grado", 
+                    options=grados_options, 
+                    index=None, 
+                    placeholder="Elige un Nivel primero...", 
+                    disabled=(not st.session_state.asistente_nivel_sel), 
+                    key="asistente_grado_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                )
+                
+                # ... (A partir de aquí sigue tu código normal de Área, etc.)
 
                 st.subheader("Paso 3: Selecciona el Área")
                 areas_options = []
@@ -831,14 +919,32 @@ def home_page():
                                     st.error(f"Error: {e}")
                                     st.session_state.sesion_generada = None
                 
-                if st.session_state.sesion_generada:
-                    st.markdown("---")
-                    st.subheader("Resultado")
-                    st.markdown(st.session_state.sesion_generada)
-                    st.download_button("Exportar Sesión (.docx)", st.session_state.docx_bytes, f"sesion_{st.session_state.tema_sesion}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+# MOSTRAR RESULTADOS
+        if st.session_state.sesion_generada:
+            st.markdown("---")
+            st.subheader("Resultado")
+            st.markdown(st.session_state.sesion_generada)
+            
+            st.success("¡Sesión generada con éxito!")
+            
+            # 🛡️ ZONA DE DESCARGA (CORREGIDA)
+            # Verificamos si los bytes del archivo existen en la memoria permanente
+            if st.session_state.get('docx_bytes'):
+                
+                st.download_button(
+                    label="📄 Descargar Sesión en Word",
+                    data=st.session_state.docx_bytes, # <--- ¡AQUÍ ESTABA LA CLAVE!
+                    file_name="Sesion_Aprendizaje.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+            else:
+                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
+    # 👇 ESTOS ELIF DEBEN IR ALINEADOS A LA IZQUIERDA (AL MISMO NIVEL QUE EL IF PRINCIPAL)
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
+        
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
 
@@ -923,6 +1029,29 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
