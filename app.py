@@ -27,19 +27,27 @@ st.set_page_config(
   initial_sidebar_state="collapsed"
 )
 
-# 👇👇👇 CÓDIGO NUEVO INSERTADO AQUÍ 👇👇👇
-# --- ESTILOS CSS: OCULTAR CADENAS DE TÍTULOS ---
+# 👇👇👇 PEGA ESTO AQUÍ ARRIBA 👇👇👇
+# --- ESTILOS CSS: BOTÓN AZUL Y LIMPIEZA ---
 st.markdown("""
     <style>
-    /* Ocultar los enlaces de anclaje (cadenas) al lado de los títulos */
-    h1 > a, h2 > a, h3 > a, h4 > a, h5 > a, h6 > a {
-        display: none !important;
-    }
-    /* Ocultar pie de página opcional */
+    /* Ocultar cadenas */
+    h1 > a, h2 > a, h3 > a {display: none !important;}
     footer {visibility: hidden;}
+    
+    /* ESTILO BOTÓN AZUL */
+    div[data-testid="stDownloadButton"] > button {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 5px !important;
+    }
+    div[data-testid="stDownloadButton"] > button:hover {
+        background-color: #0056b3 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
-# 👆👆👆 FIN DEL CÓDIGO NUEVO 👆👆👆
+# 👆👆👆 FIN DEL ESTILO 👆👆👆
 
 @st.cache_data 
 def get_image_as_base64(file_path):
@@ -975,6 +983,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
