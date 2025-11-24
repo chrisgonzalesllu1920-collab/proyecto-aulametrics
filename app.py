@@ -772,11 +772,23 @@ def home_page():
 # TAB 3: ASISTENTE
     with tab_asistente:
         st.header("🧠 Asistente Pedagógico")
-              
+
+        # 👇 1. DEFINIMOS LA FUNCIÓN DE LIMPIEZA
+        # Esta función borra la memoria de la sesión anterior
+        def limpiar_resultados():
+            keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+        # 👇 2. CONECTAMOS LA LIMPIEZA AL CAMBIO DE HERRAMIENTA
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
-            index=0, horizontal=True, key="asistente_tipo_herramienta"
+            index=0, 
+            horizontal=True, 
+            key="asistente_tipo_herramienta",
+            on_change=limpiar_resultados # <--- ¡AQUÍ ESTÁ LA MAGIA!
         )
         st.markdown("---")
 
@@ -789,13 +801,36 @@ def home_page():
             else:
                 st.subheader("Paso 1: Selecciona el Nivel")
                 niveles = df_gen['NIVEL'].dropna().unique()
-                nivel_sel = st.selectbox("Nivel", options=niveles, index=None, placeholder="Elige una opción...", key="asistente_nivel_sel", label_visibility="collapsed")
+                
+                # 👇 3. CONECTAMOS LA LIMPIEZA AL CAMBIO DE NIVEL
+                nivel_sel = st.selectbox(
+                    "Nivel", 
+                    options=niveles, 
+                    index=None, 
+                    placeholder="Elige una opción...", 
+                    key="asistente_nivel_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                )
                 
                 st.subheader("Paso 2: Selecciona el Grado")
                 grados_options = []
                 if st.session_state.asistente_nivel_sel:
                     grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
-                grado_sel = st.selectbox("Grado", options=grados_options, index=None, placeholder="Elige un Nivel primero...", disabled=(not st.session_state.asistente_nivel_sel), key="asistente_grado_sel", label_visibility="collapsed")
+                
+                # 👇 4. CONECTAMOS LA LIMPIEZA AL CAMBIO DE GRADO
+                grado_sel = st.selectbox(
+                    "Grado", 
+                    options=grados_options, 
+                    index=None, 
+                    placeholder="Elige un Nivel primero...", 
+                    disabled=(not st.session_state.asistente_nivel_sel), 
+                    key="asistente_grado_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                )
+                
+                # ... (A partir de aquí sigue tu código normal de Área, etc.)
 
                 st.subheader("Paso 3: Selecciona el Área")
                 areas_options = []
@@ -994,6 +1029,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
