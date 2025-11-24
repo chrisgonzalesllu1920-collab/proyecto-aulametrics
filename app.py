@@ -857,9 +857,12 @@ def home_page():
         st.subheader("Resultado")
         st.markdown(st.session_state.sesion_generada)
         
-        # --- ZONA DE DESCARGA Y CELEBRACIÓN ---
+# --- ZONA DE DESCARGA Y CELEBRACIÓN ---
         # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria
         if 'doc_buffer' in locals():
+            
+            # TRUCO TÉCNICO: Rebobinamos el archivo al inicio para evitar errores de lectura
+            doc_buffer.seek(0)
             
             st.success("¡Sesión generada con éxito! Descárgala ahora.")
             
@@ -870,17 +873,18 @@ def home_page():
                 st.download_button(
                     label="📄 Descargar Sesión (Word)",
                     data=doc_buffer,
-                    file_name=f"Sesion_Aprendizaje.docx",
+                    file_name="Sesion_Aprendizaje.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
                 
             with col_celebracion:
-                try:
-                    lottie_success = cargar_lottie("robot_logrado.json")
-                    st_lottie(lottie_success, height=100, key="robot_success")
-                except:
-                    pass
+                # ⚠️ HEMOS QUITADO EL TRY/EXCEPT:
+                # Si el nombre del archivo está mal, ahora saldrá un error rojo aquí.
+                # Verifica que en GitHub tu archivo se llame EXACTAMENTE "robot_logrado.json"
+                lottie_success = cargar_lottie("robot_logrado.json")
+                st_lottie(lottie_success, height=100, key="robot_success")
+                
         else:
             # Si se perdió el archivo temporal por recargar la página
             st.info("⚠️ Para descargar, por favor vuelve a hacer clic en 'Generar Sesión'.")
@@ -973,6 +977,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
