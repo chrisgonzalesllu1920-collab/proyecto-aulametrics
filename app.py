@@ -857,44 +857,31 @@ def home_page():
         st.subheader("Resultado")
         st.markdown(st.session_state.sesion_generada)
         
-# --- ZONA DE DESCARGA Y CELEBRACIÓN ---
+        # --- ZONA DE DESCARGA SIMPLE Y SEGURA ---
+        st.success("¡Sesión generada con éxito! Puedes descargarla abajo.")
+        
         # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria
         if 'doc_buffer' in locals():
-            
-            # TRUCO TÉCNICO: Rebobinamos el archivo al inicio para evitar errores de lectura
+            # TRUCO TÉCNICO: Rebobinamos el archivo para evitar errores
             doc_buffer.seek(0)
             
-            st.success("¡Sesión generada con éxito! Descárgala ahora.")
-            
-            # Columnas: Botón (2) | Robot (1)
-            col_btn, col_celebracion = st.columns([2, 1])
-            
-            with col_btn:
-                st.download_button(
-                    label="📄 Descargar Sesión (Word)",
-                    data=doc_buffer,
-                    file_name="Sesion_Aprendizaje.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
-                
-            with col_celebracion:
-                # ⚠️ HEMOS QUITADO EL TRY/EXCEPT:
-                # Si el nombre del archivo está mal, ahora saldrá un error rojo aquí.
-                # Verifica que en GitHub tu archivo se llame EXACTAMENTE "robot_logrado.json"
-                lottie_success = cargar_lottie("robot_logrado.json")
-                st_lottie(lottie_success, height=100, key="robot_success")
-                
+            st.download_button(
+                label="📄 Descargar Sesión (Word)",
+                data=doc_buffer,
+                file_name="Sesion_Aprendizaje.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True
+            )
         else:
             # Si se perdió el archivo temporal por recargar la página
             st.info("⚠️ Para descargar, por favor vuelve a hacer clic en 'Generar Sesión'.")
 
-# 👇 ATENCIÓN: Estos 'elif' vuelven atrás (a la izquierda) para cerrar la cadena correctamente
-    elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
-        st.info("Función de Unidades de Aprendizaje (Próximamente).")
+# 👇 LOS ELIF DEBEN ESTAR ALINEADOS A LA IZQUIERDA (CON EL IF PRINCIPAL)
+elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+    st.info("Función de Unidades de Aprendizaje (Próximamente).")
 
-    elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
-        st.info("Función de Planificación Anual (Próximamente).")
+elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+    st.info("Función de Planificación Anual (Próximamente).")
 
     # --- TAB 4: RECURSOS (¡NUEVA!) ---
     with tab_recursos:
@@ -977,6 +964,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
