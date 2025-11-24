@@ -27,6 +27,21 @@ st.set_page_config(
   initial_sidebar_state="collapsed"
 )
 
+# 👇👇👇 CÓDIGO NUEVO INSERTADO AQUÍ 👇👇👇
+# --- ESTILOS CSS: OCULTAR CADENAS DE TÍTULOS Y MENÚS ---
+st.markdown("""
+    <style>
+    /* Ocultar los enlaces de anclaje (cadenas) al lado de los títulos */
+    h1 > a, h2 > a, h3 > a, h4 > a, h5 > a, h6 > a {
+        display: none !important;
+    }
+    
+    /* Ocultar el pie de página de "Made with Streamlit" */
+    footer {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+# 👆👆👆 FIN DEL CÓDIGO NUEVO 👆👆👆
+
 @st.cache_data 
 def get_image_as_base64(file_path):
   """Carga una imagen y la convierte a Base64 string."""
@@ -36,7 +51,7 @@ def get_image_as_base64(file_path):
       return base64.b64encode(data).decode()
   except FileNotFoundError:
       return None
-
+      
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
 # =========================================================================
@@ -964,6 +979,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
