@@ -1031,24 +1031,39 @@ else:
     home_page()
 
 
-# --- 🕵️‍♂️ CÓDIGO TEMPORAL DE DIAGNÓSTICO ---
-import google.generativeai as genai
+# --- 🕵️‍♂️ DIAGNÓSTICO DE SECRETOS ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔍 Diagnóstico de Llaves")
 
 try:
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("📡 Radar de Modelos Disponibles")
+    # Esto imprimirá la lista de nombres de variables que Streamlit ve
+    keys_encontradas = list(st.secrets.keys())
     
-    # 👇 AQUÍ ESTÁ EL CAMBIO: Ahora buscamos "api_key" en minúsculas
-    api_key = st.secrets["api_key"]
-    genai.configure(api_key=api_key)
-    
-    modelos_disponibles = []
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            modelos_disponibles.append(m.name)
+    if not keys_encontradas:
+        st.sidebar.error("⚠️ No se detectó NINGUNA llave. El archivo secrets.toml parece vacío o inválido.")
+    else:
+        st.sidebar.success(f"Se encontraron {len(keys_encontradas)} llaves:")
+        st.sidebar.write(keys_encontradas)
+        
+        # Intento de conexión si encontramos alguna llave que parezca de Google
+        api_key = None
+        
+        # Buscamos variaciones comunes automáticamente
+        if "api_key" in st.secrets:
+            api_key = st.secrets["api_key"]
+            st.sidebar.info("✅ Usando llave: 'api_key'")
+        elif "GOOGLE_API_KEY" in st.secrets:
+            api_key = st.secrets["GOOGLE_API_KEY"]
+            st.sidebar.info("✅ Usando llave: 'GOOGLE_API_KEY'")
             
-    st.sidebar.code("\n".join(modelos_disponibles))
+        if api_key:
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            st.sidebar.code("\n".join(modelos))
+        else:
+            st.sidebar.warning("❌ Veo llaves, pero ninguna se llama 'api_key' o 'GOOGLE_API_KEY'. Revisa los nombres arriba.")
 
 except Exception as e:
-    st.sidebar.error(f"Error al listar: {e}")
-# ---------------------------------------------
+    st.sidebar.error(f"Error grave: {e}")
+
