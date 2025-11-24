@@ -628,13 +628,12 @@ def convert_df_to_excel(df, area_name, general_info):
         fmt_text = workbook.add_format({'text_wrap': True, 'valign': 'vcenter'})
 
         # 3. Ajustar Ancho de Columnas
-        # Columna A (Índice/Competencia): Muy ancha (60)
+        # Columna A (Índice/Competencia): Muy ancha (60) para que entre todo el texto
         worksheet.set_column('A:A', 60, fmt_text)
-        
-        # 👇 CAMBIO CLAVE AQUÍ 👇
-        # Antes estaba en 15. Lo bajamos a 6 para que AD, A, B, C queden delgadas.
-        # Esto aplica desde la columna B hasta la Z (cubre frecuencias y porcentajes)
-        worksheet.set_column('B:Z', 6)
+
+        # 👇 CAMBIO FINAL: Ancho 9 (Equilibrio perfecto) 👇
+        # Aplica a todas las columnas de datos (AD, A, B, C, Porcentajes...)
+        worksheet.set_column('B:Z', 9)
 
         # 4. Pintar los Encabezados con Lógica
         # (Sobrescribimos la fila 0 con los colores correctos)
@@ -995,6 +994,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
