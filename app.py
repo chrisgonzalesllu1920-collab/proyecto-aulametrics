@@ -1031,26 +1031,3 @@ else:
     home_page()
 
 
-# --- 📡 RADAR DE MODELOS (FINAL) ---
-import google.generativeai as genai
-
-try:
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("📡 Radar de IA")
-
-    # Buscamos la llave tal como la tienes escrita: "api_key"
-    if "api_key" in st.secrets:
-        api_key = st.secrets["api_key"]
-        genai.configure(api_key=api_key)
-        
-        # Listamos los modelos
-        modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        
-        st.sidebar.success(f"¡Conectado! Se detectaron {len(modelos)} modelos.")
-        st.sidebar.code("\n".join(modelos))
-    else:
-        st.sidebar.error("⚠️ No encuentro 'api_key'. Asegúrate de haber borrado '[gemini]' en los Secrets.")
-
-except Exception as e:
-    st.sidebar.error(f"Error: {e}")
-
