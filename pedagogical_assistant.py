@@ -703,41 +703,26 @@ def generar_estructura_ppt(sesion_texto):
     # Prompt de Ingeniería Inversa MEJORADO (Más estricto)
     prompt = f"""
     Actúa como un diseñador de presentaciones pedagógicas experto.
-    Tu tarea es **EXTRAER** y **SINTETIZAR** el contenido de la siguiente SESIÓN DE APRENDIZAJE para crear 5 diapositivas, siguiendo un formato JSON estricto.
+    Tu tarea es **EXTRAER** y **SINTETIZAR** el contenido de la siguiente SESIÓN DE APRENDIZAJE para crear 6 diapositivas (JSON estricto).
 
     TEXTO DE LA SESIÓN:
     {sesion_texto}
 
     REGLAS DE SALIDA (ESTRICTO JSON):
-    Devuelve SOLO un objeto JSON con esta estructura exacta (sin texto extra, ni markdown ```json):
+    Devuelve SOLO un objeto JSON con esta estructura exacta:
     
     {{
-      "slide_1": {{ 
-          "titulo": "Título EXACTO de la sesión de aprendizaje", 
-          "subtitulo": "Extrae el GRADO, ÁREA y TEMA PRINCIPAL mencionados en los datos generales de la sesión." 
-      }},
-      "slide_2": {{ 
-          "titulo": "Propósito de Hoy", 
-          "contenido": "Extrae el texto COMPLETO y EXACTO del 'Propósito de la Sesión' de la sesión original." 
-      }},
-      "slide_3": {{ 
-          "titulo": "Motivación", 
-          "contenido": "Extrae la 'Actividad corta y motivadora' y la 'Pregunta retadora' del INICIO de la sesión." 
-      }},
-      "slide_4": {{ 
-          "titulo": "Desarrollo del Tema", 
-          "puntos": ["Extrae la 'Actividad de Alta Demanda Cognitiva' y los 2 puntos más importantes de la 'Gestión y acompañamiento' del DESARROLLO."] 
-      }},
-      "slide_5": {{ 
-          "titulo": "Cierre y Evaluación", 
-          "contenido": "Extrae la 'Actividad de cierre' y las 'Preguntas de metacognición' del CIERRE de la sesión." 
-      }}
+      "slide_1": {{ "titulo": "Título de la Sesión", "subtitulo": "Grado, Sección y Área" }},
+      "slide_2": {{ "titulo": "Propósito de Hoy", "contenido": "Resume el propósito en MÁXIMO 20 palabras." }},
+      "slide_3": {{ "titulo": "Motivación", "contenido": "La pregunta retadora o actividad inicial (Breve)." }},
+      "slide_4": {{ "titulo": "Desarrollo del Tema", "puntos": ["Paso clave 1", "Paso clave 2", "Reto cognitivo"] }},
+      "slide_5": {{ "titulo": "Evaluación", "contenido": "Criterios de evaluación o actividad de cierre." }},
+      "slide_6": {{ "titulo": "Metacognición", "contenido": "Preguntas de reflexión final (¿Qué aprendí?, etc)." }}
     }}
     
-    Reglas de Contenido:
-    - Para los puntos y contenidos, sé conciso: Máximo 3 viñetas por diapositiva.
-    - Asegúrate de que el contenido extraído sea textualmente fiel a la sesión original.
-    - NO inventes contenido. SOLO extrae y resume lo que YA ESTÁ en la sesión.
+    Reglas de Oro:
+    1. ¡SÉ BREVE! El texto debe caber en una diapositiva. Resume agresivamente.
+    2. Máximo 30 palabras por diapositiva.
     """
 
     try:
@@ -750,6 +735,7 @@ def generar_estructura_ppt(sesion_texto):
         return response.text
     except Exception as e:
         return None
+
 
 
 
