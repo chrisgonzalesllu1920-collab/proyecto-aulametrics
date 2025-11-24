@@ -1,30 +1,69 @@
 import io
+import json
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Pt
 
-def generar_ppt_prueba():
+def crear_ppt_desde_data(json_texto):
     """
-    Genera un PowerPoint básico de prueba (Hola Mundo).
-    Sirve para confirmar que el sistema puede crear archivos .pptx sin errores.
+    Recibe el texto JSON generado por Gemini, lo limpia y crea 
+    una presentación de 5 diapositivas automáticamente.
     """
-    # 1. Crear una presentación vacía (usa la plantilla blanca por defecto)
+    # 1. Crear presentación vacía
     prs = Presentation()
+    
+    # 2. Intentar leer los datos JSON
+    try:
+        # A veces la IA pone ```json al principio, lo limpiamos
+        json_limpio = json_texto.replace('```json', '').replace('```', '').strip()
+        data = json.loads(json_limpio)
+    except Exception as e:
+        # Si falla el JSON, devolvemos error (o una ppt de error)
+        print(f"Error parseando JSON: {e}")
+        return None
 
-    # 2. Agregar una diapositiva de Título (Layout 0 suele ser Título)
-    slide_layout = prs.slide_layouts[0]
-    slide = prs.slides.add_slide(slide_layout)
+    # --- DIAPOSITIVA 1: PORTADA (Layout 0) ---
+    if 'slide_1' in data:
+        info = data['slide_1']
+        slide = prs.slides.add_slide(prs.slide_layouts[0]) # 0 = Title Slide
+        slide.shapes.title.text = info.get('titulo', 'Sin Título')
+        # El placeholder[1] suele ser el subtítulo
+        if len(slide.placeholders) > 1:
+            slide.placeholders[1].text = info.get('subtitulo', '')
 
-    # 3. Escribir en los marcadores de posición (Título y Subtítulo)
-    title = slide.shapes.title
-    subtitle = slide.placeholders[1]
+    # --- DIAPOSITIVAS 2 a 5: CONTENIDO (Layout 1) ---
+    # Layout 1 = Título + Contenido (Viñetas)
+    keys_contenido = ['slide_2', 'slide_3', 'slide_4', 'slide_5']
+    
+    for key in keys_contenido:
+        if key in data:
+            info = data[key]
+            slide = prs.slides.add_slide(prs.slide_layouts[1]) 
+            
+            # Título de la diapositiva
+            slide.shapes.title.text = info.get('titulo', '')
+            
+            # Cuerpo (Texto o Puntos)
+            # Detectamos si viene como "contenido" (texto) o "puntos" (lista)
+            contenido_raw = info.get('contenido') or info.get('puntos') or ""
+            
+            # Usamos el cuadro de texto principal
+            tf = slide.placeholders[1].text_frame
+            tf.clear() # Limpiamos por si acaso
 
-    title.text = "¡Hola AulaMetrics!"
-    subtitle.text = "Generación automática de PowerPoint exitosa."
+            if isinstance(contenido_raw, list):
+                # Si es una lista, agregamos viñetas
+                for punto in contenido_raw:
+                    p = tf.add_paragraph()
+                    p.text = str(punto)
+                    p.level = 0 # Nivel de indentación principal
+            else:
+                # Si es texto simple
+                p = tf.add_paragraph()
+                p.text = str(contenido_raw)
 
-    # 4. Guardar el archivo en memoria (Buffer)
-    # Esto evita guardar archivos basura en el servidor
-    ppt_buffer = io.BytesIO()
-    prs.save(ppt_buffer)
-    ppt_buffer.seek(0)
-
-    return ppt_buffer
+    # 3. Guardar en memoria
+    buffer = io.BytesIO()
+    prs.save(buffer)
+    buffer.seek(0)
+    
+    return buffer
