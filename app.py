@@ -6,7 +6,8 @@ import analysis_core
 import pedagogical_assistant
 import plotly.express as px
 import io 
-import xlsxwriter 
+import xlsxwriter
+import pptx_generator
 import os 
 import base64 
 from supabase import create_client, Client
@@ -927,17 +928,40 @@ def home_page():
             
             st.success("¡Sesión generada con éxito!")
             
-            # 🛡️ ZONA DE DESCARGA (CORREGIDA)
+# 🛡️ ZONA DE DESCARGA (CORREGIDA)
             # Verificamos si los bytes del archivo existen en la memoria permanente
             if st.session_state.get('docx_bytes'):
                 
                 st.download_button(
                     label="📄 Descargar Sesión en Word",
-                    data=st.session_state.docx_bytes, # <--- ¡AQUÍ ESTABA LA CLAVE!
+                    data=st.session_state.docx_bytes, 
                     file_name="Sesion_Aprendizaje.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
+
+                # 👇 AQUÍ COMIENZA EL NUEVO BLOQUE DE PPT 👇
+                # --- 🧪 ZONA EXPERIMENTAL PPT ---
+                st.markdown("---")
+                st.subheader("🧪 Prototipo PowerPoint")
+                st.info("Prueba técnica para verificar generación de diapositivas.")
+                
+                if st.button("🛠️ Generar PPT de Prueba"):
+                    try:
+                        # Llamamos a tu nuevo archivo
+                        ppt_buffer = pptx_generator.generar_ppt_prueba()
+                        
+                        st.download_button(
+                            label="📥 Descargar PPT (Test)",
+                            data=ppt_buffer,
+                            file_name="prueba_aulametrics.pptx",
+                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        )
+                        st.success("¡PPT generado en memoria!")
+                    except Exception as e:
+                        st.error(f"Error en el motor PPT: {e}")
+                # 👆 FIN DEL NUEVO BLOQUE 👆
+
             else:
                 st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
@@ -1029,5 +1053,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
