@@ -889,11 +889,11 @@ def home_page():
             st.warning("⚠️ Error temporal. Por favor genera la sesión de nuevo.")
 
 # 👇 ALINEAR ELIF A LA IZQUIERDA
-elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
-    st.info("Función de Unidades de Aprendizaje (Próximamente).")
-
-elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
-    st.info("Función de Planificación Anual (Próximamente).")
+    elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+        st.info("Función de Unidades de Aprendizaje (Próximamente).")
+    
+    elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+        st.info("Función de Planificación Anual (Próximamente).")
 
     # --- TAB 4: RECURSOS (¡NUEVA!) ---
     with tab_recursos:
@@ -976,6 +976,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
