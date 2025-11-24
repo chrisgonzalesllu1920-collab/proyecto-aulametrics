@@ -944,7 +944,7 @@ def home_page():
 # --- 🧪 ZONA EXPERIMENTAL PPT ---
                 st.markdown("---")
                 st.subheader("🚀 Generador de Presentaciones (Beta)")
-                st.info("La IA leerá tu sesión y creará 5 diapositivas automáticamente.")
+                st.info("La IA leerá tu sesión y creará 7 diapositivas automáticamente.")
                 
                 if st.button("✨ Generar PowerPoint"):
                     if 'sesion_generada' in st.session_state and st.session_state.sesion_generada:
@@ -1065,6 +1065,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
