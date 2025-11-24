@@ -1,67 +1,72 @@
 import io
 import json
 from pptx import Presentation
-from pptx.util import Pt
+from pptx.util import Pt # <--- Importante para el tamaño de letra
 
 def crear_ppt_desde_data(json_texto):
     """
-    Recibe el texto JSON generado por Gemini, lo limpia y crea 
-    una presentación de 5 diapositivas automáticamente.
+    Crea una presentación de 6 diapositivas con control de tamaño de fuente
+    para evitar desbordamientos.
     """
-    # 1. Crear presentación vacía
     prs = Presentation()
     
-    # 2. Intentar leer los datos JSON
     try:
-        # A veces la IA pone ```json al principio, lo limpiamos
         json_limpio = json_texto.replace('```json', '').replace('```', '').strip()
         data = json.loads(json_limpio)
     except Exception as e:
-        # Si falla el JSON, devolvemos error (o una ppt de error)
         print(f"Error parseando JSON: {e}")
         return None
 
-    # --- DIAPOSITIVA 1: PORTADA (Layout 0) ---
+    # --- DIAPOSITIVA 1: PORTADA ---
     if 'slide_1' in data:
         info = data['slide_1']
-        slide = prs.slides.add_slide(prs.slide_layouts[0]) # 0 = Title Slide
-        slide.shapes.title.text = info.get('titulo', 'Sin Título')
-        # El placeholder[1] suele ser el subtítulo
+        slide = prs.slides.add_slide(prs.slide_layouts[0]) 
+        
+        # Título Grande (40pt)
+        title = slide.shapes.title
+        title.text = info.get('titulo', 'Sin Título')
+        title.text_frame.paragraphs[0].font.size = Pt(40)
+        
+        # Subtítulo (24pt)
         if len(slide.placeholders) > 1:
-            slide.placeholders[1].text = info.get('subtitulo', '')
+            subtitle = slide.placeholders[1]
+            subtitle.text = info.get('subtitulo', '')
+            subtitle.text_frame.paragraphs[0].font.size = Pt(24)
 
-    # --- DIAPOSITIVAS 2 a 5: CONTENIDO (Layout 1) ---
-    # Layout 1 = Título + Contenido (Viñetas)
-    keys_contenido = ['slide_2', 'slide_3', 'slide_4', 'slide_5']
+    # --- DIAPOSITIVAS 2 a 6: CONTENIDO ---
+    # Ahora buscamos hasta slide_6
+    keys_contenido = ['slide_2', 'slide_3', 'slide_4', 'slide_5', 'slide_6']
     
     for key in keys_contenido:
         if key in data:
             info = data[key]
             slide = prs.slides.add_slide(prs.slide_layouts[1]) 
             
-            # Título de la diapositiva
-            slide.shapes.title.text = info.get('titulo', '')
+            # Título de la diapositiva (32pt)
+            title = slide.shapes.title
+            title.text = info.get('titulo', '')
+            title.text_frame.paragraphs[0].font.size = Pt(32)
             
-            # Cuerpo (Texto o Puntos)
-            # Detectamos si viene como "contenido" (texto) o "puntos" (lista)
+            # Cuerpo (Texto o Puntos) - TAMAÑO SEGURO (20pt)
             contenido_raw = info.get('contenido') or info.get('puntos') or ""
             
-            # Usamos el cuadro de texto principal
             tf = slide.placeholders[1].text_frame
-            tf.clear() # Limpiamos por si acaso
+            tf.clear() 
+
+            # Función auxiliar para añadir texto con tamaño fijo
+            def add_text(frame, text, bullet=False):
+                p = frame.add_paragraph()
+                p.text = str(text)
+                p.font.size = Pt(20) # <--- AQUÍ ESTÁ EL TRUCO (Letra mediana)
+                if not bullet:
+                    p.level = 0
 
             if isinstance(contenido_raw, list):
-                # Si es una lista, agregamos viñetas
                 for punto in contenido_raw:
-                    p = tf.add_paragraph()
-                    p.text = str(punto)
-                    p.level = 0 # Nivel de indentación principal
+                    add_text(tf, punto, bullet=True)
             else:
-                # Si es texto simple
-                p = tf.add_paragraph()
-                p.text = str(contenido_raw)
+                add_text(tf, contenido_raw, bullet=False)
 
-    # 3. Guardar en memoria
     buffer = io.BytesIO()
     prs.save(buffer)
     buffer.seek(0)
