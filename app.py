@@ -1041,7 +1041,7 @@ try:
     st.sidebar.subheader("📡 Radar de Modelos Disponibles")
     
     # Usamos la clave que ya tienes configurada
-    api_key = st.secrets["GOOGLE_API_KEY"]
+    api_key = st.secrets["api_key"]
     genai.configure(api_key=api_key)
     
     modelos_disponibles = []
@@ -1055,3 +1055,4 @@ try:
 except Exception as e:
     st.sidebar.error(f"Error al listar: {e}")
 # ---------------------------------------------
+
