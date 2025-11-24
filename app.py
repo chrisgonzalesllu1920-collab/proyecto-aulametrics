@@ -28,15 +28,14 @@ st.set_page_config(
 )
 
 # 👇👇👇 CÓDIGO NUEVO INSERTADO AQUÍ 👇👇👇
-# --- ESTILOS CSS: OCULTAR CADENAS DE TÍTULOS Y MENÚS ---
+# --- ESTILOS CSS: OCULTAR CADENAS DE TÍTULOS ---
 st.markdown("""
     <style>
     /* Ocultar los enlaces de anclaje (cadenas) al lado de los títulos */
     h1 > a, h2 > a, h3 > a, h4 > a, h5 > a, h6 > a {
         display: none !important;
     }
-    
-    /* Ocultar el pie de página de "Made with Streamlit" */
+    /* Ocultar pie de página opcional */
     footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
@@ -872,31 +871,29 @@ def home_page():
         st.subheader("Resultado")
         st.markdown(st.session_state.sesion_generada)
         
-        # --- ZONA DE DESCARGA SIMPLE Y SEGURA ---
-        st.success("¡Sesión generada con éxito! Puedes descargarla abajo.")
+        st.success("¡Sesión generada con éxito!")
         
-        # 🛡️ ESCUDO: Verificamos si 'doc_buffer' existe en memoria
+        # 🛡️ ZONA DE DESCARGA SEGURA
         if 'doc_buffer' in locals():
-            # TRUCO TÉCNICO: Rebobinamos el archivo para evitar errores
             doc_buffer.seek(0)
             
+            # Botón simple y robusto (Sin columnas, sin llaves extrañas)
             st.download_button(
-                label="📄 Descargar Sesión (Word)",
+                label="📄 Descargar Sesión en Word",
                 data=doc_buffer,
                 file_name="Sesion_Aprendizaje.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True
             )
         else:
-            # Si se perdió el archivo temporal por recargar la página
-            st.info("⚠️ Para descargar, por favor vuelve a hacer clic en 'Generar Sesión'.")
+            st.warning("⚠️ Error temporal. Por favor genera la sesión de nuevo.")
 
-# 👇 LOS ELIF DEBEN ESTAR ALINEADOS A LA IZQUIERDA (CON EL IF PRINCIPAL)
-    elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
-        st.info("Función de Unidades de Aprendizaje (Próximamente).")
-    
-    elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
-        st.info("Función de Planificación Anual (Próximamente).")
+# 👇 ALINEAR ELIF A LA IZQUIERDA
+elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+    st.info("Función de Unidades de Aprendizaje (Próximamente).")
+
+elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+    st.info("Función de Planificación Anual (Próximamente).")
 
     # --- TAB 4: RECURSOS (¡NUEVA!) ---
     with tab_recursos:
@@ -979,6 +976,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
