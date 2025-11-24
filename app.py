@@ -1031,39 +1031,26 @@ else:
     home_page()
 
 
-# --- 🕵️‍♂️ DIAGNÓSTICO DE SECRETOS ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("🔍 Diagnóstico de Llaves")
+# --- 📡 RADAR DE MODELOS (FINAL) ---
+import google.generativeai as genai
 
 try:
-    # Esto imprimirá la lista de nombres de variables que Streamlit ve
-    keys_encontradas = list(st.secrets.keys())
-    
-    if not keys_encontradas:
-        st.sidebar.error("⚠️ No se detectó NINGUNA llave. El archivo secrets.toml parece vacío o inválido.")
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📡 Radar de IA")
+
+    # Buscamos la llave tal como la tienes escrita: "api_key"
+    if "api_key" in st.secrets:
+        api_key = st.secrets["api_key"]
+        genai.configure(api_key=api_key)
+        
+        # Listamos los modelos
+        modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        
+        st.sidebar.success(f"¡Conectado! Se detectaron {len(modelos)} modelos.")
+        st.sidebar.code("\n".join(modelos))
     else:
-        st.sidebar.success(f"Se encontraron {len(keys_encontradas)} llaves:")
-        st.sidebar.write(keys_encontradas)
-        
-        # Intento de conexión si encontramos alguna llave que parezca de Google
-        api_key = None
-        
-        # Buscamos variaciones comunes automáticamente
-        if "api_key" in st.secrets:
-            api_key = st.secrets["api_key"]
-            st.sidebar.info("✅ Usando llave: 'api_key'")
-        elif "GOOGLE_API_KEY" in st.secrets:
-            api_key = st.secrets["GOOGLE_API_KEY"]
-            st.sidebar.info("✅ Usando llave: 'GOOGLE_API_KEY'")
-            
-        if api_key:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-            st.sidebar.code("\n".join(modelos))
-        else:
-            st.sidebar.warning("❌ Veo llaves, pero ninguna se llama 'api_key' o 'GOOGLE_API_KEY'. Revisa los nombres arriba.")
+        st.sidebar.error("⚠️ No encuentro 'api_key'. Asegúrate de haber borrado '[gemini]' en los Secrets.")
 
 except Exception as e:
-    st.sidebar.error(f"Error grave: {e}")
+    st.sidebar.error(f"Error: {e}")
 
