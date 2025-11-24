@@ -689,21 +689,21 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     return buffer
 
 # =========================================================================
-# === VI. GENERADOR DE ESTRUCTURA PARA PPT (El Cerebro de Síntesis) ===
+# === VI. GENERADOR DE ESTRUCTURA PARA PPT (Versión 7 Slides) ===
 # =========================================================================
 
 def generar_estructura_ppt(sesion_texto):
     """
     Toma el texto completo de la sesión y usa IA para extraer
-    el contenido resumido para 5 diapositivas en formato JSON.
+    el contenido resumido para 7 diapositivas en formato JSON.
     """
     if client is None:
         return None
 
-    # Prompt de Ingeniería Inversa MEJORADO (Más estricto)
+    # Prompt de Ingeniería Inversa MEJORADO (Versión 7 Slides + Anti-Alucinación)
     prompt = f"""
     Actúa como un diseñador de presentaciones pedagógicas experto.
-    Tu tarea es **EXTRAER** y **SINTETIZAR** el contenido de la siguiente SESIÓN DE APRENDIZAJE para crear 6 diapositivas (JSON estricto).
+    Tu tarea es **EXTRAER** (no inventar) el contenido de la siguiente SESIÓN DE APRENDIZAJE para crear 7 diapositivas.
 
     TEXTO DE LA SESIÓN:
     {sesion_texto}
@@ -713,32 +713,25 @@ def generar_estructura_ppt(sesion_texto):
     
     {{
       "slide_1": {{ "titulo": "Título de la Sesión", "subtitulo": "Grado, Sección y Área" }},
-      "slide_2": {{ "titulo": "Propósito de Hoy", "contenido": "Resume el propósito en MÁXIMO 20 palabras." }},
-      "slide_3": {{ "titulo": "Motivación", "contenido": "La pregunta retadora o actividad inicial (Breve)." }},
-      "slide_4": {{ "titulo": "Desarrollo del Tema", "puntos": ["Paso clave 1", "Paso clave 2", "Reto cognitivo"] }},
-      "slide_5": {{ "titulo": "Evaluación", "contenido": "Criterios de evaluación o actividad de cierre." }},
-      "slide_6": {{ "titulo": "Metacognición", "contenido": "Preguntas de reflexión final (¿Qué aprendí?, etc)." }}
+      "slide_2": {{ "titulo": "Propósito de la Sesión", "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'." }},
+      "slide_3": {{ "titulo": "Motivación Inicial", "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo." }},
+      "slide_4": {{ "titulo": "Desarrollo y Gestión", "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"] }},
+      "slide_5": {{ "titulo": "Criterios de Evaluación", "puntos": ["Criterio 1", "Criterio 2", "Criterio 3 (Extrae de la sección III)"] }},
+      "slide_6": {{ "titulo": "Cierre de la Sesión", "contenido": "Resumen de la actividad de cierre o conclusiones." }},
+      "slide_7": {{ "titulo": "Metacognición", "contenido": "Extrae las preguntas de reflexión (¿Qué aprendí?, ¿Para qué me sirve?) del apartado CIERRE." }}
     }}
     
     Reglas de Oro:
-    1. ¡SÉ BREVE! El texto debe caber en una diapositiva. Resume agresivamente.
-    2. Máximo 30 palabras por diapositiva.
+    1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
+    2. Brevedad: Resume los puntos largos para que quepan en la diapositiva (máx 30 palabras por slide).
     """
 
     try:
-        # Usamos el modelo 2.5 Flash (rápido y bueno con JSON)
         response = client.models.generate_content(
             model='models/gemini-2.5-flash',
             contents=prompt,
-            config={'response_mime_type': 'application/json'} # Forzamos modo JSON
+            config={'response_mime_type': 'application/json'}
         )
         return response.text
     except Exception as e:
         return None
-
-
-
-
-
-
-
