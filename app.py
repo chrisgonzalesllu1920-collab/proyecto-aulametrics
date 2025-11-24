@@ -877,11 +877,11 @@ def home_page():
             st.info("⚠️ Para descargar, por favor vuelve a hacer clic en 'Generar Sesión'.")
 
 # 👇 LOS ELIF DEBEN ESTAR ALINEADOS A LA IZQUIERDA (CON EL IF PRINCIPAL)
-elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
-    st.info("Función de Unidades de Aprendizaje (Próximamente).")
-
-elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
-    st.info("Función de Planificación Anual (Próximamente).")
+    elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
+        st.info("Función de Unidades de Aprendizaje (Próximamente).")
+    
+    elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
+        st.info("Función de Planificación Anual (Próximamente).")
 
     # --- TAB 4: RECURSOS (¡NUEVA!) ---
     with tab_recursos:
@@ -964,6 +964,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
