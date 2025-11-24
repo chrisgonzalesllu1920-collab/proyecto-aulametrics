@@ -1031,43 +1031,27 @@ else:
     home_page()
 
 
+# --- 🕵️‍♂️ CÓDIGO TEMPORAL DE DIAGNÓSTICO ---
+# (Pégalo al final de app.py solo para ver la lista)
 
+import google.generativeai as genai
 
+try:
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📡 Radar de Modelos Disponibles")
+    
+    # Usamos la clave que ya tienes configurada
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=api_key)
+    
+    modelos_disponibles = []
+    for m in genai.list_models():
+        # Filtramos solo los que sirven para generar texto (chat)
+        if 'generateContent' in m.supported_generation_methods:
+            modelos_disponibles.append(m.name)
+            
+    st.sidebar.code("\n".join(modelos_disponibles))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+except Exception as e:
+    st.sidebar.error(f"Error al listar: {e}")
+# ---------------------------------------------
