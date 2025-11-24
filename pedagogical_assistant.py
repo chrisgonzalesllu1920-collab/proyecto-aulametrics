@@ -688,7 +688,50 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     buffer.seek(0)
     return buffer
 
+# =========================================================================
+# === VI. GENERADOR DE ESTRUCTURA PARA PPT (El Cerebro de Síntesis) ===
+# =========================================================================
 
+def generar_estructura_ppt(sesion_texto):
+    """
+    Toma el texto completo de la sesión y usa IA para extraer
+    el contenido resumido para 5 diapositivas en formato JSON.
+    """
+    if client is None:
+        return None
+
+    # Prompt de Ingeniería Inversa (De Texto a Estructura)
+    prompt = f"""
+    Actúa como un diseñador de presentaciones pedagógicas.
+    Analiza la siguiente SESIÓN DE APRENDIZAJE y extrae el contenido para crear 5 diapositivas.
+    
+    TEXTO DE LA SESIÓN:
+    {sesion_texto}
+
+    REGLAS DE SALIDA (ESTRICTO JSON):
+    Devuelve SOLO un objeto JSON con esta estructura exacta (sin texto extra, ni markdown ```json):
+    
+    {{
+      "slide_1": {{ "titulo": "Título de la sesión", "subtitulo": "Grado y Sección" }},
+      "slide_2": {{ "titulo": "Propósito de Hoy", "contenido": "Texto breve del propósito" }},
+      "slide_3": {{ "titulo": "Motivación", "contenido": "Frase o pregunta clave del inicio" }},
+      "slide_4": {{ "titulo": "Desarrollo del Tema", "puntos": ["Idea clave 1", "Idea clave 2", "Idea clave 3"] }},
+      "slide_5": {{ "titulo": "Cierre y Evaluación", "contenido": "Pregunta de metacognición o conclusión" }}
+    }}
+    
+    Regla de Oro: Sé muy conciso. Máximo 15 palabras por punto.
+    """
+
+    try:
+        # Usamos el modelo 2.5 Flash (rápido y bueno con JSON)
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'} # Forzamos modo JSON
+        )
+        return response.text
+    except Exception as e:
+        return None
 
 
 
