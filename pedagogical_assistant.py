@@ -384,136 +384,114 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Versión: FORMATO PROFESIONAL TABULAR + SIN SALUDOS) ===
+# === (Versión: DISEÑO ENCUADRADO + LIMPIEZA AUTOMÁTICA DE SALUDOS) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
                                 region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
-    Genera una sesión de aprendizaje con formato TABULAR y SIN TEXTO INTRODUCTORIO.
+    Genera una sesión con formato TABULAR COMPLETO (Marcos).
+    Incluye un filtro de Python para eliminar saludos automáticamente.
     """
     
     if client is None:
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar."
 
-    # 1. Preparar listas y textos
-    competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
-    capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
+    # 1. Preparar listas
+    competencias_str = "<br>".join(f"• {comp}" for comp in competencias_lista)
+    capacidades_str = "<br>".join(f"• {cap}" for cap in capacidades_lista)
 
-    # --- CONTEXTO GEOGRÁFICO ---
+    # --- CONTEXTO ---
     contexto_str = ""
     if region and region.strip(): 
-        contexto_str = f"CONTEXTO LOCAL: La sesión se desarrolla en {distrito}, {provincia}, {region}. Usa ejemplos locales."
+        contexto_str = f"CONTEXTO: {distrito}, {provincia}, {region}."
     
-    # --- INSTRUCCIONES ADICIONALES ---
+    # --- INSTRUCCIONES ---
     instrucciones_str = ""
     if instrucciones_docente and instrucciones_docente.strip():
-        instrucciones_str = f"PEDIDO ESPECIAL DEL DOCENTE: {instrucciones_docente}"
+        instrucciones_str = f"REQUISITO ADICIONAL: {instrucciones_docente}"
 
-    # --- MENÚ DE METODOLOGÍAS ---
+    # --- MENÚ METODOLOGÍAS ---
     menu_metodologias = """
     1. Aprendizaje Basado en Problemas (ABP)
     2. Aprendizaje Basado en Indagación
     3. Aprendizaje Colaborativo
     4. Gamificación
-    5. Estudio de Casos
-    6. Aula Invertida
+    5. Aula Invertida
     """
 
-    # 2. EL MEGA-PROMPT DE DISEÑO PROFESIONAL
+    # 2. PROMPT CON DISEÑO DE TABLAS (MARCOS)
     prompt = f"""
-    Actúa como un especialista curricular del MINEDU (Perú). Diseña una SESIÓN DE APRENDIZAJE profesional.
+    Actúa como especialista curricular. Diseña una SESIÓN DE APRENDIZAJE profesional para imprimir.
 
-    **REGLAS ESTRICTAS DE COMPORTAMIENTO:**
-    1. **PROHIBIDO SALUDAR.** No digas "Aquí tienes la sesión" ni "Espero que sirva".
-    2. **EMPIEZA DIRECTAMENTE** con el título de la sesión (Markdown H1).
-    3. Tu salida debe ser **100% Markdown** limpio.
-
-    **DATOS DE ENTRADA:**
-    - Nivel/Grado: {nivel} - {grado} ({ciclo})
-    - Área: {area}
+    **DATOS:**
+    - Grado: {grado} ({area})
     - Tema: {tematica}
-    - Duración: {tiempo}
+    - Tiempo: {tiempo}
     {contexto_str}
     {instrucciones_str}
-
-    **ESTÁNDARES:**
-    - Competencia: {competencias_str}
-    - Capacidades: {capacidades_str}
     - Estándar: "{estandar_texto}"
 
-    **ESTRUCTURA VISUAL OBLIGATORIA (Usa Tablas Markdown):**
+    **ESTRUCTURA VISUAL OBLIGATORIA (TODO EN TABLAS):**
+    Tu salida debe seguir ESTRICTAMENTE este formato Markdown:
 
-    # SESIÓN DE APRENDIZAJE N° ... [Genera un título creativo aquí]
+    # SESIÓN DE APRENDIZAJE N° ... [Título Creativo]
 
     ## I. DATOS INFORMATIVOS
-    | Área Curricular | Grado y Sección | Duración | Fecha | Docente |
-    | :--- | :---: | :---: | :---: | :--- |
-    | **{area}** | {grado} | {tiempo} | ... | ... |
+    | Área | Grado y Sección | Duración | Docente |
+    | :--- | :---: | :---: | :--- |
+    | **{area}** | {grado} | {tiempo} | ... |
 
-    ## II. PROPÓSITO DE APRENDIZAJE
-    | Competencias y Capacidades | Desempeños / Criterios de Evaluación | Evidencia de Aprendizaje | Instrumento |
-    | :--- | :--- | :--- | :--- |
-    | **Competencia:**<br>{competencias_str}<br><br>**Capacidades:**<br>{capacidades_str} | **Criterios:**<br>*(Redacta 3 criterios precisos, medibles y adaptados al grado)* | *(Define una evidencia tangible)* | Lista de Cotejo / Rúbrica |
-
-    ## III. ENFOQUE TRANSVERSAL
-    | Enfoque Transversal | Valores | Actitudes o Acciones Observables |
+    ## II. PROPÓSITOS DE APRENDIZAJE
+    | Competencias y Capacidades | Criterios de Evaluación | Evidencia e Instrumento |
     | :--- | :--- | :--- |
-    | *(Elige uno pertinente)* | *(Valor)* | *(Acción concreta)* |
+    | **Competencia:**<br>{competencias_str}<br><br>**Capacidades:**<br>{capacidades_str} | 1. [Criterio 1]<br>2. [Criterio 2]<br>3. [Criterio 3] | **Evidencia:**<br>[Producto tangible]<br><br>**Instrumento:**<br>Lista de Cotejo |
 
-    ---
+    ## III. SECUENCIA DIDÁCTICA
+    *(Elige la mejor metodología: {menu_metodologias})*
 
-    ## IV. SECUENCIA DIDÁCTICA
-    **Estrategia Metodológica:** *(Elige la mejor de esta lista: {menu_metodologias})*
+    | MOMENTO | ESTRATEGIAS Y ACTIVIDADES | RECURSOS | TIEMPO |
+    | :--- | :--- | :--- | :---: |
+    | **INICIO** | **Motivación:**<br>[Describe actividad]<br><br>**Saberes Previos:**<br>[Preguntas]<br><br>**Problematización:**<br>[Pregunta retadora]<br><br>**Propósito:**<br>[Comunicar el objetivo] | Imágenes<br>Pizarra | 15 min |
+    | **DESARROLLO** | **Gestión y Acompañamiento:**<br>[Paso 1 de la estrategia]<br><br>[Paso 2 de la estrategia]<br><br>**ALTA DEMANDA COGNITIVA:**<br>*(Diseña una actividad donde el estudiante analice, cree o evalúe. NO solo copiar).* | Fichas<br>Textos<br>Material concreto | ... min |
+    | **CIERRE** | **Evaluación:**<br>[Actividad final]<br><br>**Metacognición:**<br>• ¿Qué aprendí hoy?<br>• ¿Cómo lo aprendí?<br>• ¿Para qué me sirve? | Cuaderno | 15 min |
 
-    ### MOMENTO DE INICIO (15 min)
-    * **Motivación:** (Describe una actividad dinámica, uso de imágenes o video).
-    * **Saberes Previos:** (Preguntas literales para recoger lo que saben).
-    * **Conflicto Cognitivo:** (Pregunta retadora que genere desequilibrio).
-    * **Propósito:** (Comunicar qué aprenderán hoy).
+    ## IV. MATERIALES
+    * [Lista de materiales]
 
-    ### MOMENTO DE DESARROLLO (Tiempo principal)
-    * **Gestión y Acompañamiento:**
-      *(Desarrolla paso a paso la actividad principal usando la metodología elegida).*
-    * **ACTIVIDAD DE ALTA DEMANDA COGNITIVA (Obligatorio):**
-      *(Describe explícitamente una actividad de análisis, creación o evaluación crítica que harán los estudiantes).*
-
-    ### MOMENTO DE CIERRE (15 min)
-    * **Evaluación:** (Cómo demuestran lo aprendido).
-    * **Metacognición:** (Preguntas: ¿Qué aprendí? ¿Cómo lo aprendí? ¿Para qué me sirve?).
-
-    ---
-    
-    ## V. MATERIALES Y RECURSOS
-    * (Lista con viñetas de lo necesario)
-
-    **VII. REFERENCIAS BIBLIOGRÁFICAS**
-    * (Libros o links sugeridos)
+    **IMPORTANTE:**
+    - NO saludes.
+    - NO uses frases introductorias.
+    - Usa el formato de tabla para que se vea "encuadrado".
     """
     
     try:
-        # 1. Intentar con modelo Pro (Mejor formato)
+        # Generamos
         response = client.models.generate_content(
             model='models/gemini-2.5-pro',
             contents=prompt
         )
-        return response.text
-    
-    except APIError as e: 
-        # 2. Reintento con Flash si falla
-        if "503" in str(e) or "overloaded" in str(e).lower():
-            try:
-                response_flash = client.models.generate_content(
-                    model='models/gemini-2.5-flash',
-                    contents=prompt
-                )
-                return response_flash.text
-            except Exception as e_flash:
-                return f"Error al contactar la IA (reintento fallido): {e_flash}"
+        texto_generado = response.text
+
+        # --- 3. FILTRO "ANTI-SALUDO" (Limpieza con Python) ---
+        # Si la IA desobedece y pone texto antes del título (#), lo cortamos.
+        if "# SESIÓN" in texto_generado:
+            # Dividimos el texto en la primera aparición del título
+            partes = texto_generado.split("# SESIÓN", 1)
+            # Nos quedamos con el título y todo lo que sigue (ignoramos lo de antes)
+            texto_limpio = "# SESIÓN" + partes[1]
+            return texto_limpio
+        elif "# SESION" in texto_generado: # Por si se olvida la tilde
+             partes = texto_generado.split("# SESION", 1)
+             texto_limpio = "# SESION" + partes[1]
+             return texto_limpio
         else:
-            return f"Error al contactar la IA (APIError): {e}"
+            # Si no encuentra el título, devolvemos todo (esperando que esté bien)
+            return texto_generado
+    
     except Exception as e:
-        return f"Error inesperado: {e}"
+        # Fallback
+        return f"Error generando sesión: {e}"
 
 # =========================================================================
 # === V. GENERADOR DE INFORME DEL ESTUDIANTE (Word con Colores) ===
@@ -728,4 +706,5 @@ def generar_estructura_ppt(sesion_texto):
         return response.text
     except Exception as e:
         return None
+
 
