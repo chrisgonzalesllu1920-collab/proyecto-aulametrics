@@ -740,12 +740,13 @@ def home_page():
             del st.session_state.user
         st.rerun()
 
-    # --- TABS PRINCIPALES (4 PESTAÑAS) ---
-    tab_general, tab_estudiante, tab_asistente, tab_recursos = st.tabs([
+# --- TABS PRINCIPALES (5 PESTAÑAS) ---
+    tab_general, tab_estudiante, tab_asistente, tab_recursos, tab_juegos = st.tabs([
         "📊 Análisis General", 
         "🧑‍🎓 Análisis por Estudiante", 
         "🧠 Asistente Pedagógico",
-        "📂 Recursos"
+        "📂 Recursos",
+        "🎮 Gamificación"  # <--- ¡Aquí está la nueva!
     ])
 
     # TAB 1: ANÁLISIS
@@ -1039,6 +1040,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
