@@ -1021,8 +1021,8 @@ def home_page():
 
 puntos_por_pregunta = 100 / len(preguntas)
                 
-                if opcion_elegida == correcta:
-                    st.session_state['juego_puntaje'] += puntos_por_pregunta # <--- Corregido
+            if opcion_elegida == correcta:
+                st.session_state['juego_puntaje'] += puntos_por_pregunta # <--- Corregido
                     
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1047,6 +1047,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
