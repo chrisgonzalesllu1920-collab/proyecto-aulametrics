@@ -1017,6 +1017,13 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
+    # TAB 5: GAMIFICACIÓN
+    with tab_juegos:
+        st.header("🎮 Gamificación de Aula")
+        st.markdown("Genera actividades lúdicas para despertar el interés de tus estudiantes.")
+        st.divider()
+        st.info("🚧 En construcción: Aquí instalaremos el motor de Trivia 'El Millonario'.")
+
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
@@ -1040,6 +1047,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
