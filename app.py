@@ -1017,12 +1017,110 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-    # TAB 5: GAMIFICACIÓN
+    # TAB 5: GAMIFICACIÓN (TRIVIA)
     with tab_juegos:
-        st.header("🎮 Gamificación de Aula")
-        st.markdown("Genera actividades lúdicas para despertar el interés de tus estudiantes.")
+        st.header("🎮 Desafío Trivia: 'El Millonario'")
+        st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
+
+        # --- 1. CONFIGURACIÓN DEL JUEGO ---
+        col_game1, col_game2 = st.columns(2)
+        with col_game1:
+            tema_juego = st.text_input("Tema de la Trivia:", placeholder="Ej: La Revolución Francesa")
+        with col_game2:
+            grado_juego = st.selectbox("Grado:", ["1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"], key="grado_game")
+
+        # Botón para INICIAR (Resetea la memoria)
+        if st.button("🎲 Generar Nueva Trivia", type="primary"):
+            if not tema_juego:
+                st.warning("Por favor escribe un tema.")
+            else:
+                with st.spinner("🧠 Diseñando preguntas desafiantes..."):
+                    # Llamamos al cerebro
+                    respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_juego, grado_juego, "General")
+                    
+                    if respuesta_json:
+                        try:
+                            # Limpiamos y guardamos en MEMORIA (Session State)
+                            clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
+                            preguntas = json.loads(clean_json)
+                            
+                            # Inicializamos variables de juego
+                            st.session_state['juego_preguntas'] = preguntas
+                            st.session_state['juego_indice'] = 0 # Pregunta actual (0 a 4)
+                            st.session_state['juego_puntaje'] = 0
+                            st.session_state['juego_terminado'] = False
+                            st.rerun() # Recargamos para mostrar la primera pregunta
+                        except Exception as e:
+                            st.error(f"Error procesando el juego: {e}")
+                    else:
+                        st.error("La IA no pudo generar el juego. Intenta de nuevo.")
+
         st.divider()
-        st.info("🚧 En construcción: Aquí instalaremos el motor de Trivia 'El Millonario'.")
+
+        # --- 2. PANTALLA DE JUEGO (Se muestra si hay preguntas cargadas) ---
+        if 'juego_preguntas' in st.session_state and not st.session_state.get('juego_terminado', False):
+            
+            # Recuperamos datos de la memoria
+            idx = st.session_state['juego_indice']
+            preguntas = st.session_state['juego_preguntas']
+            pregunta_actual = preguntas[idx]
+            
+            # Barra de Progreso
+            progreso = (idx + 1) / len(preguntas)
+            st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
+            
+            # Mostrar Pregunta Grande
+            st.markdown(f"### ❓ {pregunta_actual['pregunta']}")
+            
+            # Mostrar Opciones (Botones)
+            opciones = pregunta_actual['opciones']
+            
+            # Usamos columnas para que se vea como botones de concurso
+            col_opt1, col_opt2 = st.columns(2)
+            
+            # Lógica de respuesta: Definimos una función interna para manejar el click
+            def responder(opcion_elegida):
+                correcta = pregunta_actual['respuesta_correcta']
+                if opcion_elegida == correcta:
+                    st.session_state['juego_puntaje'] += 20 # 20 ptos por correcta
+                    st.toast("✅ ¡Correcto!", icon="🎉")
+                else:
+                    st.toast(f"❌ Incorrecto. Era: {correcta}", icon="study")
+                
+                # Avanzar índice
+                if st.session_state['juego_indice'] < len(preguntas) - 1:
+                    st.session_state['juego_indice'] += 1
+                else:
+                    st.session_state['juego_terminado'] = True
+                
+            # Dibujamos los botones
+            with col_opt1:
+                if st.button(f"A) {opciones[0]}", use_container_width=True): responder(opciones[0])
+                if st.button(f"C) {opciones[2]}", use_container_width=True): responder(opciones[2])
+            with col_opt2:
+                if st.button(f"B) {opciones[1]}", use_container_width=True): responder(opciones[1])
+                if st.button(f"D) {opciones[3]}", use_container_width=True): responder(opciones[3])
+
+        # --- 3. PANTALLA FINAL (GAME OVER) ---
+        elif st.session_state.get('juego_terminado', False):
+            puntaje = st.session_state['juego_puntaje']
+            
+            st.markdown("## 🏁 ¡Juego Terminado!")
+            st.metric(label="Puntaje Final", value=f"{puntaje} / 100")
+            
+            if puntaje == 100:
+                st.balloons()
+                st.success("🏆 ¡PERFECTO! Eres un genio.")
+            elif puntaje >= 60:
+                st.info("👏 ¡Bien hecho! Aprobado.")
+            else:
+                st.warning("📚 A repasar un poco más.")
+            
+            if st.button("🔄 Jugar de Nuevo"):
+                # Borramos variables para reiniciar
+                del st.session_state['juego_preguntas']
+                del st.session_state['juego_terminado']
+                st.rerun()
 
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1047,6 +1145,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
