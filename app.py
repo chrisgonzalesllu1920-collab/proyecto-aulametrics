@@ -1019,10 +1019,44 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL UX MEJORADA
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL (ESTILO VERDE + FULLSCREEN)
     with tab_juegos:
+        # --- 0. ESTILOS CSS PERSONALIZADOS (TRUCOS VISUALES) ---
+        # Esto pinta el botón de verde y oculta menús si se activa el modo cine
+        st.markdown("""
+            <style>
+            /* 1. Botón Verde para la acción principal */
+            div.stButton > button[kind="primary"] {
+                background-color: #28a745 !important; /* Verde Éxito */
+                border-color: #28a745 !important;
+                color: white !important;
+            }
+            div.stButton > button[kind="primary"]:hover {
+                background-color: #218838 !important; /* Verde más oscuro al pasar mouse */
+                border-color: #1e7e34 !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
         st.header("🎮 Desafío Trivia: 'El Millonario'")
-        st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
+        
+        col_header1, col_header2 = st.columns([3, 1])
+        with col_header1:
+            st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
+        with col_header2:
+            # --- OBSERVACIÓN 2: MODO PANTALLA COMPLETA ---
+            modo_cine = st.checkbox("📺 Modo Presentación", help="Oculta los menús para proyectar en clase.")
+        
+        if modo_cine:
+            # Inyectamos CSS para ocultar sidebar y header
+            st.markdown("""
+                <style>
+                    [data-testid="stSidebar"] {display: none;}
+                    header[data-testid="stHeader"] {display: none;}
+                    .block-container {padding-top: 1rem !important;}
+                    footer {display: none;}
+                </style>
+            """, unsafe_allow_html=True)
 
         # --- 0. BANCO DE GIFS ---
         GIFS_WIN = [
@@ -1057,7 +1091,8 @@ def home_page():
         with col_game3:
             num_preguntas = st.slider("Preguntas:", min_value=1, max_value=10, value=5)
 
-        # Botón para INICIAR
+        # Botón para INICIAR (Ahora será VERDE por el CSS de arriba)
+        # Usamos type="primary" para que el CSS lo detecte y lo pinte
         if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
             if not tema_juego:
                 st.warning("⚠️ Escribe un tema para empezar.")
@@ -1095,18 +1130,18 @@ def home_page():
 
             pregunta_actual = preguntas[idx]
             
-            # --- MARCADOR SUPERIOR (OBSERVACIÓN 2: PUNTAJE VISIBLE) ---
+            # MARCADOR SUPERIOR
             col_info1, col_info2 = st.columns([3, 1])
             with col_info1:
-                # Barra de Progreso
                 st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                 st.progress((idx + 1) / len(preguntas))
             with col_info2:
-                # Marcador estilo "Scoreboard"
+                # Marcador Verde si va ganando, Azul normal
+                color_score = "#28a745" if current_score > 0 else "#0044cc"
                 st.markdown(f"""
-                <div style="background-color: #f0f2f6; border-radius: 10px; padding: 5px; text-align: center; border: 2px solid #0044cc;">
+                <div style="background-color: #f0f2f6; border-radius: 10px; padding: 5px; text-align: center; border: 2px solid {color_score};">
                     <p style="margin:0; font-size: 14px; font-weight:bold;">PUNTAJE</p>
-                    <p style="margin:0; font-size: 28px; color: #0044cc; font-weight:bold;">{current_score}</p>
+                    <p style="margin:0; font-size: 28px; color: {color_score}; font-weight:bold;">{current_score}</p>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -1115,8 +1150,7 @@ def home_page():
             # Pregunta Grande
             st.markdown(f"### ❓ {pregunta_actual['pregunta']}")
             
-            # --- ZONA DE FEEDBACK GIGANTE (Placeholder) ---
-            # Aquí aparecerá el mensaje GRANDE de Correcto/Incorrecto
+            # ZONA DE FEEDBACK GIGANTE
             feedback_placeholder = st.empty()
 
             opciones = pregunta_actual['opciones']
@@ -1126,16 +1160,12 @@ def home_page():
                 correcta = pregunta_actual['respuesta_correcta']
                 puntos_por_pregunta = 100 / len(preguntas)
                 
-                # --- OBSERVACIÓN 2: FEEDBACK GIGANTE ---
                 if opcion_elegida == correcta:
                     st.session_state['juego_puntaje'] += puntos_por_pregunta
-                    # Mensaje Verde Gigante
                     feedback_placeholder.success(f"✅ ¡CORRECTO! +{int(puntos_por_pregunta)} PUNTOS", icon="🎉")
                 else:
-                    # Mensaje Rojo Gigante
                     feedback_placeholder.error(f"❌ INCORRECTO. La respuesta era: {correcta}", icon="⚠️")
                 
-                # Pausa de 2 segundos para que los alumnos lean el mensaje gigante
                 time.sleep(2)
                 
                 if st.session_state['juego_indice'] < len(preguntas) - 1:
@@ -1168,11 +1198,10 @@ def home_page():
                 if puntaje == 100:
                     st.balloons()
                     gif_url = random.choice(GIFS_WIN)
-                    # OBSERVACIÓN 3: GIF MÁS PEQUEÑO (width=300)
                     st.image(gif_url, width=300, caption="¡PERFECTO!") 
                     st.success("🏆 ¡MAESTRO TOTAL! Puntaje Perfecto.")
                 elif puntaje >= 60:
-                    st.snow() # Nieve espectacular
+                    st.snow()
                     gif_url = random.choice(GIFS_OK)
                     st.image(gif_url, width=300, caption="¡Aprobado!")
                     st.info("👏 ¡Bien hecho!")
@@ -1209,6 +1238,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
