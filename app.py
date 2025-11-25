@@ -1019,61 +1019,96 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V6 (RESTAURACIÓN SEGURA)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V7 (BOTONES GIGANTES 3D)
     with tab_juegos:
         
-        # --- 0. CSS SEGURO (SOLO ESTÉTICA, NO ESTRUCTURA) ---
+        # --- 0. CSS AGRESIVO PARA DISEÑO DE JUEGO ---
         st.markdown("""
             <style>
-            /* 1. Botón Verde (Solo afecta colores, no tamaños que rompan el layout) */
+            /* 1. Botón "GENERAR" (Verde) */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
                 color: white !important;
+                font-size: 20px !important;
                 font-weight: bold !important;
+                padding: 12px 24px !important;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             }
             div.stButton > button[kind="primary"]:hover {
                 background-color: #218838 !important;
+                transform: scale(1.02);
             }
             
-            /* 2. Pregunta Grande */
+            /* 2. LA PREGUNTA (Cartel Azul) */
             .big-question {
-                font-size: 32px !important;
-                font-weight: bold;
-                color: #2c3e50;
+                font-size: 36px !important;
+                font-weight: 800; /* Extra bold */
+                color: #1e3a8a; /* Azul oscuro */
                 text-align: center;
-                background-color: #eaf2f8;
-                padding: 20px;
-                border-radius: 10px;
-                border: 2px solid #3498db;
-                margin-bottom: 20px;
+                background-color: #eff6ff; /* Azul muy clarito */
+                padding: 30px;
+                border-radius: 20px;
+                border: 4px solid #3b82f6; /* Borde azul vibrante */
+                margin-bottom: 30px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                line-height: 1.3;
             }
             
-            /* 3. Opciones Grandes */
+            /* 3. LAS ALTERNATIVAS (AQUÍ ESTÁ LA MAGIA) */
+            /* Apuntamos a todos los botones que NO son el primario */
             div.stButton > button:not([kind="primary"]) {
-                height: 70px;
-                white-space: normal; /* Permite texto en varias lineas si es largo */
+                font-size: 26px !important; /* LETRA GIGANTE */
+                font-weight: 600 !important;
+                color: #374151 !important;
+                
+                background-color: #ffffff !important;
+                border: 2px solid #d1d5db !important; /* Borde gris suave */
+                border-radius: 15px !important;
+                
+                width: 100%;
+                min-height: 100px !important; /* ALTURA FORZADA */
+                height: auto !important;
+                
+                white-space: normal !important; /* Permite que el texto baje de línea */
+                padding: 15px !important;
+                margin-bottom: 15px !important;
+                
+                box-shadow: 0 4px 0 #9ca3af !important; /* Sombra sólida inferior (Efecto 3D) */
+                transition: all 0.1s;
+            }
+            
+            /* Efecto al pasar el mouse por la alternativa */
+            div.stButton > button:not([kind="primary"]):hover {
+                border-color: #2563eb !important; /* Azul */
+                color: #2563eb !important;
+                background-color: #f0f9ff !important;
+                transform: translateY(-2px); /* Se levanta un poco */
+            }
+            
+            /* Efecto al hacer clic (se hunde) */
+            div.stButton > button:not([kind="primary"]):active {
+                box-shadow: 0 0 0 #9ca3af !important; /* Desaparece la sombra */
+                transform: translateY(4px) !important; /* Se mueve hacia abajo */
             }
             </style>
         """, unsafe_allow_html=True)
 
         st.header("🎮 Desafío Trivia")
         
-        # --- MODO CINE (SIMPLIFICADO PARA NO ROMPER LA APP) ---
+        # --- MODO CINE ---
         col_header1, col_header2 = st.columns([3, 1])
         with col_header1:
             st.markdown("Genera un juego de preguntas interactivo.")
         with col_header2:
-            modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
+            modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral para proyectar.")
         
-        # Si activa modo cine, SOLO ocultamos sidebar y header, NO tocamos el ancho
         if modo_cine:
             st.markdown("""
                 <style>
                     [data-testid="stSidebar"] {display: none;}
                     header[data-testid="stHeader"] {display: none;}
                     footer {display: none;}
-                    /* ELIMINAMOS EL HACK DE ANCHO QUE ROMPÍA LAS PESTAÑAS */
                 </style>
             """, unsafe_allow_html=True)
 
@@ -1094,13 +1129,12 @@ def home_page():
             with col_game3:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
 
-            # Botón GENERAR (Verde por CSS)
+            # Botón GENERAR (Estilo Primario)
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                 if not tema_input:
                     st.warning("⚠️ Escribe un tema.")
                 else:
                     with st.spinner(f"🧠 Creando {num_input} desafíos..."):
-                        # Llamada a la IA
                         respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
                         
                         if respuesta_json:
@@ -1123,12 +1157,15 @@ def home_page():
         elif st.session_state.get('juego_en_lobby', False):
             tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
             st.markdown(f"""
-            <div style="text-align: center; padding: 40px;">
-                <h1 style="font-size: 50px;">🏆 TRIVIA TIME 🏆</h1>
-                <h3 style="color: gray;">Tema: {tema_mostrar}</h3>
+            <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h1 style="font-size: 60px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
+                <h2 style="color: #555; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+                <p style="font-size: 18px; color: #888;">¿Están listos para demostrar lo que saben?</p>
                 <br>
             </div>
             """, unsafe_allow_html=True)
+            
+            st.write("") # Espaciador
             
             col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
             with col_btn:
@@ -1149,13 +1186,22 @@ def home_page():
 
             pregunta_actual = preguntas[idx]
             
-            # MARCADOR
+            # MARCADOR SUPERIOR
             col_info1, col_info2 = st.columns([3, 1])
             with col_info1:
                 st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                 st.progress((idx + 1) / len(preguntas))
             with col_info2:
-                st.markdown(f"**PUNTAJE: {current_score}**")
+                # Marcador mejorado
+                st.markdown(f"""
+                <div style="text-align: right;">
+                    <span style="font-size: 16px; font-weight: bold; color: #555;">PUNTAJE:</span>
+                    <span style="font-size: 24px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 15px; border-radius: 10px; border: 1px solid #28a745;">{current_score}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # ESPACIADOR
+            st.write("") 
             
             # PREGUNTA GIGANTE
             st.markdown(f"""
@@ -1164,7 +1210,9 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
+            # ZONA DE FEEDBACK
             feedback_placeholder = st.empty()
+
             opciones = pregunta_actual['opciones']
             col_opt1, col_opt2 = st.columns(2)
             
@@ -1174,11 +1222,21 @@ def home_page():
                 
                 if opcion_elegida == correcta:
                     st.session_state['juego_puntaje'] += puntos_por_pregunta
-                    feedback_placeholder.success(f"✅ ¡CORRECTO! +{int(puntos_por_pregunta)} PUNTOS", icon="🎉")
+                    # Mensaje Verde
+                    feedback_placeholder.markdown(f"""
+                    <div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #badbcc;">
+                        🎉 ¡CORRECTO! (+{int(puntos_por_pregunta)})
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    feedback_placeholder.error(f"❌ INCORRECTO. La respuesta era: {correcta}", icon="⚠️")
+                    # Mensaje Rojo
+                    feedback_placeholder.markdown(f"""
+                    <div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #f5c2c7;">
+                        ❌ INCORRECTO. Era: {correcta}
+                    </div>
+                    """, unsafe_allow_html=True)
                 
-                time.sleep(2)
+                time.sleep(2.5) # Un poco más de tiempo para celebrar
                 
                 if st.session_state['juego_indice'] < len(preguntas) - 1:
                     st.session_state['juego_indice'] += 1
@@ -1186,6 +1244,7 @@ def home_page():
                     st.session_state['juego_terminado'] = True
                 st.rerun()
                 
+            # BOTONES GIGANTES (Gracias al CSS de arriba)
             with col_opt1:
                 if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
                 if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
@@ -1197,20 +1256,20 @@ def home_page():
         elif st.session_state.get('juego_terminado', False):
             puntaje = int(st.session_state['juego_puntaje'])
             
-            st.markdown(f"<h1 style='text-align: center;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
+            st.markdown(f"<h1 style='text-align: center; font-size: 60px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
             
             col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
             with col_center:
                 if puntaje == 100:
                     st.balloons()
-                    st.image(random.choice(GIFS_WIN), width=300) 
+                    st.image(random.choice(GIFS_WIN), use_container_width=True) 
                     st.success("🏆 ¡MAESTRO TOTAL!")
                 elif puntaje >= 60:
                     st.snow()
-                    st.image(random.choice(GIFS_OK), width=300)
+                    st.image(random.choice(GIFS_OK), use_container_width=True)
                     st.info("👏 ¡Aprobado!")
                 else:
-                    st.image(random.choice(GIFS_FAIL), width=300)
+                    st.image(random.choice(GIFS_FAIL), use_container_width=True)
                     st.warning("📚 ¡A repasar!")
 
                 if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
@@ -1242,6 +1301,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
