@@ -1019,7 +1019,7 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN CORREGIDA DE IDENTACIÓN
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL UX MEJORADA
     with tab_juegos:
         st.header("🎮 Desafío Trivia: 'El Millonario'")
         st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
@@ -1087,45 +1087,63 @@ def home_page():
             
             idx = st.session_state['juego_indice']
             preguntas = st.session_state['juego_preguntas']
-            
+            current_score = int(st.session_state['juego_puntaje'])
+
             if idx >= len(preguntas):
                 st.session_state['juego_terminado'] = True
                 st.rerun()
 
             pregunta_actual = preguntas[idx]
             
-            # Barra de Progreso
-            progreso = (idx + 1) / len(preguntas)
-            st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
+            # --- MARCADOR SUPERIOR (OBSERVACIÓN 2: PUNTAJE VISIBLE) ---
+            col_info1, col_info2 = st.columns([3, 1])
+            with col_info1:
+                # Barra de Progreso
+                st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
+                st.progress((idx + 1) / len(preguntas))
+            with col_info2:
+                # Marcador estilo "Scoreboard"
+                st.markdown(f"""
+                <div style="background-color: #f0f2f6; border-radius: 10px; padding: 5px; text-align: center; border: 2px solid #0044cc;">
+                    <p style="margin:0; font-size: 14px; font-weight:bold;">PUNTAJE</p>
+                    <p style="margin:0; font-size: 28px; color: #0044cc; font-weight:bold;">{current_score}</p>
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Pregunta
+            st.divider()
+
+            # Pregunta Grande
             st.markdown(f"### ❓ {pregunta_actual['pregunta']}")
             
+            # --- ZONA DE FEEDBACK GIGANTE (Placeholder) ---
+            # Aquí aparecerá el mensaje GRANDE de Correcto/Incorrecto
+            feedback_placeholder = st.empty()
+
             opciones = pregunta_actual['opciones']
             col_opt1, col_opt2 = st.columns(2)
             
-            # --- AQUÍ ESTABA EL ERROR DE IDENTACIÓN (AHORA CORREGIDO) ---
             def responder(opcion_elegida):
                 correcta = pregunta_actual['respuesta_correcta']
-                # Cálculo: si son 5 preguntas, cada una vale 20. Si son 10, valen 10.
                 puntos_por_pregunta = 100 / len(preguntas)
                 
-                # Todo este bloque if/else debe estar alineado
+                # --- OBSERVACIÓN 2: FEEDBACK GIGANTE ---
                 if opcion_elegida == correcta:
                     st.session_state['juego_puntaje'] += puntos_por_pregunta
-                    st.toast("✅ ¡Correcto!", icon="🎉")
+                    # Mensaje Verde Gigante
+                    feedback_placeholder.success(f"✅ ¡CORRECTO! +{int(puntos_por_pregunta)} PUNTOS", icon="🎉")
                 else:
-                    st.toast(f"❌ Incorrecto. Era: {correcta}", icon="📚")
+                    # Mensaje Rojo Gigante
+                    feedback_placeholder.error(f"❌ INCORRECTO. La respuesta era: {correcta}", icon="⚠️")
                 
-                time.sleep(1.5)
+                # Pausa de 2 segundos para que los alumnos lean el mensaje gigante
+                time.sleep(2)
                 
                 if st.session_state['juego_indice'] < len(preguntas) - 1:
                     st.session_state['juego_indice'] += 1
                 else:
                     st.session_state['juego_terminado'] = True
                 st.rerun()
-            # -----------------------------------------------------------
-
+                
             with col_opt1:
                 if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
                 if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
@@ -1140,7 +1158,7 @@ def home_page():
             st.markdown(f"""
                 <div style="text-align: center;">
                     <h1 style="font-size: 80px; margin-bottom: 0;">{puntaje}</h1>
-                    <p style="font-size: 24px; color: gray;">PUNTOS</p>
+                    <p style="font-size: 24px; color: gray;">PUNTOS FINALES</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -1150,17 +1168,18 @@ def home_page():
                 if puntaje == 100:
                     st.balloons()
                     gif_url = random.choice(GIFS_WIN)
-                    st.image(gif_url, use_container_width=True)
+                    # OBSERVACIÓN 3: GIF MÁS PEQUEÑO (width=300)
+                    st.image(gif_url, width=300, caption="¡PERFECTO!") 
                     st.success("🏆 ¡MAESTRO TOTAL! Puntaje Perfecto.")
                 elif puntaje >= 60:
-                    st.snow()
+                    st.snow() # Nieve espectacular
                     gif_url = random.choice(GIFS_OK)
-                    st.image(gif_url, use_container_width=True)
-                    st.info("👏 ¡Aprobado! Buen trabajo.")
+                    st.image(gif_url, width=300, caption="¡Aprobado!")
+                    st.info("👏 ¡Bien hecho!")
                 else:
                     gif_url = random.choice(GIFS_FAIL)
-                    st.image(gif_url, use_container_width=True)
-                    st.warning("📚 ¡A repasar! Tú puedes mejorar.")
+                    st.image(gif_url, width=300, caption="A estudiar...")
+                    st.warning("📚 ¡A repasar!")
 
                 if st.button("🔄 Jugar Otra Vez", type="primary", use_container_width=True):
                     del st.session_state['juego_preguntas']
@@ -1190,6 +1209,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
