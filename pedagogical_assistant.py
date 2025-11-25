@@ -384,153 +384,115 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Versión ACTUALIZADA CON METODOLOGÍA DINÁMICA Y PENSAMIENTO CRÍTICO) ===
+# === (Versión: FORMATO PROFESIONAL TABULAR + SIN SALUDOS) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
                                 region=None, provincia=None, distrito=None, instrucciones_docente=None):
     """
-    Genera una sesión de aprendizaje completa usando la IA.
-    Incluye SELECTOR METODOLÓGICO y MANDATO DE ALTA DEMANDA COGNITIVA.
+    Genera una sesión de aprendizaje con formato TABULAR y SIN TEXTO INTRODUCTORIO.
     """
     
     if client is None:
         return "⚠️ **Error de Configuración de IA:** El cliente de Gemini no se pudo inicializar."
 
-    # 1. Convertir listas a texto formateado
+    # 1. Preparar listas y textos
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
     # --- CONTEXTO GEOGRÁFICO ---
     contexto_str = ""
     if region and region.strip(): 
-        contexto_str = f"""
-## CONTEXTO GEOGRÁFICO (Opcional)
-- **Región:** {region}
-- **Provincia:** {provincia}
-- **Distrito:** {distrito}
-**REGLA DE CONTEXTUALIZACIÓN:** DEBES usar estos datos para generar ejemplos relevantes.
-"""
+        contexto_str = f"CONTEXTO LOCAL: La sesión se desarrolla en {distrito}, {provincia}, {region}. Usa ejemplos locales."
     
     # --- INSTRUCCIONES ADICIONALES ---
     instrucciones_str = ""
     if instrucciones_docente and instrucciones_docente.strip():
-        instrucciones_str = f"""
-## INSTRUCCIONES ADICIONALES DEL DOCENTE
-- {instrucciones_docente}
-**REGLA DE PRIORIDAD:** ¡Esta es la instrucción más importante! Modifica la sesión para cumplir esto.
-"""
+        instrucciones_str = f"PEDIDO ESPECIAL DEL DOCENTE: {instrucciones_docente}"
 
-    # --- MENÚ DE METODOLOGÍAS ACTIVAS (NUEVO) ---
+    # --- MENÚ DE METODOLOGÍAS ---
     menu_metodologias = """
     1. Aprendizaje Basado en Problemas (ABP)
-    2. Aprendizaje Basado en Indagación (Indagación Científica)
-    3. Aprendizaje Colaborativo / Cooperativo
-    4. Gamificación (Uso de mecánicas de juego)
+    2. Aprendizaje Basado en Indagación
+    3. Aprendizaje Colaborativo
+    4. Gamificación
     5. Estudio de Casos
-    6. Aula Invertida (Flipped Classroom)
+    6. Aula Invertida
     """
 
-    # 2. Construir el Mega-Prompt con ESTRATEGIA PEDAGÓGICA
+    # 2. EL MEGA-PROMPT DE DISEÑO PROFESIONAL
     prompt = f"""
-    Actúa como un docente experto y diseñador curricular en el sistema educativo peruano.
-    
-    ## ESTRATEGIA PEDAGÓGICA (SELECTOR METODOLÓGICO):
-    Antes de generar la sesión, ANALIZA el Grado ({grado}), el Área ({area}) y el Tema ({tematica}).
-    Basado en este análisis, **ELIGE** la metodología más apropiada de la siguiente lista:
-    {menu_metodologias}
-    
-    ## MANDATO DE ALTA DEMANDA COGNITIVA:
-    En la sección de **'DESARROLLO'**, es **OBLIGATORIO** incluir una actividad explícita que promueva:
-    - El Razonamiento Complejo.
-    - La Creatividad.
-    - O el Pensamiento Crítico.
-    
-    Evita a toda costa que los estudiantes sean pasivos. La sesión debe centrarse en lo que el estudiante HACE, no solo en lo que el docente explica.
+    Actúa como un especialista curricular del MINEDU (Perú). Diseña una SESIÓN DE APRENDIZAJE profesional.
 
-    ## DATOS DE ENTRADA:
-    - **Nivel:** {nivel}
-    - **Grado:** {grado}
-    - **Ciclo:** {ciclo}
-    - **Área:** {area}
-    - **Tema:** {tematica}
-    - **Duración:** {tiempo}
+    **REGLAS ESTRICTAS DE COMPORTAMIENTO:**
+    1. **PROHIBIDO SALUDAR.** No digas "Aquí tienes la sesión" ni "Espero que sirva".
+    2. **EMPIEZA DIRECTAMENTE** con el título de la sesión (Markdown H1).
+    3. Tu salida debe ser **100% Markdown** limpio.
 
-    {contexto_str} 
-
-    ## RECURSOS PEDAGÓGICOS:
-    **Competencia(s):**
-    {competencias_str}
-    **Capacidad(es):**
-    {capacidades_str}
-    **Estándar(es):**
-    "{estandar_texto}"
-
+    **DATOS DE ENTRADA:**
+    - Nivel/Grado: {nivel} - {grado} ({ciclo})
+    - Área: {area}
+    - Tema: {tematica}
+    - Duración: {tiempo}
+    {contexto_str}
     {instrucciones_str}
 
-    ## PLANTILLA DE SALIDA (Formato Requerido):
-    Genera la sesión usando este formato Markdown exacto.
+    **ESTÁNDARES:**
+    - Competencia: {competencias_str}
+    - Capacidades: {capacidades_str}
+    - Estándar: "{estandar_texto}"
 
-    ### SESIÓN DE APRENDIZAJE – N° 
+    **ESTRUCTURA VISUAL OBLIGATORIA (Usa Tablas Markdown):**
 
-    **I. DATOS GENERALES:**
-    * **Título:** [Genera un título creativo para la sesión]
-    * **Unidad de Aprendizaje:** * **Duración:** {tiempo}
-    * **Fecha:** * **Ciclo:** {ciclo}
-    * **Grado:** {grado}
-    * **Metodología:** [¡IMPORTANTE! Escribe aquí la metodología que elegiste del menú]
-    * **Sección:** * **Docente:** **II. PROPÓSITO DE LA SESIÓN:**
-    [Genera el propósito: Verbo + tema + estrategia + finalidad]
+    # SESIÓN DE APRENDIZAJE N° ... [Genera un título creativo aquí]
 
-    **III. COMPETENCIAS Y CAPACIDADES:**
+    ## I. DATOS INFORMATIVOS
+    | Área Curricular | Grado y Sección | Duración | Fecha | Docente |
+    | :--- | :---: | :---: | :---: | :--- |
+    | **{area}** | {grado} | {tiempo} | ... | ... |
+
+    ## II. PROPÓSITO DE APRENDIZAJE
+    | Competencias y Capacidades | Desempeños / Criterios de Evaluación | Evidencia de Aprendizaje | Instrumento |
+    | :--- | :--- | :--- | :--- |
+    | **Competencia:**<br>{competencias_str}<br><br>**Capacidades:**<br>{capacidades_str} | **Criterios:**<br>*(Redacta 3 criterios precisos, medibles y adaptados al grado)* | *(Define una evidencia tangible)* | Lista de Cotejo / Rúbrica |
+
+    ## III. ENFOQUE TRANSVERSAL
+    | Enfoque Transversal | Valores | Actitudes o Acciones Observables |
+    | :--- | :--- | :--- |
+    | *(Elige uno pertinente)* | *(Valor)* | *(Acción concreta)* |
+
+    ---
+
+    ## IV. SECUENCIA DIDÁCTICA
+    **Estrategia Metodológica:** *(Elige la mejor de esta lista: {menu_metodologias})*
+
+    ### MOMENTO DE INICIO (15 min)
+    * **Motivación:** (Describe una actividad dinámica, uso de imágenes o video).
+    * **Saberes Previos:** (Preguntas literales para recoger lo que saben).
+    * **Conflicto Cognitivo:** (Pregunta retadora que genere desequilibrio).
+    * **Propósito:** (Comunicar qué aprenderán hoy).
+
+    ### MOMENTO DE DESARROLLO (Tiempo principal)
+    * **Gestión y Acompañamiento:**
+      *(Desarrolla paso a paso la actividad principal usando la metodología elegida).*
+    * **ACTIVIDAD DE ALTA DEMANDA COGNITIVA (Obligatorio):**
+      *(Describe explícitamente una actividad de análisis, creación o evaluación crítica que harán los estudiantes).*
+
+    ### MOMENTO DE CIERRE (15 min)
+    * **Evaluación:** (Cómo demuestran lo aprendido).
+    * **Metacognición:** (Preguntas: ¿Qué aprendí? ¿Cómo lo aprendí? ¿Para qué me sirve?).
+
+    ---
     
-    **REGLA DE FORMATO:**
-    - **Competencia: [Nombre]**
-    - **Capacidades:** (Lista con guiones `-`)
-    - **Criterios de Evaluación:** (Lista con guiones `-`. Genera 3-4 criterios adaptados estrictamente al grado {grado} y al tema).
-    --- (Separador)
+    ## V. MATERIALES Y RECURSOS
+    * (Lista con viñetas de lo necesario)
 
-    **DATOS:**
-    - **Competencia(s):** {competencias_str}
-    - **Capacidad(es):** {capacidades_str}
-
-    **IV. ENFOQUE TRANSVERSAL:**
-    (Espacio vacío)
-    
-    **V. SECUENCIA DIDÁCTICA:**
-
-    ### INICIO
-    (Tiempo estimado: [Corto])
-    **Motivación:** [Actividad corta y motivadora]
-    **Saberes previos:** [Preguntas]
-    **Conflicto cognitivo:** [Pregunta retadora]
-    **Presentación del propósito:** [El docente presenta propósito y criterios]
-
-    ### DESARROLLO
-    (Tiempo estimado: [Largo])
-    
-    **Gestión y acompañamiento:** [Describe la secuencia didáctica paso a paso usando la **Metodología** elegida.]
-    
-    **ACTIVIDAD DE ALTA DEMANDA COGNITIVA:**
-    [Describe aquí detalladamente el reto, problema, debate o creación que realizarán los estudiantes para desarrollar su pensamiento crítico/creativo.]
-
-    ### CIERRE
-    (Tiempo estimado: [Corto])
-    **Evaluación/Transferencia:** [Actividad de cierre]
-    **Metacognición:** [Preguntas de reflexión]
-    
-    **VI. MATERIALES O RECURSOS:**
-    * [Lista de materiales]
-
-    **VII. FIRMAS:**
-    ___
-    DIRECTOR
-    ___
-    DOCENTE
+    **VII. REFERENCIAS BIBLIOGRÁFICAS**
+    * (Libros o links sugeridos)
     """
     
     try:
-        # 1. Intentar con modelo Pro
+        # 1. Intentar con modelo Pro (Mejor formato)
         response = client.models.generate_content(
             model='models/gemini-2.5-pro',
             contents=prompt
@@ -766,3 +728,4 @@ def generar_estructura_ppt(sesion_texto):
         return response.text
     except Exception as e:
         return None
+
