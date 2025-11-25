@@ -7,156 +7,116 @@ from pptx.util import Pt, Inches
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN
-from pptx.enum.dml import MSO_THEME_COLOR
 
-# --- 1. CONFIGURACIÓN DE COLORES INTELIGENTES ---
+# Configuración de Colores
 COLORES_TEMATICOS = {
-    "Matemática": RGBColor(25, 55, 109),       
-    "Ciencia": RGBColor(40, 80, 40),           
-    "Tecnología": RGBColor(70, 70, 70),        
-    "Comunicación": RGBColor(160, 20, 20),     
-    "Sociales": RGBColor(180, 90, 20),         
-    "Arte": RGBColor(140, 20, 140),            
-    "Default": RGBColor(0, 51, 102)            
+    "Default": RGBColor(0, 51, 102)
 }
 
-def detectar_color(json_data):
-    try:
-        subtitulo = json_data.get('slide_1', {}).get('subtitulo', '').lower()
-        if "matem" in subtitulo: return COLORES_TEMATICOS["Matemática"]
-        if "cien" in subtitulo or "ambien" in subtitulo: return COLORES_TEMATICOS["Ciencia"]
-        if "comuni" in subtitulo or "letras" in subtitulo: return COLORES_TEMATICOS["Comunicación"]
-        if "social" in subtitulo or "civica" in subtitulo: return COLORES_TEMATICOS["Sociales"]
-        if "arte" in subtitulo: return COLORES_TEMATICOS["Arte"]
-    except:
-        pass
-    return COLORES_TEMATICOS["Default"]
-
-# --- 2. DESCARGA DE IMÁGENES ROBUSTA ---
 def obtener_imagen_ia(descripcion_en_ingles):
     if not descripcion_en_ingles: return None
-    
     try:
-        prompt_seguro = quote(descripcion_en_ingles)
-        url = f"https://image.pollinations.ai/prompt/{prompt_seguro}?width=1024&height=768&nologo=true&model=flux"
+        # Prompt simple y codificado
+        prompt = quote(descripcion_en_ingles)
+        # URL directa
+        url = f"https://image.pollinations.ai/prompt/{prompt}?width=800&height=600&nologo=true"
         
+        # Headers para evitar bloqueos y 20 segundos de espera
         headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers, timeout=20)
         
-        # Aumentamos el timeout a 20 segundos
-        response = requests.get(url, headers=headers, timeout=20) 
         if response.status_code == 200:
             return io.BytesIO(response.content)
+        else:
+            print(f"Error status code: {response.status_code}")
     except Exception as e:
-        print(f"Error imagen: {e}")
-        return None
+        print(f"Error descargando imagen: {e}")
     return None
 
-# --- 3. DIBUJADO DE BARRA ---
 def agregar_barra_superior(slide, titulo_texto, color_tema):
-    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(10), Inches(1.3))
+    # Barra
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(10), Inches(1.4))
     shape.fill.solid()
     shape.fill.fore_color.rgb = color_tema
     shape.line.fill.background()
     
+    # Título (Borrar anterior si existe)
     if slide.shapes.title:
         try: slide.shapes.title.element.getparent().remove(slide.shapes.title.element)
         except: pass
         
-    textbox = slide.shapes.add_textbox(Inches(0.2), Inches(0.1), Inches(9.6), Inches(1.1))
-    tf = textbox.text_frame
-    tf.vertical_anchor = MSO_SHAPE.RECTANGLE 
-    p = tf.paragraphs[0]
+    # Texto Título
+    textbox = slide.shapes.add_textbox(Inches(0.5), Inches(0.2), Inches(9), Inches(1))
+    p = textbox.text_frame.paragraphs[0]
     p.text = titulo_texto
     p.font.color.rgb = RGBColor(255, 255, 255)
-    p.font.size = Pt(30)
+    p.font.size = Pt(32)
     p.font.bold = True
-    p.alignment = PP_ALIGN.CENTER # Aseguramos centrado horizontal
+    p.alignment = PP_ALIGN.CENTER
 
 def crear_ppt_desde_data(json_texto):
     prs = Presentation()
-    
     try:
-        json_limpio = json_texto.replace('```json', '').replace('```', '').strip()
-        data = json.loads(json_limpio)
-    except Exception:
+        data = json.loads(json_texto.replace('```json', '').replace('```', '').strip())
+    except:
         return None
 
-    color_actual = detectar_color(data)
+    color_actual = COLORES_TEMATICOS["Default"]
 
-    # --- SLIDE 1: PORTADA ---
-    if 'slide_1' in data:
-        info = data['slide_1']
-        slide = prs.slides.add_slide(prs.slide_layouts[6]) 
-        
-        bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(10), Inches(7.5))
-        bg.fill.solid()
-        bg.fill.fore_color.rgb = color_actual
-        
-        # CORRECCIÓN DE ENCUADRE DE TÍTULO Y SUBTÍTULO
-        # Título - Más ancho y centrado
-        tb_title = slide.shapes.add_textbox(Inches(0.5), Inches(2.2), Inches(9), Inches(2.5))
-        tf_title = tb_title.text_frame
-        tf_title.word_wrap = True # Permite que el texto se ajuste
-        p = tf_title.paragraphs[0]
-        p.text = info.get('titulo', 'Sin Título')
-        p.font.color.rgb = RGBColor(255, 255, 255)
-        p.font.size = Pt(40) 
-        p.font.bold = True
-        p.alignment = PP_ALIGN.CENTER 
-
-        # Subtítulo - Más ancho y centrado
-        tb_sub = slide.shapes.add_textbox(Inches(0.5), Inches(4.7), Inches(9), Inches(1))
-        tf_sub = tb_sub.text_frame
-        tf_sub.word_wrap = True
-        p_sub = tf_sub.paragraphs[0]
-        p_sub.text = info.get('subtitulo', '')
-        p_sub.font.color.rgb = RGBColor(230, 230, 230)
-        p_sub.font.size = Pt(22)
-        p_sub.alignment = PP_ALIGN.CENTER
-
-    # --- SLIDES 2-7: CONTENIDO ---
-    keys = ['slide_2', 'slide_3', 'slide_4', 'slide_5', 'slide_6', 'slide_7']
-    
-    for key in keys:
+    # Bucle para todas las slides (1 a 7)
+    for i in range(1, 8):
+        key = f"slide_{i}"
         if key in data:
             info = data[key]
-            slide = prs.slides.add_slide(prs.slide_layouts[6]) 
+            slide = prs.slides.add_slide(prs.slide_layouts[6]) # Blank
             
-            # 1. Barra Superior con el color detectado
+            # 1. Barra y Título
             agregar_barra_superior(slide, info.get('titulo', ''), color_actual)
             
-            # 2. Texto (Izquierda)
-            # Aseguramos espacio después de la barra superior
-            tb_body = slide.shapes.add_textbox(Inches(0.5), Inches(1.8), Inches(4.5), Inches(5.2))
-            tf = tb_body.text_frame
+            # 2. Subtítulo (Solo slide 1)
+            if i == 1:
+                tb = slide.shapes.add_textbox(Inches(1), Inches(4), Inches(8), Inches(1))
+                p = tb.text_frame.paragraphs[0]
+                p.text = info.get('subtitulo', '')
+                p.alignment = PP_ALIGN.CENTER
+                continue # Saltamos el resto para la portada
+
+            # 3. Contenido Texto (Izquierda)
+            tb = slide.shapes.add_textbox(Inches(0.5), Inches(1.6), Inches(4.5), Inches(5))
+            tf = tb.text_frame
             tf.word_wrap = True
-            
             contenido = info.get('contenido') or info.get('puntos') or ""
             
-            def add_p(text, bullet=False):
-                p = tf.add_paragraph()
-                p.text = str(text)
-                p.font.size = Pt(18)
-                p.space_after = Pt(8) 
-                if bullet: p.text = "• " + str(text)
-
             if isinstance(contenido, list):
-                for x in contenido: add_p(x, True)
+                for item in contenido:
+                    p = tf.add_paragraph()
+                    p.text = "• " + str(item)
+                    p.font.size = Pt(18)
+                    p.space_after = Pt(10)
             else:
-                add_p(contenido)
+                p = tf.add_paragraph()
+                p.text = str(contenido)
+                p.font.size = Pt(18)
 
-            # 3. Imagen (Derecha) - Mejoramos el posicionamiento y tamaño
+            # 4. IMAGEN (Derecha) - CON DIAGNÓSTICO
             desc = info.get('descripcion_imagen', '')
+            img_insertada = False
+            
             if desc:
                 img_bytes = obtener_imagen_ia(desc)
                 if img_bytes:
                     try:
-                        # La imagen ocupa un espacio similar al cuadro de texto de la derecha
-                        # x, y, width, height (ajustado para dejar márgenes)
-                        slide.shapes.add_picture(img_bytes, Inches(5.4), Inches(1.8), width=Inches(4.1), height=Inches(5.2))
-                    except Exception as e_img:
-                        print(f"Error al insertar imagen en slide {key}: {e_img}")
-                        pass 
+                        slide.shapes.add_picture(img_bytes, Inches(5.2), Inches(1.6), width=Inches(4.3))
+                        img_insertada = True
+                    except:
+                        pass
+            
+            # SI FALLA LA IMAGEN, DIBUJAMOS CUADRO ROJO DE ERROR
+            if not img_insertada and desc:
+                shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(5.2), Inches(1.6), Inches(4.3), Inches(3))
+                shape.fill.solid()
+                shape.fill.fore_color.rgb = RGBColor(200, 200, 200) # Gris
+                shape.text_frame.text = "⚠️ Error descargando imagen\n(Revisa conexión o firewall)"
 
     buffer = io.BytesIO()
     prs.save(buffer)
