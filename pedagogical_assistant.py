@@ -702,8 +702,10 @@ def generar_estructura_ppt(sesion_texto):
 
     # Prompt MEJORADO: Ahora solicita descripciones visuales
     prompt = f"""
+# Prompt AJUSTADO: 7 Slides + SOLICITUD DE IMAGENES MEJORADA
+    prompt = f"""
     Actúa como un diseñador de presentaciones pedagógicas experto.
-    Tu tarea es **EXTRAER** el contenido de la sesión y **SUGERIR UNA IMAGEN** para cada diapositiva.
+    Tu tarea es EXTRAER el contenido de la sesión y SUGERIR UNA IMAGEN SIMPLE para cada diapositiva.
 
     TEXTO DE LA SESIÓN:
     {sesion_texto}
@@ -715,46 +717,45 @@ def generar_estructura_ppt(sesion_texto):
       "slide_1": {{ 
           "titulo": "Título de la Sesión", 
           "subtitulo": "Grado, Sección y Área",
-          "descripcion_imagen": "Describe una imagen de fondo abstracta y profesional relacionada con el tema (en Inglés, ej: 'geometric shapes background', 'biology dna abstract')."
+          "descripcion_imagen": "Professional and abstract background related to the main topic (e.g., 'math symbols background', 'science DNA particles', 'history ancient ruins')." 
       }},
       "slide_2": {{ 
           "titulo": "Propósito de la Sesión", 
           "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'.",
-          "descripcion_imagen": "Una imagen que represente la meta o el aprendizaje (en Inglés, ej: 'student reaching goal', 'target icon')."
+          "descripcion_imagen": "Student achieving a goal or a person pointing to a successful target (English)."
       }},
       "slide_3": {{ 
           "titulo": "Motivación Inicial", 
           "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo.",
-          "descripcion_imagen": "Una imagen que ilustre la motivación o el problema planteado (en Inglés)."
+          "descripcion_imagen": "Image illustrating the initial motivation or problem (English, e.g., 'students brainstorming', 'question mark over child's head')."
       }},
       "slide_4": {{ 
           "titulo": "Desarrollo y Gestión", 
           "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"],
-          "descripcion_imagen": "Una imagen de acción relacionada con la actividad principal (en Inglés, ej: 'students debating', 'writing on notebook')."
+          "descripcion_imagen": "Students actively engaged in the main learning activity (English, e.g., 'students collaborating on a project', 'teacher guiding students')."
       }},
       "slide_5": {{ 
           "titulo": "Criterios de Evaluación", 
           "puntos": ["Criterio 1", "Criterio 2", "Criterio 3"],
-          "descripcion_imagen": "Una imagen relacionada con evaluación o checklist (en Inglés)."
+          "descripcion_imagen": "Icon or image related to a checklist, rubric, or successful evaluation (English)."
       }},
       "slide_6": {{ 
           "titulo": "Cierre de la Sesión", 
           "contenido": "Resumen de la actividad de cierre o conclusiones.",
-          "descripcion_imagen": "Una imagen de conclusión, grupo feliz o éxito (en Inglés)."
+          "descripcion_imagen": "Happy students finishing a class or concept of conclusion/success (English)."
       }},
       "slide_7": {{ 
           "titulo": "Metacognición", 
           "contenido": "Extrae las preguntas de reflexión.",
-          "descripcion_imagen": "Una imagen conceptual de pensamiento o reflexión (en Inglés, ej: 'thinking mind', 'lightbulb idea')."
+          "descripcion_imagen": "Person thinking, lightbulb idea, or brain concept (English)."
       }}
     }}
     
     Reglas de Contenido:
     1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
     2. Brevedad: Resume los puntos largos (máx 30 palabras por slide).
-    3. Imágenes: Las descripciones deben ser en INGLÉS, cortas y visuales (keywords).
+    3. Imágenes: Las descripciones deben ser en INGLÉS, CORTAS y DIRECTAS (no abstractas, para el generador de imágenes).
     """
-
     try:
         # Usamos el modelo 2.5 Flash (rápido y bueno con JSON)
         response = client.models.generate_content(
@@ -765,3 +766,4 @@ def generar_estructura_ppt(sesion_texto):
         return response.text
     except Exception as e:
         return None
+
