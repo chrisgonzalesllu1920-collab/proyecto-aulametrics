@@ -768,4 +768,46 @@ def generar_estructura_ppt(sesion_texto):
         return None
 
 
+# =========================================================================
+# === VII. GENERADOR DE TRIVIA (GAMIFICACIÓN) ===
+# =========================================================================
+
+def generar_trivia_juego(tema, grado, area):
+    """
+    Genera 5 preguntas de selección múltiple en formato JSON para el juego.
+    """
+    if client is None:
+        return None
+
+    prompt = f"""
+    Actúa como un diseñador de videojuegos educativos.
+    Crea un set de **5 PREGUNTAS DE TRIVIA** divertidas y desafiantes sobre el tema: "{tema}" para estudiantes de {grado} ({area}).
+
+    REGLAS DE FORMATO (JSON ESTRICTO):
+    Devuelve SOLO un array JSON (lista de objetos) con esta estructura exacta:
+    [
+        {{
+            "pregunta": "¿Texto de la pregunta?",
+            "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
+            "respuesta_correcta": "Opción A",
+            "explicacion": "Breve explicación de por qué es la correcta (para feedback)."
+        }},
+        ... (repetir 5 veces)
+    ]
+
+    REGLAS DE CONTENIDO:
+    1. Las opciones deben ser plausibles (no pongas respuestas obvias).
+    2. La "respuesta_correcta" debe coincidir EXACTAMENTE con una de las "opciones".
+    3. Usa lenguaje motivador y adecuado para la edad.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return response.text
+    except Exception as e:
+        return None
 
