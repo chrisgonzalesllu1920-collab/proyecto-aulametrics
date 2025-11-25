@@ -1019,11 +1019,12 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL CORREGIDA (VARIABLES PERSISTENTES)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V5 (ALTERN. GRANDES + FULLSCREEN REAL)
     with tab_juegos:
         # --- 0. ESTILOS CSS PERSONALIZADOS ---
         st.markdown("""
             <style>
+            /* 1. Botón Verde */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
@@ -1034,6 +1035,8 @@ def home_page():
             div.stButton > button[kind="primary"]:hover {
                 background-color: #218838 !important;
             }
+            
+            /* 2. Estilo para la PREGUNTA GIGANTE */
             .big-question {
                 font-size: 40px !important;
                 font-weight: bold;
@@ -1046,18 +1049,50 @@ def home_page():
                 margin-bottom: 20px;
                 line-height: 1.3;
             }
+            
+            /* 3. Estilo para las OPCIONES GIGANTES (OBSERVACIÓN 2) */
+            div.stButton > button:not([kind="primary"]) { /* Todos los botones que NO son el "Generar Juego" */
+                font-size: 24px !important; /* Letra más grande */
+                height: 80px; /* Altura del botón */
+                display: flex; /* Para centrar texto */
+                align-items: center; /* Centrado vertical */
+                justify-content: center; /* Centrado horizontal */
+                border-radius: 10px;
+                margin-bottom: 15px; /* Espacio entre opciones */
+                background-color: #f8f9fa; /* Color de fondo */
+                border: 2px solid #ced4da; /* Borde suave */
+                color: #495057; /* Color de texto */
+            }
+            div.stButton > button:not([kind="primary"]):hover {
+                background-color: #e2e6ea; /* Oscurecer al pasar el mouse */
+                border-color: #007bff; /* Borde azul al pasar el mouse */
+                color: #007bff;
+            }
+
+            /* 4. Hack para ocultar los st.tabs si está en modo presentación (OBSERVACIÓN 3) */
+            /* Esto es más complejo, requiere JS, pero podemos ocultar el contenedor principal de los tabs */
+            [data-testid="stVerticalBlock"] > div > [data-testid="stHorizontalBlock"] {
+                display: block; /* Aseguramos que las columnas no se oculten por defecto */
+            }
+            .stTabs [data-testid="stHorizontalBlock"] {
+                display: none !important; /* Oculta la barra de pestañas */
+            }
+
             </style>
         """, unsafe_allow_html=True)
 
-        st.header("🎮 Desafío Trivia: 'El Millonario'")
+        # --- OBSERVACIÓN 1: NOMBRE SIMPLIFICADO ---
+        st.header("🎮 Desafío Trivia") 
         
         col_header1, col_header2 = st.columns([3, 1])
         with col_header1:
             st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
         with col_header2:
+            # CHECKBOX MODO PRESENTACIÓN
             modo_cine = st.checkbox("📺 Modo Presentación", help="Expande la pantalla y oculta menús.")
         
         if modo_cine:
+            # CSS PARA FORZAR PANTALLA COMPLETA Y ANCHO TOTAL (con corrección para tabs)
             st.markdown("""
                 <style>
                     [data-testid="stSidebar"] {display: none;}
@@ -1065,9 +1100,12 @@ def home_page():
                     .block-container {
                         padding-top: 1rem !important;
                         padding-bottom: 1rem !important;
-                        max-width: 95% !important;
+                        max-width: 95% !important; /* ANCHO TOTAL */
                     }
                     footer {display: none;}
+                    .stTabs { /* Oculta todo el componente de tabs */
+                        display: none !important;
+                    }
                 </style>
             """, unsafe_allow_html=True)
 
@@ -1103,7 +1141,6 @@ def home_page():
                                 st.session_state['juego_puntaje'] = 0
                                 st.session_state['juego_terminado'] = False
                                 
-                                # --- CORRECCIÓN: GUARDAMOS EL TEMA EN MEMORIA ---
                                 st.session_state['tema_actual'] = tema_input 
                                 
                                 st.session_state['juego_en_lobby'] = True 
@@ -1115,7 +1152,6 @@ def home_page():
 
         # --- 2. LOBBY DE ESPERA ---
         elif st.session_state.get('juego_en_lobby', False):
-            # Recuperamos el tema de la memoria
             tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
             
             st.markdown(f"""
@@ -1252,6 +1288,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
