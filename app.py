@@ -1019,10 +1019,153 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-puntos_por_pregunta = 100 / len(preguntas)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN CORREGIDA DE IDENTACIÓN
+    with tab_juegos:
+        st.header("🎮 Desafío Trivia: 'El Millonario'")
+        st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
+
+        # --- 0. BANCO DE GIFS ---
+        GIFS_WIN = [
+            "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+            "https://media.giphy.com/media/nXxOjZrbnbRxS/giphy.gif",
+            "https://media.giphy.com/media/boli67tTOu4kjnhBcv/giphy.gif"
+        ]
+        GIFS_OK = [
+            "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+            "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
+            "https://media.giphy.com/media/d31w24pskkq866S4/giphy.gif"
+        ]
+        GIFS_FAIL = [
+            "https://media.giphy.com/media/26ybvVb9iSmht7Ld6/giphy.gif",
+            "https://media.giphy.com/media/hPPx8yk3Bmqys/giphy.gif",
+            "https://media.giphy.com/media/Cq2GEmeMNy304/giphy.gif"
+        ]
+
+        # --- 1. CONFIGURACIÓN DEL JUEGO ---
+        col_game1, col_game2, col_game3 = st.columns([2, 1, 1])
+        
+        with col_game1:
+            tema_juego = st.text_input("Tema de la Trivia:", placeholder="Ej: La Célula, Historia del Perú...")
+        
+        with col_game2:
+            lista_grados = [
+                "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+            ]
+            grado_juego = st.selectbox("Grado:", lista_grados, index=6)
+            
+        with col_game3:
+            num_preguntas = st.slider("Preguntas:", min_value=1, max_value=10, value=5)
+
+        # Botón para INICIAR
+        if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
+            if not tema_juego:
+                st.warning("⚠️ Escribe un tema para empezar.")
+            else:
+                with st.spinner(f"🧠 Creando {num_preguntas} desafíos sobre '{tema_juego}'..."):
+                    respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_juego, grado_juego, "General", num_preguntas)
+                    
+                    if respuesta_json:
+                        try:
+                            clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
+                            preguntas = json.loads(clean_json)
+                            
+                            st.session_state['juego_preguntas'] = preguntas
+                            st.session_state['juego_indice'] = 0
+                            st.session_state['juego_puntaje'] = 0
+                            st.session_state['juego_terminado'] = False
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error procesando el juego: {e}")
+                    else:
+                        st.error("La IA no pudo generar el juego.")
+
+        st.divider()
+
+        # --- 2. PANTALLA DE JUEGO ---
+        if 'juego_preguntas' in st.session_state and not st.session_state.get('juego_terminado', False):
+            
+            idx = st.session_state['juego_indice']
+            preguntas = st.session_state['juego_preguntas']
+            
+            if idx >= len(preguntas):
+                st.session_state['juego_terminado'] = True
+                st.rerun()
+
+            pregunta_actual = preguntas[idx]
+            
+            # Barra de Progreso
+            progreso = (idx + 1) / len(preguntas)
+            st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
+            
+            # Pregunta
+            st.markdown(f"### ❓ {pregunta_actual['pregunta']}")
+            
+            opciones = pregunta_actual['opciones']
+            col_opt1, col_opt2 = st.columns(2)
+            
+            # --- AQUÍ ESTABA EL ERROR DE IDENTACIÓN (AHORA CORREGIDO) ---
+            def responder(opcion_elegida):
+                correcta = pregunta_actual['respuesta_correcta']
+                # Cálculo: si son 5 preguntas, cada una vale 20. Si son 10, valen 10.
+                puntos_por_pregunta = 100 / len(preguntas)
                 
-            if opcion_elegida == correcta:
-                st.session_state['juego_puntaje'] += puntos_por_pregunta # <--- Corregido
+                # Todo este bloque if/else debe estar alineado
+                if opcion_elegida == correcta:
+                    st.session_state['juego_puntaje'] += puntos_por_pregunta
+                    st.toast("✅ ¡Correcto!", icon="🎉")
+                else:
+                    st.toast(f"❌ Incorrecto. Era: {correcta}", icon="📚")
+                
+                time.sleep(1.5)
+                
+                if st.session_state['juego_indice'] < len(preguntas) - 1:
+                    st.session_state['juego_indice'] += 1
+                else:
+                    st.session_state['juego_terminado'] = True
+                st.rerun()
+            # -----------------------------------------------------------
+
+            with col_opt1:
+                if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
+                if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
+            with col_opt2:
+                if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
+                if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
+
+        # --- 3. PANTALLA FINAL ---
+        elif st.session_state.get('juego_terminado', False):
+            puntaje = int(st.session_state['juego_puntaje'])
+            
+            st.markdown(f"""
+                <div style="text-align: center;">
+                    <h1 style="font-size: 80px; margin-bottom: 0;">{puntaje}</h1>
+                    <p style="font-size: 24px; color: gray;">PUNTOS</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
+            
+            with col_center:
+                if puntaje == 100:
+                    st.balloons()
+                    gif_url = random.choice(GIFS_WIN)
+                    st.image(gif_url, use_container_width=True)
+                    st.success("🏆 ¡MAESTRO TOTAL! Puntaje Perfecto.")
+                elif puntaje >= 60:
+                    st.snow()
+                    gif_url = random.choice(GIFS_OK)
+                    st.image(gif_url, use_container_width=True)
+                    st.info("👏 ¡Aprobado! Buen trabajo.")
+                else:
+                    gif_url = random.choice(GIFS_FAIL)
+                    st.image(gif_url, use_container_width=True)
+                    st.warning("📚 ¡A repasar! Tú puedes mejorar.")
+
+                if st.button("🔄 Jugar Otra Vez", type="primary", use_container_width=True):
+                    del st.session_state['juego_preguntas']
+                    del st.session_state['juego_terminado']
+                    st.rerun()
                     
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1047,14 +1190,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
 
 
 
