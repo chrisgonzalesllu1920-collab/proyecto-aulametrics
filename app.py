@@ -1,5 +1,6 @@
 import json
 import time
+import random
 from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
@@ -1018,126 +1019,10 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN CORREGIDA
-    with tab_juegos:
-        st.header("🎮 Desafío Trivia: 'El Millonario'")
-        st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
-
-        # --- 1. CONFIGURACIÓN DEL JUEGO ---
-        col_game1, col_game2 = st.columns(2)
-        with col_game1:
-            tema_juego = st.text_input("Tema de la Trivia:", placeholder="Ej: La Revolución Francesa")
-        with col_game2:
-            grado_juego = st.selectbox("Grado:", ["1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"], key="grado_game")
-
-        # Botón para INICIAR
-        if st.button("🎲 Generar Nueva Trivia", type="primary"):
-            if not tema_juego:
-                st.warning("Por favor escribe un tema.")
-            else:
-                with st.spinner("🧠 Diseñando preguntas desafiantes..."):
-                    # Llamamos al cerebro
-                    respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_juego, grado_juego, "General")
-                    
-                    if respuesta_json:
-                        try:
-                            clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
-                            preguntas = json.loads(clean_json)
-                            
-                            # Inicializamos variables
-                            st.session_state['juego_preguntas'] = preguntas
-                            st.session_state['juego_indice'] = 0
-                            st.session_state['juego_puntaje'] = 0
-                            st.session_state['juego_terminado'] = False
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Error procesando el juego: {e}")
-                    else:
-                        st.error("La IA no pudo generar el juego.")
-
-        st.divider()
-
-        # --- 2. PANTALLA DE JUEGO ---
-        if 'juego_preguntas' in st.session_state and not st.session_state.get('juego_terminado', False):
-            
-            idx = st.session_state['juego_indice']
-            preguntas = st.session_state['juego_preguntas']
-            
-            # Validación de índice por seguridad
-            if idx >= len(preguntas):
-                st.session_state['juego_terminado'] = True
-                st.rerun()
-
-            pregunta_actual = preguntas[idx]
-            
-            # Barra de Progreso
-            progreso = (idx + 1) / len(preguntas)
-            st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
-            
-            # Pregunta
-            st.markdown(f"### ❓ {pregunta_actual['pregunta']}")
-            
-            # Opciones
-            opciones = pregunta_actual['opciones']
-            col_opt1, col_opt2 = st.columns(2)
-            
-            # FUNCIÓN DE RESPUESTA (CORREGIDA)
-            def responder(opcion_elegida):
-                correcta = pregunta_actual['respuesta_correcta']
+puntos_por_pregunta = 100 / len(preguntas)
                 
-                # 1. Feedback visual
                 if opcion_elegida == correcta:
-                    st.session_state['juego_puntaje'] += 20
-                    st.toast("✅ ¡Correcto! +20 puntos", icon="🎉")
-                else:
-                    st.toast(f"❌ Era: {correcta}", icon="📚") # ÍCONO CORREGIDO (Emoji de libros)
-                
-                # 2. Pequeña pausa para leer el toast
-                time.sleep(1.5)
-                
-                # 3. Avanzar
-                if st.session_state['juego_indice'] < len(preguntas) - 1:
-                    st.session_state['juego_indice'] += 1
-                else:
-                    st.session_state['juego_terminado'] = True
-                
-                # 4. FORZAR RECARGA (Para que cambie la pregunta)
-                st.rerun()
-                
-            # Botones
-            with col_opt1:
-                if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
-                if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
-            with col_opt2:
-                if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
-                if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
-
-        # --- 3. PANTALLA FINAL ---
-        elif st.session_state.get('juego_terminado', False):
-            puntaje = st.session_state['juego_puntaje']
-            
-            st.markdown("## 🏁 ¡Juego Terminado!")
-            col_res1, col_res2 = st.columns([1, 2])
-            
-            with col_res1:
-                 # Mensaje según puntaje
-                if puntaje == 100:
-                    st.image("https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif", caption="¡INCREÍBLE!")
-                elif puntaje >= 60:
-                    st.image("https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", caption="¡Bien hecho!")
-                else:
-                    st.image("https://media.giphy.com/media/26ybvVb9iSmht7Ld6/giphy.gif", caption="A repasar...")
-
-            with col_res2:
-                st.metric(label="Puntaje Final", value=f"{puntaje} / 100")
-                if puntaje == 100: st.success("🏆 ¡PERFECTO! Dominas el tema.")
-                elif puntaje >= 60: st.info("👏 Aprobado. Buen trabajo.")
-                else: st.warning("📚 Te sugiero repasar el tema.")
-
-                if st.button("🔄 Jugar de Nuevo", type="primary"):
-                    del st.session_state['juego_preguntas']
-                    del st.session_state['juego_terminado']
-                    st.rerun()
+                    st.session_state['juego_puntaje'] += puntos_por_pregunta # <--- Corregido
                     
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1162,6 +1047,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
