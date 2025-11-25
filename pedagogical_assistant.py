@@ -689,21 +689,21 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     return buffer
 
 # =========================================================================
-# === VI. GENERADOR DE ESTRUCTURA PARA PPT (Versión 7 Slides) ===
+# === VI. GENERADOR DE ESTRUCTURA PARA PPT (Versión 7 Slides + IMÁGENES) ===
 # =========================================================================
 
 def generar_estructura_ppt(sesion_texto):
     """
     Toma el texto completo de la sesión y usa IA para extraer
-    el contenido resumido para 7 diapositivas en formato JSON.
+    el contenido resumido Y sugerir imágenes para 7 diapositivas.
     """
     if client is None:
         return None
 
-    # Prompt de Ingeniería Inversa MEJORADO (Versión 7 Slides + Anti-Alucinación)
+    # Prompt MEJORADO: Ahora solicita descripciones visuales
     prompt = f"""
     Actúa como un diseñador de presentaciones pedagógicas experto.
-    Tu tarea es **EXTRAER** (no inventar) el contenido de la siguiente SESIÓN DE APRENDIZAJE para crear 7 diapositivas.
+    Tu tarea es **EXTRAER** el contenido de la sesión y **SUGERIR UNA IMAGEN** para cada diapositiva.
 
     TEXTO DE LA SESIÓN:
     {sesion_texto}
@@ -712,21 +712,51 @@ def generar_estructura_ppt(sesion_texto):
     Devuelve SOLO un objeto JSON con esta estructura exacta:
     
     {{
-      "slide_1": {{ "titulo": "Título de la Sesión", "subtitulo": "Grado, Sección y Área" }},
-      "slide_2": {{ "titulo": "Propósito de la Sesión", "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'." }},
-      "slide_3": {{ "titulo": "Motivación Inicial", "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo." }},
-      "slide_4": {{ "titulo": "Desarrollo y Gestión", "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"] }},
-      "slide_5": {{ "titulo": "Criterios de Evaluación", "puntos": ["Criterio 1", "Criterio 2", "Criterio 3 (Extrae de la sección III)"] }},
-      "slide_6": {{ "titulo": "Cierre de la Sesión", "contenido": "Resumen de la actividad de cierre o conclusiones." }},
-      "slide_7": {{ "titulo": "Metacognición", "contenido": "Extrae las preguntas de reflexión (¿Qué aprendí?, ¿Para qué me sirve?) del apartado CIERRE." }}
+      "slide_1": {{ 
+          "titulo": "Título de la Sesión", 
+          "subtitulo": "Grado, Sección y Área",
+          "descripcion_imagen": "Describe una imagen de fondo abstracta y profesional relacionada con el tema (en Inglés, ej: 'geometric shapes background', 'biology dna abstract')."
+      }},
+      "slide_2": {{ 
+          "titulo": "Propósito de la Sesión", 
+          "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'.",
+          "descripcion_imagen": "Una imagen que represente la meta o el aprendizaje (en Inglés, ej: 'student reaching goal', 'target icon')."
+      }},
+      "slide_3": {{ 
+          "titulo": "Motivación Inicial", 
+          "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo.",
+          "descripcion_imagen": "Una imagen que ilustre la motivación o el problema planteado (en Inglés)."
+      }},
+      "slide_4": {{ 
+          "titulo": "Desarrollo y Gestión", 
+          "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"],
+          "descripcion_imagen": "Una imagen de acción relacionada con la actividad principal (en Inglés, ej: 'students debating', 'writing on notebook')."
+      }},
+      "slide_5": {{ 
+          "titulo": "Criterios de Evaluación", 
+          "puntos": ["Criterio 1", "Criterio 2", "Criterio 3"],
+          "descripcion_imagen": "Una imagen relacionada con evaluación o checklist (en Inglés)."
+      }},
+      "slide_6": {{ 
+          "titulo": "Cierre de la Sesión", 
+          "contenido": "Resumen de la actividad de cierre o conclusiones.",
+          "descripcion_imagen": "Una imagen de conclusión, grupo feliz o éxito (en Inglés)."
+      }},
+      "slide_7": {{ 
+          "titulo": "Metacognición", 
+          "contenido": "Extrae las preguntas de reflexión.",
+          "descripcion_imagen": "Una imagen conceptual de pensamiento o reflexión (en Inglés, ej: 'thinking mind', 'lightbulb idea')."
+      }}
     }}
     
-    Reglas de Oro:
+    Reglas de Contenido:
     1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
-    2. Brevedad: Resume los puntos largos para que quepan en la diapositiva (máx 30 palabras por slide).
+    2. Brevedad: Resume los puntos largos (máx 30 palabras por slide).
+    3. Imágenes: Las descripciones deben ser en INGLÉS, cortas y visuales (keywords).
     """
 
     try:
+        # Usamos el modelo 2.5 Flash (rápido y bueno con JSON)
         response = client.models.generate_content(
             model='models/gemini-2.5-flash',
             contents=prompt,
