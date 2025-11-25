@@ -1019,93 +1019,61 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V5 (ALTERN. GRANDES + FULLSCREEN REAL)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V6 (RESTAURACIÓN SEGURA)
     with tab_juegos:
-        # --- 0. ESTILOS CSS PERSONALIZADOS ---
+        
+        # --- 0. CSS SEGURO (SOLO ESTÉTICA, NO ESTRUCTURA) ---
         st.markdown("""
             <style>
-            /* 1. Botón Verde */
+            /* 1. Botón Verde (Solo afecta colores, no tamaños que rompan el layout) */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
                 color: white !important;
-                font-size: 20px !important;
-                padding: 10px 24px !important;
+                font-weight: bold !important;
             }
             div.stButton > button[kind="primary"]:hover {
                 background-color: #218838 !important;
             }
             
-            /* 2. Estilo para la PREGUNTA GIGANTE */
+            /* 2. Pregunta Grande */
             .big-question {
-                font-size: 40px !important;
+                font-size: 32px !important;
                 font-weight: bold;
                 color: #2c3e50;
                 text-align: center;
                 background-color: #eaf2f8;
-                padding: 30px;
-                border-radius: 15px;
-                border: 3px solid #3498db;
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid #3498db;
                 margin-bottom: 20px;
-                line-height: 1.3;
             }
             
-            /* 3. Estilo para las OPCIONES GIGANTES (OBSERVACIÓN 2) */
-            div.stButton > button:not([kind="primary"]) { /* Todos los botones que NO son el "Generar Juego" */
-                font-size: 24px !important; /* Letra más grande */
-                height: 80px; /* Altura del botón */
-                display: flex; /* Para centrar texto */
-                align-items: center; /* Centrado vertical */
-                justify-content: center; /* Centrado horizontal */
-                border-radius: 10px;
-                margin-bottom: 15px; /* Espacio entre opciones */
-                background-color: #f8f9fa; /* Color de fondo */
-                border: 2px solid #ced4da; /* Borde suave */
-                color: #495057; /* Color de texto */
+            /* 3. Opciones Grandes */
+            div.stButton > button:not([kind="primary"]) {
+                height: 70px;
+                white-space: normal; /* Permite texto en varias lineas si es largo */
             }
-            div.stButton > button:not([kind="primary"]):hover {
-                background-color: #e2e6ea; /* Oscurecer al pasar el mouse */
-                border-color: #007bff; /* Borde azul al pasar el mouse */
-                color: #007bff;
-            }
-
-            /* 4. Hack para ocultar los st.tabs si está en modo presentación (OBSERVACIÓN 3) */
-            /* Esto es más complejo, requiere JS, pero podemos ocultar el contenedor principal de los tabs */
-            [data-testid="stVerticalBlock"] > div > [data-testid="stHorizontalBlock"] {
-                display: block; /* Aseguramos que las columnas no se oculten por defecto */
-            }
-            .stTabs [data-testid="stHorizontalBlock"] {
-                display: none !important; /* Oculta la barra de pestañas */
-            }
-
             </style>
         """, unsafe_allow_html=True)
 
-        # --- OBSERVACIÓN 1: NOMBRE SIMPLIFICADO ---
-        st.header("🎮 Desafío Trivia") 
+        st.header("🎮 Desafío Trivia")
         
+        # --- MODO CINE (SIMPLIFICADO PARA NO ROMPER LA APP) ---
         col_header1, col_header2 = st.columns([3, 1])
         with col_header1:
-            st.markdown("Genera un juego de preguntas interactivo para proyectar en clase.")
+            st.markdown("Genera un juego de preguntas interactivo.")
         with col_header2:
-            # CHECKBOX MODO PRESENTACIÓN
-            modo_cine = st.checkbox("📺 Modo Presentación", help="Expande la pantalla y oculta menús.")
+            modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
         
+        # Si activa modo cine, SOLO ocultamos sidebar y header, NO tocamos el ancho
         if modo_cine:
-            # CSS PARA FORZAR PANTALLA COMPLETA Y ANCHO TOTAL (con corrección para tabs)
             st.markdown("""
                 <style>
                     [data-testid="stSidebar"] {display: none;}
                     header[data-testid="stHeader"] {display: none;}
-                    .block-container {
-                        padding-top: 1rem !important;
-                        padding-bottom: 1rem !important;
-                        max-width: 95% !important; /* ANCHO TOTAL */
-                    }
                     footer {display: none;}
-                    .stTabs { /* Oculta todo el componente de tabs */
-                        display: none !important;
-                    }
+                    /* ELIMINAMOS EL HACK DE ANCHO QUE ROMPÍA LAS PESTAÑAS */
                 </style>
             """, unsafe_allow_html=True)
 
@@ -1126,12 +1094,15 @@ def home_page():
             with col_game3:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
 
+            # Botón GENERAR (Verde por CSS)
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                 if not tema_input:
                     st.warning("⚠️ Escribe un tema.")
                 else:
                     with st.spinner(f"🧠 Creando {num_input} desafíos..."):
+                        # Llamada a la IA
                         respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
+                        
                         if respuesta_json:
                             try:
                                 clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
@@ -1140,25 +1111,22 @@ def home_page():
                                 st.session_state['juego_indice'] = 0
                                 st.session_state['juego_puntaje'] = 0
                                 st.session_state['juego_terminado'] = False
-                                
                                 st.session_state['tema_actual'] = tema_input 
-                                
                                 st.session_state['juego_en_lobby'] = True 
                                 st.session_state['juego_iniciado'] = True
                                 st.rerun()
-                            except Exception as e: st.error(f"Error: {e}")
-                        else: st.error("Error IA.")
+                            except Exception as e: st.error(f"Error formato: {e}")
+                        else: st.error("Error conexión IA.")
             st.divider()
 
         # --- 2. LOBBY DE ESPERA ---
         elif st.session_state.get('juego_en_lobby', False):
             tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
-            
             st.markdown(f"""
-            <div style="text-align: center; padding: 50px;">
-                <h1 style="font-size: 60px;">🏆 TRIVIA TIME 🏆</h1>
-                <h2 style="color: gray;">Tema: {tema_mostrar}</h2>
-                <p>Prepárense... el juego está por comenzar.</p>
+            <div style="text-align: center; padding: 40px;">
+                <h1 style="font-size: 50px;">🏆 TRIVIA TIME 🏆</h1>
+                <h3 style="color: gray;">Tema: {tema_mostrar}</h3>
+                <br>
             </div>
             """, unsafe_allow_html=True)
             
@@ -1187,13 +1155,7 @@ def home_page():
                 st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                 st.progress((idx + 1) / len(preguntas))
             with col_info2:
-                color_score = "#28a745" if current_score > 0 else "#0044cc"
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; border-radius: 10px; padding: 5px; text-align: center; border: 2px solid {color_score};">
-                    <p style="margin:0; font-size: 14px; font-weight:bold;">PUNTAJE</p>
-                    <p style="margin:0; font-size: 28px; color: {color_score}; font-weight:bold;">{current_score}</p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"**PUNTAJE: {current_score}**")
             
             # PREGUNTA GIGANTE
             st.markdown(f"""
@@ -1235,31 +1197,23 @@ def home_page():
         elif st.session_state.get('juego_terminado', False):
             puntaje = int(st.session_state['juego_puntaje'])
             
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <h1 style="font-size: 80px; margin-bottom: 0;">{puntaje}</h1>
-                    <p style="font-size: 24px; color: gray;">PUNTOS FINALES</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"<h1 style='text-align: center;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
             
             col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
             with col_center:
                 if puntaje == 100:
                     st.balloons()
-                    gif_url = random.choice(GIFS_WIN)
-                    st.image(gif_url, width=300, caption="¡PERFECTO!") 
-                    st.success("🏆 ¡MAESTRO TOTAL! Puntaje Perfecto.")
+                    st.image(random.choice(GIFS_WIN), width=300) 
+                    st.success("🏆 ¡MAESTRO TOTAL!")
                 elif puntaje >= 60:
                     st.snow()
-                    gif_url = random.choice(GIFS_OK)
-                    st.image(gif_url, width=300, caption="¡Aprobado!")
-                    st.info("👏 ¡Bien hecho!")
+                    st.image(random.choice(GIFS_OK), width=300)
+                    st.info("👏 ¡Aprobado!")
                 else:
-                    gif_url = random.choice(GIFS_FAIL)
-                    st.image(gif_url, width=300, caption="A estudiar...")
+                    st.image(random.choice(GIFS_FAIL), width=300)
                     st.warning("📚 ¡A repasar!")
 
-                if st.button("🔄 Crear Nuevo Juego", type="primary", use_container_width=True):
+                if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                     st.session_state['juego_iniciado'] = False 
                     del st.session_state['juego_preguntas']
                     del st.session_state['juego_terminado']
@@ -1288,6 +1242,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
