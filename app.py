@@ -1019,13 +1019,13 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V8 (AMARILLO PASTEL + LETRA GIGANTE)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V9 (CSS BLINDADO + TEXTO CORRECTO)
     with tab_juegos:
         
-        # --- 0. CSS AGRESIVO PARA DISEÑO DE JUEGO ---
+        # --- 0. CSS QUIRÚRGICO (SOLO AFECTA AL JUEGO) ---
         st.markdown("""
             <style>
-            /* 1. Botón "GENERAR" (Verde) */
+            /* 1. Botón "GENERAR" (Verde) - Solo afecta botones primarios */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
@@ -1040,7 +1040,7 @@ def home_page():
                 transform: scale(1.02);
             }
             
-            /* 2. LA PREGUNTA (Cartel Azul) */
+            /* 2. LA PREGUNTA */
             .big-question {
                 font-size: 38px !important;
                 font-weight: 800;
@@ -1055,39 +1055,39 @@ def home_page():
                 line-height: 1.3;
             }
             
-            /* 3. LAS ALTERNATIVAS (AMARILLO PASTEL + LETRA 30px) */
-            div.stButton > button:not([kind="primary"]) {
-                font-size: 30px !important; /* LETRA AÚN MÁS GRANDE */
-                font-weight: 700 !important; /* Más negrita */
-                color: #333333 !important; /* Texto oscuro para contraste */
-                
-                background-color: #fff9c4 !important; /* AMARILLO PASTEL */
-                border: 2px solid #fbc02d !important; /* Borde amarillo más oscuro */
+            /* 3. LAS ALTERNATIVAS (SOLO BOTONES DENTRO DE COLUMNAS EN EL ÁREA PRINCIPAL) */
+            /* Esto protege los botones de la barra lateral y los botones sueltos de sistema */
+            section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
+                background-color: #fff9c4 !important; /* Amarillo Pastel */
+                border: 2px solid #fbc02d !important;
                 border-radius: 15px !important;
-                
-                width: 100%;
-                min-height: 110px !important; /* Un poco más altos */
+                min-height: 100px !important;
                 height: auto !important;
-                
                 white-space: normal !important;
                 padding: 10px !important;
-                margin-bottom: 15px !important;
-                
-                box-shadow: 0 5px 0 #f9a825 !important; /* Sombra 3D dorada */
+                margin-bottom: 10px !important;
+                box-shadow: 0 4px 0 #f9a825 !important;
                 transition: all 0.1s;
             }
             
-            /* Efecto Hover (Pasar mouse) */
-            div.stButton > button:not([kind="primary"]):hover {
-                background-color: #fff59d !important; /* Amarillo un poco más intenso */
+            /* 4. FORZAR TAMAÑO DE TEXTO (FIX DEFINITIVO) */
+            /* Atacamos directamente al párrafo <p> dentro del botón */
+            section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
+                font-size: 28px !important; /* AQUI ESTÁ EL TAMAÑO */
+                font-weight: 700 !important;
+                color: #333333 !important;
+                line-height: 1.2 !important;
+            }
+
+            /* Efectos Hover/Active para las alternativas */
+            section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
+                background-color: #fff59d !important;
                 transform: translateY(-2px);
                 border-color: #f57f17 !important;
             }
-            
-            /* Efecto Click */
-            div.stButton > button:not([kind="primary"]):active {
+            section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):active {
                 box-shadow: 0 0 0 #f9a825 !important;
-                transform: translateY(5px) !important;
+                transform: translateY(4px) !important;
             }
             </style>
         """, unsafe_allow_html=True)
@@ -1099,7 +1099,7 @@ def home_page():
         with col_header1:
             st.markdown("Genera un juego de preguntas interactivo.")
         with col_header2:
-            modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral para proyectar.")
+            modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
         
         if modo_cine:
             st.markdown("""
@@ -1127,14 +1127,12 @@ def home_page():
             with col_game3:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
 
-            # Botón GENERAR (Verde)
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                 if not tema_input:
                     st.warning("⚠️ Escribe un tema.")
                 else:
                     with st.spinner(f"🧠 Creando {num_input} desafíos..."):
                         respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
-                        
                         if respuesta_json:
                             try:
                                 clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
@@ -1151,20 +1149,17 @@ def home_page():
                         else: st.error("Error conexión IA.")
             st.divider()
 
-        # --- 2. LOBBY DE ESPERA ---
+        # --- 2. LOBBY ---
         elif st.session_state.get('juego_en_lobby', False):
             tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
             st.markdown(f"""
             <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <h1 style="font-size: 60px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
                 <h2 style="color: #555; margin-top: 10px;">Tema: {tema_mostrar}</h2>
-                <p style="font-size: 18px; color: #888;">¿Están listos para demostrar lo que saben?</p>
                 <br>
             </div>
             """, unsafe_allow_html=True)
-            
             st.write("") 
-            
             col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
             with col_btn:
                 if st.button("🚀 EMPEZAR AHORA", type="primary", use_container_width=True):
@@ -1199,7 +1194,7 @@ def home_page():
             
             st.write("") 
             
-            # PREGUNTA GIGANTE
+            # PREGUNTA
             st.markdown(f"""
                 <div class="big-question">
                     {pregunta_actual['pregunta']}
@@ -1216,14 +1211,12 @@ def home_page():
                 
                 if opcion_elegida == correcta:
                     st.session_state['juego_puntaje'] += puntos_por_pregunta
-                    # Mensaje Verde
                     feedback_placeholder.markdown(f"""
                     <div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #badbcc;">
                         🎉 ¡CORRECTO! (+{int(puntos_por_pregunta)})
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    # Mensaje Rojo
                     feedback_placeholder.markdown(f"""
                     <div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #f5c2c7;">
                         ❌ INCORRECTO. Era: {correcta}
@@ -1238,7 +1231,6 @@ def home_page():
                     st.session_state['juego_terminado'] = True
                 st.rerun()
                 
-            # BOTONES GIGANTES (Gracias al CSS de arriba)
             with col_opt1:
                 if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
                 if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
@@ -1246,32 +1238,28 @@ def home_page():
                 if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
                 if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
 
-        # --- 4. PANTALLA FINAL ---
+        # --- 4. FINAL ---
         elif st.session_state.get('juego_terminado', False):
             puntaje = int(st.session_state['juego_puntaje'])
-            
-            st.markdown(f"<h1 style='text-align: center; font-size: 60px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
-            
+            st.markdown(f"<h1 style='text-align: center; font-size: 60px;'>PUNTAJE: {puntaje}</h1>", unsafe_allow_html=True)
             col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
             with col_center:
                 if puntaje == 100:
                     st.balloons()
                     st.image(random.choice(GIFS_WIN), use_container_width=True) 
-                    st.success("🏆 ¡MAESTRO TOTAL!")
+                    st.success("🏆 ¡MAESTRO!")
                 elif puntaje >= 60:
                     st.snow()
                     st.image(random.choice(GIFS_OK), use_container_width=True)
-                    st.info("👏 ¡Aprobado!")
                 else:
                     st.image(random.choice(GIFS_FAIL), use_container_width=True)
-                    st.warning("📚 ¡A repasar!")
-
+                
                 if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                     st.session_state['juego_iniciado'] = False 
                     del st.session_state['juego_preguntas']
                     del st.session_state['juego_terminado']
                     st.rerun()
-                    
+
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
@@ -1295,6 +1283,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
