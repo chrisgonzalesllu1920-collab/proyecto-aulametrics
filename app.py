@@ -1019,7 +1019,7 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V7 (BOTONES GIGANTES 3D)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V8 (AMARILLO PASTEL + LETRA GIGANTE)
     with tab_juegos:
         
         # --- 0. CSS AGRESIVO PARA DISEÑO DE JUEGO ---
@@ -1042,54 +1042,52 @@ def home_page():
             
             /* 2. LA PREGUNTA (Cartel Azul) */
             .big-question {
-                font-size: 36px !important;
-                font-weight: 800; /* Extra bold */
-                color: #1e3a8a; /* Azul oscuro */
+                font-size: 38px !important;
+                font-weight: 800;
+                color: #1e3a8a;
                 text-align: center;
-                background-color: #eff6ff; /* Azul muy clarito */
+                background-color: #eff6ff;
                 padding: 30px;
                 border-radius: 20px;
-                border: 4px solid #3b82f6; /* Borde azul vibrante */
+                border: 4px solid #3b82f6;
                 margin-bottom: 30px;
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1);
                 line-height: 1.3;
             }
             
-            /* 3. LAS ALTERNATIVAS (AQUÍ ESTÁ LA MAGIA) */
-            /* Apuntamos a todos los botones que NO son el primario */
+            /* 3. LAS ALTERNATIVAS (AMARILLO PASTEL + LETRA 30px) */
             div.stButton > button:not([kind="primary"]) {
-                font-size: 26px !important; /* LETRA GIGANTE */
-                font-weight: 600 !important;
-                color: #374151 !important;
+                font-size: 30px !important; /* LETRA AÚN MÁS GRANDE */
+                font-weight: 700 !important; /* Más negrita */
+                color: #333333 !important; /* Texto oscuro para contraste */
                 
-                background-color: #ffffff !important;
-                border: 2px solid #d1d5db !important; /* Borde gris suave */
+                background-color: #fff9c4 !important; /* AMARILLO PASTEL */
+                border: 2px solid #fbc02d !important; /* Borde amarillo más oscuro */
                 border-radius: 15px !important;
                 
                 width: 100%;
-                min-height: 100px !important; /* ALTURA FORZADA */
+                min-height: 110px !important; /* Un poco más altos */
                 height: auto !important;
                 
-                white-space: normal !important; /* Permite que el texto baje de línea */
-                padding: 15px !important;
+                white-space: normal !important;
+                padding: 10px !important;
                 margin-bottom: 15px !important;
                 
-                box-shadow: 0 4px 0 #9ca3af !important; /* Sombra sólida inferior (Efecto 3D) */
+                box-shadow: 0 5px 0 #f9a825 !important; /* Sombra 3D dorada */
                 transition: all 0.1s;
             }
             
-            /* Efecto al pasar el mouse por la alternativa */
+            /* Efecto Hover (Pasar mouse) */
             div.stButton > button:not([kind="primary"]):hover {
-                border-color: #2563eb !important; /* Azul */
-                color: #2563eb !important;
-                background-color: #f0f9ff !important;
-                transform: translateY(-2px); /* Se levanta un poco */
+                background-color: #fff59d !important; /* Amarillo un poco más intenso */
+                transform: translateY(-2px);
+                border-color: #f57f17 !important;
             }
             
-            /* Efecto al hacer clic (se hunde) */
+            /* Efecto Click */
             div.stButton > button:not([kind="primary"]):active {
-                box-shadow: 0 0 0 #9ca3af !important; /* Desaparece la sombra */
-                transform: translateY(4px) !important; /* Se mueve hacia abajo */
+                box-shadow: 0 0 0 #f9a825 !important;
+                transform: translateY(5px) !important;
             }
             </style>
         """, unsafe_allow_html=True)
@@ -1129,7 +1127,7 @@ def home_page():
             with col_game3:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
 
-            # Botón GENERAR (Estilo Primario)
+            # Botón GENERAR (Verde)
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                 if not tema_input:
                     st.warning("⚠️ Escribe un tema.")
@@ -1165,7 +1163,7 @@ def home_page():
             </div>
             """, unsafe_allow_html=True)
             
-            st.write("") # Espaciador
+            st.write("") 
             
             col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
             with col_btn:
@@ -1186,13 +1184,12 @@ def home_page():
 
             pregunta_actual = preguntas[idx]
             
-            # MARCADOR SUPERIOR
+            # MARCADOR
             col_info1, col_info2 = st.columns([3, 1])
             with col_info1:
                 st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                 st.progress((idx + 1) / len(preguntas))
             with col_info2:
-                # Marcador mejorado
                 st.markdown(f"""
                 <div style="text-align: right;">
                     <span style="font-size: 16px; font-weight: bold; color: #555;">PUNTAJE:</span>
@@ -1200,7 +1197,6 @@ def home_page():
                 </div>
                 """, unsafe_allow_html=True)
             
-            # ESPACIADOR
             st.write("") 
             
             # PREGUNTA GIGANTE
@@ -1210,9 +1206,7 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            # ZONA DE FEEDBACK
             feedback_placeholder = st.empty()
-
             opciones = pregunta_actual['opciones']
             col_opt1, col_opt2 = st.columns(2)
             
@@ -1236,7 +1230,7 @@ def home_page():
                     </div>
                     """, unsafe_allow_html=True)
                 
-                time.sleep(2.5) # Un poco más de tiempo para celebrar
+                time.sleep(2.5)
                 
                 if st.session_state['juego_indice'] < len(preguntas) - 1:
                     st.session_state['juego_indice'] += 1
@@ -1301,6 +1295,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
