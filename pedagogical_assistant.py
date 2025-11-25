@@ -697,12 +697,12 @@ def generar_estructura_ppt(sesion_texto):
     Toma el texto completo de la sesión y usa IA para extraer
     el contenido resumido Y sugerir imágenes para 7 diapositivas.
     """
-    if client is None:
-        return None
+    # Verificamos si el cliente existe (asegurate que 'client' esté definido al inicio del archivo)
+    # Si 'client' da error, cámbialo por la variable global que uses, ej: client
+    if 'client' not in globals() and 'client' not in locals():
+         return None
 
     # Prompt MEJORADO: Ahora solicita descripciones visuales
-    prompt = f"""
-# Prompt AJUSTADO: 7 Slides + SOLICITUD DE IMAGENES MEJORADA
     prompt = f"""
     Actúa como un diseñador de presentaciones pedagógicas experto.
     Tu tarea es EXTRAER el contenido de la sesión y SUGERIR UNA IMAGEN SIMPLE para cada diapositiva.
@@ -727,12 +727,12 @@ def generar_estructura_ppt(sesion_texto):
       "slide_3": {{ 
           "titulo": "Motivación Inicial", 
           "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo.",
-          "descripcion_imagen": "Image illustrating the initial motivation or problem (English, e.g., 'students brainstorming', 'question mark over child's head')."
+          "descripcion_imagen": "Image illustrating the initial motivation or problem (English, e.g., 'students brainstorming', 'question mark over child')."
       }},
       "slide_4": {{ 
           "titulo": "Desarrollo y Gestión", 
           "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"],
-          "descripcion_imagen": "Students actively engaged in the main learning activity (English, e.g., 'students collaborating on a project', 'teacher guiding students')."
+          "descripcion_imagen": "Students actively engaged in the main learning activity (English, e.g., 'students collaborating', 'teacher guiding')."
       }},
       "slide_5": {{ 
           "titulo": "Criterios de Evaluación", 
@@ -754,10 +754,10 @@ def generar_estructura_ppt(sesion_texto):
     Reglas de Contenido:
     1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
     2. Brevedad: Resume los puntos largos (máx 30 palabras por slide).
-    3. Imágenes: Las descripciones deben ser en INGLÉS, CORTAS y DIRECTAS (no abstractas, para el generador de imágenes).
+    3. Imágenes: Las descripciones deben ser en INGLÉS, CORTAS y DIRECTAS.
     """
+
     try:
-        # Usamos el modelo 2.5 Flash (rápido y bueno con JSON)
         response = client.models.generate_content(
             model='models/gemini-2.5-flash',
             contents=prompt,
@@ -766,4 +766,3 @@ def generar_estructura_ppt(sesion_texto):
         return response.text
     except Exception as e:
         return None
-
