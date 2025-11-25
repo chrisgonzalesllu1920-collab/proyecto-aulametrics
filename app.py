@@ -941,41 +941,15 @@ def home_page():
                 )
 
                 # 👇 AQUÍ COMIENZA EL NUEVO BLOQUE DE PPT 👇
-# --- 🧪 ZONA EXPERIMENTAL PPT ---
-                st.markdown("---")
-                st.subheader("🚀 Generador de Presentaciones (Beta)")
-                st.info("La IA leerá tu sesión y creará 7 diapositivas automáticamente.")
-                
-                if st.button("✨ Generar PowerPoint"):
-                    if 'sesion_generada' in st.session_state and st.session_state.sesion_generada:
-                        try:
-                            # 1. EL CEREBRO: Resumimos la sesión a JSON
-                            with st.spinner("🧠 Analizando sesión y estructurando diapositivas..."):
-                                json_estructura = pedagogical_assistant.generar_estructura_ppt(st.session_state.sesion_generada)
-                            
-                            if json_estructura:
-                                # 2. LA FÁBRICA: Convertimos JSON a PPTX
-                                with st.spinner("🎨 Diseñando diapositivas..."):
-                                    ppt_buffer = pptx_generator.crear_ppt_desde_data(json_estructura)
-                                
-                                if ppt_buffer:
-                                    st.success("¡Presentación creada con éxito!")
-                                    st.download_button(
-                                        label="📥 Descargar Presentación (.pptx)",
-                                        data=ppt_buffer,
-                                        file_name="Presentacion_Clase.pptx",
-                                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                                    )
-                                else:
-                                    st.error("Error: La fábrica de PPT devolvió un archivo vacío.")
-                            else:
-                                st.error("Error: La IA no pudo estructurar el resumen.")
-                                
-                        except Exception as e:
-                            st.error(f"Error crítico en el proceso: {e}")
-                    else:
-                        st.warning("Primero debes generar una sesión de aprendizaje arriba.")
-                # --------------------------------
+# --- 🧪 ZONA EXPERIMENTAL PPT (DESACTIVADA POR CALIDAD) ---
+                # (Código oculto hasta la versión 3.0)
+                # st.markdown("---")
+                # st.subheader("🚀 Generador de Presentaciones (Beta)")
+                # ... (Todo lo demás comentado o borrado)
+                # ---------------------------------------------------------
+
+            else:
+                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
     # 👇 ESTOS ELIF DEBEN IR ALINEADOS A LA IZQUIERDA (AL MISMO NIVEL QUE EL IF PRINCIPAL)
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
@@ -1065,6 +1039,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
