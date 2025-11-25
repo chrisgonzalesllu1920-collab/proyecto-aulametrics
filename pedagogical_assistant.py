@@ -769,19 +769,20 @@ def generar_estructura_ppt(sesion_texto):
 
 
 # =========================================================================
-# === VII. GENERADOR DE TRIVIA (GAMIFICACIÓN) ===
+# === VII. GENERADOR DE TRIVIA (GAMIFICACIÓN) - VERSIÓN DINÁMICA ===
 # =========================================================================
 
-def generar_trivia_juego(tema, grado, area):
+def generar_trivia_juego(tema, grado, area, cantidad):
     """
-    Genera 5 preguntas de selección múltiple en formato JSON para el juego.
+    Genera preguntas de selección múltiple en formato JSON.
+    Cantidad ajustable por el usuario (1-10).
     """
     if client is None:
         return None
 
     prompt = f"""
     Actúa como un diseñador de videojuegos educativos.
-    Crea un set de **5 PREGUNTAS DE TRIVIA** divertidas y desafiantes sobre el tema: "{tema}" para estudiantes de {grado} ({area}).
+    Crea un set de **{cantidad} PREGUNTAS DE TRIVIA** divertidas y desafiantes sobre el tema: "{tema}" para estudiantes de {grado} ({area}).
 
     REGLAS DE FORMATO (JSON ESTRICTO):
     Devuelve SOLO un array JSON (lista de objetos) con esta estructura exacta:
@@ -790,15 +791,15 @@ def generar_trivia_juego(tema, grado, area):
             "pregunta": "¿Texto de la pregunta?",
             "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
             "respuesta_correcta": "Opción A",
-            "explicacion": "Breve explicación de por qué es la correcta (para feedback)."
+            "explicacion": "Breve explicación de por qué es la correcta."
         }},
-        ... (repetir 5 veces)
+        ... (repetir {cantidad} veces)
     ]
 
     REGLAS DE CONTENIDO:
-    1. Las opciones deben ser plausibles (no pongas respuestas obvias).
+    1. Las opciones deben ser plausibles.
     2. La "respuesta_correcta" debe coincidir EXACTAMENTE con una de las "opciones".
-    3. Usa lenguaje motivador y adecuado para la edad.
+    3. Lenguaje adecuado para {grado}.
     """
 
     try:
@@ -810,4 +811,3 @@ def generar_trivia_juego(tema, grado, area):
         return response.text
     except Exception as e:
         return None
-
