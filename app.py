@@ -1524,69 +1524,66 @@ def home_page():
 
                 
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.2 - CSS NUCLEAR) ===
+        # === VISTA 4: JUEGO ROBOT (V4.3 - FEEDBACK VISUAL ROJO + TOAST) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS NUCLEAR (ESTILO ARCADE FORZADO) ---
+            # --- 0. CSS FEEDBACK (ROJO PARA ERROR, VERDE PARA ACIERTO) ---
             st.markdown("""
                 <style>
-                /* 1. BOTONES GENERALES (La base de todo) */
-                div.stButton > button {
+                /* 1. BASE DEL BOTÓN */
+                div[data-testid="column"] button {
                     width: 100%;
                     height: 65px;
                     background-color: white !important;
-                    border: 2px solid #b0bec5 !important;
-                    border-bottom: 6px solid #90a4ae !important; /* Borde 3D Grueso */
-                    border-radius: 12px !important;
+                    border: 2px solid #dcdcdc !important;
+                    border-radius: 15px !important;
+                    box-shadow: 0 6px 0 #cfcfcf !important;
                     transition: all 0.1s ease !important;
-                    margin-bottom: 8px !important;
+                    margin-bottom: 12px !important;
                     padding: 0px !important;
                 }
-
-                /* 2. TEXTO GIGANTE DENTRO DEL BOTÓN */
-                div.stButton > button p {
-                    font-size: 34px !important;
+                div[data-testid="column"] button p {
+                    font-size: 38px !important;
                     font-weight: 900 !important;
-                    color: #455a64 !important;
-                    line-height: 1.5 !important;
+                    color: #555 !important;
+                    line-height: 1 !important;
                 }
 
-                /* 3. HOVER (Al pasar el mouse - CELESTE) */
-                div.stButton > button:hover:enabled {
-                    transform: translateY(-2px);
-                    background-color: #e1f5fe !important;
-                    border-color: #29b6f6 !important;
-                    border-bottom: 6px solid #0288d1 !important;
+                /* 2. HOVER (AZUL) */
+                div[data-testid="column"] button:hover:enabled {
+                    transform: translateY(-4px);
+                    background-color: #e3f2fd !important;
+                    border-color: #2196f3 !important;
+                    box-shadow: 0 10px 0 #90caf9 !important;
                 }
-                div.stButton > button:hover:enabled p {
-                    color: #01579b !important;
-                }
-
-                /* 4. ACTIVE (Al presionar - SE HUNDE) */
-                div.stButton > button:active:enabled {
-                    transform: translateY(4px);
-                    border-bottom: 2px solid #0288d1 !important;
-                    margin-top: 4px !important; /* Para compensar el movimiento */
+                div[data-testid="column"] button:hover:enabled p {
+                    color: #1565c0 !important;
                 }
 
-                /* 5. TECLA ACERTADA (VERDE) - Target específico por tipo */
-                div.stButton > button[kind="primary"] {
-                    background-color: #66bb6a !important;
-                    border-color: #43a047 !important;
-                    border-bottom: 6px solid #2e7d32 !important;
-                }
-                div.stButton > button[kind="primary"] p {
-                    color: white !important;
+                /* 3. CLICK */
+                div[data-testid="column"] button:active:enabled {
+                    transform: translateY(6px);
+                    box-shadow: 0 0 0 #cfcfcf !important;
                 }
 
-                /* 6. TECLA FALLADA (GRIS/DESACTIVADA) */
-                div.stButton > button:disabled {
-                    background-color: #eeeeee !important;
-                    border-color: #e0e0e0 !important;
-                    border-bottom: 2px solid #bdbdbd !important;
-                    transform: translateY(4px);
-                    opacity: 0.6;
+                /* 4. ERROR (ROJO INTENSO) - Aplica a disabled por defecto */
+                div[data-testid="column"] button:disabled {
+                    background-color: #ef5350 !important; /* Rojo */
+                    border-color: #b71c1c !important;
+                    box-shadow: none !important;
+                    transform: translateY(6px);
+                    opacity: 1 !important; /* Sin transparencia */
+                }
+                div[data-testid="column"] button:disabled p {
+                    color: white !important; /* Letra blanca */
+                }
+
+                /* 5. ACIERTO (VERDE) - Sobrescribe al rojo si es primary */
+                div[data-testid="column"] button[kind="primary"]:disabled {
+                    background-color: #4caf50 !important; /* Verde */
+                    border-color: #2e7d32 !important;
+                    opacity: 1 !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1658,7 +1655,6 @@ def home_page():
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
-                    # PISTA LIMPIA
                     st.markdown(f"""
                     <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
                         💡 {st.session_state['robot_hint']}
@@ -1704,13 +1700,13 @@ def home_page():
                         
                 elif errores >= max_errores:
                     st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
-                    if st.button("⚡ Reintentar Nivel (Recargar)", type="secondary", use_container_width=True):
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
                         st.session_state['robot_guesses'] = set()
                         st.session_state['robot_errors'] = 0
                         st.rerun()
                         
                 else:
-                    # E) TECLADO ARCADE (ESTRUCTURA HTML PURA PARA CSS)
+                    # E) TECLADO ARCADE FEEDBACK
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
@@ -1720,13 +1716,14 @@ def home_page():
                         
                         type_btn = "secondary"
                         if desactivado and letra in palabra: 
-                            type_btn = "primary"
+                            type_btn = "primary" # Verde
                             
-                        # El CSS arriba se encarga de que esto se vea 3D
                         if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
+                                # 📢 TOAST DE ALERTA
+                                st.toast("💥 ¡CORTOCIRCUITO! Batería dañada.", icon="⚠️")
                             st.rerun()
 
 # =========================================================================
@@ -1752,6 +1749,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
