@@ -1522,38 +1522,57 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-                
+            
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V3.0 - MODO PROYECTOR GIGANTE) ===
+        # === VISTA 4: JUEGO ROBOT (V3.1 - TECLADO CORREGIDO Y COLORIDO) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS AGRESIVO PARA TECLADO Y ELEMENTOS ---
+            # --- 0. CSS MEJORADO (TECLAS DE COLORES) ---
             st.markdown("""
                 <style>
                 /* Estilo base para botones del teclado */
                 div[data-testid="column"] button {
-                    height: 70px;              /* Teclas más altas */
-                    font-size: 32px !important; /* Letra gigante */
+                    height: 65px;
+                    font-size: 28px !important;
                     font-weight: 800 !important;
                     border-radius: 12px !important;
-                    border: 2px solid #ccc !important;
+                    border: 2px solid #e0e0e0 !important;
+                    background-color: #ffffff;
+                    color: #424242;
                     transition: all 0.2s !important;
+                    box-shadow: 0 4px 0 #cfcfcf; /* Efecto 3D suave */
                 }
                 
-                /* Efecto Hover (Al pasar el mouse) */
-                div[data-testid="column"] button:hover {
-                    transform: scale(1.05);
-                    border-color: #2196f3 !important;
-                    color: #2196f3 !important;
-                    background-color: #e3f2fd !important;
+                /* Efecto Hover (Azul al pasar el mouse) */
+                div[data-testid="column"] button:hover:enabled {
+                    transform: translateY(-2px);
+                    border-color: #29b6f6 !important;
+                    color: #0277bd !important;
+                    background-color: #e1f5fe !important;
+                    box-shadow: 0 6px 0 #81d4fa;
                 }
 
-                /* Teclas acertadas (Verdes) */
+                /* Efecto Active (Al hacer clic) */
+                div[data-testid="column"] button:active:enabled {
+                    transform: translateY(4px);
+                    box-shadow: 0 0 0 #cfcfcf;
+                }
+
+                /* Teclas ACERTADAS (Verde Brillante) */
                 div[data-testid="column"] button[kind="primary"] {
-                    background-color: #4caf50 !important;
-                    border-color: #388e3c !important;
+                    background-color: #66bb6a !important;
+                    border-color: #43a047 !important;
                     color: white !important;
+                    box-shadow: none !important;
+                    opacity: 1 !important;
+                }
+                
+                /* Teclas FALLADAS (Deshabilitadas normales se verán grises, 
+                   pero podemos forzar un estilo si quisieras) */
+                div[data-testid="column"] button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1569,7 +1588,7 @@ def home_page():
             with col_title:
                 st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
-            # --- 2. CONFIGURACIÓN (Si no hay retos) ---
+            # --- 2. CONFIGURACIÓN ---
             if 'robot_challenges' not in st.session_state:
                 st.info("Configura la misión de rescate:")
                 
@@ -1591,12 +1610,10 @@ def home_page():
                     else:
                         with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
                             retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
-                            
                             if retos and len(retos) > 0:
                                 st.session_state['robot_challenges'] = retos
                                 st.session_state['robot_level'] = 0
                                 st.session_state['robot_score'] = 0
-                                
                                 primer_reto = retos[0]
                                 st.session_state['robot_word'] = primer_reto['palabra'].upper()
                                 st.session_state['robot_hint'] = primer_reto['pista']
@@ -1607,7 +1624,7 @@ def home_page():
                             else:
                                 st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
 
-            # --- 3. ZONA DE JUEGO (MODO PROYECTOR) ---
+            # --- 3. ZONA DE JUEGO ---
             else:
                 nivel_idx = st.session_state['robot_level']
                 total_niveles = len(st.session_state['robot_challenges'])
@@ -1620,20 +1637,18 @@ def home_page():
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) MONITOR DE ENERGÍA GIGANTE
+                # B) MONITOR GIGANTE
                 baterias_restantes = max_errores - errores
                 emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
-                    # PISTA GIGANTE (32px)
                     st.markdown(f"""
                     <div style="background-color: #e3f2fd; padding: 20px; border-radius: 15px; border-left: 10px solid #2196f3; font-size: 32px; color: #0d47a1;">
                         💡 <b>PISTA:</b> {st.session_state['robot_hint']}
                     </div>
                     """, unsafe_allow_html=True)
                 with col_bat:
-                    # BATERÍAS GIGANTES (60px)
                     st.markdown(f"<div style='font-size: 60px; text-align: right; letter-spacing: -10px; line-height: 1;'>{emoji_bateria}</div>", unsafe_allow_html=True)
 
                 # C) PALABRA OCULTA
@@ -1652,7 +1667,7 @@ def home_page():
                 </div>
                 """, unsafe_allow_html=True)
 
-                # D) FINALIZACIÓN
+                # D) FINALIZACIÓN O JUEGO
                 if ganado:
                     st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
                     if nivel_idx < total_niveles - 1:
@@ -1680,17 +1695,20 @@ def home_page():
                         st.rerun()
                         
                 else:
-                    # E) TECLADO GIGANTE (7 Columnas)
+                    # E) TECLADO GIGANTE (CORREGIDO)
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
-                    cols = st.columns(7)
+                    cols = st.columns(9) # Usamos 9 columnas para que queden mejor distribuidas (3 filas de 9)
+                    
                     for i, letra in enumerate(letras_teclado):
                         desactivado = letra in letras_adivinadas
-                        tipo_btn = "secondary"
-                        if desactivado and letra in palabra: type_btn = "primary" # Verde
+                        
+                        # --- AQUÍ ESTABA EL ERROR, AHORA CORREGIDO ---
+                        type_btn = "secondary" # Variable con nombre correcto en inglés
+                        if desactivado and letra in palabra: 
+                            type_btn = "primary" # Verde si acertó
                             
-                        # El CSS de arriba se encarga del tamaño
-                        if cols[i % 7].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
+                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
@@ -1719,6 +1737,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
