@@ -1524,56 +1524,69 @@ def home_page():
 
                 
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.0 - FINAL PULIDO) ===
+        # === VISTA 4: JUEGO ROBOT (V4.1 - ESTILO ARCADE + LÓGICA FINAL) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS MODERNO Y LIMPIO ---
+            # --- 0. CSS ARCADE 3D (RECUPERADO Y MEJORADO) ---
             st.markdown("""
                 <style>
-                /* Botones del teclado (Estilo Material Design Suave) */
+                /* 1. BOTONES DEL TECLADO (Estilo 3D) */
                 div[data-testid="column"] button {
-                    height: 65px;
                     width: 100%;
-                    border-radius: 12px !important;
-                    border: 1px solid #e0e0e0 !important;
-                    background-color: #ffffff;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra suave */
-                    transition: all 0.2s ease !important;
-                    margin-bottom: 8px !important;
+                    height: 65px;
+                    background-color: white !important;
+                    border: 2px solid #dcdcdc !important;
+                    border-radius: 15px !important;
+                    box-shadow: 0 6px 0 #cfcfcf !important; /* Sombra sólida 3D */
+                    transition: all 0.1s ease !important;
+                    margin-bottom: 12px !important;
+                    padding: 0px !important;
                 }
-                
-                /* Texto dentro del botón (Gigante) */
+
+                /* 2. TEXTO DENTRO DEL BOTÓN (GIGANTE) */
                 div[data-testid="column"] button p {
-                    font-size: 36px !important; 
-                    font-weight: 800 !important;
-                    color: #455a64;
-                    line-height: 1.2 !important;
+                    font-size: 38px !important;
+                    font-weight: 900 !important;
+                    color: #555 !important;
+                    line-height: 1 !important;
                 }
 
-                /* Hover (Efecto elevación) */
+                /* 3. EFECTO HOVER (AZUL Y ELEVADO) */
                 div[data-testid="column"] button:hover:enabled {
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+                    transform: translateY(-4px); /* Sube */
+                    background-color: #e3f2fd !important; /* Fondo azul claro */
+                    color: #1976d2 !important;
                     border-color: #2196f3 !important;
+                    box-shadow: 0 10px 0 #90caf9 !important; /* Sombra azul */
+                }
+                div[data-testid="column"] button:hover:enabled p {
+                    color: #1565c0 !important;
                 }
 
-                /* Tecla Acertada (Verde Flat) */
+                /* 4. EFECTO CLICK (HUNDIDO) */
+                div[data-testid="column"] button:active:enabled {
+                    transform: translateY(6px); /* Se hunde */
+                    box-shadow: 0 0 0 #cfcfcf !important;
+                }
+
+                /* 5. TECLA ACERTADA (VERDE) */
                 div[data-testid="column"] button[kind="primary"] {
                     background-color: #4caf50 !important;
-                    border-color: #4caf50 !important;
-                    box-shadow: none !important;
+                    border-color: #2e7d32 !important;
+                    box-shadow: 0 6px 0 #1b5e20 !important;
                 }
                 div[data-testid="column"] button[kind="primary"] p {
                     color: white !important;
                 }
 
-                /* Tecla Fallada (Transparente/Gris) */
+                /* 6. TECLA FALLADA (GRIS) */
                 div[data-testid="column"] button:disabled {
                     background-color: #f5f5f5 !important;
                     border-color: #eee !important;
                     box-shadow: none !important;
-                    opacity: 0.5;
+                    transform: translateY(6px);
+                    opacity: 0.6;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1615,10 +1628,9 @@ def home_page():
                                 st.session_state['robot_challenges'] = retos
                                 st.session_state['robot_level'] = 0
                                 st.session_state['robot_score'] = 0
-                                st.session_state['robot_errors'] = 0 # Errores globales (no se reinician)
+                                st.session_state['robot_errors'] = 0
                                 st.session_state['robot_max_errors'] = 6
                                 
-                                # Cargar Nivel 1
                                 primer_reto = retos[0]
                                 st.session_state['robot_word'] = primer_reto['palabra'].upper()
                                 st.session_state['robot_hint'] = primer_reto['pista']
@@ -1640,20 +1652,20 @@ def home_page():
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) MONITOR VISUAL (Sin cajas blancas feas)
+                # B) MONITOR VISUAL (Limpiamos cajas blancas)
                 baterias_restantes = max_errores - errores
                 emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
-                    # PISTA LIMPIA (Texto grande sin fondo de caja)
+                    # PISTA: Texto limpio sin caja de fondo
                     st.markdown(f"""
-                    <div style="font-size: 32px; color: #1565c0; font-weight: 500; margin-top: 10px;">
+                    <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
                         💡 {st.session_state['robot_hint']}
                     </div>
                     """, unsafe_allow_html=True)
                 with col_bat:
-                    st.markdown(f"<div style='font-size: 50px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
 
                 # C) PALABRA OCULTA (Minimalista)
                 palabra_mostrar = ""
@@ -1665,8 +1677,9 @@ def home_page():
                         palabra_mostrar += "_ "
                         ganado = False
                 
+                # Sin borde, solo letras flotando
                 st.markdown(f"""
-                <div style="text-align: center; font-size: 80px; letter-spacing: 15px; font-family: monospace; color: #333; font-weight: 900; margin: 30px 0;">
+                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
                     {palabra_mostrar}
                 </div>
                 """, unsafe_allow_html=True)
@@ -1682,7 +1695,7 @@ def home_page():
                             st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
                             st.session_state['robot_hint'] = siguiente_reto['pista']
                             st.session_state['robot_guesses'] = set()
-                            # NOTA IMPORTANTE: NO reiniciamos 'robot_errors' aquí para mantener la dificultad
+                            # NO reiniciamos errores
                             st.rerun()
                     else:
                         st.balloons()
@@ -1693,20 +1706,20 @@ def home_page():
                         
                 elif errores >= max_errores:
                     st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
-                    st.markdown("### 🤖: *Sistemas apagados...*")
                     if st.button("⚡ Reintentar Nivel (Recargar)", type="secondary", use_container_width=True):
                         st.session_state['robot_guesses'] = set()
-                        st.session_state['robot_errors'] = 0 # Aquí sí reiniciamos al perder
+                        st.session_state['robot_errors'] = 0
                         st.rerun()
                         
                 else:
-                    # E) TECLADO ARCADE LIMPIO
+                    # E) TECLADO ARCADE
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
                     
                     for i, letra in enumerate(letras_teclado):
                         desactivado = letra in letras_adivinadas
+                        
                         type_btn = "secondary"
                         if desactivado and letra in palabra: 
                             type_btn = "primary"
@@ -1740,6 +1753,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
