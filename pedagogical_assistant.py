@@ -1005,3 +1005,42 @@ def generar_docx_pupiletras(grid, palabras_data, tema, grado):
     doc_io.seek(0)
     return doc_io
 
+
+# =========================================================================
+# === X. MOTOR JUEGO ROBOT (AHORCADO EDUCATIVO) ===
+# =========================================================================
+
+def generar_reto_ahorcado(tema, grado):
+    """
+    Genera una palabra oculta y una pista para el juego del Robot.
+    Retorna: dict {'palabra':Str, 'pista':Str}
+    """
+    if client is None:
+        return None
+
+    prompt = f"""
+    Actúa como un diseñador de juegos educativos. 
+    Necesito un reto para un juego tipo "Ahorcado" sobre el tema: "{tema}" para el grado: "{grado}".
+    
+    INSTRUCCIONES:
+    1. Elige una SOLA palabra clave (concepto importante) relacionada con el tema.
+    2. La palabra debe ser en MAYÚSCULAS, SIN TILDES y SIN ESPACIOS (Ej: "ECOSISTEMA", no "Ecosistema" ni "Árbol").
+    3. Escribe una pista pedagógica clara pero que requiera pensar.
+    
+    FORMATO JSON OBLIGATORIO:
+    {{
+        "palabra": "PALABRASECRETA",
+        "pista": "Texto de la pista..."
+    }}
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Error generando ahorcado: {e}")
+        return None
