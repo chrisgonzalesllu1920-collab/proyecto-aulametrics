@@ -1522,57 +1522,65 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-            
+               
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V3.1 - TECLADO CORREGIDO Y COLORIDO) ===
+        # === VISTA 4: JUEGO ROBOT (V3.2 - TECLADO ARCADE 3D) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS MEJORADO (TECLAS DE COLORES) ---
+            # --- 0. CSS AGRESIVO (ESTILO ARCADE) ---
             st.markdown("""
                 <style>
-                /* Estilo base para botones del teclado */
-                div[data-testid="column"] button {
+                /* 1. ESTILO BASE DE LAS TECLAS (Normales) */
+                div.stButton > button {
+                    width: 100%;
                     height: 65px;
-                    font-size: 28px !important;
-                    font-weight: 800 !important;
+                    font-size: 26px !important;
+                    font-weight: 900 !important;
+                    color: #555 !important;
+                    background-color: white !important;
+                    border: 2px solid #dcdcdc !important;
                     border-radius: 12px !important;
-                    border: 2px solid #e0e0e0 !important;
-                    background-color: #ffffff;
-                    color: #424242;
-                    transition: all 0.2s !important;
-                    box-shadow: 0 4px 0 #cfcfcf; /* Efecto 3D suave */
+                    box-shadow: 0 5px 0 #cfcfcf !important; /* Sombra 3D */
+                    transition: all 0.1s ease !important;
+                    margin-bottom: 10px !important;
                 }
-                
-                /* Efecto Hover (Azul al pasar el mouse) */
-                div[data-testid="column"] button:hover:enabled {
+
+                /* 2. EFECTO HOVER (Al pasar el mouse - AZUL) */
+                div.stButton > button:hover:enabled {
                     transform: translateY(-2px);
-                    border-color: #29b6f6 !important;
-                    color: #0277bd !important;
-                    background-color: #e1f5fe !important;
-                    box-shadow: 0 6px 0 #81d4fa;
+                    background-color: #e3f2fd !important;
+                    color: #1976d2 !important;
+                    border-color: #2196f3 !important;
+                    box-shadow: 0 7px 0 #90caf9 !important;
                 }
 
-                /* Efecto Active (Al hacer clic) */
-                div[data-testid="column"] button:active:enabled {
+                /* 3. EFECTO CLICK (Al presionar) */
+                div.stButton > button:active:enabled {
                     transform: translateY(4px);
-                    box-shadow: 0 0 0 #cfcfcf;
+                    box-shadow: 0 1px 0 #cfcfcf !important;
                 }
 
-                /* Teclas ACERTADAS (Verde Brillante) */
-                div[data-testid="column"] button[kind="primary"] {
-                    background-color: #66bb6a !important;
-                    border-color: #43a047 !important;
+                /* 4. TECLA ACERTADA (VERDE - type="primary") */
+                div.stButton > button[kind="primary"] {
+                    background-color: #4caf50 !important;
                     color: white !important;
-                    box-shadow: none !important;
-                    opacity: 1 !important;
+                    border-color: #2e7d32 !important;
+                    box-shadow: 0 5px 0 #1b5e20 !important;
                 }
-                
-                /* Teclas FALLADAS (Deshabilitadas normales se verán grises, 
-                   pero podemos forzar un estilo si quisieras) */
-                div[data-testid="column"] button:disabled {
-                    opacity: 0.6;
-                    cursor: not-allowed;
+                div.stButton > button[kind="primary"]:hover {
+                    color: white !important;
+                    background-color: #43a047 !important;
+                }
+
+                /* 5. TECLA DESACTIVADA/FALLADA */
+                div.stButton > button:disabled {
+                    background-color: #f5f5f5 !important;
+                    color: #bbb !important;
+                    border-color: #eee !important;
+                    box-shadow: none !important;
+                    transform: translateY(4px); /* Hundida */
+                    opacity: 0.7;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1695,18 +1703,18 @@ def home_page():
                         st.rerun()
                         
                 else:
-                    # E) TECLADO GIGANTE (CORREGIDO)
+                    # E) TECLADO GIGANTE (9 Columnas)
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
-                    cols = st.columns(9) # Usamos 9 columnas para que queden mejor distribuidas (3 filas de 9)
+                    cols = st.columns(9)
                     
                     for i, letra in enumerate(letras_teclado):
                         desactivado = letra in letras_adivinadas
                         
-                        # --- AQUÍ ESTABA EL ERROR, AHORA CORREGIDO ---
-                        type_btn = "secondary" # Variable con nombre correcto en inglés
+                        # Lógica de color (Verde si acierta, Gris si falla)
+                        type_btn = "secondary"
                         if desactivado and letra in palabra: 
-                            type_btn = "primary" # Verde si acertó
+                            type_btn = "primary" # Esto activa el CSS de botón verde
                             
                         if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
@@ -1737,6 +1745,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
