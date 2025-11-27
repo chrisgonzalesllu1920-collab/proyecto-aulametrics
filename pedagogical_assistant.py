@@ -928,3 +928,79 @@ def crear_grid_pupiletras(palabras, filas=15, columnas=15):
         grid_completo.append(fila_letras)
 
     return grid_completo, palabras_colocadas
+
+# =========================================================================
+# === IX. GENERADOR DE DOCX PUPILETRAS (FICHA IMPRIMIBLE) ===
+# =========================================================================
+
+def generar_docx_pupiletras(grid, palabras_data, tema, grado):
+    """
+    Crea un archivo Word con la sopa de letras formateada para imprimir.
+    """
+    doc = Document()
+    
+    # 1. TÍTULO Y ENCABEZADO
+    titulo = doc.add_heading(f"SOPA DE LETRAS: {tema.upper()}", 0)
+    titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.add_run(f"Nivel: {grado} | Generado por AulaMetrics").bold = True
+
+    doc.add_paragraph("") # Espacio
+
+    # 2. DIBUJAR LA GRILLA (TABLA)
+    filas = len(grid)
+    columnas = len(grid[0])
+    
+    # Creamos tabla
+    table = doc.add_table(rows=filas, cols=columnas)
+    table.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    table.autofit = False 
+    
+    # Configuración de celdas
+    for i in range(filas):
+        for j in range(columnas):
+            cell = table.cell(i, j)
+            cell.text = grid[i][j]
+            
+            # Formato de texto (Centrado y Grande)
+            paragraph = cell.paragraphs[0]
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = paragraph.runs[0]
+            run.font.size = Pt(14)
+            run.font.bold = True
+            
+            # Ajuste de ancho/alto (para que sea cuadrada)
+            cell.width = Inches(0.4)
+            cell.height = Inches(0.4)
+
+    doc.add_paragraph("") # Espacio grande
+    doc.add_paragraph("")
+
+    # 3. LISTA DE PALABRAS A BUSCAR
+    doc.add_heading("Palabras a encontrar:", level=2)
+    
+    # Usamos una tabla invisible para listar las palabras ordenadamente (3 columnas)
+    lista_palabras = [item['palabra'] for item in palabras_data]
+    lista_palabras.sort()
+    
+    num_cols_lista = 3
+    num_rows_lista = (len(lista_palabras) + num_cols_lista - 1) // num_cols_lista
+    
+    list_table = doc.add_table(rows=num_rows_lista, cols=num_cols_lista)
+    list_table.style = 'Table Grid' # O 'Normal Table' si quieres sin bordes, pero Grid se ve mejor para fichas
+    
+    idx = 0
+    for r in range(num_rows_lista):
+        for c in range(num_cols_lista):
+            if idx < len(lista_palabras):
+                cell = list_table.cell(r, c)
+                cell.text = f"⬜ {lista_palabras[idx]}"
+                idx += 1
+
+    # 4. GUARDAR EN MEMORIA
+    doc_io = io.BytesIO()
+    doc.save(doc_io)
+    doc_io.seek(0)
+    return doc_io
