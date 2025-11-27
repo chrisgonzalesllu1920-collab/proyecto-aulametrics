@@ -1532,10 +1532,11 @@ def home_page():
             st.markdown("""
                 <style>
                 /* 1. ESTILO BASE DE LAS TECLAS (Normales) */
-                div.stButton > button {
+                div.stButton > button p {
                     width: 100%;
                     height: 65px;
-                    font-size: 50px !important;
+                    font-size: 40px !important;
+                    line-height: 1 !important;
                     font-weight: 900 !important;
                     color: #555 !important;
                     background-color: white !important;
@@ -1745,6 +1746,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
