@@ -84,7 +84,7 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD) ===
+# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO) ===
 # =========================================================================
 
 def mostrar_home():
@@ -92,36 +92,27 @@ def mostrar_home():
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
 
-    # --- FILA 1 (3 Herramientas Principales) ---
-    col1, col2, col3 = st.columns(3)
+    # --- FILA 1 ---
+    col1, col2 = st.columns(2)
     
     with col1:
+        # TARJETA 1: FUSIÓN DE ANÁLISIS (GENERAL + ESTUDIANTE)
         st.markdown("""
-        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
-            <h3 style="color: #007bff; text-align: center;">📊 Análisis General</h3>
-            <p style="text-align: center; color: #666;">Carga tus registros Excel y obtén estadísticas globales del aula.</p>
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: 180px;">
+            <h3 style="color: #1565c0; text-align: center;">📊 Sistema de Evaluación</h3>
+            <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("👉 Entrar a Análisis", key="btn_home_analisis", use_container_width=True):
-            navegar_a("Análisis General")
+        if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
+            navegar_a("Sistema de Evaluación") # Nombre de la nueva página unificada
             st.rerun()
 
     with col2:
+        # TARJETA 2: ASISTENTE
         st.markdown("""
-        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
-            <h3 style="color: #28a745; text-align: center;">🧑‍🎓 Por Estudiante</h3>
-            <p style="text-align: center; color: #666;">Genera libretas individuales y analiza el rendimiento detallado.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("👉 Entrar a Estudiantes", key="btn_home_estudiante", use_container_width=True):
-            navegar_a("Análisis por Estudiante")
-            st.rerun()
-
-    with col3:
-        st.markdown("""
-        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
-            <h3 style="color: #6610f2; text-align: center;">🧠 Asistente IA</h3>
-            <p style="text-align: center; color: #666;">Crea sesiones, documentos y rubricas con Inteligencia Artificial.</p>
+        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: 180px;">
+            <h3 style="color: #6a1b9a; text-align: center;">🧠 Asistente Pedagógico</h3>
+            <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
@@ -130,31 +121,32 @@ def mostrar_home():
 
     st.write("") # Espacio vertical
 
-    # --- FILA 2 (Herramientas Complementarias) ---
-    col4, col5 = st.columns(2)
+    # --- FILA 2 ---
+    col3, col4 = st.columns(2)
     
-    with col4:
+    with col3:
+        # TARJETA 3: RECURSOS
         st.markdown("""
-        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 180px;">
-            <h3 style="color: #fd7e14; text-align: center;">📂 Recursos</h3>
-            <p style="text-align: center; color: #666;">Descarga plantillas y guías oficiales.</p>
+        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: 180px;">
+            <h3 style="color: #ef6c00; text-align: center;">📂 Banco de Recursos</h3>
+            <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
             navegar_a("Recursos")
             st.rerun()
 
-    with col5:
+    with col4:
+        # TARJETA 4: GAMIFICACIÓN
         st.markdown("""
-        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 180px;">
-            <h3 style="color: #e83e8c; text-align: center;">🎮 Gamificación</h3>
-            <p style="text-align: center; color: #666;">Crea juegos de trivia interactivos para tu clase.</p>
+        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: 180px;">
+            <h3 style="color: #c2185b; text-align: center;">🎮 Gamificación</h3>
+            <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
             navegar_a("Gamificación")
             st.rerun()
-
 
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
@@ -749,24 +741,38 @@ def convert_df_to_excel(df, area_name, general_info):
 
     return output.getvalue()
 
-# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN ---
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V2 INTELIGENTE) ---
 def mostrar_sidebar():
     """
-    Muestra el menú lateral. Si el usuario NO está en el inicio,
-    muestra el botón para regresar.
+    Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
     """
     with st.sidebar:
-        # Solo mostramos el botón "Volver" si estamos dentro de una herramienta
+        # 1. BOTÓN VOLVER (Siempre visible si no estamos en Inicio)
         if st.session_state.get('pagina_actual') != 'Inicio':
             st.divider()
             if st.button("🏠 Volver al Menú Principal", use_container_width=True):
                 navegar_a("Inicio")
                 st.rerun()
-            st.divider()
 
-        # Pie de página de la barra
+        # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
+        # ¡Aquí solucionamos la Observación #1!
+        if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
+            st.divider()
+            if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
+                # Limpieza total de datos para permitir nueva carga
+                st.session_state.df_cargado = False
+                st.session_state.info_areas = None
+                st.session_state.all_dataframes = None
+                st.session_state.df = None
+                # Truco para limpiar el widget de carga
+                if 'file_uploader' in st.session_state:
+                    del st.session_state['file_uploader']
+                st.rerun()
+
+        # 3. PIE DE PÁGINA
+        st.divider()
         if st.session_state.get('pagina_actual') == 'Inicio':
-            st.info("👋 ¡Hola! Selecciona una herramienta del panel principal.")
+            st.info("👋 Selecciona una herramienta del panel.")
         else:
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
@@ -1360,6 +1366,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
