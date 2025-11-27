@@ -1536,68 +1536,103 @@ def home_page():
                     if st.button("🔄 Reiniciar", type="secondary", use_container_width=True):
                         del st.session_state['pupi_grid']
                         st.rerun()
-
-
+        
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (AHORCADO) ===
+        # === VISTA 4: JUEGO ROBOT (AHORCADO V2.0 MULTINIVEL) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
+            # --- 0. CSS PARA TECLADO GIGANTE ---
+            st.markdown("""
+                <style>
+                /* Botones del teclado más grandes y cuadrados */
+                div[data-testid="column"] button {
+                    height: 60px;
+                    font-size: 24px !important;
+                    font-weight: bold !important;
+                    border-radius: 10px !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
             # --- 1. BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
                 if st.button("🔙 Menú", use_container_width=True):
+                    # Limpiamos variables al salir
+                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
+                    for k in keys_to_clear:
+                        if k in st.session_state: del st.session_state[k]
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🔋 Recarga al Robot")
+                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
-            # --- 2. CONFIGURACIÓN (Si no hay juego activo) ---
-            if 'robot_word' not in st.session_state:
+            # --- 2. CONFIGURACIÓN (Si no hay retos cargados) ---
+            if 'robot_challenges' not in st.session_state:
+                st.info("Configura la misión de rescate:")
                 
-                col_c1, col_c2 = st.columns([2, 1])
+                col_c1, col_c2, col_c3 = st.columns([2, 1, 1])
                 with col_c1:
-                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos...")
+                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos, Héroes...")
                 with col_c2:
-                    grado_robot = st.selectbox("Grado:", ["Primaria", "Secundaria"], index=0)
+                    lista_grados_robot = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_robot = st.selectbox("Grado:", lista_grados_robot, index=5)
+                with col_c3:
+                    cant_robot = st.slider("Palabras:", 3, 10, 5)
                 
                 if st.button("🤖 Iniciar Misión", type="primary", use_container_width=True):
                     if not tema_robot:
                         st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("⚡ Analizando datos..."):
-                            datos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot)
+                        with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
+                            # Llamamos al Backend V2 (que devuelve lista)
+                            retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
                             
-                            if datos:
-                                # Inicializar variables del juego
-                                st.session_state['robot_word'] = datos['palabra'].upper() # La palabra secreta
-                                st.session_state['robot_hint'] = datos['pista']
-                                st.session_state['robot_guesses'] = set() # Letras ya dichas
+                            if retos and len(retos) > 0:
+                                # Inicializar variables del sistema multinivel
+                                st.session_state['robot_challenges'] = retos # Lista de dicts
+                                st.session_state['robot_level'] = 0 # Índice actual
+                                st.session_state['robot_score'] = 0 # Puntaje acumulado
+                                
+                                # Cargar el primer nivel
+                                primer_reto = retos[0]
+                                st.session_state['robot_word'] = primer_reto['palabra'].upper()
+                                st.session_state['robot_hint'] = primer_reto['pista']
+                                st.session_state['robot_guesses'] = set()
                                 st.session_state['robot_errors'] = 0
-                                st.session_state['robot_max_errors'] = 6 # Vidas (Baterías)
+                                st.session_state['robot_max_errors'] = 6
                                 st.rerun()
                             else:
-                                st.error("Error conectando con el servidor central.")
+                                st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
 
             # --- 3. ZONA DE JUEGO ---
             else:
+                # Datos del Nivel Actual
+                nivel_idx = st.session_state['robot_level']
+                total_niveles = len(st.session_state['robot_challenges'])
                 palabra = st.session_state['robot_word']
                 errores = st.session_state['robot_errors']
                 max_errores = st.session_state['robot_max_errors']
                 letras_adivinadas = st.session_state['robot_guesses']
                 
-                # A) MONITOR DE ESTADO (Batería y Pista)
-                baterias_restantes = max_errores - errores
-                
-                # Visualización de batería con Emojis
-                emoji_bateria = "🔋 " * baterias_restantes + "🪫 " * errores
-                
-                col_status1, col_status2 = st.columns([2, 1])
-                with col_status1:
-                    st.info(f"💡 **PISTA:** {st.session_state['robot_hint']}")
-                with col_status2:
-                    st.markdown(f"<div style='font-size: 24px; text-align: right;'>Energía: {emoji_bateria}</div>", unsafe_allow_html=True)
+                # A) BARRA DE PROGRESO DE LA MISIÓN
+                progreso_mision = (nivel_idx) / total_niveles
+                st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) LA PALABRA OCULTA
+                # B) MONITOR DE ENERGÍA
+                baterias_restantes = max_errores - errores
+                emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
+                
+                col_hint, col_bat = st.columns([3, 1])
+                with col_hint:
+                    st.info(f"💡 **PISTA:** {st.session_state['robot_hint']}")
+                with col_bat:
+                    st.markdown(f"<div style='font-size: 28px; text-align: right; letter-spacing: -5px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+
+                # C) LA PALABRA OCULTA
                 palabra_mostrar = ""
                 ganado = True
                 for letra in palabra:
@@ -1608,56 +1643,69 @@ def home_page():
                         ganado = False
                 
                 st.markdown(f"""
-                <div style="
-                    text-align: center; 
-                    font-size: 50px; 
-                    letter-spacing: 5px; 
-                    font-family: monospace; 
-                    background-color: #f0f2f6; 
-                    padding: 20px; 
-                    border-radius: 15px; 
-                    margin: 20px 0;">
+                <div style="text-align: center; font-size: 55px; letter-spacing: 5px; font-family: monospace; background-color: #f8f9fa; padding: 15px; border-radius: 15px; margin: 10px 0; border: 2px solid #e9ecef; color: #333;">
                     {palabra_mostrar}
                 </div>
                 """, unsafe_allow_html=True)
 
-                # C) CONTROL DE JUEGO (Ganar / Perder / Jugar)
+                # D) LÓGICA DE FINALIZACIÓN
                 if ganado:
-                    st.balloons()
-                    st.success(f"🎉 ¡MISIÓN CUMPLIDA! La palabra era: **{palabra}**")
-                    st.markdown("### 🤖: *¡Gracias humano! Mi batería está al 100%.*")
-                    if st.button("🔄 Nueva Misión"):
-                        del st.session_state['robot_word']
-                        st.rerun()
+                    st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
+                    
+                    if nivel_idx < total_niveles - 1:
+                        # Botón para SIGUIENTE NIVEL
+                        if st.button("➡️ Siguiente Nivel", type="primary", use_container_width=True):
+                            st.session_state['robot_score'] += 100
+                            st.session_state['robot_level'] += 1
+                            
+                            # Cargar datos del siguiente
+                            siguiente_reto = st.session_state['robot_challenges'][st.session_state['robot_level']]
+                            st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
+                            st.session_state['robot_hint'] = siguiente_reto['pista']
+                            st.session_state['robot_guesses'] = set()
+                            st.session_state['robot_errors'] = 0
+                            st.rerun()
+                    else:
+                        # FIN DEL JUEGO
+                        st.balloons()
+                        st.markdown("""
+                        <div style="text-align: center; padding: 20px; background-color: #d4edda; border-radius: 20px;">
+                            <h1>🏆 ¡MISIÓN COMPLETADA!</h1>
+                            <p>Has salvado al robot y completado todos los niveles.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        if st.button("🔄 Nueva Misión (Inicio)", type="primary"):
+                            del st.session_state['robot_challenges']
+                            st.rerun()
                         
                 elif errores >= max_errores:
                     st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
-                    st.markdown("### 🤖: *Apagando sistemas... zzz...*")
-                    if st.button("🔄 Intentar de Nuevo"):
-                        del st.session_state['robot_word']
+                    # Opción de reintentar el mismo nivel
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
+                        st.session_state['robot_guesses'] = set()
+                        st.session_state['robot_errors'] = 0
                         st.rerun()
                         
                 else:
-                    # D) TECLADO VIRTUAL
-                    st.write("Selecciona una letra:")
+                    # E) TECLADO GIGANTE (7 Columnas para mejor distribución)
+                    st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     
-                    # Creamos 9 columnas para el teclado
-                    cols = st.columns(9)
+                    # Usamos 7 columnas para que las teclas sean grandes
+                    cols = st.columns(7)
                     for i, letra in enumerate(letras_teclado):
                         desactivado = letra in letras_adivinadas
                         
-                        # Color del botón según estado
                         tipo_btn = "secondary"
-                        if desactivado:
-                            if letra in palabra: tipo_btn = "primary" # Verde si acertó
+                        if desactivado and letra in palabra: 
+                            tipo_btn = "primary" # Verde si ya acertó
                             
-                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=tipo_btn):
+                        # El botón ocupa el ancho de su columna (gracias al CSS de arriba se verá alto)
+                        if cols[i % 7].button(letra, key=f"key_{letra}", disabled=desactivado, type=tipo_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
                             st.rerun()
-
 
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1682,6 +1730,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
