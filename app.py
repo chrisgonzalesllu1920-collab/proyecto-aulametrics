@@ -1382,15 +1382,132 @@ def home_page():
                         st.rerun()
 
         # ==========================================
-        # === VISTA 3: JUEGO PUPILETRAS (Próximamente) ===
+        # === VISTA 3: JUEGO PUPILETRAS (INTERACTIVO) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'pupiletras':
             
-            if st.button("🔙 Volver al Menú de Juegos"):
-                volver_menu_juegos()
+            # --- 1. BARRA SUPERIOR ---
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True):
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🔎 Pupiletras: Buscador de Palabras")
+
+            # --- 2. CONFIGURACIÓN (Solo si no hay juego generado) ---
+            if 'pupi_grid' not in st.session_state:
+                st.info("Configura tu sopa de letras:")
                 
-            st.header("🔎 Pupiletras Temático")
-            st.info("🚧 Estamos construyendo el generador de Sopa de Letras. ¡Pronto disponible!")
+                col_conf1, col_conf2, col_conf3 = st.columns([2, 1, 1])
+                with col_conf1:
+                    tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú, Partes de la Planta...")
+                with col_conf2:
+                    grado_pupi = st.selectbox("Grado:", ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "Secundaria"], index=5)
+                with col_conf3:
+                    cant_palabras = st.slider("Palabras:", 5, 15, 8)
+
+                if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
+                    if not tema_pupi:
+                        st.warning("⚠️ Escribe un tema.")
+                    else:
+                        with st.spinner("🤖 La IA está buscando palabras y el Algoritmo está armando la grilla..."):
+                            # 1. IA trae palabras
+                            palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
+                            
+                            if palabras and len(palabras) > 0:
+                                # 2. Algoritmo arma la sopa
+                                grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
+                                
+                                # Guardamos en memoria
+                                st.session_state['pupi_grid'] = grid
+                                st.session_state['pupi_data'] = colocados # Lista con coords
+                                st.session_state['pupi_found'] = set() # Para marcar las encontradas
+                                st.rerun()
+                            else:
+                                st.error("Error: La IA no generó palabras válidas. Intenta otro tema.")
+
+            # --- 3. ZONA DE JUEGO (Si ya existe la grilla) ---
+            else:
+                # Recuperar datos
+                grid = st.session_state['pupi_grid']
+                palabras_data = st.session_state['pupi_data'] # Lista de dicts: {'palabra': 'XYZ', 'coords': [(0,1), (0,2)]}
+                encontradas = st.session_state['pupi_found']  # Set con nombres de palabras ya marcadas
+
+                # --- A) DIBUJAR LA GRILLA (HTML/CSS) ---
+                # Creamos un mapa de coordenadas iluminadas para pintarlas
+                celdas_iluminadas = set()
+                for p_data in palabras_data:
+                    if p_data['palabra'] in encontradas:
+                        for coord in p_data['coords']:
+                            celdas_iluminadas.add(coord)
+
+                # Generamos el HTML de la tabla
+                html_grid = """<div style="display: flex; justify-content: center;"><table style="border-collapse: collapse;">"""
+                
+                for r in range(len(grid)):
+                    html_grid += "<tr>"
+                    for c in range(len(grid[0])):
+                        letra = grid[r][c]
+                        # Estilo base
+                        bg_color = "#ffffff"
+                        text_color = "#333"
+                        border = "1px solid #ccc"
+                        
+                        # Si está iluminada, cambiamos estilo
+                        if (r, c) in celdas_iluminadas:
+                            bg_color = "#ffeb3b" # Amarillo resaltador
+                            text_color = "#000"
+                            border = "1px solid #fbc02d"
+                        
+                        html_grid += f"""
+                            <td style="
+                                width: 35px; height: 35px; 
+                                text-align: center; vertical-align: middle;
+                                font-family: monospace; font-size: 20px; font-weight: bold;
+                                background-color: {bg_color}; color: {text_color}; border: {border};
+                            ">{letra}</td>
+                        """
+                    html_grid += "</tr>"
+                html_grid += "</table></div>"
+                
+                st.markdown(html_grid, unsafe_allow_html=True)
+                st.write("") # Espacio
+
+                # --- B) LISTA DE PALABRAS (BOTONES INTERACTIVOS) ---
+                st.markdown("### 📝 Palabras a encontrar:")
+                st.caption("Haz clic en la palabra cuando los alumnos la encuentren para resaltarla.")
+                
+                # Organizamos los botones en columnas (4 por fila)
+                cols = st.columns(4)
+                for i, p_item in enumerate(palabras_data):
+                    palabra_texto = p_item['palabra']
+                    
+                    # Definimos estado visual del botón
+                    if palabra_texto in encontradas:
+                        label = f"✅ {palabra_texto}"
+                        tipo = "primary" # Verde (ya encontrado)
+                    else:
+                        label = f"⬜ {palabra_texto}"
+                        tipo = "secondary" # Gris (pendiente)
+                    
+                    # Dibujamos botón en su columna correspondiente
+                    if cols[i % 4].button(label, key=f"btn_word_{i}", type=tipo, use_container_width=True):
+                        # Lógica de Toggle (Marcar/Desmarcar)
+                        if palabra_texto in encontradas:
+                            st.session_state['pupi_found'].remove(palabra_texto)
+                        else:
+                            st.session_state['pupi_found'].add(palabra_texto)
+                        st.rerun()
+
+                st.divider()
+                
+                # Botón de Reinicio
+                if st.button("🔄 Crear Nueva Sopa de Letras", type="secondary"):
+                    del st.session_state['pupi_grid']
+                    del st.session_state['pupi_data']
+                    del st.session_state['pupi_found']
+                    st.rerun()
+
 
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1415,6 +1532,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
