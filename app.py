@@ -70,7 +70,92 @@ def get_image_as_base64(file_path):
       return base64.b64encode(data).decode()
   except FileNotFoundError:
       return None
-      
+
+# =========================================================================
+# === 1.B. SISTEMA DE NAVEGACIÓN (EL GPS) ===
+# =========================================================================
+
+# Inicializamos la variable que controla dónde está el usuario
+if 'pagina_actual' not in st.session_state:
+    st.session_state['pagina_actual'] = 'Inicio'
+
+# Función para cambiar de página
+def navegar_a(pagina):
+    st.session_state['pagina_actual'] = pagina
+
+# =========================================================================
+# === 1.C. PANTALLA DE INICIO (DASHBOARD) ===
+# =========================================================================
+
+def mostrar_home():
+    st.title("🚀 Bienvenido a AulaMetrics")
+    st.markdown("### Selecciona una herramienta para comenzar:")
+    st.divider()
+
+    # --- FILA 1 (3 Herramientas Principales) ---
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
+            <h3 style="color: #007bff; text-align: center;">📊 Análisis General</h3>
+            <p style="text-align: center; color: #666;">Carga tus registros Excel y obtén estadísticas globales del aula.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Análisis", key="btn_home_analisis", use_container_width=True):
+            navegar_a("Análisis General")
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
+            <h3 style="color: #28a745; text-align: center;">🧑‍🎓 Por Estudiante</h3>
+            <p style="text-align: center; color: #666;">Genera libretas individuales y analiza el rendimiento detallado.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Estudiantes", key="btn_home_estudiante", use_container_width=True):
+            navegar_a("Análisis por Estudiante")
+            st.rerun()
+
+    with col3:
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 200px;">
+            <h3 style="color: #6610f2; text-align: center;">🧠 Asistente IA</h3>
+            <p style="text-align: center; color: #666;">Crea sesiones, documentos y rubricas con Inteligencia Artificial.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
+            navegar_a("Asistente Pedagógico")
+            st.rerun()
+
+    st.write("") # Espacio vertical
+
+    # --- FILA 2 (Herramientas Complementarias) ---
+    col4, col5 = st.columns(2)
+    
+    with col4:
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 180px;">
+            <h3 style="color: #fd7e14; text-align: center;">📂 Recursos</h3>
+            <p style="text-align: center; color: #666;">Descarga plantillas y guías oficiales.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
+            navegar_a("Recursos")
+            st.rerun()
+
+    with col5:
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd; height: 180px;">
+            <h3 style="color: #e83e8c; text-align: center;">🎮 Gamificación</h3>
+            <p style="text-align: center; color: #666;">Crea juegos de trivia interactivos para tu clase.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
+            navegar_a("Gamificación")
+            st.rerun()
+
+
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
 # =========================================================================
@@ -664,95 +749,82 @@ def convert_df_to_excel(df, area_name, general_info):
 
     return output.getvalue()
 
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN ---
+def mostrar_sidebar():
+    """
+    Muestra el menú lateral. Si el usuario NO está en el inicio,
+    muestra el botón para regresar.
+    """
+    with st.sidebar:
+        # Solo mostramos el botón "Volver" si estamos dentro de una herramienta
+        if st.session_state.get('pagina_actual') != 'Inicio':
+            st.divider()
+            if st.button("🏠 Volver al Menú Principal", use_container_width=True):
+                navegar_a("Inicio")
+                st.rerun()
+            st.divider()
+
+        # Pie de página de la barra
+        if st.session_state.get('pagina_actual') == 'Inicio':
+            st.info("👋 ¡Hola! Selecciona una herramienta del panel principal.")
+        else:
+            st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
+        
+        st.caption("🏫 AulaMetrics v2.5 Beta")
+
 # =========================================================================
-# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v4.0 ===
+# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
 # =========================================================================
 def home_page():
     
+    # 1. Mensaje de Bienvenida (Mantenemos tu lógica)
     if st.session_state.show_welcome_message:
-        user_email = "Usuario"
+        user_name = "Profe"
         if hasattr(st.session_state, 'user') and st.session_state.user:
-            user_name = st.session_state.user.user_metadata.get('full_name', st.session_state.user.email)
-            st.toast(f"¡Bienvenido, {user_name}!", icon="👋")
+             user_name = st.session_state.user.user_metadata.get('full_name', 'Profe')
+        st.toast(f"¡Hola, {user_name}!", icon="👋")
         st.session_state.show_welcome_message = False
 
-    # INICIALIZACIÓN DE VARIABLES
+    # 2. Inicialización de Variables
     if 'sesion_generada' not in st.session_state: st.session_state.sesion_generada = None
     if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
     if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
 
-# ENCABEZADO DASHBOARD
-    # Modificamos para tener 3 columnas: Logo (1) | Título (4) | Robot (1)
-    col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
+    # 3. ACTIVAR BARRA LATERAL (La función de la Sección 5)
+    mostrar_sidebar()
 
-    with col_logo:
-        try:
-            # Mantenemos tu logo original
-            st.image(ISOTIPO_PATH, width=120)
-        except:
-            st.warning("No isotipo.")
-            
-    with col_titulo:
-        # Mantenemos tu título con el estilo degradado que ya tenías
-        st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
-        st.markdown("Selecciona una herramienta para comenzar.")
+    # 4. CONTROLADOR DE PÁGINAS (GPS)
+    pagina = st.session_state['pagina_actual']
 
-    with col_bot:
-        # 👇 Aquí ponemos al Robot saludando a la derecha
-        try:
-            lottie_hello = cargar_lottie("robot_hello.json")
-            st_lottie(lottie_hello, height=180, key="robot_header")
-        except:
-            pass
+    # --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
+    if pagina == 'Inicio':
+        # El Encabezado (Logo, Título, Robot) SOLO aparece en el Inicio
+        col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
 
-  # SIDEBAR
-    st.sidebar.divider() 
-    # (Aquí sigue tu código existente de Yape...)
-    col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
-    # ...
-    with col_centro:
-        st.image("assets/qr-yape.png") 
-    
-    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos a mantener la página gratuita!</div>", unsafe_allow_html=True)
-    st.sidebar.divider()
-
-    # --- 👇 NUEVO BOTÓN: RESETEAR / CARGAR NUEVO ---
-    if st.sidebar.button("📂 Subir Nuevo Archivo", use_container_width=True):
-        # 1. Borramos las memorias de datos
-        st.session_state.df_cargado = False
-        st.session_state.info_areas = None
-        st.session_state.all_dataframes = None
-        st.session_state.df = None
+        with col_logo:
+            try: st.image(ISOTIPO_PATH, width=120)
+            except: pass
         
-        # 2. Truco Pro: Borramos la memoria del widget de carga para que aparezca vacío
-        if 'file_uploader' in st.session_state:
-            del st.session_state['file_uploader']
+        with col_titulo:
+            st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
+            st.markdown("Selecciona una herramienta para comenzar.")
+
+        with col_bot:
+            try:
+                lottie_hello = cargar_lottie("robot_hello.json")
+                st_lottie(lottie_hello, height=180, key="robot_header")
+            except: pass
             
-        st.rerun()
-    # -----------------------------------------------
+        # DIBUJAMOS LAS TARJETAS DEL MENÚ
+        mostrar_home()
 
-    if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
-        try:
-            supabase.auth.sign_out()
-        except:
-            pass
-        st.session_state.logged_in = False
-        # Verificamos si existe antes de borrar para evitar errores
-        if hasattr(st.session_state, 'user'):
-            del st.session_state.user
-        st.rerun()
+        # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
+        # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
 
-# --- TABS PRINCIPALES (5 PESTAÑAS) ---
-    tab_general, tab_estudiante, tab_asistente, tab_recursos, tab_juegos = st.tabs([
-        "📊 Análisis General", 
-        "🧑‍🎓 Análisis por Estudiante", 
-        "🧠 Asistente Pedagógico",
-        "📂 Recursos",
-        "🎮 Gamificación"  # <--- ¡Aquí está la nueva!
-    ])
+# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
-    # TAB 1: ANÁLISIS
-    with tab_general:
+    # 1. ANÁLISIS GENERAL
+    if pagina == "Análisis General":
         if st.session_state.df_cargado:
             info_areas = st.session_state.info_areas
             mostrar_analisis_general(info_areas)
@@ -761,8 +833,8 @@ def home_page():
             st.info("Para comenzar el análisis de notas, sube tu registro de Excel aquí.")
             configurar_uploader() 
 
-    # TAB 2: ESTUDIANTE
-    with tab_estudiante:
+    # 2. POR ESTUDIANTE
+    elif pagina == "Análisis por Estudiante":
         if st.session_state.df_cargado:
             df = st.session_state.df
             df_config = st.session_state.df_config
@@ -771,28 +843,26 @@ def home_page():
         else:
             st.header("🧑‍🎓 Análisis Individual por Estudiante")
             st.info("Esta función requiere un archivo de notas.")
-            st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
+            st.warning("Por favor, ve a la sección **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
 
-# TAB 3: ASISTENTE
-    with tab_asistente:
+    # 3. ASISTENTE PEDAGÓGICO
+    elif pagina == "Asistente Pedagógico":
         st.header("🧠 Asistente Pedagógico")
 
-        # 👇 1. DEFINIMOS LA FUNCIÓN DE LIMPIEZA
-        # Esta función borra la memoria de la sesión anterior
+        # Función de limpieza local
         def limpiar_resultados():
             keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
             for key in keys_to_clear:
                 if key in st.session_state:
                     del st.session_state[key]
 
-        # 👇 2. CONECTAMOS LA LIMPIEZA AL CAMBIO DE HERRAMIENTA
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
             index=0, 
             horizontal=True, 
             key="asistente_tipo_herramienta",
-            on_change=limpiar_resultados # <--- ¡AQUÍ ESTÁ LA MAGIA!
+            on_change=limpiar_resultados
         )
         st.markdown("---")
 
@@ -806,7 +876,6 @@ def home_page():
                 st.subheader("Paso 1: Selecciona el Nivel")
                 niveles = df_gen['NIVEL'].dropna().unique()
                 
-                # 👇 3. CONECTAMOS LA LIMPIEZA AL CAMBIO DE NIVEL
                 nivel_sel = st.selectbox(
                     "Nivel", 
                     options=niveles, 
@@ -814,7 +883,7 @@ def home_page():
                     placeholder="Elige una opción...", 
                     key="asistente_nivel_sel", 
                     label_visibility="collapsed",
-                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                    on_change=limpiar_resultados
                 )
                 
                 st.subheader("Paso 2: Selecciona el Grado")
@@ -822,7 +891,6 @@ def home_page():
                 if st.session_state.asistente_nivel_sel:
                     grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
                 
-                # 👇 4. CONECTAMOS LA LIMPIEZA AL CAMBIO DE GRADO
                 grado_sel = st.selectbox(
                     "Grado", 
                     options=grados_options, 
@@ -831,11 +899,9 @@ def home_page():
                     disabled=(not st.session_state.asistente_nivel_sel), 
                     key="asistente_grado_sel", 
                     label_visibility="collapsed",
-                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                    on_change=limpiar_resultados
                 )
                 
-                # ... (A partir de aquí sigue tu código normal de Área, etc.)
-
                 st.subheader("Paso 3: Selecciona el Área")
                 areas_options = []
                 df_hoja_descriptor = None 
@@ -923,46 +989,34 @@ def home_page():
                                     st.error(f"Error: {e}")
                                     st.session_state.sesion_generada = None
                 
-# MOSTRAR RESULTADOS
-        if st.session_state.sesion_generada:
-            st.markdown("---")
-            st.subheader("Resultado")
-            st.markdown(st.session_state.sesion_generada)
-            
-            st.success("¡Sesión generada con éxito!")
-            
-# 🛡️ ZONA DE DESCARGA (CORREGIDA)
-            # Verificamos si los bytes del archivo existen en la memoria permanente
-            if st.session_state.get('docx_bytes'):
+            # MOSTRAR RESULTADOS
+            if st.session_state.sesion_generada:
+                st.markdown("---")
+                st.subheader("Resultado")
+                st.markdown(st.session_state.sesion_generada)
                 
-                st.download_button(
-                    label="📄 Descargar Sesión en Word",
-                    data=st.session_state.docx_bytes, 
-                    file_name="Sesion_Aprendizaje.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+                st.success("¡Sesión generada con éxito!")
+                
+                # ZONA DE DESCARGA
+                if st.session_state.get('docx_bytes'):
+                    st.download_button(
+                        label="📄 Descargar Sesión en Word",
+                        data=st.session_state.docx_bytes, 
+                        file_name="Sesion_Aprendizaje.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+                else:
+                    st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
-                # 👇 AQUÍ COMIENZA EL NUEVO BLOQUE DE PPT 👇
-# --- 🧪 ZONA EXPERIMENTAL PPT (DESACTIVADA POR CALIDAD) ---
-                # (Código oculto hasta la versión 3.0)
-                # st.markdown("---")
-                # st.subheader("🚀 Generador de Presentaciones (Beta)")
-                # ... (Todo lo demás comentado o borrado)
-                # ---------------------------------------------------------
-
-            else:
-                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
-
-    # 👇 ESTOS ELIF DEBEN IR ALINEADOS A LA IZQUIERDA (AL MISMO NIVEL QUE EL IF PRINCIPAL)
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
         
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
 
-    # --- TAB 4: RECURSOS (¡NUEVA!) ---
-    with tab_recursos:
+    # 4. RECURSOS
+    elif pagina == "Recursos":
         st.header("📂 Banco de Recursos Pedagógicos")
         st.markdown("Descarga formatos, plantillas y guías útiles para tu labor docente.")
         st.divider()
@@ -973,30 +1027,24 @@ def home_page():
             st.subheader("📝 Formatos Editables")
             st.info("Plantillas en Word y Excel listas para usar.")
             
-           # RECURSO 1: SECUNDARIA (Excel)
-            # 1. Agregamos "recursos/" antes del nombre
+            # RECURSO 1: SECUNDARIA
             ruta_archivo_1 = "recursos/Registro automatizado nivel secundario.xlsm" 
-            
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button(
-                        label="📥 Descargar Registro Automatizado - Secundaria (Excel)", # 2. Corregimos la etiqueta
+                        label="📥 Descargar Registro Automatizado - Secundaria (Excel)",
                         data=file,
-                        file_name="Registro_Secundaria.xlsm", # 3. Nombre limpio para la descarga
-                        # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
+                        file_name="Registro_Secundaria.xlsm",
                         mime="application/vnd.ms-excel.sheet.macroEnabled.12", 
                         use_container_width=True
                     )
             else:
-                # Esto te ayudará a ver si el nombre está mal escrito
-                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_1}")
+                st.caption(f"❌ Archivo no encontrado: {ruta_archivo_1}")
 
             st.write("")
             
-   # RECURSO 2: PRIMARIA (Excel)
-            # CAMBIO IMPORTANTE: Usamos 'ruta_archivo_2' para no mezclar con el anterior
+            # RECURSO 2: PRIMARIA
             ruta_archivo_2 = "recursos/Registro automatizado nivel primario.xlsm" 
-            
             if os.path.exists(ruta_archivo_2):
                 with open(ruta_archivo_2, "rb") as file:
                     st.download_button(
@@ -1007,11 +1055,11 @@ def home_page():
                         use_container_width=True
                     )
             else:
-                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_2}")
+                st.caption(f"❌ Archivo no encontrado: {ruta_archivo_2}")
 
             st.write("")
             
-            # RECURSO 3
+            # RECURSO 3: CALENDARIO
             ruta_archivo_3 = "recursos/calendario_2025.pdf" 
             if os.path.exists(ruta_archivo_3):
                 with open(ruta_archivo_3, "rb") as file:
@@ -1019,13 +1067,12 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V11 (SIN GIFS + EMOJIS GIGANTES)
-    with tab_juegos:
+    # 5. GAMIFICACIÓN (VERSIÓN V11 - COMPLETA)
+    elif pagina == "Gamificación":
         
         # --- 0. CSS AGRESIVO ---
         st.markdown("""
             <style>
-            /* 1. Botón "GENERAR" (Verde) */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
@@ -1039,8 +1086,6 @@ def home_page():
                 background-color: #218838 !important;
                 transform: scale(1.02);
             }
-            
-            /* 2. LA PREGUNTA */
             .big-question {
                 font-size: 38px !important;
                 font-weight: 800;
@@ -1054,8 +1099,6 @@ def home_page():
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1);
                 line-height: 1.3;
             }
-            
-            /* 3. LAS ALTERNATIVAS */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
                 background-color: #fff9c4 !important;
                 border: 2px solid #fbc02d !important;
@@ -1068,16 +1111,12 @@ def home_page():
                 box-shadow: 0 4px 0 #f9a825 !important;
                 transition: all 0.1s;
             }
-            
-            /* 4. TEXTO ALTERNATIVAS */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
                 font-size: 28px !important;
                 font-weight: 700 !important;
                 color: #333333 !important;
                 line-height: 1.2 !important;
             }
-
-            /* Hover/Active */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
                 background-color: #fff59d !important;
                 transform: translateY(-2px);
@@ -1092,7 +1131,6 @@ def home_page():
 
         st.header("🎮 Desafío Trivia")
         
-        # --- MODO CINE ---
         col_header1, col_header2 = st.columns([3, 1])
         with col_header1:
             st.markdown("Genera un juego de preguntas interactivo.")
@@ -1107,6 +1145,11 @@ def home_page():
                     footer {display: none;}
                 </style>
             """, unsafe_allow_html=True)
+
+        # --- BANCO DE GIFS (Aunque ya no los usamos, los dejo por si acaso o para referencia futura) ---
+        GIFS_WIN = ["https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif", "https://media.giphy.com/media/nXxOjZrbnbRxS/giphy.gif", "https://media.giphy.com/media/boli67tTOu4kjnhBcv/giphy.gif"]
+        GIFS_OK = ["https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif", "https://media.giphy.com/media/d31w24pskkq866S4/giphy.gif"]
+        GIFS_FAIL = ["https://media.giphy.com/media/26ybvVb9iSmht7Ld6/giphy.gif", "https://media.giphy.com/media/hPPx8yk3Bmqys/giphy.gif", "https://media.giphy.com/media/Cq2GEmeMNy304/giphy.gif"]
 
         # --- 1. CONFIGURACIÓN ---
         if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
@@ -1277,19 +1320,14 @@ def home_page():
             col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
             with col_center:
                 if puntaje == 100:
-                    st.balloons() # Confeti para el perfecto
-                    # Emoji Gigante de Trofeo
+                    st.balloons() 
                     st.markdown("""<div style="text-align: center; font-size: 100px;">🏆</div>""", unsafe_allow_html=True)
                     st.success("¡MAESTRO TOTAL! 🌟")
-                
                 elif puntaje >= 60:
-                    st.snow() # Nieve para el aprobado
-                    # Emoji Gigante de Lentes Oscuros (Cool)
+                    st.snow()
                     st.markdown("""<div style="text-align: center; font-size: 100px;">😎</div>""", unsafe_allow_html=True)
                     st.info("¡Bien hecho! Aprobado.")
-                
                 else:
-                    # Emoji Gigante de Libros (Constructivo) o Carita Pensativa
                     st.markdown("""<div style="text-align: center; font-size: 100px;">📚</div>""", unsafe_allow_html=True)
                     st.warning("¡Buen intento! A repasar un poco más.")
 
@@ -1322,6 +1360,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
