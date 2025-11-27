@@ -1535,7 +1535,7 @@ def home_page():
                 div.stButton > button {
                     width: 100%;
                     height: 65px;
-                    font-size: 36px !important;
+                    font-size: 50px !important;
                     font-weight: 900 !important;
                     color: #555 !important;
                     background-color: white !important;
@@ -1745,6 +1745,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
