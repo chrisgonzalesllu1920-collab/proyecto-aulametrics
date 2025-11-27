@@ -1007,31 +1007,37 @@ def generar_docx_pupiletras(grid, palabras_data, tema, grado):
 
 
 # =========================================================================
-# === X. MOTOR JUEGO ROBOT (AHORCADO EDUCATIVO) ===
+# === X. MOTOR JUEGO ROBOT (AHORCADO EDUCATIVO V2.0) ===
 # =========================================================================
 
-def generar_reto_ahorcado(tema, grado):
+def generar_reto_ahorcado(tema, grado, cantidad):
     """
-    Genera una palabra oculta y una pista para el juego del Robot.
-    Retorna: dict {'palabra':Str, 'pista':Str}
+    Genera una lista de palabras y pistas para el juego del Robot.
+    Retorna: list [{'palabra':Str, 'pista':Str}, ...]
     """
     if client is None:
-        return None
+        return []
 
     prompt = f"""
     Actúa como un diseñador de juegos educativos. 
-    Necesito un reto para un juego tipo "Ahorcado" sobre el tema: "{tema}" para el grado: "{grado}".
+    Necesito {cantidad} retos distintos para un juego tipo "Ahorcado" sobre el tema: "{tema}" para el grado: "{grado}".
     
     INSTRUCCIONES:
-    1. Elige una SOLA palabra clave (concepto importante) relacionada con el tema.
-    2. La palabra debe ser en MAYÚSCULAS, SIN TILDES y SIN ESPACIOS (Ej: "ECOSISTEMA", no "Ecosistema" ni "Árbol").
-    3. Escribe una pista pedagógica clara pero que requiera pensar.
+    1. Elige palabras clave (conceptos importantes) relacionadas con el tema.
+    2. Las palabras deben ser en MAYÚSCULAS, SIN TILDES y SIN ESPACIOS (Ej: "ECOSISTEMA", no "Ecosistema" ni "Árbol").
+    3. Escribe una pista pedagógica clara para cada palabra, adecuada al nivel del estudiante.
     
-    FORMATO JSON OBLIGATORIO:
-    {{
-        "palabra": "PALABRASECRETA",
-        "pista": "Texto de la pista..."
-    }}
+    FORMATO JSON OBLIGATORIO (Array de objetos):
+    [
+        {{
+            "palabra": "PALABRAUNO",
+            "pista": "Texto de la pista uno..."
+        }},
+        {{
+            "palabra": "PALABRADOS",
+            "pista": "Texto de la pista dos..."
+        }}
+    ]
     """
 
     try:
@@ -1043,4 +1049,5 @@ def generar_reto_ahorcado(tema, grado):
         return json.loads(response.text)
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
-        return None
+        return []
+
