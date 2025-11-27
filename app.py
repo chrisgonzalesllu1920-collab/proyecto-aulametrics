@@ -1388,9 +1388,9 @@ def home_page():
                         del st.session_state['juego_preguntas']
                         del st.session_state['juego_terminado']
                         st.rerun()
-        
+                
         # ==========================================
-        # === VISTA 3: JUEGO PUPILETRAS (TABLERO DE CONTROL) ===
+        # === VISTA 3: JUEGO PUPILETRAS (V2.0 - GRADOS Y TAMAÑO) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'pupiletras':
             
@@ -1402,7 +1402,7 @@ def home_page():
             with col_title:
                 st.subheader("🔎 Pupiletras: Buscador de Palabras")
 
-            # --- 2. CONFIGURACIÓN (Si no hay juego cargado) ---
+            # --- 2. CONFIGURACIÓN ---
             if 'pupi_grid' not in st.session_state:
                 st.info("Configura tu sopa de letras:")
                 
@@ -1410,9 +1410,14 @@ def home_page():
                 with col_conf1:
                     tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
                 with col_conf2:
-                    grado_pupi = st.selectbox("Grado:", ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "Secundaria"], index=5)
+                    # LISTA DE GRADOS COMPLETA
+                    lista_grados_pupi = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_pupi = st.selectbox("Grado:", lista_grados_pupi, index=5)
                 with col_conf3:
-                    cant_palabras = st.slider("Palabras:", 5, 15, 8)
+                    cant_palabras = st.slider("Palabras:", 5, 12, 8) # Ajustado max a 12 para grilla 12x12
 
                 if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
                     if not tema_pupi:
@@ -1423,69 +1428,64 @@ def home_page():
                             palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
                             
                             if palabras and len(palabras) > 0:
-                                # B) Algoritmo crea la matriz
+                                # B) Algoritmo crea la matriz (Ahora usa 12x12 por defecto en backend)
                                 grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
                                 
-                                # C) Generamos el Word (DOCX) en memoria ahora mismo
+                                # C) Generamos el Word
                                 docx_buffer = pedagogical_assistant.generar_docx_pupiletras(grid, colocados, tema_pupi, grado_pupi)
                                 
-                                # Guardamos todo en sesión
+                                # Guardamos todo
                                 st.session_state['pupi_grid'] = grid
                                 st.session_state['pupi_data'] = colocados
                                 st.session_state['pupi_found'] = set()
-                                st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue() # Guardamos los bytes del archivo
+                                st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue()
                                 st.rerun()
                             else:
                                 st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
 
-            # --- 3. ZONA DE JUEGO (DISEÑO 2 COLUMNAS) ---
+            # --- 3. ZONA DE JUEGO (TABLERO) ---
             else:
-                # Recuperar datos
                 grid = st.session_state['pupi_grid']
                 palabras_data = st.session_state['pupi_data']
                 encontradas = st.session_state['pupi_found']
 
-                # DIVISIÓN DE PANTALLA: 70% JUEGO | 30% HERRAMIENTAS
+                # DIVISIÓN: 70% JUEGO | 30% PANEL
                 col_tablero, col_panel = st.columns([3, 1])
 
-                # --- COLUMNA IZQUIERDA: EL PUPILETRAS ---
                 with col_tablero:
                     st.markdown("##### 📍 Tablero Interactivo")
                     
-                    # Lógica de iluminación
                     celdas_iluminadas = set()
                     for p_data in palabras_data:
                         if p_data['palabra'] in encontradas:
                             for coord in p_data['coords']:
                                 celdas_iluminadas.add(coord)
 
-                    # HTML COMPACTO (Sin espacios para evitar bugs)
+                    # HTML COMPACTO CON CELDAS GIGANTES (45px)
                     html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
                     for r in range(len(grid)):
                         html_grid += "<tr>"
                         for c in range(len(grid[0])):
                             letra = grid[r][c]
-                            # Estilos
                             bg = "#ffffff"
                             color = "#333"
                             border = "1px solid #ccc"
                             weight = "normal"
                             
                             if (r, c) in celdas_iluminadas:
-                                bg = "#ffeb3b" # Amarillo
+                                bg = "#ffeb3b"
                                 color = "#000"
                                 border = "2px solid #fbc02d"
                                 weight = "bold"
                             
-                            html_grid += f'<td style="width: 38px; height: 38px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 22px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
+                            # AQUÍ ESTÁ EL CAMBIO DE TAMAÑO: 45px celda, 28px fuente
+                            html_grid += f'<td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 28px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
                         html_grid += "</tr>"
                     html_grid += "</table></div>"
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
 
-                # --- COLUMNA DERECHA: PALABRAS Y DESCARGA ---
                 with col_panel:
-                    # A) BOTÓN DE DESCARGA (Destacado)
                     st.success("📄 Ficha Lista")
                     st.download_button(
                         label="📥 Descargar Word",
@@ -1496,18 +1496,13 @@ def home_page():
                     )
                     
                     st.divider()
-                    
-                    # B) LISTA DE PALABRAS (Vertical y Compacta)
                     st.markdown("##### 📝 Encontrar:")
                     
-                    # Barra de progreso
                     progreso = len(encontradas) / len(palabras_data)
                     st.progress(progreso, text=f"{len(encontradas)} de {len(palabras_data)}")
                     
-                    # Botones verticales
                     for i, p_item in enumerate(palabras_data):
                         palabra_texto = p_item['palabra']
-                        
                         if palabra_texto in encontradas:
                             label = f"✅ {palabra_texto}"
                             tipo = "primary"
@@ -1720,6 +1715,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
