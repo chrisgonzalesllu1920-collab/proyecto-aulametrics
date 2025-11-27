@@ -1537,6 +1537,128 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
+
+        # ==========================================
+        # === VISTA 4: JUEGO ROBOT (AHORCADO) ===
+        # ==========================================
+        elif st.session_state['juego_actual'] == 'ahorcado':
+            
+            # --- 1. BARRA SUPERIOR ---
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True):
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🔋 Recarga al Robot")
+
+            # --- 2. CONFIGURACIÓN (Si no hay juego activo) ---
+            if 'robot_word' not in st.session_state:
+                
+                col_c1, col_c2 = st.columns([2, 1])
+                with col_c1:
+                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos...")
+                with col_c2:
+                    grado_robot = st.selectbox("Grado:", ["Primaria", "Secundaria"], index=0)
+                
+                if st.button("🤖 Iniciar Misión", type="primary", use_container_width=True):
+                    if not tema_robot:
+                        st.warning("⚠️ Escribe un tema.")
+                    else:
+                        with st.spinner("⚡ Analizando datos..."):
+                            datos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot)
+                            
+                            if datos:
+                                # Inicializar variables del juego
+                                st.session_state['robot_word'] = datos['palabra'].upper() # La palabra secreta
+                                st.session_state['robot_hint'] = datos['pista']
+                                st.session_state['robot_guesses'] = set() # Letras ya dichas
+                                st.session_state['robot_errors'] = 0
+                                st.session_state['robot_max_errors'] = 6 # Vidas (Baterías)
+                                st.rerun()
+                            else:
+                                st.error("Error conectando con el servidor central.")
+
+            # --- 3. ZONA DE JUEGO ---
+            else:
+                palabra = st.session_state['robot_word']
+                errores = st.session_state['robot_errors']
+                max_errores = st.session_state['robot_max_errors']
+                letras_adivinadas = st.session_state['robot_guesses']
+                
+                # A) MONITOR DE ESTADO (Batería y Pista)
+                baterias_restantes = max_errores - errores
+                
+                # Visualización de batería con Emojis
+                emoji_bateria = "🔋 " * baterias_restantes + "🪫 " * errores
+                
+                col_status1, col_status2 = st.columns([2, 1])
+                with col_status1:
+                    st.info(f"💡 **PISTA:** {st.session_state['robot_hint']}")
+                with col_status2:
+                    st.markdown(f"<div style='font-size: 24px; text-align: right;'>Energía: {emoji_bateria}</div>", unsafe_allow_html=True)
+
+                # B) LA PALABRA OCULTA
+                palabra_mostrar = ""
+                ganado = True
+                for letra in palabra:
+                    if letra in letras_adivinadas:
+                        palabra_mostrar += letra + " "
+                    else:
+                        palabra_mostrar += "_ "
+                        ganado = False
+                
+                st.markdown(f"""
+                <div style="
+                    text-align: center; 
+                    font-size: 50px; 
+                    letter-spacing: 5px; 
+                    font-family: monospace; 
+                    background-color: #f0f2f6; 
+                    padding: 20px; 
+                    border-radius: 15px; 
+                    margin: 20px 0;">
+                    {palabra_mostrar}
+                </div>
+                """, unsafe_allow_html=True)
+
+                # C) CONTROL DE JUEGO (Ganar / Perder / Jugar)
+                if ganado:
+                    st.balloons()
+                    st.success(f"🎉 ¡MISIÓN CUMPLIDA! La palabra era: **{palabra}**")
+                    st.markdown("### 🤖: *¡Gracias humano! Mi batería está al 100%.*")
+                    if st.button("🔄 Nueva Misión"):
+                        del st.session_state['robot_word']
+                        st.rerun()
+                        
+                elif errores >= max_errores:
+                    st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
+                    st.markdown("### 🤖: *Apagando sistemas... zzz...*")
+                    if st.button("🔄 Intentar de Nuevo"):
+                        del st.session_state['robot_word']
+                        st.rerun()
+                        
+                else:
+                    # D) TECLADO VIRTUAL
+                    st.write("Selecciona una letra:")
+                    letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+                    
+                    # Creamos 9 columnas para el teclado
+                    cols = st.columns(9)
+                    for i, letra in enumerate(letras_teclado):
+                        desactivado = letra in letras_adivinadas
+                        
+                        # Color del botón según estado
+                        tipo_btn = "secondary"
+                        if desactivado:
+                            if letra in palabra: tipo_btn = "primary" # Verde si acertó
+                            
+                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=tipo_btn):
+                            st.session_state['robot_guesses'].add(letra)
+                            if letra not in palabra:
+                                st.session_state['robot_errors'] += 1
+                            st.rerun()
+
+
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
@@ -1560,6 +1682,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
