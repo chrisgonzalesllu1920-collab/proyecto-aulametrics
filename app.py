@@ -829,27 +829,32 @@ def home_page():
 
 # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
-    # 1. ANÁLISIS GENERAL
-    if pagina == "Análisis General":
-        if st.session_state.df_cargado:
-            info_areas = st.session_state.info_areas
-            mostrar_analisis_general(info_areas)
+    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
+    if pagina == "Sistema de Evaluación":
+        
+        # A) Si NO hay datos cargados, mostramos el cargador
+        if not st.session_state.df_cargado:
+            st.header("📊 Sistema de Evaluación")
+            st.info("Para comenzar, sube tu registro de notas (Excel).")
+            # Llamamos a tu función de carga existente
+            configurar_uploader()
+            
+        # B) Si YA hay datos, mostramos el panel con pestañas internas
         else:
-            st.subheader("Subir Archivo de Notas")
-            st.info("Para comenzar el análisis de notas, sube tu registro de Excel aquí.")
-            configurar_uploader() 
-
-    # 2. POR ESTUDIANTE
-    elif pagina == "Análisis por Estudiante":
-        if st.session_state.df_cargado:
-            df = st.session_state.df
-            df_config = st.session_state.df_config
-            info_areas = st.session_state.info_areas
-            mostrar_analisis_por_estudiante(df, df_config, info_areas)
-        else:
-            st.header("🧑‍🎓 Análisis Individual por Estudiante")
-            st.info("Esta función requiere un archivo de notas.")
-            st.warning("Por favor, ve a la sección **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
+            # Creamos pestañas internas solo para esta herramienta
+            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            
+            with tab_global:
+                st.subheader("Panorama General del Aula")
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_general(info_areas)
+                
+            with tab_individual:
+                st.subheader("Libreta Individual")
+                df = st.session_state.df
+                df_config = st.session_state.df_config
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_por_estudiante(df, df_config, info_areas)
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
@@ -1366,6 +1371,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
