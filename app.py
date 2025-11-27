@@ -1380,9 +1380,9 @@ def home_page():
                         del st.session_state['juego_preguntas']
                         del st.session_state['juego_terminado']
                         st.rerun()
-
+        
         # ==========================================
-        # === VISTA 3: JUEGO PUPILETRAS (CORREGIDO) ===
+        # === VISTA 3: JUEGO PUPILETRAS (TABLERO DE CONTROL) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'pupiletras':
             
@@ -1394,13 +1394,13 @@ def home_page():
             with col_title:
                 st.subheader("🔎 Pupiletras: Buscador de Palabras")
 
-            # --- 2. CONFIGURACIÓN ---
+            # --- 2. CONFIGURACIÓN (Si no hay juego cargado) ---
             if 'pupi_grid' not in st.session_state:
                 st.info("Configura tu sopa de letras:")
                 
                 col_conf1, col_conf2, col_conf3 = st.columns([2, 1, 1])
                 with col_conf1:
-                    tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú, Partes de la Planta...")
+                    tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
                 with col_conf2:
                     grado_pupi = st.selectbox("Grado:", ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "Secundaria"], index=5)
                 with col_conf3:
@@ -1410,93 +1410,114 @@ def home_page():
                     if not tema_pupi:
                         st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("🤖 La IA está buscando palabras y el Algoritmo está armando la grilla..."):
-                            # 1. IA trae palabras
+                        with st.spinner("🤖 Diseñando ficha y juego interactivo..."):
+                            # A) IA genera palabras
                             palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
                             
                             if palabras and len(palabras) > 0:
-                                # 2. Algoritmo arma la sopa
+                                # B) Algoritmo crea la matriz
                                 grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
                                 
+                                # C) Generamos el Word (DOCX) en memoria ahora mismo
+                                docx_buffer = pedagogical_assistant.generar_docx_pupiletras(grid, colocados, tema_pupi, grado_pupi)
+                                
+                                # Guardamos todo en sesión
                                 st.session_state['pupi_grid'] = grid
-                                st.session_state['pupi_data'] = colocados 
-                                st.session_state['pupi_found'] = set() 
+                                st.session_state['pupi_data'] = colocados
+                                st.session_state['pupi_found'] = set()
+                                st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue() # Guardamos los bytes del archivo
                                 st.rerun()
                             else:
-                                st.error("Error: La IA no generó palabras válidas. Intenta otro tema.")
+                                st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
 
-            # --- 3. ZONA DE JUEGO ---
+            # --- 3. ZONA DE JUEGO (DISEÑO 2 COLUMNAS) ---
             else:
+                # Recuperar datos
                 grid = st.session_state['pupi_grid']
-                palabras_data = st.session_state['pupi_data'] 
+                palabras_data = st.session_state['pupi_data']
                 encontradas = st.session_state['pupi_found']
 
-                # --- A) DIBUJAR LA GRILLA (HTML COMPACTO PARA EVITAR ERROR) ---
-                celdas_iluminadas = set()
-                for p_data in palabras_data:
-                    if p_data['palabra'] in encontradas:
-                        for coord in p_data['coords']:
-                            celdas_iluminadas.add(coord)
+                # DIVISIÓN DE PANTALLA: 70% JUEGO | 30% HERRAMIENTAS
+                col_tablero, col_panel = st.columns([3, 1])
 
-                # Construcción del HTML sin indentación interna
-                html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
-                
-                for r in range(len(grid)):
-                    html_grid += "<tr>"
-                    for c in range(len(grid[0])):
-                        letra = grid[r][c]
-                        
-                        # Estilos por defecto
-                        bg = "#ffffff"
-                        color = "#333"
-                        border = "1px solid #ccc"
-                        weight = "normal"
-                        
-                        # Si está iluminada
-                        if (r, c) in celdas_iluminadas:
-                            bg = "#ffeb3b"
-                            color = "#000"
-                            border = "2px solid #fbc02d"
-                            weight = "bold"
-                        
-                        # Celda compacta
-                        html_grid += f'<td style="width: 35px; height: 35px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 20px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border};">{letra}</td>'
-                    html_grid += "</tr>"
-                html_grid += "</table></div>"
-                
-                st.markdown(html_grid, unsafe_allow_html=True)
-                st.write("") 
+                # --- COLUMNA IZQUIERDA: EL PUPILETRAS ---
+                with col_tablero:
+                    st.markdown("##### 📍 Tablero Interactivo")
+                    
+                    # Lógica de iluminación
+                    celdas_iluminadas = set()
+                    for p_data in palabras_data:
+                        if p_data['palabra'] in encontradas:
+                            for coord in p_data['coords']:
+                                celdas_iluminadas.add(coord)
 
-                # --- B) LISTA DE PALABRAS ---
-                st.markdown("### 📝 Palabras a encontrar:")
-                st.caption("Haz clic para marcar:")
-                
-                cols = st.columns(4)
-                for i, p_item in enumerate(palabras_data):
-                    palabra_texto = p_item['palabra']
+                    # HTML COMPACTO (Sin espacios para evitar bugs)
+                    html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
+                    for r in range(len(grid)):
+                        html_grid += "<tr>"
+                        for c in range(len(grid[0])):
+                            letra = grid[r][c]
+                            # Estilos
+                            bg = "#ffffff"
+                            color = "#333"
+                            border = "1px solid #ccc"
+                            weight = "normal"
+                            
+                            if (r, c) in celdas_iluminadas:
+                                bg = "#ffeb3b" # Amarillo
+                                color = "#000"
+                                border = "2px solid #fbc02d"
+                                weight = "bold"
+                            
+                            html_grid += f'<td style="width: 38px; height: 38px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 22px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
+                        html_grid += "</tr>"
+                    html_grid += "</table></div>"
                     
-                    if palabra_texto in encontradas:
-                        label = f"✅ {palabra_texto}"
-                        tipo = "primary"
-                    else:
-                        label = f"⬜ {palabra_texto}"
-                        tipo = "secondary"
+                    st.markdown(html_grid, unsafe_allow_html=True)
+
+                # --- COLUMNA DERECHA: PALABRAS Y DESCARGA ---
+                with col_panel:
+                    # A) BOTÓN DE DESCARGA (Destacado)
+                    st.success("📄 Ficha Lista")
+                    st.download_button(
+                        label="📥 Descargar Word",
+                        data=st.session_state['pupi_docx_bytes'],
+                        file_name="Pupiletras_Clase.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
                     
-                    if cols[i % 4].button(label, key=f"btn_word_{i}", type=tipo, use_container_width=True):
+                    st.divider()
+                    
+                    # B) LISTA DE PALABRAS (Vertical y Compacta)
+                    st.markdown("##### 📝 Encontrar:")
+                    
+                    # Barra de progreso
+                    progreso = len(encontradas) / len(palabras_data)
+                    st.progress(progreso, text=f"{len(encontradas)} de {len(palabras_data)}")
+                    
+                    # Botones verticales
+                    for i, p_item in enumerate(palabras_data):
+                        palabra_texto = p_item['palabra']
+                        
                         if palabra_texto in encontradas:
-                            st.session_state['pupi_found'].remove(palabra_texto)
+                            label = f"✅ {palabra_texto}"
+                            tipo = "primary"
                         else:
-                            st.session_state['pupi_found'].add(palabra_texto)
+                            label = f"⬜ {palabra_texto}"
+                            tipo = "secondary"
+                        
+                        if st.button(label, key=f"btn_pupi_{i}", type=tipo, use_container_width=True):
+                            if palabra_texto in encontradas:
+                                st.session_state['pupi_found'].remove(palabra_texto)
+                            else:
+                                st.session_state['pupi_found'].add(palabra_texto)
+                            st.rerun()
+
+                    st.write("")
+                    if st.button("🔄 Reiniciar", type="secondary", use_container_width=True):
+                        del st.session_state['pupi_grid']
                         st.rerun()
-
-                st.divider()
-                
-                if st.button("🔄 Crear Nueva Sopa de Letras", type="secondary"):
-                    del st.session_state['pupi_grid']
-                    del st.session_state['pupi_data']
-                    del st.session_state['pupi_found']
-                    st.rerun()
-
 
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1521,24 +1542,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
