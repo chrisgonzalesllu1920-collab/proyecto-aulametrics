@@ -1090,22 +1090,25 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
+             
         # ==========================================
-        # === VISTA 1: MENÚ DE JUEGOS (LOBBY) ===
+        # === VISTA 1: MENÚ DE JUEGOS (LOBBY V2) ===
         # ==========================================
         if st.session_state['juego_actual'] is None:
             st.header("🎮 Zona de Gamificación")
             st.markdown("Selecciona una actividad para despertar el interés de tu clase.")
             st.divider()
 
-            col_trivia, col_pupi = st.columns(2)
+            # AHORA SON 3 COLUMNAS
+            col_trivia, col_pupi, col_robot = st.columns(3)
 
+            # 1. TRIVIA
             with col_trivia:
                 st.markdown("""
-                <div style="background-color: #e3f2fd; padding: 20px; border-radius: 15px; border: 2px solid #2196f3; text-align: center; height: 220px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="background-color: #e3f2fd; padding: 20px; border-radius: 15px; border: 2px solid #2196f3; text-align: center; height: 240px; display: flex; flex-direction: column; justify-content: center;">
                     <div style="font-size: 50px;">🧠</div>
-                    <h3 style="color: #1565c0; margin: 10px 0;">Desafío Trivia</h3>
-                    <p style="color: #555;">Preguntas y respuestas tipo concurso de TV.</p>
+                    <h3 style="color: #1565c0; margin: 10px 0; font-size: 20px;">Desafío Trivia</h3>
+                    <p style="color: #555; font-size: 14px;">Preguntas y respuestas tipo concurso de TV.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 st.write("")
@@ -1113,17 +1116,32 @@ def home_page():
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
+            # 2. PUPILETRAS
             with col_pupi:
                 st.markdown("""
-                <div style="background-color: #f3e5f5; padding: 20px; border-radius: 15px; border: 2px solid #9c27b0; text-align: center; height: 220px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="background-color: #f3e5f5; padding: 20px; border-radius: 15px; border: 2px solid #9c27b0; text-align: center; height: 240px; display: flex; flex-direction: column; justify-content: center;">
                     <div style="font-size: 50px;">🔎</div>
-                    <h3 style="color: #6a1b9a; margin: 10px 0;">Pupiletras</h3>
-                    <p style="color: #555;">Sopa de letras interactiva y generador de fichas.</p>
+                    <h3 style="color: #6a1b9a; margin: 10px 0; font-size: 20px;">Pupiletras</h3>
+                    <p style="color: #555; font-size: 14px;">Sopa de letras interactiva y generador de fichas.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 st.write("")
                 if st.button("Jugar Pupiletras ➡️", key="btn_menu_pupi", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
+                    st.rerun()
+
+            # 3. ROBOT (AHORCADO) - ¡NUEVO!
+            with col_robot:
+                st.markdown("""
+                <div style="background-color: #e0f2f1; padding: 20px; border-radius: 15px; border: 2px solid #009688; text-align: center; height: 240px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 50px;">🔋</div>
+                    <h3 style="color: #00695c; margin: 10px 0; font-size: 20px;">Recarga al Robot</h3>
+                    <p style="color: #555; font-size: 14px;">Adivina la palabra clave para recargar la batería.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("Jugar Robot ➡️", key="btn_menu_robot", use_container_width=True):
+                    st.session_state['juego_actual'] = 'ahorcado' # Usaremos este ID internamente
                     st.rerun()
 
         # ==========================================
@@ -1542,6 +1560,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
