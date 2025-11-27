@@ -1143,8 +1143,9 @@ def home_page():
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
+               
         # ==========================================
-        # === VISTA 2: JUEGO TRIVIA (Tu Código V11) ===
+        # === VISTA 2: JUEGO TRIVIA (MODO PROYECTOR) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'trivia':
             
@@ -1156,8 +1157,7 @@ def home_page():
             with col_title:
                 st.subheader("Desafío Trivia")
 
-            # --- CSS AGRESIVO (SOLO PARA TRIVIA) ---
-            # Lo inyectamos AQUÍ para que los botones amarillos gigantes NO afecten al menú anterior
+            # --- CSS AGRESIVO (TEXTOS GIGANTES PARA PROYECTOR) ---
             st.markdown("""
                 <style>
                 /* 1. Botón "GENERAR" (Verde) */
@@ -1165,62 +1165,52 @@ def home_page():
                     background-color: #28a745 !important;
                     border-color: #28a745 !important;
                     color: white !important;
-                    font-size: 20px !important;
+                    font-size: 24px !important; /* Más grande */
                     font-weight: bold !important;
-                    padding: 12px 24px !important;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                }
-                div.stButton > button[kind="primary"]:hover {
-                    background-color: #218838 !important;
-                    transform: scale(1.02);
+                    padding: 15px 30px !important;
                 }
                 
-                /* 2. LA PREGUNTA */
+                /* 2. LA PREGUNTA (GIGANTE 50px) */
                 .big-question {
-                    font-size: 38px !important;
+                    font-size: 50px !important; /* ANTES: 38px */
                     font-weight: 800;
                     color: #1e3a8a;
                     text-align: center;
                     background-color: #eff6ff;
-                    padding: 30px;
-                    border-radius: 20px;
-                    border: 4px solid #3b82f6;
+                    padding: 40px;
+                    border-radius: 25px;
+                    border: 5px solid #3b82f6;
                     margin-bottom: 30px;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                    line-height: 1.3;
+                    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                    line-height: 1.2;
                 }
                 
-                /* 3. LAS ALTERNATIVAS (Solo dentro del juego) */
+                /* 3. LAS ALTERNATIVAS (Cajas) */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
                     background-color: #fff9c4 !important;
-                    border: 2px solid #fbc02d !important;
-                    border-radius: 15px !important;
-                    min-height: 100px !important;
+                    border: 3px solid #fbc02d !important;
+                    border-radius: 20px !important;
+                    min-height: 120px !important; /* Más altas */
                     height: auto !important;
                     white-space: normal !important;
-                    padding: 10px !important;
-                    margin-bottom: 10px !important;
-                    box-shadow: 0 4px 0 #f9a825 !important;
-                    transition: all 0.1s;
+                    padding: 15px !important;
+                    margin-bottom: 15px !important;
+                    box-shadow: 0 6px 0 #f9a825 !important;
                 }
                 
-                /* 4. TEXTO ALTERNATIVAS */
+                /* 4. TEXTO ALTERNATIVAS (GIGANTE 36px) */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
-                    font-size: 28px !important;
-                    font-weight: 700 !important;
+                    font-size: 36px !important; /* ANTES: 28px */
+                    font-weight: 800 !important;
                     color: #333333 !important;
-                    line-height: 1.2 !important;
+                    line-height: 1.1 !important;
                 }
 
-                /* Hover/Active */
+                /* Hover */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
                     background-color: #fff59d !important;
-                    transform: translateY(-2px);
+                    transform: translateY(-3px);
                     border-color: #f57f17 !important;
-                }
-                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):active {
-                    box-shadow: 0 0 0 #f9a825 !important;
-                    transform: translateY(4px) !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1283,9 +1273,9 @@ def home_page():
                 
                 st.markdown(f"""
                 <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <h1 style="font-size: 60px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
-                    <h2 style="color: #555; margin-top: 10px;">Tema: {tema_mostrar}</h2>
-                    <p style="color: #888; font-weight: bold;">{modo_mostrar}</p>
+                    <h1 style="font-size: 70px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
+                    <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+                    <p style="color: #888; font-weight: bold; font-size: 20px;">{modo_mostrar}</p>
                     <br>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1314,7 +1304,8 @@ def home_page():
                     st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                     st.progress((idx + 1) / len(preguntas))
                 with col_info2:
-                    st.markdown(f"""<div style="text-align: right;"><span style="font-size: 24px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 15px; border-radius: 10px; border: 1px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
+                    # PUNTAJE GIGANTE (45px)
+                    st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
                 
                 st.write("") 
                 st.markdown(f"""<div class="big-question">{pregunta_actual['pregunta']}</div>""", unsafe_allow_html=True)
@@ -1337,9 +1328,9 @@ def home_page():
                         if modo == 'auto':
                             feedback_container = st.empty()
                             if es_correcta:
-                                feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
+                                feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
                             else:
-                                feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
+                                feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
                             time.sleep(2.0)
                             
                             if st.session_state['juego_indice'] < len(preguntas) - 1:
@@ -1361,9 +1352,9 @@ def home_page():
                 elif fase == 'feedback':
                     tipo, valor = st.session_state['ultimo_feedback'].split("|")
                     if tipo == "correcta":
-                        st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 30px; border-radius: 15px; text-align: center; font-size: 30px; font-weight: bold; border: 3px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 20px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
                     else:
-                        st.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 30px; border-radius: 15px; text-align: center; font-size: 30px; font-weight: bold; border: 3px solid #f5c2c7; margin-bottom: 20px;">❌ INCORRECTO <br> <span style="font-size: 24px; color: #333;">La respuesta era: {valor}</span></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #f5c2c7; margin-bottom: 20px;">❌ INCORRECTO <br> <span style="font-size: 30px; color: #333;">La respuesta era: {valor}</span></div>""", unsafe_allow_html=True)
                     
                     col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
                     with col_next2:
@@ -1377,19 +1368,19 @@ def home_page():
 
             elif st.session_state.get('juego_terminado', False):
                 puntaje = int(st.session_state['juego_puntaje'])
-                st.markdown(f"<h1 style='text-align: center; font-size: 60px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
+                st.markdown(f"<h1 style='text-align: center; font-size: 80px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
                 col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
                 with col_center:
                     if puntaje == 100:
                         st.balloons()
-                        st.markdown("""<div style="text-align: center; font-size: 100px;">🏆</div>""", unsafe_allow_html=True)
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">🏆</div>""", unsafe_allow_html=True)
                         st.success("¡MAESTRO TOTAL! 🌟")
                     elif puntaje >= 60:
                         st.snow()
-                        st.markdown("""<div style="text-align: center; font-size: 100px;">😎</div>""", unsafe_allow_html=True)
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">😎</div>""", unsafe_allow_html=True)
                         st.info("¡Bien hecho! Aprobado.")
                     else:
-                        st.markdown("""<div style="text-align: center; font-size: 100px;">📚</div>""", unsafe_allow_html=True)
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">📚</div>""", unsafe_allow_html=True)
                         st.warning("¡Buen intento! A repasar un poco más.")
 
                     if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
@@ -1729,6 +1720,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
