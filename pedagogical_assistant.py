@@ -3,6 +3,9 @@ import os
 import pandas as pd
 import io
 import re 
+import random
+import string
+import json
 from google import genai
 # Importamos la clase de Error específica para capturarla
 from google.genai.errors import APIError 
@@ -811,3 +814,117 @@ def generar_trivia_juego(tema, grado, area, cantidad):
         return response.text
     except Exception as e:
         return None
+
+
+# =========================================================================
+# === VIII. MOTOR DE PUPILETRAS (LOGICA MIXTA: IA + ALGORITMO) ===
+# =========================================================================
+
+def generar_palabras_pupiletras(tema, grado, cantidad):
+    """
+    Paso 1: La IA genera la lista de palabras limpia.
+    """
+    if client is None:
+        return None
+
+    prompt = f"""
+    Actúa como experto en didáctica. Genera una lista de {cantidad} palabras clave (sustantivos o verbos) sobre el tema: "{tema}" para estudiantes de {grado}.
+    
+    REGLAS OBLIGATORIAS:
+    1. Las palabras deben estar en MAYÚSCULAS.
+    2. SIN TILDES (convierte Á->A, É->E, etc).
+    3. SIN ESPACIOS (ej: "SISTEMASOLAR" en vez de "SISTEMA SOLAR").
+    4. SIN Ñ (cámbiala por N).
+    5. Longitud máxima por palabra: 12 letras.
+    
+    FORMATO JSON:
+    Devuelve SOLO una lista simple de strings:
+    ["PALABRAUNO", "PALABRADOS", ...]
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        return []
+
+def crear_grid_pupiletras(palabras, filas=15, columnas=15):
+    """
+    Paso 2: Algoritmo Python para colocar las palabras en una matriz 15x15.
+    Retorna: (grid, palabras_colocadas)
+    """
+    # 1. Crear grilla vacía
+    grid = [[' ' for _ in range(columnas)] for _ in range(filas)]
+    palabras_colocadas = []
+    
+    # Direcciones: (delta_fila, delta_columna)
+    # Horizontal, Vertical, Diagonal, Invertidas
+    direcciones = [
+        (0, 1), (1, 0), (1, 1), (1, -1), # Normales
+        (0, -1), (-1, 0), (-1, -1), (-1, 1) # Invertidas (Mayor dificultad)
+    ]
+
+    # Ordenamos palabras de mayor a menor longitud (facilita el encaje)
+    palabras.sort(key=len, reverse=True)
+
+    for palabra in palabras:
+        colocada = False
+        intentos = 0
+        
+        # Intentamos colocar la palabra 100 veces en posiciones al azar
+        while not colocada and intentos < 100:
+            intentos += 1
+            direccion = random.choice(direcciones)
+            fila_inicio = random.randint(0, filas - 1)
+            col_inicio = random.randint(0, columnas - 1)
+            
+            # Chequeamos si cabe
+            fila, col = fila_inicio, col_inicio
+            cabe = True
+            
+            for letra in palabra:
+                # Verificar limites
+                if not (0 <= fila < filas and 0 <= col < columnas):
+                    cabe = False
+                    break
+                # Verificar colisión (casilla vacía o misma letra)
+                if grid[fila][col] != ' ' and grid[fila][col] != letra:
+                    cabe = False
+                    break
+                
+                fila += direccion[0]
+                col += direccion[1]
+            
+            # Si cabe, la escribimos
+            if cabe:
+                fila, col = fila_inicio, col_inicio
+                coords = [] # Guardamos coordenadas para el frontend interactivo
+                for letra in palabra:
+                    grid[fila][col] = letra
+                    coords.append((fila, col))
+                    fila += direccion[0]
+                    col += direccion[1]
+                
+                palabras_colocadas.append({
+                    "palabra": palabra,
+                    "coords": coords
+                })
+                colocada = True
+
+    # 3. Rellenar espacios vacíos con letras aleatorias
+    letras = string.ascii_uppercase
+    grid_completo = [] # Copia para mostrar
+    for f in range(filas):
+        fila_letras = []
+        for c in range(columnas):
+            if grid[f][c] == ' ':
+                fila_letras.append(random.choice(letras))
+            else:
+                fila_letras.append(grid[f][c])
+        grid_completo.append(fila_letras)
+
+    return grid_completo, palabras_colocadas
