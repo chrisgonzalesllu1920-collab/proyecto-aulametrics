@@ -1019,7 +1019,7 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V10 (MODO GUIADO vs AUTOMÁTICO)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN FINAL V11 (SIN GIFS + EMOJIS GIGANTES)
     with tab_juegos:
         
         # --- 0. CSS AGRESIVO ---
@@ -1108,11 +1108,6 @@ def home_page():
                 </style>
             """, unsafe_allow_html=True)
 
-        # --- BANCO DE GIFS ---
-        GIFS_WIN = ["https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif", "https://media.giphy.com/media/nXxOjZrbnbRxS/giphy.gif", "https://media.giphy.com/media/boli67tTOu4kjnhBcv/giphy.gif"]
-        GIFS_OK = ["https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif", "https://media.giphy.com/media/d31w24pskkq866S4/giphy.gif"]
-        GIFS_FAIL = ["https://media.giphy.com/media/26ybvVb9iSmht7Ld6/giphy.gif", "https://media.giphy.com/media/hPPx8yk3Bmqys/giphy.gif", "https://media.giphy.com/media/Cq2GEmeMNy304/giphy.gif"]
-
         # --- 1. CONFIGURACIÓN ---
         if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
             
@@ -1124,7 +1119,6 @@ def home_page():
                 
             with col_game2:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
-                # NUEVA FUNCIÓN: SELECTOR DE MODO
                 modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
@@ -1142,10 +1136,8 @@ def home_page():
                                 st.session_state['juego_puntaje'] = 0
                                 st.session_state['juego_terminado'] = False
                                 st.session_state['tema_actual'] = tema_input
-                                
-                                # GUARDAMOS EL MODO ELEGIDO
                                 st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
-                                st.session_state['fase_pregunta'] = "respondiendo" # Estados: 'respondiendo' o 'feedback'
+                                st.session_state['fase_pregunta'] = "respondiendo"
                                 
                                 st.session_state['juego_en_lobby'] = True 
                                 st.session_state['juego_iniciado'] = True
@@ -1211,8 +1203,7 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            # ZONA DE JUEGO DINÁMICA
-            # Si estamos respondiendo, mostramos los botones
+            # ZONA DINÁMICA
             if fase == 'respondiendo':
                 opciones = pregunta_actual['opciones']
                 col_opt1, col_opt2 = st.columns(2)
@@ -1220,24 +1211,20 @@ def home_page():
                 def responder(opcion_elegida):
                     correcta = pregunta_actual['respuesta_correcta']
                     puntos_por_pregunta = 100 / len(preguntas)
-                    
-                    # Guardamos el resultado para mostrarlo en el feedback
                     es_correcta = (opcion_elegida == correcta)
+                    
                     if es_correcta:
                         st.session_state['juego_puntaje'] += puntos_por_pregunta
                         st.session_state['ultimo_feedback'] = f"correcta|{int(puntos_por_pregunta)}"
                     else:
                         st.session_state['ultimo_feedback'] = f"incorrecta|{correcta}"
 
-                    # LÓGICA DE AVANCE
                     if modo == 'auto':
-                        # Mostramos mensaje rápido y avanzamos
                         feedback_container = st.empty()
                         if es_correcta:
                             feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
                         else:
                             feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
-                        
                         time.sleep(2.0)
                         
                         if st.session_state['juego_indice'] < len(preguntas) - 1:
@@ -1245,9 +1232,7 @@ def home_page():
                         else:
                             st.session_state['juego_terminado'] = True
                         st.rerun()
-                        
-                    else: # MODO GUIADO
-                        # Cambiamos la fase a 'feedback' y recargamos para mostrar el botón de siguiente
+                    else:
                         st.session_state['fase_pregunta'] = 'feedback'
                         st.rerun()
 
@@ -1258,10 +1243,8 @@ def home_page():
                     if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
                     if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
             
-            # Si estamos en modo GUIADO y ya respondieron, mostramos el resultado y botón Siguiente
             elif fase == 'feedback':
                 tipo, valor = st.session_state['ultimo_feedback'].split("|")
-                
                 if tipo == "correcta":
                     st.markdown(f"""
                     <div style="background-color: #d1e7dd; color: #0f5132; padding: 30px; border-radius: 15px; text-align: center; font-size: 30px; font-weight: bold; border: 3px solid #badbcc; margin-bottom: 20px;">
@@ -1275,34 +1258,41 @@ def home_page():
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # BOTÓN SIGUIENTE PREGUNTA (Solo aparece aquí)
                 col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
                 with col_next2:
                     if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True):
-                        # Avanzamos
                         if st.session_state['juego_indice'] < len(preguntas) - 1:
                             st.session_state['juego_indice'] += 1
-                            st.session_state['fase_pregunta'] = 'respondiendo' # Reseteamos fase
+                            st.session_state['fase_pregunta'] = 'respondiendo'
                         else:
                             st.session_state['juego_terminado'] = True
                         st.rerun()
 
-        # --- 4. FINAL ---
+        # --- 4. PANTALLA FINAL (SIN GIFS, SOLO EMOJIS GIGANTES) ---
         elif st.session_state.get('juego_terminado', False):
             puntaje = int(st.session_state['juego_puntaje'])
-            st.markdown(f"<h1 style='text-align: center; font-size: 60px;'>PUNTAJE: {puntaje}</h1>", unsafe_allow_html=True)
+            
+            st.markdown(f"<h1 style='text-align: center; font-size: 60px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
+            
             col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
             with col_center:
                 if puntaje == 100:
-                    st.balloons()
-                    st.image(random.choice(GIFS_WIN), use_container_width=True) 
-                    st.success("🏆 ¡MAESTRO TOTAL!")
-                elif puntaje >= 60:
-                    st.snow()
-                    st.image(random.choice(GIFS_OK), use_container_width=True)
-                else:
-                    st.image(random.choice(GIFS_FAIL), use_container_width=True)
+                    st.balloons() # Confeti para el perfecto
+                    # Emoji Gigante de Trofeo
+                    st.markdown("""<div style="text-align: center; font-size: 100px;">🏆</div>""", unsafe_allow_html=True)
+                    st.success("¡MAESTRO TOTAL! 🌟")
                 
+                elif puntaje >= 60:
+                    st.snow() # Nieve para el aprobado
+                    # Emoji Gigante de Lentes Oscuros (Cool)
+                    st.markdown("""<div style="text-align: center; font-size: 100px;">😎</div>""", unsafe_allow_html=True)
+                    st.info("¡Bien hecho! Aprobado.")
+                
+                else:
+                    # Emoji Gigante de Libros (Constructivo) o Carita Pensativa
+                    st.markdown("""<div style="text-align: center; font-size: 100px;">📚</div>""", unsafe_allow_html=True)
+                    st.warning("¡Buen intento! A repasar un poco más.")
+
                 if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                     st.session_state['juego_iniciado'] = False 
                     del st.session_state['juego_preguntas']
@@ -1332,6 +1322,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
