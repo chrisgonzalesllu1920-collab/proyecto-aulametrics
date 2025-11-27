@@ -1019,13 +1019,13 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V9 (CSS BLINDADO + TEXTO CORRECTO)
+# TAB 5: GAMIFICACIÓN (TRIVIA) - VERSIÓN V10 (MODO GUIADO vs AUTOMÁTICO)
     with tab_juegos:
         
-        # --- 0. CSS QUIRÚRGICO (SOLO AFECTA AL JUEGO) ---
+        # --- 0. CSS AGRESIVO ---
         st.markdown("""
             <style>
-            /* 1. Botón "GENERAR" (Verde) - Solo afecta botones primarios */
+            /* 1. Botón "GENERAR" (Verde) */
             div.stButton > button[kind="primary"] {
                 background-color: #28a745 !important;
                 border-color: #28a745 !important;
@@ -1055,10 +1055,9 @@ def home_page():
                 line-height: 1.3;
             }
             
-            /* 3. LAS ALTERNATIVAS (SOLO BOTONES DENTRO DE COLUMNAS EN EL ÁREA PRINCIPAL) */
-            /* Esto protege los botones de la barra lateral y los botones sueltos de sistema */
+            /* 3. LAS ALTERNATIVAS */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
-                background-color: #fff9c4 !important; /* Amarillo Pastel */
+                background-color: #fff9c4 !important;
                 border: 2px solid #fbc02d !important;
                 border-radius: 15px !important;
                 min-height: 100px !important;
@@ -1070,16 +1069,15 @@ def home_page():
                 transition: all 0.1s;
             }
             
-            /* 4. FORZAR TAMAÑO DE TEXTO (FIX DEFINITIVO) */
-            /* Atacamos directamente al párrafo <p> dentro del botón */
+            /* 4. TEXTO ALTERNATIVAS */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
-                font-size: 28px !important; /* AQUI ESTÁ EL TAMAÑO */
+                font-size: 28px !important;
                 font-weight: 700 !important;
                 color: #333333 !important;
                 line-height: 1.2 !important;
             }
 
-            /* Efectos Hover/Active para las alternativas */
+            /* Hover/Active */
             section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
                 background-color: #fff59d !important;
                 transform: translateY(-2px);
@@ -1118,14 +1116,16 @@ def home_page():
         # --- 1. CONFIGURACIÓN ---
         if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
             
-            col_game1, col_game2, col_game3 = st.columns([2, 1, 1])
+            col_game1, col_game2 = st.columns([2, 1])
             with col_game1:
-                tema_input = st.text_input("Tema de la Trivia:", placeholder="Ej: La Célula...")
-            with col_game2:
+                tema_input = st.text_input("Tema:", placeholder="Ej: La Célula...")
                 lista_grados = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
                 grado_input = st.selectbox("Grado:", lista_grados, index=6)
-            with col_game3:
+                
+            with col_game2:
                 num_input = st.slider("Preguntas:", 1, 10, 5)
+                # NUEVA FUNCIÓN: SELECTOR DE MODO
+                modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
             if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                 if not tema_input:
@@ -1141,7 +1141,12 @@ def home_page():
                                 st.session_state['juego_indice'] = 0
                                 st.session_state['juego_puntaje'] = 0
                                 st.session_state['juego_terminado'] = False
-                                st.session_state['tema_actual'] = tema_input 
+                                st.session_state['tema_actual'] = tema_input
+                                
+                                # GUARDAMOS EL MODO ELEGIDO
+                                st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
+                                st.session_state['fase_pregunta'] = "respondiendo" # Estados: 'respondiendo' o 'feedback'
+                                
                                 st.session_state['juego_en_lobby'] = True 
                                 st.session_state['juego_iniciado'] = True
                                 st.rerun()
@@ -1152,10 +1157,13 @@ def home_page():
         # --- 2. LOBBY ---
         elif st.session_state.get('juego_en_lobby', False):
             tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
+            modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
+            
             st.markdown(f"""
             <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <h1 style="font-size: 60px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
                 <h2 style="color: #555; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+                <p style="color: #888; font-weight: bold;">{modo_mostrar}</p>
                 <br>
             </div>
             """, unsafe_allow_html=True)
@@ -1172,6 +1180,8 @@ def home_page():
             idx = st.session_state['juego_indice']
             preguntas = st.session_state['juego_preguntas']
             current_score = int(st.session_state['juego_puntaje'])
+            modo = st.session_state.get('modo_avance', 'auto')
+            fase = st.session_state.get('fase_pregunta', 'respondiendo')
 
             if idx >= len(preguntas):
                 st.session_state['juego_terminado'] = True
@@ -1201,42 +1211,81 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            feedback_placeholder = st.empty()
-            opciones = pregunta_actual['opciones']
-            col_opt1, col_opt2 = st.columns(2)
+            # ZONA DE JUEGO DINÁMICA
+            # Si estamos respondiendo, mostramos los botones
+            if fase == 'respondiendo':
+                opciones = pregunta_actual['opciones']
+                col_opt1, col_opt2 = st.columns(2)
+                
+                def responder(opcion_elegida):
+                    correcta = pregunta_actual['respuesta_correcta']
+                    puntos_por_pregunta = 100 / len(preguntas)
+                    
+                    # Guardamos el resultado para mostrarlo en el feedback
+                    es_correcta = (opcion_elegida == correcta)
+                    if es_correcta:
+                        st.session_state['juego_puntaje'] += puntos_por_pregunta
+                        st.session_state['ultimo_feedback'] = f"correcta|{int(puntos_por_pregunta)}"
+                    else:
+                        st.session_state['ultimo_feedback'] = f"incorrecta|{correcta}"
+
+                    # LÓGICA DE AVANCE
+                    if modo == 'auto':
+                        # Mostramos mensaje rápido y avanzamos
+                        feedback_container = st.empty()
+                        if es_correcta:
+                            feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
+                        else:
+                            feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
+                        
+                        time.sleep(2.0)
+                        
+                        if st.session_state['juego_indice'] < len(preguntas) - 1:
+                            st.session_state['juego_indice'] += 1
+                        else:
+                            st.session_state['juego_terminado'] = True
+                        st.rerun()
+                        
+                    else: # MODO GUIADO
+                        # Cambiamos la fase a 'feedback' y recargamos para mostrar el botón de siguiente
+                        st.session_state['fase_pregunta'] = 'feedback'
+                        st.rerun()
+
+                with col_opt1:
+                    if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
+                    if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
+                with col_opt2:
+                    if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
+                    if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
             
-            def responder(opcion_elegida):
-                correcta = pregunta_actual['respuesta_correcta']
-                puntos_por_pregunta = 100 / len(preguntas)
+            # Si estamos en modo GUIADO y ya respondieron, mostramos el resultado y botón Siguiente
+            elif fase == 'feedback':
+                tipo, valor = st.session_state['ultimo_feedback'].split("|")
                 
-                if opcion_elegida == correcta:
-                    st.session_state['juego_puntaje'] += puntos_por_pregunta
-                    feedback_placeholder.markdown(f"""
-                    <div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #badbcc;">
-                        🎉 ¡CORRECTO! (+{int(puntos_por_pregunta)})
+                if tipo == "correcta":
+                    st.markdown(f"""
+                    <div style="background-color: #d1e7dd; color: #0f5132; padding: 30px; border-radius: 15px; text-align: center; font-size: 30px; font-weight: bold; border: 3px solid #badbcc; margin-bottom: 20px;">
+                        🎉 ¡CORRECTO! <br> <span style="font-size: 20px">Has ganado +{valor} puntos</span>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    feedback_placeholder.markdown(f"""
-                    <div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; border: 2px solid #f5c2c7;">
-                        ❌ INCORRECTO. Era: {correcta}
+                    st.markdown(f"""
+                    <div style="background-color: #f8d7da; color: #842029; padding: 30px; border-radius: 15px; text-align: center; font-size: 30px; font-weight: bold; border: 3px solid #f5c2c7; margin-bottom: 20px;">
+                        ❌ INCORRECTO <br> <span style="font-size: 24px; color: #333;">La respuesta era: {valor}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
-                time.sleep(2.5)
-                
-                if st.session_state['juego_indice'] < len(preguntas) - 1:
-                    st.session_state['juego_indice'] += 1
-                else:
-                    st.session_state['juego_terminado'] = True
-                st.rerun()
-                
-            with col_opt1:
-                if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
-                if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
-            with col_opt2:
-                if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
-                if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
+                # BOTÓN SIGUIENTE PREGUNTA (Solo aparece aquí)
+                col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
+                with col_next2:
+                    if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True):
+                        # Avanzamos
+                        if st.session_state['juego_indice'] < len(preguntas) - 1:
+                            st.session_state['juego_indice'] += 1
+                            st.session_state['fase_pregunta'] = 'respondiendo' # Reseteamos fase
+                        else:
+                            st.session_state['juego_terminado'] = True
+                        st.rerun()
 
         # --- 4. FINAL ---
         elif st.session_state.get('juego_terminado', False):
@@ -1247,7 +1296,7 @@ def home_page():
                 if puntaje == 100:
                     st.balloons()
                     st.image(random.choice(GIFS_WIN), use_container_width=True) 
-                    st.success("🏆 ¡MAESTRO!")
+                    st.success("🏆 ¡MAESTRO TOTAL!")
                 elif puntaje >= 60:
                     st.snow()
                     st.image(random.choice(GIFS_OK), use_container_width=True)
@@ -1283,6 +1332,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
