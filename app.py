@@ -1524,68 +1524,68 @@ def home_page():
 
                 
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.1 - ESTILO ARCADE + LÓGICA FINAL) ===
+        # === VISTA 4: JUEGO ROBOT (V4.2 - CSS NUCLEAR) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS ARCADE 3D (RECUPERADO Y MEJORADO) ---
+            # --- 0. CSS NUCLEAR (ESTILO ARCADE FORZADO) ---
             st.markdown("""
                 <style>
-                /* 1. BOTONES DEL TECLADO (Estilo 3D) */
-                div[data-testid="column"] button {
+                /* 1. BOTONES GENERALES (La base de todo) */
+                div.stButton > button {
                     width: 100%;
                     height: 65px;
                     background-color: white !important;
-                    border: 2px solid #dcdcdc !important;
-                    border-radius: 15px !important;
-                    box-shadow: 0 6px 0 #cfcfcf !important; /* Sombra sólida 3D */
+                    border: 2px solid #b0bec5 !important;
+                    border-bottom: 6px solid #90a4ae !important; /* Borde 3D Grueso */
+                    border-radius: 12px !important;
                     transition: all 0.1s ease !important;
-                    margin-bottom: 12px !important;
+                    margin-bottom: 8px !important;
                     padding: 0px !important;
                 }
 
-                /* 2. TEXTO DENTRO DEL BOTÓN (GIGANTE) */
-                div[data-testid="column"] button p {
-                    font-size: 38px !important;
+                /* 2. TEXTO GIGANTE DENTRO DEL BOTÓN */
+                div.stButton > button p {
+                    font-size: 34px !important;
                     font-weight: 900 !important;
-                    color: #555 !important;
-                    line-height: 1 !important;
+                    color: #455a64 !important;
+                    line-height: 1.5 !important;
                 }
 
-                /* 3. EFECTO HOVER (AZUL Y ELEVADO) */
-                div[data-testid="column"] button:hover:enabled {
-                    transform: translateY(-4px); /* Sube */
-                    background-color: #e3f2fd !important; /* Fondo azul claro */
-                    color: #1976d2 !important;
-                    border-color: #2196f3 !important;
-                    box-shadow: 0 10px 0 #90caf9 !important; /* Sombra azul */
+                /* 3. HOVER (Al pasar el mouse - CELESTE) */
+                div.stButton > button:hover:enabled {
+                    transform: translateY(-2px);
+                    background-color: #e1f5fe !important;
+                    border-color: #29b6f6 !important;
+                    border-bottom: 6px solid #0288d1 !important;
                 }
-                div[data-testid="column"] button:hover:enabled p {
-                    color: #1565c0 !important;
-                }
-
-                /* 4. EFECTO CLICK (HUNDIDO) */
-                div[data-testid="column"] button:active:enabled {
-                    transform: translateY(6px); /* Se hunde */
-                    box-shadow: 0 0 0 #cfcfcf !important;
+                div.stButton > button:hover:enabled p {
+                    color: #01579b !important;
                 }
 
-                /* 5. TECLA ACERTADA (VERDE) */
-                div[data-testid="column"] button[kind="primary"] {
-                    background-color: #4caf50 !important;
-                    border-color: #2e7d32 !important;
-                    box-shadow: 0 6px 0 #1b5e20 !important;
+                /* 4. ACTIVE (Al presionar - SE HUNDE) */
+                div.stButton > button:active:enabled {
+                    transform: translateY(4px);
+                    border-bottom: 2px solid #0288d1 !important;
+                    margin-top: 4px !important; /* Para compensar el movimiento */
                 }
-                div[data-testid="column"] button[kind="primary"] p {
+
+                /* 5. TECLA ACERTADA (VERDE) - Target específico por tipo */
+                div.stButton > button[kind="primary"] {
+                    background-color: #66bb6a !important;
+                    border-color: #43a047 !important;
+                    border-bottom: 6px solid #2e7d32 !important;
+                }
+                div.stButton > button[kind="primary"] p {
                     color: white !important;
                 }
 
-                /* 6. TECLA FALLADA (GRIS) */
-                div[data-testid="column"] button:disabled {
-                    background-color: #f5f5f5 !important;
-                    border-color: #eee !important;
-                    box-shadow: none !important;
-                    transform: translateY(6px);
+                /* 6. TECLA FALLADA (GRIS/DESACTIVADA) */
+                div.stButton > button:disabled {
+                    background-color: #eeeeee !important;
+                    border-color: #e0e0e0 !important;
+                    border-bottom: 2px solid #bdbdbd !important;
+                    transform: translateY(4px);
                     opacity: 0.6;
                 }
                 </style>
@@ -1652,13 +1652,13 @@ def home_page():
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) MONITOR VISUAL (Limpiamos cajas blancas)
+                # B) MONITOR VISUAL
                 baterias_restantes = max_errores - errores
                 emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
-                    # PISTA: Texto limpio sin caja de fondo
+                    # PISTA LIMPIA
                     st.markdown(f"""
                     <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
                         💡 {st.session_state['robot_hint']}
@@ -1667,7 +1667,7 @@ def home_page():
                 with col_bat:
                     st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
 
-                # C) PALABRA OCULTA (Minimalista)
+                # C) PALABRA OCULTA
                 palabra_mostrar = ""
                 ganado = True
                 for letra in palabra:
@@ -1677,7 +1677,6 @@ def home_page():
                         palabra_mostrar += "_ "
                         ganado = False
                 
-                # Sin borde, solo letras flotando
                 st.markdown(f"""
                 <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
                     {palabra_mostrar}
@@ -1695,7 +1694,6 @@ def home_page():
                             st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
                             st.session_state['robot_hint'] = siguiente_reto['pista']
                             st.session_state['robot_guesses'] = set()
-                            # NO reiniciamos errores
                             st.rerun()
                     else:
                         st.balloons()
@@ -1712,7 +1710,7 @@ def home_page():
                         st.rerun()
                         
                 else:
-                    # E) TECLADO ARCADE
+                    # E) TECLADO ARCADE (ESTRUCTURA HTML PURA PARA CSS)
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
@@ -1724,6 +1722,7 @@ def home_page():
                         if desactivado and letra in palabra: 
                             type_btn = "primary"
                             
+                        # El CSS arriba se encarga de que esto se vea 3D
                         if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
@@ -1753,6 +1752,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
