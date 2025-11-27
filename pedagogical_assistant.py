@@ -852,7 +852,7 @@ def generar_palabras_pupiletras(tema, grado, cantidad):
     except Exception as e:
         return []
 
-def crear_grid_pupiletras(palabras, filas=15, columnas=15):
+def crear_grid_pupiletras(palabras, filas=12, columnas=12):
     """
     Paso 2: Algoritmo Python para colocar las palabras en una matriz 15x15.
     Retorna: (grid, palabras_colocadas)
@@ -1050,4 +1050,5 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
+
 
