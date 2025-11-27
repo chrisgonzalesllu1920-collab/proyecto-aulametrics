@@ -989,7 +989,7 @@ def generar_docx_pupiletras(grid, palabras_data, tema, grado):
     num_rows_lista = (len(lista_palabras) + num_cols_lista - 1) // num_cols_lista
     
     list_table = doc.add_table(rows=num_rows_lista, cols=num_cols_lista)
-    list_table.style = 'Table Grid' # O 'Normal Table' si quieres sin bordes, pero Grid se ve mejor para fichas
+    list_table.style = 'Table Grid' 
     
     idx = 0
     for r in range(num_rows_lista):
@@ -1004,3 +1004,4 @@ def generar_docx_pupiletras(grid, palabras_data, tema, grado):
     doc.save(doc_io)
     doc_io.seek(0)
     return doc_io
+
