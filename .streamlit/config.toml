@@ -1,0 +1,20 @@
+[theme]
+# 1. Color Primario (Botones, sliders, selectbox activo)
+# Azul Institucional: Transmite confianza y tecnología
+primaryColor = "#2962FF"
+
+# 2. Color de Fondo Principal (El lienzo)
+# Gris Perla: Suave, descansa la vista, evita reflejos en proyector
+backgroundColor = "#F8F9FA"
+
+# 3. Color de Fondo Secundario (Barra lateral, bloques de código)
+# Azul Hielo: Separa visualmente las herramientas del contenido
+secondaryBackgroundColor = "#E3F2FD"
+
+# 4. Color del Texto
+# Gris Carbón: Más legible y suave que el negro puro
+textColor = "#263238"
+
+# 5. Tipografía
+# Moderna y limpia
+font = "sans serif"
