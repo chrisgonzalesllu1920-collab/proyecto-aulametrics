@@ -806,29 +806,22 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V3.0 - HIGH CONTRAST) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V4.0 - INTENSE PURPLE) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas con diseño de Alto Contraste."""
+    """Dibuja la parrilla de 4 tarjetas con diseño de Alto Impacto."""
     
     st.markdown("""
         <style>
-        /* --- 1. BARRA LATERAL (SIDEBAR) DEGRADADO --- */
-        /* Forzamos un azul profundo elegante, ignorando el config.toml */
+        /* --- 1. BARRA LATERAL (INTOCABLE - TAL CUAL ESTÁ) --- */
         section[data-testid="stSidebar"] {
             background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
             border-right: 1px solid #1a237e;
         }
-        
-        /* Texto del Sidebar en BLANCO para que se lea sobre el azul */
-        section[data-testid="stSidebar"] p, 
-        section[data-testid="stSidebar"] span, 
-        section[data-testid="stSidebar"] div, 
-        section[data-testid="stSidebar"] label {
+        section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, 
+        section[data-testid="stSidebar"] div, section[data-testid="stSidebar"] label {
             color: #FFFFFF !important;
         }
-        
-        /* Botones del Sidebar (ajuste para fondo oscuro) */
         section[data-testid="stSidebar"] div.stButton > button {
             background-color: rgba(255, 255, 255, 0.1) !important;
             color: white !important;
@@ -839,21 +832,22 @@ def mostrar_home():
             border-color: white !important;
         }
 
-        /* --- 2. FONDO PRINCIPAL (GRIS HIELO) --- */
+        /* --- 2. FONDO PRINCIPAL (MORADO INTENSO AGRESIVO) --- */
         [data-testid="stAppViewContainer"] {
-            background-color: #F2F4F7 !important;
-            background-image: none !important; /* Quitamos degradados raros previos */
+            /* Degradado de Morado Profundo a Azul Eléctrico */
+            background: linear-gradient(135deg, #4A148C 0%, #7B1FA2 100%) !important;
+            background-image: linear-gradient(135deg, #4A148C 0%, #7B1FA2 100%) !important;
         }
 
-        /* --- 3. TARJETAS (BLANCO PURO) --- */
+        /* --- 3. TARJETAS (BLANCO PURO PARA CONTRASTE TOTAL) --- */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
             min-height: 160px;
             background-color: #FFFFFF !important;
-            border: 1px solid #dcdcdc !important; /* Borde sutil */
-            border-left: 5px solid #2962FF !important; /* Acento de color a la izquierda */
-            border-radius: 12px !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+            border: none !important;
+            border-left: 6px solid #FFD600 !important; /* Detalle Dorado/Amarillo para resaltar en morado */
+            border-radius: 16px !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; /* Sombra más fuerte */
             transition: all 0.2s ease-in-out !important;
             
             display: flex;
@@ -866,35 +860,36 @@ def mostrar_home():
 
         /* Hover Tarjeta */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-            border-color: #2962FF !important;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+            border-left-color: #00E676 !important; /* Cambia a verde neón al pasar mouse */
         }
 
         /* Título Tarjeta */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 19px !important;
-            font-weight: 700 !important;
-            color: #263238 !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #263238 !important; /* Texto oscuro dentro de tarjeta blanca */
         }
 
         /* Iconos */
         .card-icon {
-            font-size: 36px;
-            margin-bottom: -45px;
+            font-size: 42px;
+            margin-bottom: -55px;
             position: relative;
             z-index: 5;
             pointer-events: none;
             margin-left: 20px;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # 3. ENCABEZADO
+    # 3. ENCABEZADO (AHORA EN BLANCO PARA QUE SE LEA EN EL FONDO MORADO)
     st.markdown("""
         <div style="margin-bottom: 30px; padding-top: 10px;">
-            <h1 style="color: #1A237E; font-size: 40px; margin-bottom: 5px; font-weight: 900;">¡Hola, Docente! 👋</h1>
-            <p style="color: #546E7A; font-size: 18px;">Tu panel de control está listo.</p>
+            <h1 style="color: #FFFFFF; font-size: 45px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">¡Hola, Docente! 🚀</h1>
+            <p style="color: #E1BEE7; font-size: 19px; font-weight: 500;">Tu centro de comando está activo.</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -929,7 +924,7 @@ def mostrar_home():
             navegar_a("Recursos")
             st.rerun()
             
-    st.markdown("<br><hr><br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1911,6 +1906,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
