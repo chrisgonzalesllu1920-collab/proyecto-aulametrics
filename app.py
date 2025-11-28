@@ -1522,17 +1522,17 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-        
+                
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.5 - FINAL: ALERTA GIGANTE + BOTÓN SAFE) ===
+        # === VISTA 4: JUEGO ROBOT (V4.6 - FINAL: CSS SEGURO) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS ARCADE (MANTENEMOS EL TECLADO GENIAL) ---
+            # --- 0. CSS ARCADE INTELIGENTE (NO ROMPE EL SIDEBAR) ---
             st.markdown("""
                 <style>
-                /* ESTILO EXCLUSIVO PARA LOS BOTONES DE ESTA ZONA */
-                div.stButton > button {
+                /* --- A. ZONA DE JUEGO (CENTRO) - SOLO AQUÍ APLICAMOS ARCADE --- */
+                section[data-testid="stMain"] div.stButton > button {
                     width: 100%;
                     height: 70px !important;
                     background-color: white !important;
@@ -1544,52 +1544,72 @@ def home_page():
                     transition: all 0.1s ease !important;
                 }
                 /* TEXTO GIGANTE EN TECLADO */
-                div.stButton > button p {
+                section[data-testid="stMain"] div.stButton > button p {
                     font-size: 36px !important;
                     font-weight: 900 !important;
                     color: #455a64 !important;
                     line-height: 1 !important;
                 }
                 /* HOVER AZUL */
-                div.stButton > button:hover:enabled {
+                section[data-testid="stMain"] div.stButton > button:hover:enabled {
                     transform: translateY(-2px);
                     background-color: #e1f5fe !important;
                     border-color: #29b6f6 !important;
                     border-bottom: 6px solid #0288d1 !important;
                 }
-                div.stButton > button:hover:enabled p { color: #0277bd !important; }
+                section[data-testid="stMain"] div.stButton > button:hover:enabled p { color: #0277bd !important; }
 
                 /* CLICK */
-                div.stButton > button:active:enabled {
+                section[data-testid="stMain"] div.stButton > button:active:enabled {
                     transform: translateY(4px);
                     border-bottom: 2px solid #0288d1 !important;
                     margin-top: 4px !important;
                 }
 
                 /* ACIERTO (VERDE) */
-                div.stButton > button[kind="primary"] {
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] {
                     background-color: #66bb6a !important;
                     border-color: #43a047 !important;
                     border-bottom: 6px solid #2e7d32 !important;
                 }
-                div.stButton > button[kind="primary"] p { color: white !important; }
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] p { color: white !important; }
 
                 /* ERROR (ROJO) */
-                div.stButton > button:disabled {
+                section[data-testid="stMain"] div.stButton > button:disabled {
                     background-color: #ef5350 !important;
                     border-color: #c62828 !important;
                     border-bottom: 2px solid #b71c1c !important;
                     opacity: 1 !important;
                     transform: translateY(4px);
                 }
-                div.stButton > button:disabled p { color: white !important; }
+                section[data-testid="stMain"] div.stButton > button:disabled p { color: white !important; }
+
+                /* --- B. ZONA SIDEBAR (BARRA LATERAL) - ANTÍDOTO --- */
+                /* Forzamos a que los botones del sidebar vuelvan a ser normales */
+                section[data-testid="stSidebar"] div.stButton > button {
+                    height: auto !important;
+                    width: auto !important;
+                    border: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    border-bottom: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    background-color: white !important;
+                    box-shadow: none !important;
+                    border-radius: 0.25rem !important;
+                    padding: 0.25rem 0.75rem !important;
+                    margin-bottom: 0 !important;
+                    transform: none !important;
+                }
+                section[data-testid="stSidebar"] div.stButton > button p {
+                    font-size: 16px !important;
+                    font-weight: normal !important;
+                    color: inherit !important;
+                }
                 </style>
             """, unsafe_allow_html=True)
 
             # --- 1. BARRA LATERAL (PROTEGIDA) ---
-            # Movemos el botón "Volver" aquí para que no se deforme con el CSS del teclado
             with st.sidebar:
                 st.divider()
+                # Este botón ahora usará el estilo "Antídoto" (Normal)
                 if st.button("🔙 Volver al Menú de Juegos", use_container_width=True):
                     keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
                     for k in keys_to_clear:
@@ -1638,7 +1658,6 @@ def home_page():
 
             # --- 3. ZONA DE JUEGO ---
             else:
-                # Espacio reservado para ALERTA GIGANTE
                 alerta_placeholder = st.empty()
 
                 nivel_idx = st.session_state['robot_level']
@@ -1648,7 +1667,7 @@ def home_page():
                 max_errores = st.session_state['robot_max_errors']
                 letras_adivinadas = st.session_state['robot_guesses']
                 
-                # A) MONITOR DE ESTADO
+                # A) MONITOR
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
@@ -1665,7 +1684,7 @@ def home_page():
                 with col_bat:
                     st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
 
-                # B) PALABRA OCULTA
+                # B) PALABRA
                 palabra_mostrar = ""
                 ganado = True
                 for letra in palabra:
@@ -1676,12 +1695,12 @@ def home_page():
                         ganado = False
                 
                 st.markdown(f"""
-                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 30px 0;">
+                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
                     {palabra_mostrar}
                 </div>
                 """, unsafe_allow_html=True)
 
-                # C) CONTROL DE JUEGO
+                # C) CONTROL
                 if ganado:
                     st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
                     if nivel_idx < total_niveles - 1:
@@ -1708,7 +1727,7 @@ def home_page():
                         st.rerun()
                         
                 else:
-                    # D) TECLADO ARCADE
+                    # D) TECLADO
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
@@ -1723,14 +1742,14 @@ def home_page():
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
-                                # 📢 ALERTA GIGANTE (BANNER)
+                                # ALERTA GIGANTE
                                 alerta_placeholder.markdown("""
                                     <div style="background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
                                         <h2 style="color: #b71c1c; margin:0; font-size: 40px;">💥 ¡CORTOCIRCUITO!</h2>
                                         <p style="color: #c62828; font-size: 24px; font-weight: bold;">Has perdido una batería</p>
                                     </div>
                                 """, unsafe_allow_html=True)
-                                time.sleep(1.5) # Pausa dramática para ver el mensaje
+                                time.sleep(1.5)
                             st.rerun()
 
 # =========================================================================
@@ -1756,6 +1775,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
