@@ -806,127 +806,133 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V5.1 - NARANJA BOOST) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V6.0 - GEOMETRÍA PERFECTA) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas con DEGRADADO AGRESIVO."""
+    """Dibuja la parrilla de 4 tarjetas grandes (Losas) proporcionales."""
     
     st.markdown("""
         <style>
         /* --- 1. HEADER INVISIBLE --- */
         header { visibility: hidden !important; }
-        [data-testid="stHeader"] {
-            background-color: rgba(0,0,0,0) !important;
-            color: white !important;
-        }
+        [data-testid="stHeader"] { background: transparent !important; }
 
         /* --- 2. BARRA LATERAL (INTOCABLE) --- */
         section[data-testid="stSidebar"] {
             background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
             border-right: 1px solid #1a237e;
         }
-        section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, 
-        section[data-testid="stSidebar"] div, section[data-testid="stSidebar"] label {
-            color: #FFFFFF !important;
-        }
+        section[data-testid="stSidebar"] * { color: white !important; }
         section[data-testid="stSidebar"] div.stButton > button {
             background-color: rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
 
-        /* --- 3. FONDO PRINCIPAL (MORADO CON NARANJA POTENTE) --- */
+        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
-            
-            /* AJUSTE DE POTENCIA: */
-            /* 1. Naranja: Opacidad subida al 60% y radio expandido al 60% */
-            /* 2. Cyan: Opacidad al 30% para balancear abajo */
             background: 
                 radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
                 radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
         }
 
-        /* --- 4. TARJETAS (BLANCO PURO) --- */
+        /* --- 4. TARJETAS: GEOMETRÍA DE "LOSA" (TILE) --- */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            min-height: 160px;
+            /* AQUÍ ESTÁ EL CAMBIO CLAVE: Altura mucho mayor */
+            min-height: 240px !important; 
+            height: 100% !important; /* Ocupa todo el alto disponible de la fila */
+            
             background-color: #FFFFFF !important;
             border: none !important;
-            border-left: 6px solid #FFD600 !important;
-            border-radius: 16px !important;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
-            transition: all 0.2s ease-in-out !important;
+            border-left: 8px solid #FFD600 !important; /* Borde más grueso */
+            border-radius: 24px !important; /* Bordes más redondeados */
             
+            /* Sombra profunda para dar volumen 3D */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            
+            /* Centrado perfecto del contenido */
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 24px !important;
-            text-align: left !important;
+            align-items: center; /* Centrado horizontal */
+            justify-content: center; /* Centrado vertical */
+            padding: 30px !important;
+            text-align: center !important; /* Texto centrado */
         }
 
+        /* Hover: Efecto de "Levitación Magnética" */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
-            border-left-color: #FF6D00 !important;
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5) !important;
+            z-index: 10;
         }
 
+        /* Título Tarjeta (Más grande) */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 20px !important;
+            font-size: 24px !important;
             font-weight: 800 !important;
             color: #263238 !important;
+            margin-top: 15px !important;
+        }
+        
+        /* Subtítulo dentro del botón (Si hubiera) */
+        section[data-testid="stMain"] div.stButton > button small {
+            font-size: 16px !important;
+            color: #78909C !important;
         }
 
+        /* Iconos: Gigantes y Centrados */
         .card-icon {
-            font-size: 42px;
-            margin-bottom: -55px;
-            position: relative;
-            z-index: 5;
-            pointer-events: none;
-            margin-left: 20px;
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+            font-size: 60px; /* Icono enorme */
+            margin-bottom: 0px; 
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
         }
         </style>
     """, unsafe_allow_html=True)
 
     # 3. ENCABEZADO
     st.markdown("""
-        <div style="margin-bottom: 40px; padding-top: 40px;">
-            <h1 style="color: #FFFFFF; font-size: 48px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 15px rgba(0,0,0,0.4);">¡Hola, Docente! 🚀</h1>
-            <p style="color: #FFD54F; font-size: 20px; font-weight: 500;">Bienvenido a tu nueva experiencia educativa.</p>
+        <div style="margin-bottom: 50px; padding-top: 40px; text-align: center;">
+            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 10px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">¡Hola, Docente! 🚀</h1>
+            <p style="color: #FFD54F; font-size: 22px; font-weight: 500;">Tu centro de comando está listo.</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 4. PARRILLA
-    c1, c2 = st.columns(2, gap="medium")
+    # 4. PARRILLA GEOMÉTRICA (Gap Large para separación perfecta)
+    
+    # Fila 1
+    c1, c2 = st.columns(2, gap="large")
     
     with c1:
-        st.markdown('<div class="card-icon" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
-        if st.button("Sistema de Evaluación\n\nAnaliza notas y reportes.", key="card_eval"):
+        # Usamos contenedores para agrupar icono y botón visualmente
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📊</div>', unsafe_allow_html=True)
+        # Nota: Agregué saltos de línea \n\n extra para empujar el texto abajo del icono
+        if st.button("\n\n\nSistema de Evaluación", key="card_eval"):
             navegar_a("Sistema de Evaluación")
             st.rerun()
 
     with c2:
-        st.markdown('<div class="card-icon" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
-        if st.button("Asistente Pedagógico\n\nCrea sesiones con IA.", key="card_ia"):
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nAsistente Pedagógico", key="card_ia"):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") 
+    st.write("") # Espaciador vertical
 
-    c3, c4 = st.columns(2, gap="medium")
+    # Fila 2
+    c3, c4 = st.columns(2, gap="large")
     
     with c3:
-        st.markdown('<div class="card-icon" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
-        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot.", key="card_games"):
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🎮</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nZona de Gamificación", key="card_games"):
             navegar_a("Gamificación")
             st.rerun()
 
     with c4:
-        st.markdown('<div class="card-icon" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
-        if st.button("Banco de Recursos\n\nDescarga materiales.", key="card_resources"):
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📚</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nBanco de Recursos", key="card_resources"):
             navegar_a("Recursos")
             st.rerun()
             
@@ -1912,6 +1918,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
