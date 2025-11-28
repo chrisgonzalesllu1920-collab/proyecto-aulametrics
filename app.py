@@ -806,17 +806,17 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V5.0 - FINAL PRO) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V5.1 - NARANJA BOOST) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas con diseño de Alto Impacto y Textura."""
+    """Dibuja la parrilla de 4 tarjetas con DEGRADADO AGRESIVO."""
     
     st.markdown("""
         <style>
-        /* --- 1. ELIMINAR LA BARRA GRIS SUPERIOR (HEADER) --- */
+        /* --- 1. HEADER INVISIBLE --- */
         header { visibility: hidden !important; }
         [data-testid="stHeader"] {
-            background-color: rgba(0,0,0,0) !important; /* Totalmente transparente */
+            background-color: rgba(0,0,0,0) !important;
             color: white !important;
         }
 
@@ -835,18 +835,16 @@ def mostrar_home():
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
 
-        /* --- 3. FONDO PRINCIPAL (MORADO CON DESTELLOS NARANJAS) --- */
+        /* --- 3. FONDO PRINCIPAL (MORADO CON NARANJA POTENTE) --- */
         [data-testid="stAppViewContainer"] {
-            /* Fondo base morado oscuro */
             background-color: #4A148C !important;
             
-            /* DEGRADADO COMPLEJO: */
-            /* Capa 1: Morado profundo general */
-            /* Capa 2: Un destello Naranja (#FF6D00) en la esquina superior derecha */
-            /* Capa 3: Un destello Azul Cian (#00E5FF) en la esquina inferior izquierda */
+            /* AJUSTE DE POTENCIA: */
+            /* 1. Naranja: Opacidad subida al 60% y radio expandido al 60% */
+            /* 2. Cyan: Opacidad al 30% para balancear abajo */
             background: 
-                radial-gradient(circle at 90% 10%, rgba(255, 109, 0, 0.25) 0%, transparent 40%),
-                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
         }
 
@@ -856,7 +854,7 @@ def mostrar_home():
             min-height: 160px;
             background-color: #FFFFFF !important;
             border: none !important;
-            border-left: 6px solid #FFD600 !important; /* Detalle Dorado */
+            border-left: 6px solid #FFD600 !important;
             border-radius: 16px !important;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
             transition: all 0.2s ease-in-out !important;
@@ -869,21 +867,18 @@ def mostrar_home():
             text-align: left !important;
         }
 
-        /* Hover Tarjeta */
         section[data-testid="stMain"] div.stButton > button:hover {
             transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important; /* Sombra más dramática */
-            border-left-color: #FF6D00 !important; /* Cambia a Naranja intenso */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+            border-left-color: #FF6D00 !important;
         }
 
-        /* Título Tarjeta */
         section[data-testid="stMain"] div.stButton > button p {
             font-size: 20px !important;
             font-weight: 800 !important;
             color: #263238 !important;
         }
 
-        /* Iconos */
         .card-icon {
             font-size: 42px;
             margin-bottom: -55px;
@@ -896,15 +891,15 @@ def mostrar_home():
         </style>
     """, unsafe_allow_html=True)
 
-    # 3. ENCABEZADO (CON MARGEN SUPERIOR AJUSTADO PORQUE YA NO HAY BARRA GRIS)
+    # 3. ENCABEZADO
     st.markdown("""
         <div style="margin-bottom: 40px; padding-top: 40px;">
             <h1 style="color: #FFFFFF; font-size: 48px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 15px rgba(0,0,0,0.4);">¡Hola, Docente! 🚀</h1>
-            <p style="color: #E1BEE7; font-size: 20px; font-weight: 500;">Bienvenido a tu nueva experiencia educativa.</p>
+            <p style="color: #FFD54F; font-size: 20px; font-weight: 500;">Bienvenido a tu nueva experiencia educativa.</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 4. PARRILLA DE TARJETAS
+    # 4. PARRILLA
     c1, c2 = st.columns(2, gap="medium")
     
     with c1:
@@ -1917,6 +1912,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
