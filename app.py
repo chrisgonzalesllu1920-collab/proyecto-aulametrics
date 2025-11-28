@@ -806,37 +806,55 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V2.0 - FONDO DEGRADADO) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V3.0 - HIGH CONTRAST) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas con fondo degradado premium."""
+    """Dibuja la parrilla de 4 tarjetas con diseño de Alto Contraste."""
     
     st.markdown("""
         <style>
-        /* --- 1. FONDO DEGRADADO DE IMPACTO --- */
-        /* Esto sobreescribe el color plano y pone un degradado elegante */
-        [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            /* Opción B (Más azulado): background: linear-gradient(to top, #dfe9f3 0%, white 100%); */
+        /* --- 1. BARRA LATERAL (SIDEBAR) DEGRADADO --- */
+        /* Forzamos un azul profundo elegante, ignorando el config.toml */
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
+            border-right: 1px solid #1a237e;
         }
         
-        /* Aseguramos que el sidebar se mantenga limpio */
-        [data-testid="stSidebar"] {
-            background-color: #FFFFFF !important;
-            border-right: 1px solid #e0e0e0;
+        /* Texto del Sidebar en BLANCO para que se lea sobre el azul */
+        section[data-testid="stSidebar"] p, 
+        section[data-testid="stSidebar"] span, 
+        section[data-testid="stSidebar"] div, 
+        section[data-testid="stSidebar"] label {
+            color: #FFFFFF !important;
+        }
+        
+        /* Botones del Sidebar (ajuste para fondo oscuro) */
+        section[data-testid="stSidebar"] div.stButton > button {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        section[data-testid="stSidebar"] div.stButton > button:hover {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border-color: white !important;
         }
 
-        /* --- 2. TARJETAS FLOTANTES (Mejoradas) --- */
+        /* --- 2. FONDO PRINCIPAL (GRIS HIELO) --- */
+        [data-testid="stAppViewContainer"] {
+            background-color: #F2F4F7 !important;
+            background-image: none !important; /* Quitamos degradados raros previos */
+        }
+
+        /* --- 3. TARJETAS (BLANCO PURO) --- */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
             min-height: 160px;
-            background-color: rgba(255, 255, 255, 0.95) !important; /* Ligeramente translúcido */
-            border: 1px solid white !important;
-            border-radius: 20px !important;
-            /* Sombra de cristal */
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
-            backdrop-filter: blur( 4px ) !important;
-            transition: all 0.3s ease !important;
+            background-color: #FFFFFF !important;
+            border: 1px solid #dcdcdc !important; /* Borde sutil */
+            border-left: 5px solid #2962FF !important; /* Acento de color a la izquierda */
+            border-radius: 12px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+            transition: all 0.2s ease-in-out !important;
             
             display: flex;
             flex-direction: column;
@@ -846,30 +864,28 @@ def mostrar_home():
             text-align: left !important;
         }
 
-        /* Hover: Efecto Elevación */
+        /* Hover Tarjeta */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
             border-color: #2962FF !important;
         }
 
-        /* Título */
+        /* Título Tarjeta */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 20px !important;
+            font-size: 19px !important;
             font-weight: 700 !important;
             color: #263238 !important;
-            margin-top: 10px !important;
         }
-        
+
         /* Iconos */
         .card-icon {
-            font-size: 40px;
-            margin-bottom: -55px;
+            font-size: 36px;
+            margin-bottom: -45px;
             position: relative;
             z-index: 5;
             pointer-events: none;
             margin-left: 20px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
         </style>
     """, unsafe_allow_html=True)
@@ -877,8 +893,8 @@ def mostrar_home():
     # 3. ENCABEZADO
     st.markdown("""
         <div style="margin-bottom: 30px; padding-top: 10px;">
-            <h1 style="color: #1A237E; font-size: 42px; margin-bottom: 8px; font-weight: 900; text-shadow: 0px 2px 3px rgba(0,0,0,0.1);">¡Hola, Docente! 👋</h1>
-            <p style="color: #455A64; font-size: 18px; font-weight: 500;">Tu centro de comando pedagógico está listo.</p>
+            <h1 style="color: #1A237E; font-size: 40px; margin-bottom: 5px; font-weight: 900;">¡Hola, Docente! 👋</h1>
+            <p style="color: #546E7A; font-size: 18px;">Tu panel de control está listo.</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -887,13 +903,13 @@ def mostrar_home():
     
     with c1:
         st.markdown('<div class="card-icon" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
-        if st.button("Sistema de Evaluación\n\nAnalítica de datos y reportes.", key="card_eval"):
+        if st.button("Sistema de Evaluación\n\nAnaliza notas y reportes.", key="card_eval"):
             navegar_a("Sistema de Evaluación")
             st.rerun()
 
     with c2:
         st.markdown('<div class="card-icon" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
-        if st.button("Asistente Pedagógico\n\nGenerador de sesiones con IA.", key="card_ia"):
+        if st.button("Asistente Pedagógico\n\nCrea sesiones con IA.", key="card_ia"):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
@@ -903,17 +919,17 @@ def mostrar_home():
     
     with c3:
         st.markdown('<div class="card-icon" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
-        if st.button("Zona de Gamificación\n\nAprendizaje lúdico interactivo.", key="card_games"):
+        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot.", key="card_games"):
             navegar_a("Gamificación")
             st.rerun()
 
     with c4:
         st.markdown('<div class="card-icon" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
-        if st.button("Banco de Recursos\n\nRepositorio de materiales.", key="card_resources"):
+        if st.button("Banco de Recursos\n\nDescarga materiales.", key="card_resources"):
             navegar_a("Recursos")
             st.rerun()
             
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br><hr><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1895,6 +1911,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
