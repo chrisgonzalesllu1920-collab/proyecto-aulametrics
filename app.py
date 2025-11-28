@@ -30,16 +30,34 @@ st.set_page_config(
   initial_sidebar_state="collapsed"
 )
 
-# 👇👇👇 PEGA ESTO AQUÍ ARRIBA 👇👇👇
-# --- ESTILOS CSS: MAQUILLAJE FINAL (AGRESIVO) ---
+# --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA POPPINS + LIMPIEZA) ---
 st.markdown("""
     <style>
+    /* --- A. TIPOGRAFÍA MODERNA (POPPINS) --- */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Títulos con peso extra y estilo moderno */
+    h1, h2, h3 {
+        font-weight: 800 !important;
+        letter-spacing: -1px;
+    }
+    
+    /* Texto general legible */
+    p, div, label {
+        font-weight: 400;
+    }
+
+    /* --- B. LIMPIEZA DE INTERFAZ (TU CÓDIGO ANTERIOR) --- */
     /* 1. Ocultar cadenas (enlaces) buscando en cualquier profundidad */
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
     
-    /* 2. Ocultar el contenedor específico de iconos de acción (para versiones nuevas) */
+    /* 2. Ocultar el contenedor específico de iconos de acción */
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
@@ -47,7 +65,7 @@ st.markdown("""
     /* 3. Ocultar pie de página */
     footer {visibility: hidden;}
     
-    /* 4. ESTILO BOTÓN AZUL */
+    /* 4. ESTILO BOTÓN AZUL (Descarga) */
     div[data-testid="stDownloadButton"] > button {
         background-color: #007bff !important;
         color: white !important;
@@ -59,7 +77,8 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-# 👆👆👆 FIN DEL ESTILO 👆👆👆
+
+# 👇 AQUÍ DEBE SEGUIR TU FUNCIÓN get_image_as_base64 (NO LA BORRES) 👇
 
 @st.cache_data 
 def get_image_as_base64(file_path):
@@ -1782,4 +1801,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
