@@ -1,19 +1,15 @@
 [theme]
-# 1. Color Primario (Botones, sliders, selección)
-# Naranja Vibrante ("Destellos"): Genera mucha energía y contraste
-primaryColor = "#FF6D00"
+# 1. Primario: Turquesa Neón (Resalta muchísimo sobre oscuro)
+primaryColor = "#00E5FF"
 
-# 2. Color de Fondo Principal (Canvas)
-# Blanco con un toque imperceptible de lavanda (para que no sea aburrido)
-backgroundColor = "#FFFBFF"
+# 2. Fondo Principal: Gris muy oscuro (Casi negro, estilo VS Code)
+backgroundColor = "#1E1E1E"
 
-# 3. Color de Fondo Secundario (Barra Lateral)
-# Morado Pastel: Da la identidad de marca sin ser oscuro
-secondaryBackgroundColor = "#F3E5F5"
+# 3. Barra Lateral: Negro Puro (Profundidad)
+secondaryBackgroundColor = "#121212"
 
-# 4. Color del Texto
-# Morado Profundo: Elegante y legible, sustituye al negro
-textColor = "#311B92"
+# 4. Texto: Blanco Humo (Lectura cómoda en fondo oscuro)
+textColor = "#FAFAFA"
 
 # 5. Fuente
 font = "sans serif"
