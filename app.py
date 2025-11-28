@@ -1522,68 +1522,74 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-                
+               
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.3 - FEEDBACK VISUAL ROJO + TOAST) ===
+        # === VISTA 4: JUEGO ROBOT (V4.4 - FIXED: CSS ARCADE + DELAY ERROR) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS FEEDBACK (ROJO PARA ERROR, VERDE PARA ACIERTO) ---
+            # --- 0. CSS ARCADE 3D (RESTAURADO Y BLINDADO) ---
             st.markdown("""
                 <style>
-                /* 1. BASE DEL BOTÓN */
-                div[data-testid="column"] button {
+                /* FORZAMOS EL ESTILO EN TODOS LOS BOTONES DE ESTA SECCIÓN */
+                div.stButton > button {
                     width: 100%;
-                    height: 65px;
+                    height: 70px !important; /* Altura fija */
                     background-color: white !important;
-                    border: 2px solid #dcdcdc !important;
+                    border: 2px solid #cfd8dc !important;
+                    border-bottom: 6px solid #b0bec5 !important; /* EFECTO 3D GRUESO */
                     border-radius: 15px !important;
-                    box-shadow: 0 6px 0 #cfcfcf !important;
-                    transition: all 0.1s ease !important;
-                    margin-bottom: 12px !important;
+                    margin-bottom: 10px !important;
                     padding: 0px !important;
+                    transition: all 0.1s ease !important;
                 }
-                div[data-testid="column"] button p {
-                    font-size: 38px !important;
+
+                /* TEXTO GIGANTE */
+                div.stButton > button p {
+                    font-size: 36px !important;
                     font-weight: 900 !important;
-                    color: #555 !important;
+                    color: #455a64 !important;
                     line-height: 1 !important;
                 }
 
-                /* 2. HOVER (AZUL) */
-                div[data-testid="column"] button:hover:enabled {
-                    transform: translateY(-4px);
-                    background-color: #e3f2fd !important;
-                    border-color: #2196f3 !important;
-                    box-shadow: 0 10px 0 #90caf9 !important;
+                /* HOVER (AZUL) */
+                div.stButton > button:hover:enabled {
+                    transform: translateY(-2px);
+                    background-color: #e1f5fe !important;
+                    border-color: #29b6f6 !important;
+                    border-bottom: 6px solid #0288d1 !important;
                 }
-                div[data-testid="column"] button:hover:enabled p {
-                    color: #1565c0 !important;
-                }
-
-                /* 3. CLICK */
-                div[data-testid="column"] button:active:enabled {
-                    transform: translateY(6px);
-                    box-shadow: 0 0 0 #cfcfcf !important;
+                div.stButton > button:hover:enabled p {
+                    color: #0277bd !important;
                 }
 
-                /* 4. ERROR (ROJO INTENSO) - Aplica a disabled por defecto */
-                div[data-testid="column"] button:disabled {
-                    background-color: #ef5350 !important; /* Rojo */
-                    border-color: #b71c1c !important;
-                    box-shadow: none !important;
-                    transform: translateY(6px);
-                    opacity: 1 !important; /* Sin transparencia */
-                }
-                div[data-testid="column"] button:disabled p {
-                    color: white !important; /* Letra blanca */
+                /* CLICK (SE HUNDE) */
+                div.stButton > button:active:enabled {
+                    transform: translateY(4px);
+                    border-bottom: 2px solid #0288d1 !important;
+                    margin-top: 4px !important;
                 }
 
-                /* 5. ACIERTO (VERDE) - Sobrescribe al rojo si es primary */
-                div[data-testid="column"] button[kind="primary"]:disabled {
-                    background-color: #4caf50 !important; /* Verde */
-                    border-color: #2e7d32 !important;
-                    opacity: 1 !important;
+                /* TECLA ACERTADA (VERDE) */
+                div.stButton > button[kind="primary"] {
+                    background-color: #66bb6a !important;
+                    border-color: #43a047 !important;
+                    border-bottom: 6px solid #2e7d32 !important;
+                }
+                div.stButton > button[kind="primary"] p {
+                    color: white !important;
+                }
+
+                /* TECLA FALLADA (ROJO - ESTADO DISABLED) */
+                div.stButton > button:disabled {
+                    background-color: #ef5350 !important; /* ROJO */
+                    border-color: #c62828 !important;
+                    border-bottom: 2px solid #b71c1c !important; /* Borde rojo oscuro */
+                    opacity: 1 !important; /* Que se vea bien el color */
+                    transform: translateY(4px); /* Se queda hundida */
+                }
+                div.stButton > button:disabled p {
+                    color: white !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1649,12 +1655,13 @@ def home_page():
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) MONITOR VISUAL
+                # B) MONITOR VISUAL (Limpiamos cajas blancas)
                 baterias_restantes = max_errores - errores
                 emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
+                    # PISTA LIMPIA
                     st.markdown(f"""
                     <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
                         💡 {st.session_state['robot_hint']}
@@ -1700,13 +1707,13 @@ def home_page():
                         
                 elif errores >= max_errores:
                     st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
-                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
+                    if st.button("⚡ Reintentar Nivel (Recargar)", type="secondary", use_container_width=True):
                         st.session_state['robot_guesses'] = set()
                         st.session_state['robot_errors'] = 0
                         st.rerun()
                         
                 else:
-                    # E) TECLADO ARCADE FEEDBACK
+                    # E) TECLADO ARCADE + LOGICA DE DELAY
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
@@ -1716,14 +1723,16 @@ def home_page():
                         
                         type_btn = "secondary"
                         if desactivado and letra in palabra: 
-                            type_btn = "primary" # Verde
+                            type_btn = "primary"
                             
                         if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
-                                # 📢 TOAST DE ALERTA
+                                # 1. LANZAMOS TOAST
                                 st.toast("💥 ¡CORTOCIRCUITO! Batería dañada.", icon="⚠️")
+                                # 2. PAUSA DRAMÁTICA (Para que se vea el Toast y el Rojo)
+                                time.sleep(1.0) 
                             st.rerun()
 
 # =========================================================================
@@ -1749,6 +1758,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
