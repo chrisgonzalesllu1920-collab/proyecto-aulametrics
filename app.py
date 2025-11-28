@@ -1522,88 +1522,82 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-               
+        
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.4 - FIXED: CSS ARCADE + DELAY ERROR) ===
+        # === VISTA 4: JUEGO ROBOT (V4.5 - FINAL: ALERTA GIGANTE + BOTÓN SAFE) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS ARCADE 3D (RESTAURADO Y BLINDADO) ---
+            # --- 0. CSS ARCADE (MANTENEMOS EL TECLADO GENIAL) ---
             st.markdown("""
                 <style>
-                /* FORZAMOS EL ESTILO EN TODOS LOS BOTONES DE ESTA SECCIÓN */
+                /* ESTILO EXCLUSIVO PARA LOS BOTONES DE ESTA ZONA */
                 div.stButton > button {
                     width: 100%;
-                    height: 70px !important; /* Altura fija */
+                    height: 70px !important;
                     background-color: white !important;
                     border: 2px solid #cfd8dc !important;
-                    border-bottom: 6px solid #b0bec5 !important; /* EFECTO 3D GRUESO */
+                    border-bottom: 6px solid #b0bec5 !important;
                     border-radius: 15px !important;
                     margin-bottom: 10px !important;
                     padding: 0px !important;
                     transition: all 0.1s ease !important;
                 }
-
-                /* TEXTO GIGANTE */
+                /* TEXTO GIGANTE EN TECLADO */
                 div.stButton > button p {
                     font-size: 36px !important;
                     font-weight: 900 !important;
                     color: #455a64 !important;
                     line-height: 1 !important;
                 }
-
-                /* HOVER (AZUL) */
+                /* HOVER AZUL */
                 div.stButton > button:hover:enabled {
                     transform: translateY(-2px);
                     background-color: #e1f5fe !important;
                     border-color: #29b6f6 !important;
                     border-bottom: 6px solid #0288d1 !important;
                 }
-                div.stButton > button:hover:enabled p {
-                    color: #0277bd !important;
-                }
+                div.stButton > button:hover:enabled p { color: #0277bd !important; }
 
-                /* CLICK (SE HUNDE) */
+                /* CLICK */
                 div.stButton > button:active:enabled {
                     transform: translateY(4px);
                     border-bottom: 2px solid #0288d1 !important;
                     margin-top: 4px !important;
                 }
 
-                /* TECLA ACERTADA (VERDE) */
+                /* ACIERTO (VERDE) */
                 div.stButton > button[kind="primary"] {
                     background-color: #66bb6a !important;
                     border-color: #43a047 !important;
                     border-bottom: 6px solid #2e7d32 !important;
                 }
-                div.stButton > button[kind="primary"] p {
-                    color: white !important;
-                }
+                div.stButton > button[kind="primary"] p { color: white !important; }
 
-                /* TECLA FALLADA (ROJO - ESTADO DISABLED) */
+                /* ERROR (ROJO) */
                 div.stButton > button:disabled {
-                    background-color: #ef5350 !important; /* ROJO */
+                    background-color: #ef5350 !important;
                     border-color: #c62828 !important;
-                    border-bottom: 2px solid #b71c1c !important; /* Borde rojo oscuro */
-                    opacity: 1 !important; /* Que se vea bien el color */
-                    transform: translateY(4px); /* Se queda hundida */
+                    border-bottom: 2px solid #b71c1c !important;
+                    opacity: 1 !important;
+                    transform: translateY(4px);
                 }
-                div.stButton > button:disabled p {
-                    color: white !important;
-                }
+                div.stButton > button:disabled p { color: white !important; }
                 </style>
             """, unsafe_allow_html=True)
 
-            # --- 1. BARRA SUPERIOR ---
-            col_back, col_title = st.columns([1, 5])
-            with col_back:
-                if st.button("🔙 Menú", use_container_width=True):
+            # --- 1. BARRA LATERAL (PROTEGIDA) ---
+            # Movemos el botón "Volver" aquí para que no se deforme con el CSS del teclado
+            with st.sidebar:
+                st.divider()
+                if st.button("🔙 Volver al Menú de Juegos", use_container_width=True):
                     keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
                     for k in keys_to_clear:
                         if k in st.session_state: del st.session_state[k]
                     volver_menu_juegos()
-            with col_title:
-                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
+
+            # TÍTULO PRINCIPAL
+            st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
             # --- 2. CONFIGURACIÓN ---
             if 'robot_challenges' not in st.session_state:
@@ -1644,6 +1638,9 @@ def home_page():
 
             # --- 3. ZONA DE JUEGO ---
             else:
+                # Espacio reservado para ALERTA GIGANTE
+                alerta_placeholder = st.empty()
+
                 nivel_idx = st.session_state['robot_level']
                 total_niveles = len(st.session_state['robot_challenges'])
                 palabra = st.session_state['robot_word']
@@ -1651,17 +1648,15 @@ def home_page():
                 max_errores = st.session_state['robot_max_errors']
                 letras_adivinadas = st.session_state['robot_guesses']
                 
-                # A) BARRA DE PROGRESO
+                # A) MONITOR DE ESTADO
                 progreso_mision = (nivel_idx) / total_niveles
                 st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
 
-                # B) MONITOR VISUAL (Limpiamos cajas blancas)
                 baterias_restantes = max_errores - errores
                 emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
                 col_hint, col_bat = st.columns([3, 1])
                 with col_hint:
-                    # PISTA LIMPIA
                     st.markdown(f"""
                     <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
                         💡 {st.session_state['robot_hint']}
@@ -1670,7 +1665,7 @@ def home_page():
                 with col_bat:
                     st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
 
-                # C) PALABRA OCULTA
+                # B) PALABRA OCULTA
                 palabra_mostrar = ""
                 ganado = True
                 for letra in palabra:
@@ -1681,12 +1676,12 @@ def home_page():
                         ganado = False
                 
                 st.markdown(f"""
-                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
+                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 30px 0;">
                     {palabra_mostrar}
                 </div>
                 """, unsafe_allow_html=True)
 
-                # D) CONTROL DE JUEGO
+                # C) CONTROL DE JUEGO
                 if ganado:
                     st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
                     if nivel_idx < total_niveles - 1:
@@ -1707,20 +1702,19 @@ def home_page():
                         
                 elif errores >= max_errores:
                     st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
-                    if st.button("⚡ Reintentar Nivel (Recargar)", type="secondary", use_container_width=True):
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
                         st.session_state['robot_guesses'] = set()
                         st.session_state['robot_errors'] = 0
                         st.rerun()
                         
                 else:
-                    # E) TECLADO ARCADE + LOGICA DE DELAY
+                    # D) TECLADO ARCADE
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
                     
                     for i, letra in enumerate(letras_teclado):
                         desactivado = letra in letras_adivinadas
-                        
                         type_btn = "secondary"
                         if desactivado and letra in palabra: 
                             type_btn = "primary"
@@ -1729,10 +1723,14 @@ def home_page():
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
-                                # 1. LANZAMOS TOAST
-                                st.toast("💥 ¡CORTOCIRCUITO! Batería dañada.", icon="⚠️")
-                                # 2. PAUSA DRAMÁTICA (Para que se vea el Toast y el Rojo)
-                                time.sleep(1.0) 
+                                # 📢 ALERTA GIGANTE (BANNER)
+                                alerta_placeholder.markdown("""
+                                    <div style="background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                                        <h2 style="color: #b71c1c; margin:0; font-size: 40px;">💥 ¡CORTOCIRCUITO!</h2>
+                                        <p style="color: #c62828; font-size: 24px; font-weight: bold;">Has perdido una batería</p>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                                time.sleep(1.5) # Pausa dramática para ver el mensaje
                             st.rerun()
 
 # =========================================================================
@@ -1758,6 +1756,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
