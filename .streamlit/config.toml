@@ -1,15 +1,15 @@
 [theme]
-# 1. Primario: Rosa/Rojo Vibrante (Energía pura)
-primaryColor = "#FF4081"
+# Color principal (para los acentos y bordes al pasar el mouse)
+primaryColor = "#2962FF"
 
-# 2. Fondo Principal: Crema muy suave (Evita fatiga visual)
-backgroundColor = "#FFFDE7"
+# El color de fondo exacto de la referencia (Gris muy suave)
+backgroundColor = "#F0F2F6"
 
-# 3. Barra Lateral: Verde Azulado (Teal)
-secondaryBackgroundColor = "#B2DFDB"
+# El color de la barra lateral (Un blanco puro para contraste)
+secondaryBackgroundColor = "#FFFFFF"
 
-# 4. Texto: Gris Oscuro
-textColor = "#212121"
+# Color del texto
+textColor = "#263238"
 
-# 5. Fuente
+# Tipografía
 font = "sans serif"
