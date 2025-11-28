@@ -806,77 +806,97 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (NUEVO HOME) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (NUEVO HOME CORREGIDO) ===
 # =========================================================================
 def mostrar_home():
     """Dibuja la parrilla de 4 tarjetas en la pantalla de inicio."""
     
-    # 1. CSS EXCLUSIVO PARA TARJETAS (Efecto Hover y Sombra)
+    # --- CORRECCIÓN 1: CSS ESPECÍFICO PARA LA ZONA PRINCIPAL ---
+    # Usamos 'section[data-testid="stMain"]' para que NO afecte al sidebar
     st.markdown("""
         <style>
-        div.stButton > button {
+        /* Estilo base de la tarjeta SOLO en el área principal */
+        section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            height: auto;
-            min-height: 160px;
+            min-height: 150px; /* Altura un poco menor para que se vean más juntas */
             background-color: white !important;
-            border: 1px solid #ECEFF1 !important;
-            border-radius: 16px !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-            transition: all 0.2s ease !important;
+            border: 1px solid #E0E3E7 !important; /* Borde más sutil */
+            border-radius: 12px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; /* Sombra más suave */
+            transition: all 0.2s ease-in-out !important;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
             padding: 20px !important;
             text-align: left !important;
+            margin-bottom: 0px !important; /* Quitamos margen extra inferior */
         }
-        div.stButton > button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.1) !important;
+
+        /* Efecto Hover */
+        section[data-testid="stMain"] div.stButton > button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
             border-color: #2962FF !important;
         }
-        div.stButton > button p {
-            font-size: 20px !important;
-            font-weight: 700 !important;
+
+        /* Título de la tarjeta */
+        section[data-testid="stMain"] div.stButton > button p {
+            font-size: 18px !important; /* Un poco más pequeño para proporcionalidad */
+            font-weight: 600 !important;
             color: #37474F !important;
+            line-height: 1.3 !important;
+        }
+        
+        /* Ajuste para los emojis flotantes */
+        .floating-emoji {
+            font-size: 32px;
+            margin-bottom: -45px;
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+            margin-left: 20px;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. SALUDO
+    # 2. SALUDO (Este es el nuevo encabezado que reemplaza al robot)
     st.markdown("""
-        <div style="margin-bottom: 30px;">
-            <h1 style="color: #263238; font-size: 42px; margin-bottom: 0;">¡Hola, Docente! 👋</h1>
-            <p style="color: #546E7A; font-size: 18px;">Bienvenido a <b>AulaMetrics</b>. ¿Qué vamos a potenciar hoy?</p>
+        <div style="margin-bottom: 25px;">
+            <h1 style="color: #1A237E; font-size: 38px; margin-bottom: 5px; font-weight: 800;">¡Hola, Docente! 👋</h1>
+            <p style="color: #546E7A; font-size: 17px;">Bienvenido a tu panel de control. ¿Qué haremos hoy?</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 3. PARRILLA 2x2
+    # --- CORRECCIÓN 2: ESPACIADO PROPORCIONAL (GAP SMALL) ---
+    
     # Fila 1
-    c1, c2 = st.columns(2)
+    # Usamos gap="small" para juntar las columnas
+    c1, c2 = st.columns(2, gap="small")
     with c1:
-        st.markdown('<div style="color: #2962FF; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">📊</div>', unsafe_allow_html=True)
+        st.markdown('<div class="floating-emoji" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
         if st.button("Sistema de Evaluación\n\nAnaliza notas y reportes.", key="card_eval"):
             navegar_a("Sistema de Evaluación")
             st.rerun()
     with c2:
-        st.markdown('<div style="color: #6200EA; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">🧠</div>', unsafe_allow_html=True)
-        if st.button("Asistente Pedagógico\n\nCrea sesiones y unidades con IA.", key="card_ia"):
+        st.markdown('<div class="floating-emoji" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
+        if st.button("Asistente Pedagógico\n\nCrea sesiones con IA.", key="card_ia"):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") # Espacio
+    # Un espacio vertical pequeño entre filas
+    st.write("") 
 
     # Fila 2
-    c3, c4 = st.columns(2)
+    c3, c4 = st.columns(2, gap="small")
     with c3:
-        st.markdown('<div style="color: #FF6D00; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">🎮</div>', unsafe_allow_html=True)
+        st.markdown('<div class="floating-emoji" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
         if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot.", key="card_games"):
             navegar_a("Gamificación")
             st.rerun()
     with c4:
-        st.markdown('<div style="color: #00C853; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">📚</div>', unsafe_allow_html=True)
-        if st.button("Banco de Recursos\n\nDescarga fichas y plantillas.", key="card_resources"):
+        st.markdown('<div class="floating-emoji" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
+        if st.button("Banco de Recursos\n\nDescarga materiales.", key="card_resources"):
             navegar_a("Recursos")
             st.rerun()
 
@@ -1860,6 +1880,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
