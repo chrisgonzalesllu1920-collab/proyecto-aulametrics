@@ -904,7 +904,7 @@ def home_page():
     # 4. CONTROLADOR DE PÁGINAS (GPS)
     pagina = st.session_state['pagina_actual']
 
-    # --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
+# --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
     if pagina == 'Inicio':
             
         # DIBUJAMOS LAS TARJETAS DEL MENÚ
@@ -1860,6 +1860,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
