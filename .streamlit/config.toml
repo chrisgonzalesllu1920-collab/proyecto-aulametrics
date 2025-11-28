@@ -1,16 +1,18 @@
 [theme]
-# 1. Color Primario
-primaryColor = "#FF4B4B"
+# 1. Color Primario (Acentos)
+primaryColor = "#2962FF"
 
-# 2. Fondo Principal (NEGRO PURO)
-# Si esto funciona, tu pantalla se pondrá negra.
-backgroundColor = "#000000"
+# 2. Color de Fondo (EL CAMBIO CLAVE)
+# Este es un Gris Azulado con más "peso".
+# Hará que las tarjetas blancas resalten muchísimo más.
+backgroundColor = "#E1E4E8"
 
-# 3. Barra Lateral (Gris Oscuro)
-secondaryBackgroundColor = "#262730"
+# 3. Barra Lateral
+# Blanco Puro para crear el marco limpio a la izquierda
+secondaryBackgroundColor = "#FFFFFF"
 
-# 4. Texto (Blanco)
-textColor = "#FFFFFF"
+# 4. Texto
+textColor = "#263238"
 
 # 5. Fuente
 font = "sans serif"
