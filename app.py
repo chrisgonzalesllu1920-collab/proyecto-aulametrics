@@ -1530,35 +1530,46 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-                
+               
         # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.6 - FINAL: CSS SEGURO) ===
+        # === VISTA 4: JUEGO ROBOT (V4.7 - FINAL REAL: CONSISTENCIA UI) ===
         # ==========================================
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 0. CSS ARCADE INTELIGENTE (NO ROMPE EL SIDEBAR) ---
+            # --- 1. BARRA SUPERIOR ESTÁNDAR (Vuelve a su lugar) ---
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True, key="robot_btn_back_top"):
+                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
+                    for k in keys_to_clear:
+                        if k in st.session_state: del st.session_state[k]
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
+
+            # --- 2. CSS ARCADE CON "ANTÍDOTO" ---
             st.markdown("""
                 <style>
-                /* --- A. ZONA DE JUEGO (CENTRO) - SOLO AQUÍ APLICAMOS ARCADE --- */
+                /* --- A. ESTILO ARCADE GLOBAL PARA LOS BOTONES DE ESTA VISTA --- */
                 section[data-testid="stMain"] div.stButton > button {
                     width: 100%;
-                    height: 70px !important;
+                    height: 70px !important; /* Altura fija gigante */
                     background-color: white !important;
                     border: 2px solid #cfd8dc !important;
-                    border-bottom: 6px solid #b0bec5 !important;
+                    border-bottom: 6px solid #b0bec5 !important; /* Efecto 3D */
                     border-radius: 15px !important;
                     margin-bottom: 10px !important;
                     padding: 0px !important;
                     transition: all 0.1s ease !important;
                 }
-                /* TEXTO GIGANTE EN TECLADO */
+                /* Texto gigante */
                 section[data-testid="stMain"] div.stButton > button p {
                     font-size: 36px !important;
                     font-weight: 900 !important;
                     color: #455a64 !important;
                     line-height: 1 !important;
                 }
-                /* HOVER AZUL */
+                /* Hover Azul */
                 section[data-testid="stMain"] div.stButton > button:hover:enabled {
                     transform: translateY(-2px);
                     background-color: #e1f5fe !important;
@@ -1566,23 +1577,20 @@ def home_page():
                     border-bottom: 6px solid #0288d1 !important;
                 }
                 section[data-testid="stMain"] div.stButton > button:hover:enabled p { color: #0277bd !important; }
-
-                /* CLICK */
+                /* Click */
                 section[data-testid="stMain"] div.stButton > button:active:enabled {
                     transform: translateY(4px);
                     border-bottom: 2px solid #0288d1 !important;
                     margin-top: 4px !important;
                 }
-
-                /* ACIERTO (VERDE) */
+                /* Acierto Verde */
                 section[data-testid="stMain"] div.stButton > button[kind="primary"] {
                     background-color: #66bb6a !important;
                     border-color: #43a047 !important;
                     border-bottom: 6px solid #2e7d32 !important;
                 }
                 section[data-testid="stMain"] div.stButton > button[kind="primary"] p { color: white !important; }
-
-                /* ERROR (ROJO) */
+                /* Error Rojo */
                 section[data-testid="stMain"] div.stButton > button:disabled {
                     background-color: #ef5350 !important;
                     border-color: #c62828 !important;
@@ -1592,42 +1600,34 @@ def home_page():
                 }
                 section[data-testid="stMain"] div.stButton > button:disabled p { color: white !important; }
 
-                /* --- B. ZONA SIDEBAR (BARRA LATERAL) - ANTÍDOTO --- */
-                /* Forzamos a que los botones del sidebar vuelvan a ser normales */
-                section[data-testid="stSidebar"] div.stButton > button {
+                /* --- B. ANTÍDOTO: RESTAURAR EL BOTÓN DE LA BARRA SUPERIOR --- */
+                /* Este selector específico busca el botón en la primera fila horizontal y le quita el estilo arcade */
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button {
                     height: auto !important;
-                    width: auto !important;
                     border: 1px solid rgba(49, 51, 63, 0.2) !important;
                     border-bottom: 1px solid rgba(49, 51, 63, 0.2) !important;
                     background-color: white !important;
-                    box-shadow: none !important;
                     border-radius: 0.25rem !important;
+                    box-shadow: none !important;
                     padding: 0.25rem 0.75rem !important;
                     margin-bottom: 0 !important;
                     transform: none !important;
                 }
-                section[data-testid="stSidebar"] div.stButton > button p {
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button p {
                     font-size: 16px !important;
                     font-weight: normal !important;
                     color: inherit !important;
+                    line-height: normal !important;
+                }
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button:hover {
+                     background-color: white !important;
+                     border-color: rgba(49, 51, 63, 0.2) !important;
+                     color: rgba(49, 51, 63, 0.8) !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
 
-            # --- 1. BARRA LATERAL (PROTEGIDA) ---
-            with st.sidebar:
-                st.divider()
-                # Este botón ahora usará el estilo "Antídoto" (Normal)
-                if st.button("🔙 Volver al Menú de Juegos", use_container_width=True):
-                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
-                    for k in keys_to_clear:
-                        if k in st.session_state: del st.session_state[k]
-                    volver_menu_juegos()
-
-            # TÍTULO PRINCIPAL
-            st.subheader("🔋 Recarga al Robot: Misión en Cadena")
-
-            # --- 2. CONFIGURACIÓN ---
+            # --- 3. CONFIGURACIÓN ---
             if 'robot_challenges' not in st.session_state:
                 st.info("Configura la misión de rescate:")
                 
@@ -1664,7 +1664,7 @@ def home_page():
                             else:
                                 st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
 
-            # --- 3. ZONA DE JUEGO ---
+            # --- 4. ZONA DE JUEGO ---
             else:
                 alerta_placeholder = st.empty()
 
@@ -1735,7 +1735,7 @@ def home_page():
                         st.rerun()
                         
                 else:
-                    # D) TECLADO
+                    # D) TECLADO ARCADE
                     st.write("")
                     letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
                     cols = st.columns(9)
@@ -1750,7 +1750,6 @@ def home_page():
                             st.session_state['robot_guesses'].add(letra)
                             if letra not in palabra:
                                 st.session_state['robot_errors'] += 1
-                                # ALERTA GIGANTE
                                 alerta_placeholder.markdown("""
                                     <div style="background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
                                         <h2 style="color: #b71c1c; margin:0; font-size: 40px;">💥 ¡CORTOCIRCUITO!</h2>
@@ -1783,26 +1782,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
