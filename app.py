@@ -806,99 +806,109 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (NUEVO HOME CORREGIDO) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (DISEÑO FINAL PRO) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas en la pantalla de inicio."""
+    """Dibuja la parrilla de 4 tarjetas estilo Dashboard Moderno."""
     
-    # --- CORRECCIÓN 1: CSS ESPECÍFICO PARA LA ZONA PRINCIPAL ---
-    # Usamos 'section[data-testid="stMain"]' para que NO afecte al sidebar
+    # 1. CSS QUIRÚRGICO (Solo afecta a la zona principal)
     st.markdown("""
         <style>
-        /* Estilo base de la tarjeta SOLO en el área principal */
+        /* Afecta SOLO a los botones dentro del contenedor principal (Main) */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            min-height: 150px; /* Altura un poco menor para que se vean más juntas */
-            background-color: white !important;
-            border: 1px solid #E0E3E7 !important; /* Borde más sutil */
-            border-radius: 12px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; /* Sombra más suave */
+            min-height: 160px; /* Altura ideal */
+            background-color: #FFFFFF !important; /* Blanco Puro */
+            border: 1px solid #dae1e7 !important; /* Borde sutil */
+            border-radius: 16px !important;
+            /* Sombra suave difusa (El efecto "Elevación") */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
             transition: all 0.2s ease-in-out !important;
+            
+            /* Alineación del contenido */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
-            padding: 20px !important;
+            padding: 24px !important;
             text-align: left !important;
-            margin-bottom: 0px !important; /* Quitamos margen extra inferior */
         }
 
-        /* Efecto Hover */
+        /* Efecto Hover: La tarjeta sube y brilla el borde */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
             border-color: #2962FF !important;
         }
 
-        /* Título de la tarjeta */
+        /* Texto del Título dentro de la tarjeta */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 18px !important; /* Un poco más pequeño para proporcionalidad */
-            font-weight: 600 !important;
+            font-size: 19px !important;
+            font-weight: 700 !important;
             color: #37474F !important;
-            line-height: 1.3 !important;
+            line-height: 1.4 !important;
+            margin-top: 10px !important;
         }
         
-        /* Ajuste para los emojis flotantes */
-        .floating-emoji {
-            font-size: 32px;
-            margin-bottom: -45px;
+        /* Clase para los emojis flotantes */
+        .card-icon {
+            font-size: 38px;
+            margin-bottom: -50px;
             position: relative;
-            z-index: 10;
+            z-index: 5;
             pointer-events: none;
             margin-left: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); /* Sombra al emoji */
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. SALUDO (Este es el nuevo encabezado que reemplaza al robot)
+    # 2. ENCABEZADO MINIMALISTA (Sin Robot, estilo Limpio)
     st.markdown("""
-        <div style="margin-bottom: 25px;">
-            <h1 style="color: #1A237E; font-size: 38px; margin-bottom: 5px; font-weight: 800;">¡Hola, Docente! 👋</h1>
-            <p style="color: #546E7A; font-size: 17px;">Bienvenido a tu panel de control. ¿Qué haremos hoy?</p>
+        <div style="margin-bottom: 30px; padding-top: 10px;">
+            <h1 style="color: #1A237E; font-size: 40px; margin-bottom: 8px; font-weight: 800; letter-spacing: -1px;">¡Hola, Docente! 👋</h1>
+            <p style="color: #546E7A; font-size: 18px; font-weight: 400;">Bienvenido a tu <b>Centro de Control</b>. ¿Qué gestionamos hoy?</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # --- CORRECCIÓN 2: ESPACIADO PROPORCIONAL (GAP SMALL) ---
+    # 3. PARRILLA DE TARJETAS (Gap Small para unirlas más)
     
     # Fila 1
-    # Usamos gap="small" para juntar las columnas
     c1, c2 = st.columns(2, gap="small")
+    
     with c1:
-        st.markdown('<div class="floating-emoji" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
-        if st.button("Sistema de Evaluación\n\nAnaliza notas y reportes.", key="card_eval"):
+        st.markdown('<div class="card-icon" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
+        if st.button("Sistema de Evaluación\n\nAnaliza notas, genera gráficas y reportes.", key="card_eval"):
             navegar_a("Sistema de Evaluación")
             st.rerun()
+
     with c2:
-        st.markdown('<div class="floating-emoji" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
-        if st.button("Asistente Pedagógico\n\nCrea sesiones con IA.", key="card_ia"):
+        st.markdown('<div class="card-icon" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
+        if st.button("Asistente Pedagógico\n\nDiseña sesiones y unidades con IA.", key="card_ia"):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    # Un espacio vertical pequeño entre filas
+    # Pequeño espacio vertical
     st.write("") 
 
     # Fila 2
     c3, c4 = st.columns(2, gap="small")
+    
     with c3:
-        st.markdown('<div class="floating-emoji" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
-        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot.", key="card_games"):
+        st.markdown('<div class="card-icon" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
+        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot interactivo.", key="card_games"):
             navegar_a("Gamificación")
             st.rerun()
+
     with c4:
-        st.markdown('<div class="floating-emoji" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
-        if st.button("Banco de Recursos\n\nDescarga materiales.", key="card_resources"):
+        st.markdown('<div class="card-icon" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
+        if st.button("Banco de Recursos\n\nDescarga fichas, plantillas y guías.", key="card_resources"):
             navegar_a("Recursos")
             st.rerun()
+            
+    # Footer sutil
+    st.markdown("<br><hr style='margin: 0; border-top: 1px solid #E0E0E0;'><br>", unsafe_allow_html=True)
+    st.caption("🚀 AulaMetrics v3.0 Pro | Panel de Control")
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1880,6 +1890,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
