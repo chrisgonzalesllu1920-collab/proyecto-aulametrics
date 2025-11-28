@@ -1,0 +1,15 @@
+[theme]
+# 1. Primario: Rosa/Rojo Vibrante (Energía pura)
+primaryColor = "#FF4081"
+
+# 2. Fondo Principal: Crema muy suave (Evita fatiga visual)
+backgroundColor = "#FFFDE7"
+
+# 3. Barra Lateral: Verde Azulado (Teal)
+secondaryBackgroundColor = "#B2DFDB"
+
+# 4. Texto: Gris Oscuro
+textColor = "#212121"
+
+# 5. Fuente
+font = "sans serif"
