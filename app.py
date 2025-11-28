@@ -806,26 +806,38 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (DISEÑO FINAL PRO) ===
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V2.0 - FONDO DEGRADADO) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas estilo Dashboard Moderno."""
+    """Dibuja la parrilla de 4 tarjetas con fondo degradado premium."""
     
-    # 1. CSS QUIRÚRGICO (Solo afecta a la zona principal)
     st.markdown("""
         <style>
-        /* Afecta SOLO a los botones dentro del contenedor principal (Main) */
+        /* --- 1. FONDO DEGRADADO DE IMPACTO --- */
+        /* Esto sobreescribe el color plano y pone un degradado elegante */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            /* Opción B (Más azulado): background: linear-gradient(to top, #dfe9f3 0%, white 100%); */
+        }
+        
+        /* Aseguramos que el sidebar se mantenga limpio */
+        [data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        /* --- 2. TARJETAS FLOTANTES (Mejoradas) --- */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            min-height: 160px; /* Altura ideal */
-            background-color: #FFFFFF !important; /* Blanco Puro */
-            border: 1px solid #dae1e7 !important; /* Borde sutil */
-            border-radius: 16px !important;
-            /* Sombra suave difusa (El efecto "Elevación") */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-            transition: all 0.2s ease-in-out !important;
+            min-height: 160px;
+            background-color: rgba(255, 255, 255, 0.95) !important; /* Ligeramente translúcido */
+            border: 1px solid white !important;
+            border-radius: 20px !important;
+            /* Sombra de cristal */
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+            backdrop-filter: blur( 4px ) !important;
+            transition: all 0.3s ease !important;
             
-            /* Alineación del contenido */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -834,81 +846,74 @@ def mostrar_home():
             text-align: left !important;
         }
 
-        /* Efecto Hover: La tarjeta sube y brilla el borde */
+        /* Hover: Efecto Elevación */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
             border-color: #2962FF !important;
         }
 
-        /* Texto del Título dentro de la tarjeta */
+        /* Título */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 19px !important;
+            font-size: 20px !important;
             font-weight: 700 !important;
-            color: #37474F !important;
-            line-height: 1.4 !important;
+            color: #263238 !important;
             margin-top: 10px !important;
         }
         
-        /* Clase para los emojis flotantes */
+        /* Iconos */
         .card-icon {
-            font-size: 38px;
-            margin-bottom: -50px;
+            font-size: 40px;
+            margin-bottom: -55px;
             position: relative;
             z-index: 5;
             pointer-events: none;
             margin-left: 20px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); /* Sombra al emoji */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. ENCABEZADO MINIMALISTA (Sin Robot, estilo Limpio)
+    # 3. ENCABEZADO
     st.markdown("""
         <div style="margin-bottom: 30px; padding-top: 10px;">
-            <h1 style="color: #1A237E; font-size: 40px; margin-bottom: 8px; font-weight: 800; letter-spacing: -1px;">¡Hola, Docente! 👋</h1>
-            <p style="color: #546E7A; font-size: 18px; font-weight: 400;">Bienvenido a tu <b>Centro de Control</b>. ¿Qué gestionamos hoy?</p>
+            <h1 style="color: #1A237E; font-size: 42px; margin-bottom: 8px; font-weight: 900; text-shadow: 0px 2px 3px rgba(0,0,0,0.1);">¡Hola, Docente! 👋</h1>
+            <p style="color: #455A64; font-size: 18px; font-weight: 500;">Tu centro de comando pedagógico está listo.</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 3. PARRILLA DE TARJETAS (Gap Small para unirlas más)
-    
-    # Fila 1
-    c1, c2 = st.columns(2, gap="small")
+    # 4. PARRILLA
+    c1, c2 = st.columns(2, gap="medium")
     
     with c1:
         st.markdown('<div class="card-icon" style="color: #2962FF;">📊</div>', unsafe_allow_html=True)
-        if st.button("Sistema de Evaluación\n\nAnaliza notas, genera gráficas y reportes.", key="card_eval"):
+        if st.button("Sistema de Evaluación\n\nAnalítica de datos y reportes.", key="card_eval"):
             navegar_a("Sistema de Evaluación")
             st.rerun()
 
     with c2:
         st.markdown('<div class="card-icon" style="color: #6200EA;">🧠</div>', unsafe_allow_html=True)
-        if st.button("Asistente Pedagógico\n\nDiseña sesiones y unidades con IA.", key="card_ia"):
+        if st.button("Asistente Pedagógico\n\nGenerador de sesiones con IA.", key="card_ia"):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    # Pequeño espacio vertical
     st.write("") 
 
-    # Fila 2
-    c3, c4 = st.columns(2, gap="small")
+    c3, c4 = st.columns(2, gap="medium")
     
     with c3:
         st.markdown('<div class="card-icon" style="color: #FF6D00;">🎮</div>', unsafe_allow_html=True)
-        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot interactivo.", key="card_games"):
+        if st.button("Zona de Gamificación\n\nAprendizaje lúdico interactivo.", key="card_games"):
             navegar_a("Gamificación")
             st.rerun()
 
     with c4:
         st.markdown('<div class="card-icon" style="color: #00C853;">📚</div>', unsafe_allow_html=True)
-        if st.button("Banco de Recursos\n\nDescarga fichas, plantillas y guías.", key="card_resources"):
+        if st.button("Banco de Recursos\n\nRepositorio de materiales.", key="card_resources"):
             navegar_a("Recursos")
             st.rerun()
             
-    # Footer sutil
-    st.markdown("<br><hr style='margin: 0; border-top: 1px solid #E0E0E0;'><br>", unsafe_allow_html=True)
-    st.caption("🚀 AulaMetrics v3.0 Pro | Panel de Control")
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1890,6 +1895,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
