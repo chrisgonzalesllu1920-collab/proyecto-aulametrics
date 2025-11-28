@@ -3,6 +3,9 @@ import os
 import pandas as pd
 import io
 import re 
+import random
+import string
+import json
 from google import genai
 # Importamos la clase de Error específica para capturarla
 from google.genai.errors import APIError 
@@ -384,7 +387,7 @@ def generate_suggestions(analisis_results, selected_sheet_name, selected_comp_li
 
 # =========================================================================
 # === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Versión ACTUALIZADA CON METODOLOGÍA DINÁMICA Y PENSAMIENTO CRÍTICO) ===
+# === (Versión ORIGINAL ESTABLE) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
@@ -688,9 +691,365 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     buffer.seek(0)
     return buffer
 
+# =========================================================================
+# === VI. GENERADOR DE ESTRUCTURA PARA PPT (Versión 7 Slides + IMÁGENES) ===
+# =========================================================================
+
+def generar_estructura_ppt(sesion_texto):
+    """
+    Toma el texto completo de la sesión y usa IA para extraer
+    el contenido resumido Y sugerir imágenes para 7 diapositivas.
+    """
+    # Verificamos si el cliente existe (asegurate que 'client' esté definido al inicio del archivo)
+    # Si 'client' da error, cámbialo por la variable global que uses, ej: client
+    if 'client' not in globals() and 'client' not in locals():
+         return None
+
+    # Prompt MEJORADO: Ahora solicita descripciones visuales
+    prompt = f"""
+    Actúa como un diseñador de presentaciones pedagógicas experto.
+    Tu tarea es EXTRAER el contenido de la sesión y SUGERIR UNA IMAGEN SIMPLE para cada diapositiva.
+
+    TEXTO DE LA SESIÓN:
+    {sesion_texto}
+
+    REGLAS DE SALIDA (ESTRICTO JSON):
+    Devuelve SOLO un objeto JSON con esta estructura exacta:
+    
+    {{
+      "slide_1": {{ 
+          "titulo": "Título de la Sesión", 
+          "subtitulo": "Grado, Sección y Área",
+          "descripcion_imagen": "Professional and abstract background related to the main topic (e.g., 'math symbols background', 'science DNA particles', 'history ancient ruins')." 
+      }},
+      "slide_2": {{ 
+          "titulo": "Propósito de la Sesión", 
+          "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'.",
+          "descripcion_imagen": "Student achieving a goal or a person pointing to a successful target (English)."
+      }},
+      "slide_3": {{ 
+          "titulo": "Motivación Inicial", 
+          "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo.",
+          "descripcion_imagen": "Image illustrating the initial motivation or problem (English, e.g., 'students brainstorming', 'question mark over child')."
+      }},
+      "slide_4": {{ 
+          "titulo": "Desarrollo y Gestión", 
+          "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"],
+          "descripcion_imagen": "Students actively engaged in the main learning activity (English, e.g., 'students collaborating', 'teacher guiding')."
+      }},
+      "slide_5": {{ 
+          "titulo": "Criterios de Evaluación", 
+          "puntos": ["Criterio 1", "Criterio 2", "Criterio 3"],
+          "descripcion_imagen": "Icon or image related to a checklist, rubric, or successful evaluation (English)."
+      }},
+      "slide_6": {{ 
+          "titulo": "Cierre de la Sesión", 
+          "contenido": "Resumen de la actividad de cierre o conclusiones.",
+          "descripcion_imagen": "Happy students finishing a class or concept of conclusion/success (English)."
+      }},
+      "slide_7": {{ 
+          "titulo": "Metacognición", 
+          "contenido": "Extrae las preguntas de reflexión.",
+          "descripcion_imagen": "Person thinking, lightbulb idea, or brain concept (English)."
+      }}
+    }}
+    
+    Reglas de Contenido:
+    1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
+    2. Brevedad: Resume los puntos largos (máx 30 palabras por slide).
+    3. Imágenes: Las descripciones deben ser en INGLÉS, CORTAS y DIRECTAS.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return response.text
+    except Exception as e:
+        return None
 
 
+# =========================================================================
+# === VII. GENERADOR DE TRIVIA (GAMIFICACIÓN) - VERSIÓN DINÁMICA ===
+# =========================================================================
 
+def generar_trivia_juego(tema, grado, area, cantidad):
+    """
+    Genera preguntas de selección múltiple en formato JSON.
+    Cantidad ajustable por el usuario (1-10).
+    """
+    if client is None:
+        return None
+
+    prompt = f"""
+    Actúa como un diseñador de videojuegos educativos.
+    Crea un set de **{cantidad} PREGUNTAS DE TRIVIA** divertidas y desafiantes sobre el tema: "{tema}" para estudiantes de {grado} ({area}).
+
+    REGLAS DE FORMATO (JSON ESTRICTO):
+    Devuelve SOLO un array JSON (lista de objetos) con esta estructura exacta:
+    [
+        {{
+            "pregunta": "¿Texto de la pregunta?",
+            "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
+            "respuesta_correcta": "Opción A",
+            "explicacion": "Breve explicación de por qué es la correcta."
+        }},
+        ... (repetir {cantidad} veces)
+    ]
+
+    REGLAS DE CONTENIDO:
+    1. Las opciones deben ser plausibles.
+    2. La "respuesta_correcta" debe coincidir EXACTAMENTE con una de las "opciones".
+    3. Lenguaje adecuado para {grado}.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return response.text
+    except Exception as e:
+        return None
+
+
+# =========================================================================
+# === VIII. MOTOR DE PUPILETRAS (LOGICA MIXTA: IA + ALGORITMO) ===
+# =========================================================================
+
+def generar_palabras_pupiletras(tema, grado, cantidad):
+    """
+    Paso 1: La IA genera la lista de palabras limpia.
+    """
+    if client is None:
+        return None
+
+    prompt = f"""
+    Actúa como experto en didáctica. Genera una lista de {cantidad} palabras clave (sustantivos o verbos) sobre el tema: "{tema}" para estudiantes de {grado}.
+    
+    REGLAS OBLIGATORIAS:
+    1. Las palabras deben estar en MAYÚSCULAS.
+    2. SIN TILDES (convierte Á->A, É->E, etc).
+    3. SIN ESPACIOS (ej: "SISTEMASOLAR" en vez de "SISTEMA SOLAR").
+    4. SIN Ñ (cámbiala por N).
+    5. Longitud máxima por palabra: 12 letras.
+    
+    FORMATO JSON:
+    Devuelve SOLO una lista simple de strings:
+    ["PALABRAUNO", "PALABRADOS", ...]
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        return []
+
+def crear_grid_pupiletras(palabras, filas=12, columnas=12):
+    """
+    Paso 2: Algoritmo Python para colocar las palabras en una matriz 12x12.
+    Retorna: (grid, palabras_colocadas)
+    """
+    # 1. Crear grilla vacía
+    grid = [[' ' for _ in range(columnas)] for _ in range(filas)]
+    palabras_colocadas = []
+    
+    # Direcciones: (delta_fila, delta_columna)
+    # Horizontal, Vertical, Diagonal, Invertidas
+    direcciones = [
+        (0, 1), (1, 0), (1, 1), (1, -1), # Normales
+        (0, -1), (-1, 0), (-1, -1), (-1, 1) # Invertidas (Mayor dificultad)
+    ]
+
+    # Ordenamos palabras de mayor a menor longitud (facilita el encaje)
+    palabras.sort(key=len, reverse=True)
+
+    for palabra in palabras:
+        colocada = False
+        intentos = 0
+        
+        # Intentamos colocar la palabra 100 veces en posiciones al azar
+        while not colocada and intentos < 100:
+            intentos += 1
+            direccion = random.choice(direcciones)
+            fila_inicio = random.randint(0, filas - 1)
+            col_inicio = random.randint(0, columnas - 1)
+            
+            # Chequeamos si cabe
+            fila, col = fila_inicio, col_inicio
+            cabe = True
+            
+            for letra in palabra:
+                # Verificar limites
+                if not (0 <= fila < filas and 0 <= col < columnas):
+                    cabe = False
+                    break
+                # Verificar colisión (casilla vacía o misma letra)
+                if grid[fila][col] != ' ' and grid[fila][col] != letra:
+                    cabe = False
+                    break
+                
+                fila += direccion[0]
+                col += direccion[1]
+            
+            # Si cabe, la escribimos
+            if cabe:
+                fila, col = fila_inicio, col_inicio
+                coords = [] # Guardamos coordenadas para el frontend interactivo
+                for letra in palabra:
+                    grid[fila][col] = letra
+                    coords.append((fila, col))
+                    fila += direccion[0]
+                    col += direccion[1]
+                
+                palabras_colocadas.append({
+                    "palabra": palabra,
+                    "coords": coords
+                })
+                colocada = True
+
+    # 3. Rellenar espacios vacíos con letras aleatorias
+    letras = string.ascii_uppercase
+    grid_completo = [] # Copia para mostrar
+    for f in range(filas):
+        fila_letras = []
+        for c in range(columnas):
+            if grid[f][c] == ' ':
+                fila_letras.append(random.choice(letras))
+            else:
+                fila_letras.append(grid[f][c])
+        grid_completo.append(fila_letras)
+
+    return grid_completo, palabras_colocadas
+
+# =========================================================================
+# === IX. GENERADOR DE DOCX PUPILETRAS (FICHA IMPRIMIBLE) ===
+# =========================================================================
+
+def generar_docx_pupiletras(grid, palabras_data, tema, grado):
+    """
+    Crea un archivo Word con la sopa de letras formateada para imprimir.
+    """
+    doc = Document()
+    
+    # 1. TÍTULO Y ENCABEZADO
+    titulo = doc.add_heading(f"SOPA DE LETRAS: {tema.upper()}", 0)
+    titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.add_run(f"Nivel: {grado} | Generado por AulaMetrics").bold = True
+
+    doc.add_paragraph("") # Espacio
+
+    # 2. DIBUJAR LA GRILLA (TABLA)
+    filas = len(grid)
+    columnas = len(grid[0])
+    
+    # Creamos tabla
+    table = doc.add_table(rows=filas, cols=columnas)
+    table.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    table.autofit = False 
+    
+    # Configuración de celdas
+    for i in range(filas):
+        for j in range(columnas):
+            cell = table.cell(i, j)
+            cell.text = grid[i][j]
+            
+            # Formato de texto (Centrado y Grande)
+            paragraph = cell.paragraphs[0]
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = paragraph.runs[0]
+            run.font.size = Pt(14)
+            run.font.bold = True
+            
+            # Ajuste de ancho/alto (para que sea cuadrada)
+            cell.width = Inches(0.4)
+            cell.height = Inches(0.4)
+
+    doc.add_paragraph("") # Espacio grande
+    doc.add_paragraph("")
+
+    # 3. LISTA DE PALABRAS A BUSCAR
+    doc.add_heading("Palabras a encontrar:", level=2)
+    
+    # Usamos una tabla invisible para listar las palabras ordenadamente (3 columnas)
+    lista_palabras = [item['palabra'] for item in palabras_data]
+    lista_palabras.sort()
+    
+    num_cols_lista = 3
+    num_rows_lista = (len(lista_palabras) + num_cols_lista - 1) // num_cols_lista
+    
+    list_table = doc.add_table(rows=num_rows_lista, cols=num_cols_lista)
+    list_table.style = 'Table Grid' 
+    
+    idx = 0
+    for r in range(num_rows_lista):
+        for c in range(num_cols_lista):
+            if idx < len(lista_palabras):
+                cell = list_table.cell(r, c)
+                cell.text = f"⬜ {lista_palabras[idx]}"
+                idx += 1
+
+    # 4. GUARDAR EN MEMORIA
+    doc_io = io.BytesIO()
+    doc.save(doc_io)
+    doc_io.seek(0)
+    return doc_io
+
+
+# =========================================================================
+# === X. MOTOR JUEGO ROBOT (AHORCADO EDUCATIVO V2.0) ===
+# =========================================================================
+
+def generar_reto_ahorcado(tema, grado, cantidad):
+    """
+    Genera una lista de palabras y pistas para el juego del Robot.
+    Retorna: list [{'palabra':Str, 'pista':Str}, ...]
+    """
+    if client is None:
+        return []
+
+    prompt = f"""
+    Actúa como un diseñador de juegos educativos. 
+    Necesito {cantidad} retos distintos para un juego tipo "Ahorcado" sobre el tema: "{tema}" para el grado: "{grado}".
+    
+    INSTRUCCIONES:
+    1. Elige palabras clave (conceptos importantes) relacionadas con el tema.
+    2. Las palabras deben ser en MAYÚSCULAS, SIN TILDES y SIN ESPACIOS (Ej: "ECOSISTEMA", no "Ecosistema" ni "Árbol").
+    3. Escribe una pista pedagógica clara para cada palabra, adecuada al nivel del estudiante.
+    
+    FORMATO JSON OBLIGATORIO (Array de objetos):
+    [
+        {{
+            "palabra": "PALABRAUNO",
+            "pista": "Texto de la pista uno..."
+        }},
+        {{
+            "palabra": "PALABRADOS",
+            "pista": "Texto de la pista dos..."
+        }}
+    ]
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='models/gemini-2.5-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Error generando ahorcado: {e}")
+        return []
 
 
 

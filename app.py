@@ -1,4 +1,6 @@
 import json
+import time
+import random
 from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
@@ -6,7 +8,8 @@ import analysis_core
 import pedagogical_assistant
 import plotly.express as px
 import io 
-import xlsxwriter 
+import xlsxwriter
+import pptx_generator
 import os 
 import base64 
 from supabase import create_client, Client
@@ -67,7 +70,84 @@ def get_image_as_base64(file_path):
       return base64.b64encode(data).decode()
   except FileNotFoundError:
       return None
-      
+
+# =========================================================================
+# === 1.B. SISTEMA DE NAVEGACIÓN (EL GPS) ===
+# =========================================================================
+
+# Inicializamos la variable que controla dónde está el usuario
+if 'pagina_actual' not in st.session_state:
+    st.session_state['pagina_actual'] = 'Inicio'
+
+# Función para cambiar de página
+def navegar_a(pagina):
+    st.session_state['pagina_actual'] = pagina
+
+# =========================================================================
+# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO) ===
+# =========================================================================
+
+def mostrar_home():
+    st.title("🚀 Bienvenido a AulaMetrics")
+    st.markdown("### Selecciona una herramienta para comenzar:")
+    st.divider()
+
+    # --- FILA 1 ---
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # TARJETA 1: FUSIÓN DE ANÁLISIS (GENERAL + ESTUDIANTE)
+        st.markdown("""
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: 180px;">
+            <h3 style="color: #1565c0; text-align: center;">📊 Sistema de Evaluación</h3>
+            <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
+            navegar_a("Sistema de Evaluación") # Nombre de la nueva página unificada
+            st.rerun()
+
+    with col2:
+        # TARJETA 2: ASISTENTE
+        st.markdown("""
+        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: 180px;">
+            <h3 style="color: #6a1b9a; text-align: center;">🧠 Asistente Pedagógico</h3>
+            <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
+            navegar_a("Asistente Pedagógico")
+            st.rerun()
+
+    st.write("") # Espacio vertical
+
+    # --- FILA 2 ---
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        # TARJETA 3: RECURSOS
+        st.markdown("""
+        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: 180px;">
+            <h3 style="color: #ef6c00; text-align: center;">📂 Banco de Recursos</h3>
+            <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
+            navegar_a("Recursos")
+            st.rerun()
+
+    with col4:
+        # TARJETA 4: GAMIFICACIÓN
+        st.markdown("""
+        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: 180px;">
+            <h3 style="color: #c2185b; text-align: center;">🎮 Gamificación</h3>
+            <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
+            navegar_a("Gamificación")
+            st.rerun()
+
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
 # =========================================================================
@@ -661,134 +741,147 @@ def convert_df_to_excel(df, area_name, general_info):
 
     return output.getvalue()
 
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
+def mostrar_sidebar():
+    """
+    Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
+    """
+    with st.sidebar:
+        # 1. BOTÓN VOLVER (Siempre visible si no estamos en Inicio)
+        if st.session_state.get('pagina_actual') != 'Inicio':
+            st.divider()
+            if st.button("🏠 Volver al Menú Principal", use_container_width=True):
+                navegar_a("Inicio")
+                st.rerun()
+
+        # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
+        if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
+            st.divider()
+            if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
+                # Limpieza total de datos para permitir nueva carga
+                st.session_state.df_cargado = False
+                st.session_state.info_areas = None
+                st.session_state.all_dataframes = None
+                st.session_state.df = None
+                # Truco para limpiar el widget de carga
+                if 'file_uploader' in st.session_state:
+                    del st.session_state['file_uploader']
+                st.rerun()
+
+        # 3. BOTÓN CERRAR SESIÓN (NUEVO)
+        st.write("") # Espacio vertical
+        st.write("") 
+        
+        st.divider()
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+            st.session_state.clear() # Borra toda la memoria
+            st.rerun() # Reinicia la app (te llevará al Login)
+
+        # 4. PIE DE PÁGINA
+        st.divider()
+        if st.session_state.get('pagina_actual') == 'Inicio':
+            st.info("👋 Selecciona una herramienta del panel.")
+        else:
+            st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
+        
+        st.caption("🏫 AulaMetrics v3.0 Beta")
+
 # =========================================================================
-# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v4.0 ===
+# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
 # =========================================================================
 def home_page():
     
+    # 1. Mensaje de Bienvenida (Mantenemos tu lógica)
     if st.session_state.show_welcome_message:
-        user_email = "Usuario"
+        user_name = "Profe"
         if hasattr(st.session_state, 'user') and st.session_state.user:
-            user_name = st.session_state.user.user_metadata.get('full_name', st.session_state.user.email)
-            st.toast(f"¡Bienvenido, {user_name}!", icon="👋")
+             user_name = st.session_state.user.user_metadata.get('full_name', 'Profe')
+        st.toast(f"¡Hola, {user_name}!", icon="👋")
         st.session_state.show_welcome_message = False
 
-    # INICIALIZACIÓN DE VARIABLES
+    # 2. Inicialización de Variables
     if 'sesion_generada' not in st.session_state: st.session_state.sesion_generada = None
     if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
     if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
 
-# ENCABEZADO DASHBOARD
-    # Modificamos para tener 3 columnas: Logo (1) | Título (4) | Robot (1)
-    col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
+    # 3. ACTIVAR BARRA LATERAL (La función de la Sección 5)
+    mostrar_sidebar()
 
-    with col_logo:
-        try:
-            # Mantenemos tu logo original
-            st.image(ISOTIPO_PATH, width=120)
-        except:
-            st.warning("No isotipo.")
-            
-    with col_titulo:
-        # Mantenemos tu título con el estilo degradado que ya tenías
-        st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
-        st.markdown("Selecciona una herramienta para comenzar.")
+    # 4. CONTROLADOR DE PÁGINAS (GPS)
+    pagina = st.session_state['pagina_actual']
 
-    with col_bot:
-        # 👇 Aquí ponemos al Robot saludando a la derecha
-        try:
-            lottie_hello = cargar_lottie("robot_hello.json")
-            st_lottie(lottie_hello, height=180, key="robot_header")
-        except:
-            pass
+    # --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
+    if pagina == 'Inicio':
+        # El Encabezado (Logo, Título, Robot) SOLO aparece en el Inicio
+        col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
 
-  # SIDEBAR
-    st.sidebar.divider() 
-    # (Aquí sigue tu código existente de Yape...)
-    col_izq, col_centro, col_der = st.sidebar.columns([1, 2, 1])
-    # ...
-    with col_centro:
-        st.image("assets/qr-yape.png") 
-    
-    st.sidebar.markdown("<div style='text-align: center; font-size: 0.9em;'>¡Ayúdanos a mantener la página gratuita!</div>", unsafe_allow_html=True)
-    st.sidebar.divider()
-
-    # --- 👇 NUEVO BOTÓN: RESETEAR / CARGAR NUEVO ---
-    if st.sidebar.button("📂 Subir Nuevo Archivo", use_container_width=True):
-        # 1. Borramos las memorias de datos
-        st.session_state.df_cargado = False
-        st.session_state.info_areas = None
-        st.session_state.all_dataframes = None
-        st.session_state.df = None
+        with col_logo:
+            try: st.image(ISOTIPO_PATH, width=120)
+            except: pass
         
-        # 2. Truco Pro: Borramos la memoria del widget de carga para que aparezca vacío
-        if 'file_uploader' in st.session_state:
-            del st.session_state['file_uploader']
+        with col_titulo:
+            st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
+            st.markdown("Selecciona una herramienta para comenzar.")
+
+        with col_bot:
+            try:
+                lottie_hello = cargar_lottie("robot_hello.json")
+                st_lottie(lottie_hello, height=180, key="robot_header")
+            except: pass
             
-        st.rerun()
-    # -----------------------------------------------
+        # DIBUJAMOS LAS TARJETAS DEL MENÚ
+        mostrar_home()
 
-    if st.sidebar.button("Cerrar Sesión", key="logout_sidebar_button"):
-        try:
-            supabase.auth.sign_out()
-        except:
-            pass
-        st.session_state.logged_in = False
-        # Verificamos si existe antes de borrar para evitar errores
-        if hasattr(st.session_state, 'user'):
-            del st.session_state.user
-        st.rerun()
+        # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
+        # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
 
-    # --- TABS PRINCIPALES (4 PESTAÑAS) ---
-    tab_general, tab_estudiante, tab_asistente, tab_recursos = st.tabs([
-        "📊 Análisis General", 
-        "🧑‍🎓 Análisis por Estudiante", 
-        "🧠 Asistente Pedagógico",
-        "📂 Recursos"
-    ])
+# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
-    # TAB 1: ANÁLISIS
-    with tab_general:
-        if st.session_state.df_cargado:
-            info_areas = st.session_state.info_areas
-            mostrar_analisis_general(info_areas)
+    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
+    if pagina == "Sistema de Evaluación":
+        
+        # A) Si NO hay datos cargados, mostramos el cargador
+        if not st.session_state.df_cargado:
+            st.header("📊 Sistema de Evaluación")
+            st.info("Para comenzar, sube tu registro de notas (Excel).")
+            # Llamamos a tu función de carga existente
+            configurar_uploader()
+            
+        # B) Si YA hay datos, mostramos el panel con pestañas internas
         else:
-            st.subheader("Subir Archivo de Notas")
-            st.info("Para comenzar el análisis de notas, sube tu registro de Excel aquí.")
-            configurar_uploader() 
+            # Creamos pestañas internas solo para esta herramienta
+            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            
+            with tab_global:
+                st.subheader("Panorama General del Aula")
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_general(info_areas)
+                
+            with tab_individual:
+                st.subheader("Libreta Individual")
+                df = st.session_state.df
+                df_config = st.session_state.df_config
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_por_estudiante(df, df_config, info_areas)
 
-    # TAB 2: ESTUDIANTE
-    with tab_estudiante:
-        if st.session_state.df_cargado:
-            df = st.session_state.df
-            df_config = st.session_state.df_config
-            info_areas = st.session_state.info_areas
-            mostrar_analisis_por_estudiante(df, df_config, info_areas)
-        else:
-            st.header("🧑‍🎓 Análisis Individual por Estudiante")
-            st.info("Esta función requiere un archivo de notas.")
-            st.warning("Por favor, ve a la pestaña **'📊 Análisis General'** y sube tu archivo de Excel para activar esta vista.")
-
-# TAB 3: ASISTENTE
-    with tab_asistente:
+    # 3. ASISTENTE PEDAGÓGICO
+    elif pagina == "Asistente Pedagógico":
         st.header("🧠 Asistente Pedagógico")
 
-        # 👇 1. DEFINIMOS LA FUNCIÓN DE LIMPIEZA
-        # Esta función borra la memoria de la sesión anterior
+        # Función de limpieza local
         def limpiar_resultados():
             keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
             for key in keys_to_clear:
                 if key in st.session_state:
                     del st.session_state[key]
 
-        # 👇 2. CONECTAMOS LA LIMPIEZA AL CAMBIO DE HERRAMIENTA
         tipo_herramienta = st.radio(
             "01. Selecciona la herramienta que deseas usar:",
             options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
             index=0, 
             horizontal=True, 
             key="asistente_tipo_herramienta",
-            on_change=limpiar_resultados # <--- ¡AQUÍ ESTÁ LA MAGIA!
+            on_change=limpiar_resultados
         )
         st.markdown("---")
 
@@ -802,7 +895,6 @@ def home_page():
                 st.subheader("Paso 1: Selecciona el Nivel")
                 niveles = df_gen['NIVEL'].dropna().unique()
                 
-                # 👇 3. CONECTAMOS LA LIMPIEZA AL CAMBIO DE NIVEL
                 nivel_sel = st.selectbox(
                     "Nivel", 
                     options=niveles, 
@@ -810,7 +902,7 @@ def home_page():
                     placeholder="Elige una opción...", 
                     key="asistente_nivel_sel", 
                     label_visibility="collapsed",
-                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                    on_change=limpiar_resultados
                 )
                 
                 st.subheader("Paso 2: Selecciona el Grado")
@@ -818,7 +910,6 @@ def home_page():
                 if st.session_state.asistente_nivel_sel:
                     grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
                 
-                # 👇 4. CONECTAMOS LA LIMPIEZA AL CAMBIO DE GRADO
                 grado_sel = st.selectbox(
                     "Grado", 
                     options=grados_options, 
@@ -827,11 +918,9 @@ def home_page():
                     disabled=(not st.session_state.asistente_nivel_sel), 
                     key="asistente_grado_sel", 
                     label_visibility="collapsed",
-                    on_change=limpiar_resultados # <--- ¡LIMPIA AL CAMBIAR!
+                    on_change=limpiar_resultados
                 )
                 
-                # ... (A partir de aquí sigue tu código normal de Área, etc.)
-
                 st.subheader("Paso 3: Selecciona el Área")
                 areas_options = []
                 df_hoja_descriptor = None 
@@ -919,37 +1008,34 @@ def home_page():
                                     st.error(f"Error: {e}")
                                     st.session_state.sesion_generada = None
                 
-# MOSTRAR RESULTADOS
-        if st.session_state.sesion_generada:
-            st.markdown("---")
-            st.subheader("Resultado")
-            st.markdown(st.session_state.sesion_generada)
-            
-            st.success("¡Sesión generada con éxito!")
-            
-            # 🛡️ ZONA DE DESCARGA (CORREGIDA)
-            # Verificamos si los bytes del archivo existen en la memoria permanente
-            if st.session_state.get('docx_bytes'):
+            # MOSTRAR RESULTADOS
+            if st.session_state.sesion_generada:
+                st.markdown("---")
+                st.subheader("Resultado")
+                st.markdown(st.session_state.sesion_generada)
                 
-                st.download_button(
-                    label="📄 Descargar Sesión en Word",
-                    data=st.session_state.docx_bytes, # <--- ¡AQUÍ ESTABA LA CLAVE!
-                    file_name="Sesion_Aprendizaje.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
-            else:
-                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
+                st.success("¡Sesión generada con éxito!")
+                
+                # ZONA DE DESCARGA
+                if st.session_state.get('docx_bytes'):
+                    st.download_button(
+                        label="📄 Descargar Sesión en Word",
+                        data=st.session_state.docx_bytes, 
+                        file_name="Sesion_Aprendizaje.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+                else:
+                    st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
 
-    # 👇 ESTOS ELIF DEBEN IR ALINEADOS A LA IZQUIERDA (AL MISMO NIVEL QUE EL IF PRINCIPAL)
         elif st.session_state.asistente_tipo_herramienta == "Unidad de aprendizaje":
             st.info("Función de Unidades de Aprendizaje (Próximamente).")
         
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
 
-    # --- TAB 4: RECURSOS (¡NUEVA!) ---
-    with tab_recursos:
+    # 4. RECURSOS
+    elif pagina == "Recursos":
         st.header("📂 Banco de Recursos Pedagógicos")
         st.markdown("Descarga formatos, plantillas y guías útiles para tu labor docente.")
         st.divider()
@@ -960,30 +1046,24 @@ def home_page():
             st.subheader("📝 Formatos Editables")
             st.info("Plantillas en Word y Excel listas para usar.")
             
-           # RECURSO 1: SECUNDARIA (Excel)
-            # 1. Agregamos "recursos/" antes del nombre
+            # RECURSO 1: SECUNDARIA
             ruta_archivo_1 = "recursos/Registro automatizado nivel secundario.xlsm" 
-            
             if os.path.exists(ruta_archivo_1):
                 with open(ruta_archivo_1, "rb") as file:
                     st.download_button(
-                        label="📥 Descargar Registro Automatizado - Secundaria (Excel)", # 2. Corregimos la etiqueta
+                        label="📥 Descargar Registro Automatizado - Secundaria (Excel)",
                         data=file,
-                        file_name="Registro_Secundaria.xlsm", # 3. Nombre limpio para la descarga
-                        # 4. Tipo MIME correcto para archivos Excel con macros (.xlsm)
+                        file_name="Registro_Secundaria.xlsm",
                         mime="application/vnd.ms-excel.sheet.macroEnabled.12", 
                         use_container_width=True
                     )
             else:
-                # Esto te ayudará a ver si el nombre está mal escrito
-                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_1}")
+                st.caption(f"❌ Archivo no encontrado: {ruta_archivo_1}")
 
             st.write("")
             
-   # RECURSO 2: PRIMARIA (Excel)
-            # CAMBIO IMPORTANTE: Usamos 'ruta_archivo_2' para no mezclar con el anterior
+            # RECURSO 2: PRIMARIA
             ruta_archivo_2 = "recursos/Registro automatizado nivel primario.xlsm" 
-            
             if os.path.exists(ruta_archivo_2):
                 with open(ruta_archivo_2, "rb") as file:
                     st.download_button(
@@ -994,17 +1074,690 @@ def home_page():
                         use_container_width=True
                     )
             else:
-                st.caption(f"❌ Archivo no encontrado en: {ruta_archivo_2}")
+                st.caption(f"❌ Archivo no encontrado: {ruta_archivo_2}")
 
             st.write("")
             
-            # RECURSO 3
+            # RECURSO 3: CALENDARIO
             ruta_archivo_3 = "recursos/calendario_2025.pdf" 
             if os.path.exists(ruta_archivo_3):
                 with open(ruta_archivo_3, "rb") as file:
                     st.download_button("📥 Descargar Calendario Cívico (PDF)", file, "Calendario_Civico_2025.pdf", "application/pdf", use_container_width=True)
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
+
+# 5. GAMIFICACIÓN (MINI-LOBBY + JUEGOS)
+    elif pagina == "Gamificación":
+        
+        # --- 0. GESTIÓN DE NAVEGACIÓN INTERNA ---
+        # Variable para saber qué juego estamos jugando (None = Menú Principal de Juegos)
+        if 'juego_actual' not in st.session_state:
+            st.session_state['juego_actual'] = None 
+
+        def volver_menu_juegos():
+            st.session_state['juego_actual'] = None
+            st.rerun()
+
+                
+        # ==========================================
+        # === VISTA 1: MENÚ DE JUEGOS (LOBBY V2 - NOMBRES ORIGINALES GRANDES) ===
+        # ==========================================
+        if st.session_state['juego_actual'] is None:
+            st.header("🎮 Zona de Gamificación")
+            st.markdown("Selecciona una actividad para despertar el interés de tu clase.")
+            st.divider()
+
+            col_trivia, col_pupi, col_robot = st.columns(3)
+
+            # 1. DESAFÍO TRIVIA
+            with col_trivia:
+                st.markdown("""
+                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 15px; border: 2px solid #2196f3; text-align: center; height: 280px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 60px;">🧠</div>
+                    <h3 style="color: #1565c0; margin: 10px 0; font-size: 30px; font-weight: 800; line-height: 1.2;">Desafío Trivia</h3>
+                    <p style="color: #555; font-size: 16px;">Concurso de preguntas.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("Jugar Trivia ➡️", key="btn_menu_trivia", use_container_width=True):
+                    st.session_state['juego_actual'] = 'trivia'
+                    st.rerun()
+
+            # 2. PUPILETRAS
+            with col_pupi:
+                st.markdown("""
+                <div style="background-color: #f3e5f5; padding: 15px; border-radius: 15px; border: 2px solid #9c27b0; text-align: center; height: 280px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 60px;">🔎</div>
+                    <h3 style="color: #6a1b9a; margin: 10px 0; font-size: 30px; font-weight: 800; line-height: 1.2;">Pupiletras</h3>
+                    <p style="color: #555; font-size: 16px;">Sopa de letras interactiva.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("Jugar Pupiletras ➡️", key="btn_menu_pupi", use_container_width=True):
+                    st.session_state['juego_actual'] = 'pupiletras'
+                    st.rerun()
+
+            # 3. RECARGA AL ROBOT
+            with col_robot:
+                st.markdown("""
+                <div style="background-color: #e0f2f1; padding: 15px; border-radius: 15px; border: 2px solid #009688; text-align: center; height: 280px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 60px;">🔋</div>
+                    <h3 style="color: #00695c; margin: 10px 0; font-size: 30px; font-weight: 800; line-height: 1.2;">Recarga al Robot</h3>
+                    <p style="color: #555; font-size: 16px;">Adivina la palabra clave.</p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("Jugar Robot ➡️", key="btn_menu_robot", use_container_width=True):
+                    st.session_state['juego_actual'] = 'ahorcado'
+                    st.rerun()
+
+               
+        # ==========================================
+        # === VISTA 2: JUEGO TRIVIA (MODO PROYECTOR) ===
+        # ==========================================
+        elif st.session_state['juego_actual'] == 'trivia':
+            
+            # Barra superior de retorno
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True):
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("Desafío Trivia")
+
+            # --- CSS AGRESIVO (TEXTOS GIGANTES PARA PROYECTOR) ---
+            st.markdown("""
+                <style>
+                /* 1. Botón "GENERAR" (Verde) */
+                div.stButton > button[kind="primary"] {
+                    background-color: #28a745 !important;
+                    border-color: #28a745 !important;
+                    color: white !important;
+                    font-size: 24px !important; /* Más grande */
+                    font-weight: bold !important;
+                    padding: 15px 30px !important;
+                }
+                
+                /* 2. LA PREGUNTA (GIGANTE 50px) */
+                .big-question {
+                    font-size: 50px !important; /* ANTES: 38px */
+                    font-weight: 800;
+                    color: #1e3a8a;
+                    text-align: center;
+                    background-color: #eff6ff;
+                    padding: 40px;
+                    border-radius: 25px;
+                    border: 5px solid #3b82f6;
+                    margin-bottom: 30px;
+                    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                    line-height: 1.2;
+                }
+                
+                /* 3. LAS ALTERNATIVAS (Cajas) */
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
+                    background-color: #fff9c4 !important;
+                    border: 3px solid #fbc02d !important;
+                    border-radius: 20px !important;
+                    min-height: 120px !important; /* Más altas */
+                    height: auto !important;
+                    white-space: normal !important;
+                    padding: 15px !important;
+                    margin-bottom: 15px !important;
+                    box-shadow: 0 6px 0 #f9a825 !important;
+                }
+                
+                /* 4. TEXTO ALTERNATIVAS (GIGANTE 36px) */
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
+                    font-size: 36px !important; /* ANTES: 28px */
+                    font-weight: 800 !important;
+                    color: #333333 !important;
+                    line-height: 1.1 !important;
+                }
+
+                /* Hover */
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
+                    background-color: #fff59d !important;
+                    transform: translateY(-3px);
+                    border-color: #f57f17 !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # --- MODO CINE ---
+            col_header1, col_header2 = st.columns([3, 1])
+            with col_header1:
+                st.markdown("Genera un juego de preguntas interactivo.")
+            with col_header2:
+                modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
+            
+            if modo_cine:
+                st.markdown("""
+                    <style>
+                        [data-testid="stSidebar"] {display: none;}
+                        header[data-testid="stHeader"] {display: none;}
+                        footer {display: none;}
+                    </style>
+                """, unsafe_allow_html=True)
+
+            # --- LÓGICA DE TRIVIA ---
+            if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
+                col_game1, col_game2 = st.columns([2, 1])
+                with col_game1:
+                    tema_input = st.text_input("Tema:", placeholder="Ej: La Célula...")
+                    lista_grados = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
+                    grado_input = st.selectbox("Grado:", lista_grados, index=6)
+                with col_game2:
+                    num_input = st.slider("Preguntas:", 1, 10, 5)
+                    modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
+
+                if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
+                    if not tema_input:
+                        st.warning("⚠️ Escribe un tema.")
+                    else:
+                        with st.spinner(f"🧠 Creando {num_input} desafíos..."):
+                            respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
+                            if respuesta_json:
+                                try:
+                                    clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
+                                    preguntas = json.loads(clean_json)
+                                    st.session_state['juego_preguntas'] = preguntas
+                                    st.session_state['juego_indice'] = 0
+                                    st.session_state['juego_puntaje'] = 0
+                                    st.session_state['juego_terminado'] = False
+                                    st.session_state['tema_actual'] = tema_input
+                                    st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
+                                    st.session_state['fase_pregunta'] = "respondiendo"
+                                    
+                                    st.session_state['juego_en_lobby'] = True 
+                                    st.session_state['juego_iniciado'] = True
+                                    st.rerun()
+                                except Exception as e: st.error(f"Error formato: {e}")
+                            else: st.error("Error conexión IA.")
+                st.divider()
+
+            elif st.session_state.get('juego_en_lobby', False):
+                tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
+                modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
+                
+                st.markdown(f"""
+                <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h1 style="font-size: 70px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
+                    <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+                    <p style="color: #888; font-weight: bold; font-size: 20px;">{modo_mostrar}</p>
+                    <br>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("") 
+                col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
+                with col_btn:
+                    if st.button("🚀 EMPEZAR AHORA", type="primary", use_container_width=True):
+                        st.session_state['juego_en_lobby'] = False
+                        st.rerun()
+
+            elif not st.session_state.get('juego_terminado', False):
+                idx = st.session_state['juego_indice']
+                preguntas = st.session_state['juego_preguntas']
+                current_score = int(st.session_state['juego_puntaje'])
+                modo = st.session_state.get('modo_avance', 'auto')
+                fase = st.session_state.get('fase_pregunta', 'respondiendo')
+
+                if idx >= len(preguntas):
+                    st.session_state['juego_terminado'] = True
+                    st.rerun()
+
+                pregunta_actual = preguntas[idx]
+                
+                col_info1, col_info2 = st.columns([3, 1])
+                with col_info1:
+                    st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
+                    st.progress((idx + 1) / len(preguntas))
+                with col_info2:
+                    # PUNTAJE GIGANTE (45px)
+                    st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
+                
+                st.write("") 
+                st.markdown(f"""<div class="big-question">{pregunta_actual['pregunta']}</div>""", unsafe_allow_html=True)
+                
+                if fase == 'respondiendo':
+                    opciones = pregunta_actual['opciones']
+                    col_opt1, col_opt2 = st.columns(2)
+                    
+                    def responder(opcion_elegida):
+                        correcta = pregunta_actual['respuesta_correcta']
+                        puntos_por_pregunta = 100 / len(preguntas)
+                        es_correcta = (opcion_elegida == correcta)
+                        
+                        if es_correcta:
+                            st.session_state['juego_puntaje'] += puntos_por_pregunta
+                            st.session_state['ultimo_feedback'] = f"correcta|{int(puntos_por_pregunta)}"
+                        else:
+                            st.session_state['ultimo_feedback'] = f"incorrecta|{correcta}"
+
+                        if modo == 'auto':
+                            feedback_container = st.empty()
+                            if es_correcta:
+                                feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
+                            else:
+                                feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
+                            time.sleep(2.0)
+                            
+                            if st.session_state['juego_indice'] < len(preguntas) - 1:
+                                st.session_state['juego_indice'] += 1
+                            else:
+                                st.session_state['juego_terminado'] = True
+                            st.rerun()
+                        else:
+                            st.session_state['fase_pregunta'] = 'feedback'
+                            st.rerun()
+
+                    with col_opt1:
+                        if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
+                        if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
+                    with col_opt2:
+                        if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
+                        if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
+                
+                elif fase == 'feedback':
+                    tipo, valor = st.session_state['ultimo_feedback'].split("|")
+                    if tipo == "correcta":
+                        st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #f5c2c7; margin-bottom: 20px;">❌ INCORRECTO <br> <span style="font-size: 30px; color: #333;">La respuesta era: {valor}</span></div>""", unsafe_allow_html=True)
+                    
+                    col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
+                    with col_next2:
+                        if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True):
+                            if st.session_state['juego_indice'] < len(preguntas) - 1:
+                                st.session_state['juego_indice'] += 1
+                                st.session_state['fase_pregunta'] = 'respondiendo'
+                            else:
+                                st.session_state['juego_terminado'] = True
+                            st.rerun()
+
+            elif st.session_state.get('juego_terminado', False):
+                puntaje = int(st.session_state['juego_puntaje'])
+                st.markdown(f"<h1 style='text-align: center; font-size: 80px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
+                col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
+                with col_center:
+                    if puntaje == 100:
+                        st.balloons()
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">🏆</div>""", unsafe_allow_html=True)
+                        st.success("¡MAESTRO TOTAL! 🌟")
+                    elif puntaje >= 60:
+                        st.snow()
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">😎</div>""", unsafe_allow_html=True)
+                        st.info("¡Bien hecho! Aprobado.")
+                    else:
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">📚</div>""", unsafe_allow_html=True)
+                        st.warning("¡Buen intento! A repasar un poco más.")
+
+                    if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
+                        st.session_state['juego_iniciado'] = False 
+                        del st.session_state['juego_preguntas']
+                        del st.session_state['juego_terminado']
+                        st.rerun()
+                
+        # ==========================================
+        # === VISTA 3: JUEGO PUPILETRAS (V2.0 - GRADOS Y TAMAÑO) ===
+        # ==========================================
+        elif st.session_state['juego_actual'] == 'pupiletras':
+            
+            # --- 1. BARRA SUPERIOR ---
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True):
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🔎 Pupiletras: Buscador de Palabras")
+
+            # --- 2. CONFIGURACIÓN ---
+            if 'pupi_grid' not in st.session_state:
+                st.info("Configura tu sopa de letras:")
+                
+                col_conf1, col_conf2, col_conf3 = st.columns([2, 1, 1])
+                with col_conf1:
+                    tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
+                with col_conf2:
+                    # LISTA DE GRADOS COMPLETA
+                    lista_grados_pupi = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_pupi = st.selectbox("Grado:", lista_grados_pupi, index=5)
+                with col_conf3:
+                    cant_palabras = st.slider("Palabras:", 5, 12, 8) # Ajustado max a 12 para grilla 12x12
+
+                if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
+                    if not tema_pupi:
+                        st.warning("⚠️ Escribe un tema.")
+                    else:
+                        with st.spinner("🤖 Diseñando ficha y juego interactivo..."):
+                            # A) IA genera palabras
+                            palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
+                            
+                            if palabras and len(palabras) > 0:
+                                # B) Algoritmo crea la matriz (Ahora usa 12x12 por defecto en backend)
+                                grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
+                                
+                                # C) Generamos el Word
+                                docx_buffer = pedagogical_assistant.generar_docx_pupiletras(grid, colocados, tema_pupi, grado_pupi)
+                                
+                                # Guardamos todo
+                                st.session_state['pupi_grid'] = grid
+                                st.session_state['pupi_data'] = colocados
+                                st.session_state['pupi_found'] = set()
+                                st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue()
+                                st.rerun()
+                            else:
+                                st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
+
+            # --- 3. ZONA DE JUEGO (TABLERO) ---
+            else:
+                grid = st.session_state['pupi_grid']
+                palabras_data = st.session_state['pupi_data']
+                encontradas = st.session_state['pupi_found']
+
+                # DIVISIÓN: 70% JUEGO | 30% PANEL
+                col_tablero, col_panel = st.columns([3, 1])
+
+                with col_tablero:
+                    st.markdown("##### 📍 Tablero Interactivo")
+                    
+                    celdas_iluminadas = set()
+                    for p_data in palabras_data:
+                        if p_data['palabra'] in encontradas:
+                            for coord in p_data['coords']:
+                                celdas_iluminadas.add(coord)
+
+                    # HTML COMPACTO CON CELDAS GIGANTES (45px)
+                    html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
+                    for r in range(len(grid)):
+                        html_grid += "<tr>"
+                        for c in range(len(grid[0])):
+                            letra = grid[r][c]
+                            bg = "#ffffff"
+                            color = "#333"
+                            border = "1px solid #ccc"
+                            weight = "normal"
+                            
+                            if (r, c) in celdas_iluminadas:
+                                bg = "#ffeb3b"
+                                color = "#000"
+                                border = "2px solid #fbc02d"
+                                weight = "bold"
+                            
+                            # AQUÍ ESTÁ EL CAMBIO DE TAMAÑO: 45px celda, 28px fuente
+                            html_grid += f'<td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 28px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
+                        html_grid += "</tr>"
+                    html_grid += "</table></div>"
+                    
+                    st.markdown(html_grid, unsafe_allow_html=True)
+
+                with col_panel:
+                    st.success("📄 Ficha Lista")
+                    st.download_button(
+                        label="📥 Descargar Word",
+                        data=st.session_state['pupi_docx_bytes'],
+                        file_name="Pupiletras_Clase.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+                    
+                    st.divider()
+                    st.markdown("##### 📝 Encontrar:")
+                    
+                    progreso = len(encontradas) / len(palabras_data)
+                    st.progress(progreso, text=f"{len(encontradas)} de {len(palabras_data)}")
+                    
+                    for i, p_item in enumerate(palabras_data):
+                        palabra_texto = p_item['palabra']
+                        if palabra_texto in encontradas:
+                            label = f"✅ {palabra_texto}"
+                            tipo = "primary"
+                        else:
+                            label = f"⬜ {palabra_texto}"
+                            tipo = "secondary"
+                        
+                        if st.button(label, key=f"btn_pupi_{i}", type=tipo, use_container_width=True):
+                            if palabra_texto in encontradas:
+                                st.session_state['pupi_found'].remove(palabra_texto)
+                            else:
+                                st.session_state['pupi_found'].add(palabra_texto)
+                            st.rerun()
+
+                    st.write("")
+                    if st.button("🔄 Reiniciar", type="secondary", use_container_width=True):
+                        del st.session_state['pupi_grid']
+                        st.rerun()
+
+               
+        # ==========================================
+        # === VISTA 4: JUEGO ROBOT (V4.7 - FINAL REAL: CONSISTENCIA UI) ===
+        # ==========================================
+        elif st.session_state['juego_actual'] == 'ahorcado':
+            
+            # --- 1. BARRA SUPERIOR ESTÁNDAR (Vuelve a su lugar) ---
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True, key="robot_btn_back_top"):
+                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
+                    for k in keys_to_clear:
+                        if k in st.session_state: del st.session_state[k]
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
+
+            # --- 2. CSS ARCADE CON "ANTÍDOTO" ---
+            st.markdown("""
+                <style>
+                /* --- A. ESTILO ARCADE GLOBAL PARA LOS BOTONES DE ESTA VISTA --- */
+                section[data-testid="stMain"] div.stButton > button {
+                    width: 100%;
+                    height: 70px !important; /* Altura fija gigante */
+                    background-color: white !important;
+                    border: 2px solid #cfd8dc !important;
+                    border-bottom: 6px solid #b0bec5 !important; /* Efecto 3D */
+                    border-radius: 15px !important;
+                    margin-bottom: 10px !important;
+                    padding: 0px !important;
+                    transition: all 0.1s ease !important;
+                }
+                /* Texto gigante */
+                section[data-testid="stMain"] div.stButton > button p {
+                    font-size: 36px !important;
+                    font-weight: 900 !important;
+                    color: #455a64 !important;
+                    line-height: 1 !important;
+                }
+                /* Hover Azul */
+                section[data-testid="stMain"] div.stButton > button:hover:enabled {
+                    transform: translateY(-2px);
+                    background-color: #e1f5fe !important;
+                    border-color: #29b6f6 !important;
+                    border-bottom: 6px solid #0288d1 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button:hover:enabled p { color: #0277bd !important; }
+                /* Click */
+                section[data-testid="stMain"] div.stButton > button:active:enabled {
+                    transform: translateY(4px);
+                    border-bottom: 2px solid #0288d1 !important;
+                    margin-top: 4px !important;
+                }
+                /* Acierto Verde */
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] {
+                    background-color: #66bb6a !important;
+                    border-color: #43a047 !important;
+                    border-bottom: 6px solid #2e7d32 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] p { color: white !important; }
+                /* Error Rojo */
+                section[data-testid="stMain"] div.stButton > button:disabled {
+                    background-color: #ef5350 !important;
+                    border-color: #c62828 !important;
+                    border-bottom: 2px solid #b71c1c !important;
+                    opacity: 1 !important;
+                    transform: translateY(4px);
+                }
+                section[data-testid="stMain"] div.stButton > button:disabled p { color: white !important; }
+
+                /* --- B. ANTÍDOTO: RESTAURAR EL BOTÓN DE LA BARRA SUPERIOR --- */
+                /* Este selector específico busca el botón en la primera fila horizontal y le quita el estilo arcade */
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button {
+                    height: auto !important;
+                    border: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    border-bottom: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    background-color: white !important;
+                    border-radius: 0.25rem !important;
+                    box-shadow: none !important;
+                    padding: 0.25rem 0.75rem !important;
+                    margin-bottom: 0 !important;
+                    transform: none !important;
+                }
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button p {
+                    font-size: 16px !important;
+                    font-weight: normal !important;
+                    color: inherit !important;
+                    line-height: normal !important;
+                }
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button:hover {
+                     background-color: white !important;
+                     border-color: rgba(49, 51, 63, 0.2) !important;
+                     color: rgba(49, 51, 63, 0.8) !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # --- 3. CONFIGURACIÓN ---
+            if 'robot_challenges' not in st.session_state:
+                st.info("Configura la misión de rescate:")
+                
+                col_c1, col_c2, col_c3 = st.columns([2, 1, 1])
+                with col_c1:
+                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos...")
+                with col_c2:
+                    lista_grados_robot = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_robot = st.selectbox("Grado:", lista_grados_robot, index=5)
+                with col_c3:
+                    cant_robot = st.slider("Palabras:", 3, 10, 5)
+                
+                if st.button("🤖 Iniciar Misión", type="primary", use_container_width=True):
+                    if not tema_robot:
+                        st.warning("⚠️ Escribe un tema.")
+                    else:
+                        with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
+                            retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
+                            if retos and len(retos) > 0:
+                                st.session_state['robot_challenges'] = retos
+                                st.session_state['robot_level'] = 0
+                                st.session_state['robot_score'] = 0
+                                st.session_state['robot_errors'] = 0
+                                st.session_state['robot_max_errors'] = 6
+                                
+                                primer_reto = retos[0]
+                                st.session_state['robot_word'] = primer_reto['palabra'].upper()
+                                st.session_state['robot_hint'] = primer_reto['pista']
+                                st.session_state['robot_guesses'] = set()
+                                st.rerun()
+                            else:
+                                st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
+
+            # --- 4. ZONA DE JUEGO ---
+            else:
+                alerta_placeholder = st.empty()
+
+                nivel_idx = st.session_state['robot_level']
+                total_niveles = len(st.session_state['robot_challenges'])
+                palabra = st.session_state['robot_word']
+                errores = st.session_state['robot_errors']
+                max_errores = st.session_state['robot_max_errors']
+                letras_adivinadas = st.session_state['robot_guesses']
+                
+                # A) MONITOR
+                progreso_mision = (nivel_idx) / total_niveles
+                st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
+
+                baterias_restantes = max_errores - errores
+                emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
+                
+                col_hint, col_bat = st.columns([3, 1])
+                with col_hint:
+                    st.markdown(f"""
+                    <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
+                        💡 {st.session_state['robot_hint']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_bat:
+                    st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+
+                # B) PALABRA
+                palabra_mostrar = ""
+                ganado = True
+                for letra in palabra:
+                    if letra in letras_adivinadas:
+                        palabra_mostrar += letra + " "
+                    else:
+                        palabra_mostrar += "_ "
+                        ganado = False
+                
+                st.markdown(f"""
+                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
+                    {palabra_mostrar}
+                </div>
+                """, unsafe_allow_html=True)
+
+                # C) CONTROL
+                if ganado:
+                    st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
+                    if nivel_idx < total_niveles - 1:
+                        if st.button("➡️ Siguiente Nivel", type="primary", use_container_width=True):
+                            st.session_state['robot_score'] += 100
+                            st.session_state['robot_level'] += 1
+                            siguiente_reto = st.session_state['robot_challenges'][st.session_state['robot_level']]
+                            st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
+                            st.session_state['robot_hint'] = siguiente_reto['pista']
+                            st.session_state['robot_guesses'] = set()
+                            st.rerun()
+                    else:
+                        st.balloons()
+                        st.markdown("""<div style="text-align: center; padding: 20px; background-color: #d4edda; border-radius: 20px;"><h1>🏆 ¡MISIÓN COMPLETADA!</h1></div>""", unsafe_allow_html=True)
+                        if st.button("🔄 Nueva Misión", type="primary"):
+                            del st.session_state['robot_challenges']
+                            st.rerun()
+                        
+                elif errores >= max_errores:
+                    st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
+                        st.session_state['robot_guesses'] = set()
+                        st.session_state['robot_errors'] = 0
+                        st.rerun()
+                        
+                else:
+                    # D) TECLADO ARCADE
+                    st.write("")
+                    letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+                    cols = st.columns(9)
+                    
+                    for i, letra in enumerate(letras_teclado):
+                        desactivado = letra in letras_adivinadas
+                        type_btn = "secondary"
+                        if desactivado and letra in palabra: 
+                            type_btn = "primary"
+                            
+                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
+                            st.session_state['robot_guesses'].add(letra)
+                            if letra not in palabra:
+                                st.session_state['robot_errors'] += 1
+                                alerta_placeholder.markdown("""
+                                    <div style="background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                                        <h2 style="color: #b71c1c; margin:0; font-size: 40px;">💥 ¡CORTOCIRCUITO!</h2>
+                                        <p style="color: #c62828; font-size: 24px; font-weight: bold;">Has perdido una batería</p>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                                time.sleep(1.5)
+                            st.rerun()
 
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1029,45 +1782,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

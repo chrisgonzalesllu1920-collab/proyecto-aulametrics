@@ -9,5 +9,6 @@ passlib
 google-genai
 supabase
 streamlit-lottie
-
+python-pptx
+requests
 
