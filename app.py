@@ -741,7 +741,7 @@ def convert_df_to_excel(df, area_name, general_info):
 
     return output.getvalue()
 
-# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V2 INTELIGENTE) ---
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
 def mostrar_sidebar():
     """
     Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
@@ -755,7 +755,6 @@ def mostrar_sidebar():
                 st.rerun()
 
         # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
-        # ¡Aquí solucionamos la Observación #1!
         if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
             st.divider()
             if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
@@ -769,14 +768,23 @@ def mostrar_sidebar():
                     del st.session_state['file_uploader']
                 st.rerun()
 
-        # 3. PIE DE PÁGINA
+        # 3. BOTÓN CERRAR SESIÓN (NUEVO)
+        st.write("") # Espacio vertical
+        st.write("") 
+        
+        st.divider()
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+            st.session_state.clear() # Borra toda la memoria
+            st.rerun() # Reinicia la app (te llevará al Login)
+
+        # 4. PIE DE PÁGINA
         st.divider()
         if st.session_state.get('pagina_actual') == 'Inicio':
             st.info("👋 Selecciona una herramienta del panel.")
         else:
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
-        st.caption("🏫 AulaMetrics v2.5 Beta")
+        st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1775,6 +1783,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
