@@ -806,6 +806,81 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
+# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (NUEVO HOME) ===
+# =========================================================================
+def mostrar_home():
+    """Dibuja la parrilla de 4 tarjetas en la pantalla de inicio."""
+    
+    # 1. CSS EXCLUSIVO PARA TARJETAS (Efecto Hover y Sombra)
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            width: 100%;
+            height: auto;
+            min-height: 160px;
+            background-color: white !important;
+            border: 1px solid #ECEFF1 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+            transition: all 0.2s ease !important;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px !important;
+            text-align: left !important;
+        }
+        div.stButton > button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1) !important;
+            border-color: #2962FF !important;
+        }
+        div.stButton > button p {
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            color: #37474F !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 2. SALUDO
+    st.markdown("""
+        <div style="margin-bottom: 30px;">
+            <h1 style="color: #263238; font-size: 42px; margin-bottom: 0;">¡Hola, Docente! 👋</h1>
+            <p style="color: #546E7A; font-size: 18px;">Bienvenido a <b>AulaMetrics</b>. ¿Qué vamos a potenciar hoy?</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 3. PARRILLA 2x2
+    # Fila 1
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div style="color: #2962FF; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">📊</div>', unsafe_allow_html=True)
+        if st.button("Sistema de Evaluación\n\nAnaliza notas y reportes.", key="card_eval"):
+            navegar_a("Sistema de Evaluación")
+            st.rerun()
+    with c2:
+        st.markdown('<div style="color: #6200EA; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">🧠</div>', unsafe_allow_html=True)
+        if st.button("Asistente Pedagógico\n\nCrea sesiones y unidades con IA.", key="card_ia"):
+            navegar_a("Asistente Pedagógico")
+            st.rerun()
+
+    st.write("") # Espacio
+
+    # Fila 2
+    c3, c4 = st.columns(2)
+    with c3:
+        st.markdown('<div style="color: #FF6D00; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">🎮</div>', unsafe_allow_html=True)
+        if st.button("Zona de Gamificación\n\nTrivia, Pupiletras y Robot.", key="card_games"):
+            navegar_a("Gamificación")
+            st.rerun()
+    with c4:
+        st.markdown('<div style="color: #00C853; font-size: 36px; margin-bottom: -50px; position: relative; z-index: 10; pointer-events: none; margin-left: 20px;">📚</div>', unsafe_allow_html=True)
+        if st.button("Banco de Recursos\n\nDescarga fichas y plantillas.", key="card_resources"):
+            navegar_a("Recursos")
+            st.rerun()
+
+# =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
 # =========================================================================
 def home_page():
@@ -831,22 +906,6 @@ def home_page():
 
     # --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
     if pagina == 'Inicio':
-        # El Encabezado (Logo, Título, Robot) SOLO aparece en el Inicio
-        col_logo, col_titulo, col_bot = st.columns([1, 4, 1])
-
-        with col_logo:
-            try: st.image(ISOTIPO_PATH, width=120)
-            except: pass
-        
-        with col_titulo:
-            st.markdown('<h1 class="gradient-title-dashboard">Generador de Análisis Pedagógico</h1>', unsafe_allow_html=True)
-            st.markdown("Selecciona una herramienta para comenzar.")
-
-        with col_bot:
-            try:
-                lottie_hello = cargar_lottie("robot_hello.json")
-                st_lottie(lottie_hello, height=180, key="robot_header")
-            except: pass
             
         # DIBUJAMOS LAS TARJETAS DEL MENÚ
         mostrar_home()
@@ -1801,5 +1860,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
