@@ -1,15 +1,15 @@
 [theme]
-# 1. Primario: Turquesa Neón (Resalta muchísimo sobre oscuro)
-primaryColor = "#00E5FF"
+# 1. Primario: Ámbar Dorado (Da un toque de "Premium")
+primaryColor = "#FFAB00"
 
-# 2. Fondo Principal: Gris muy oscuro (Casi negro, estilo VS Code)
-backgroundColor = "#1E1E1E"
+# 2. Fondo Principal: Blanco (Limpio para leer)
+backgroundColor = "#FFFFFF"
 
-# 3. Barra Lateral: Negro Puro (Profundidad)
-secondaryBackgroundColor = "#121212"
+# 3. Barra Lateral: Azul Marino Profundo (El toque elegante)
+secondaryBackgroundColor = "#1A237E"
 
-# 4. Texto: Blanco Humo (Lectura cómoda en fondo oscuro)
-textColor = "#FAFAFA"
+# 4. Texto: Azul Noche (En lugar de negro)
+textColor = "#0D47A1"
 
 # 5. Fuente
 font = "sans serif"
