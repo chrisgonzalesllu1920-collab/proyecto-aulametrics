@@ -1,15 +1,20 @@
 [theme]
-# Color principal (para los acentos y bordes al pasar el mouse)
+# 1. Color Primario (Botones y acentos)
+# Un azul intenso pero profesional
 primaryColor = "#2962FF"
 
-# El color de fondo exacto de la referencia (Gris muy suave)
-backgroundColor = "#F0F2F6"
+# 2. Color de Fondo (El lienzo principal)
+# AQUÍ ESTÁ EL SECRETO: Un gris azulado muy suave (#EFF1F5)
+# Esto genera el contraste necesario para que las tarjetas blancas resalten.
+backgroundColor = "#EFF1F5"
 
-# El color de la barra lateral (Un blanco puro para contraste)
+# 3. Color de Barra Lateral
+# Blanco Puro (#FFFFFF). Esto crea un marco limpio a la izquierda.
 secondaryBackgroundColor = "#FFFFFF"
 
-# Color del texto
+# 4. Texto
+# Gris oscuro con un toque azul (#263238) para facilitar lectura
 textColor = "#263238"
 
-# Tipografía
+# 5. Fuente
 font = "sans serif"
