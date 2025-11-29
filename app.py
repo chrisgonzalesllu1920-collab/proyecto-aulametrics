@@ -1293,52 +1293,52 @@ def home_page():
             st.rerun()
 
                
-        # ==========================================
-        # === VISTA: MENÚ DE SELECCIÓN DE JUEGOS (2x2) ===
-        # ==========================================
-        def mostrar_menu_juegos():
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
-                <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-            # --- FILA 1 ---
-            col1, col2 = st.columns(2, gap="large")
-            
-            with col1:
-                # 1. TRIVIA
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
-                    st.session_state['juego_actual'] = 'trivia'
-                    st.rerun()
-        
-            with col2:
-                # 2. PUPILETRAS
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
-                    st.session_state['juego_actual'] = 'pupiletras'
-                    st.rerun()
-        
-            st.write("") # Espacio vertical
-        
-            # --- FILA 2 ---
-            col3, col4 = st.columns(2, gap="large")
-            
-            with col3:
-                # 3. ROBOT (AHORCADO)
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
-                    st.session_state['juego_actual'] = 'ahorcado'
-                    st.rerun()
-        
-            with col4:
-                # 4. REVELADOR VISUAL (NUEVO)
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
-                    st.session_state['juego_actual'] = 'pixel_art' # Nueva clave de estado
-                    st.rerun()
+# ==========================================
+# === VISTA: MENÚ DE SELECCIÓN DE JUEGOS (2x2) ===
+# ==========================================
+def mostrar_menu_juegos():
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
+        <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- FILA 1 ---
+    col1, col2 = st.columns(2, gap="large")
+    
+    with col1:
+        # 1. TRIVIA
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
+            st.session_state['juego_actual'] = 'trivia'
+            st.rerun()
+
+    with col2:
+        # 2. PUPILETRAS
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
+            st.session_state['juego_actual'] = 'pupiletras'
+            st.rerun()
+
+    st.write("") # Espacio vertical
+
+    # --- FILA 2 ---
+    col3, col4 = st.columns(2, gap="large")
+    
+    with col3:
+        # 3. ROBOT (AHORCADO)
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
+            st.session_state['juego_actual'] = 'ahorcado'
+            st.rerun()
+
+    with col4:
+        # 4. REVELADOR VISUAL (NUEVO)
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
+        if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
+            st.session_state['juego_actual'] = 'pixel_art' # Nueva clave de estado
+            st.rerun()
 
                
         # ==========================================
@@ -1971,6 +1971,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
