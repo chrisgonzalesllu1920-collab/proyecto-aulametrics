@@ -839,21 +839,47 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA DE TARJETAS (V6.1 - SIN ESPACIOS EXTRA) ===
+# === 5.5. SUB-VISTA: PORTADA (V7.0 - GEOMETRÍA + CEREBRO TEMPORAL) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de 4 tarjetas OPTIMIZANDO EL ESPACIO SUPERIOR."""
+    """Dibuja la parrilla de tarjetas V6.1 con Saludo Inteligente."""
     
+    # --- A. LÓGICA DE TIEMPO Y FECHA (NUEVO CEREBRO) ---
+    from datetime import datetime
+    ahora = datetime.now()
+    hora = ahora.hour
+    
+    # 1. Determinar el Saludo según la hora
+    if 5 <= hora < 12:
+        saludo = "Buenos días"
+        emoji_saludo = "☀️"
+    elif 12 <= hora < 19:
+        saludo = "Buenas tardes"
+        emoji_saludo = "🌤️"
+    else:
+        saludo = "Buenas noches"
+        emoji_saludo = "🌙"
+        
+    # 2. Formatear la Fecha en Español (Manual para evitar errores de servidor)
+    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    
+    dia_nombre = dias_semana[ahora.weekday()]
+    dia_numero = ahora.day
+    mes_nombre = meses[ahora.month - 1]
+    
+    fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
+
+    # --- B. ESTILOS CSS (EXACTAMENTE TU CÓDIGO V6.1) ---
     st.markdown("""
         <style>
-        /* --- 1. ELIMINAR MÁRGENES DE STREAMLIT (EL CAMBIO CLAVE) --- */
-        /* Esto elimina el hueco gigante de arriba */
+        /* --- 1. ELIMINAR MÁRGENES DE STREAMLIT --- */
         .block-container {
-            padding-top: 1rem !important; /* Antes era casi 6rem */
+            padding-top: 1rem !important;
             padding-bottom: 0rem !important;
         }
         
-        /* Ocultamos el header y su espacio */
+        /* Ocultamos el header */
         header { visibility: hidden !important; }
         [data-testid="stHeader"] { display: none !important; }
 
@@ -925,15 +951,19 @@ def mostrar_home():
         </style>
     """, unsafe_allow_html=True)
 
-    # 3. ENCABEZADO (AJUSTADO: Quitamos el padding-top excesivo)
-    st.markdown("""
+    # --- C. ENCABEZADO DINÁMICO (AQUÍ USAMOS LAS VARIABLES) ---
+    st.markdown(f"""
         <div style="margin-bottom: 30px; padding-top: 10px; text-align: center;">
-            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 10px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">¡Hola, Docente! 🚀</h1>
-            <p style="color: #FFD54F; font-size: 22px; font-weight: 500;">Tu centro de comando está listo.</p>
+            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                ¡{saludo}, Docente! {emoji_saludo}
+            </h1>
+            <p style="color: #FFD54F; font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
+                📅 {fecha_texto}
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 4. PARRILLA GEOMÉTRICA
+    # --- D. PARRILLA GEOMÉTRICA (Igual que antes) ---
     c1, c2 = st.columns(2, gap="large")
     
     with c1:
@@ -1946,6 +1976,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
