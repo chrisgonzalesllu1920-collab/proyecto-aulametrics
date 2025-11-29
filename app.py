@@ -1284,6 +1284,7 @@ def home_page():
     elif pagina == "Gamificación":
         
         # --- A. GESTIÓN DE ESTADO ---
+        # Variable maestra para saber qué juego estamos jugando (None = Menú Principal)
         if 'juego_actual' not in st.session_state:
             st.session_state['juego_actual'] = None 
 
@@ -1291,7 +1292,7 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-        # --- B. DEFINICIÓN DEL MENÚ (ALINEADO) ---
+        # --- B. DEFINICIÓN DEL MENÚ (ALINEACIÓN PERFECTA) ---
         def mostrar_menu_juegos():
             st.markdown("""
             <div style="text-align: center; margin-bottom: 30px;">
@@ -1300,91 +1301,136 @@ def home_page():
             </div>
             """, unsafe_allow_html=True)
 
+            # --- FILA 1 ---
             col1, col2 = st.columns(2, gap="large")
+            
             with col1:
+                # 1. TRIVIA
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
+                # Usamos saltos de línea idénticos para forzar altura
                 if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
+                # 2. PUPILETRAS
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
                 if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
-            st.write("") 
+            st.write("") # Espacio vertical
 
+            # --- FILA 2 ---
             col3, col4 = st.columns(2, gap="large")
+            
             with col3:
+                # 3. ROBOT
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
                 if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
+                # 4. REVELADOR VISUAL (NUEVO)
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
                 if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
         # ==========================================
-        # === C. ROUTER DE JUEGOS ===
+        # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
         # ==========================================
         
-        # 1. MENÚ PRINCIPAL
+        # 1. SI NO HAY JUEGO SELECCIONADO -> MOSTRAR MENÚ
         if st.session_state['juego_actual'] is None:
             mostrar_menu_juegos()
 
         # 2. JUEGO TRIVIA
         elif st.session_state['juego_actual'] == 'trivia':
+            # Barra superior de retorno
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True): volver_menu_juegos()
+                if st.button("🔙 Menú", use_container_width=True):
+                    volver_menu_juegos()
             with col_title:
                 st.subheader("Desafío Trivia")
 
-            # --- CSS BOTÓN START ---
+            # --- CSS TRIVIA ---
             st.markdown("""
                 <style>
-                /* Botón PRIMARIO (Generar Juego) estilo 3D Verde */
                 div.stButton > button[kind="primary"] {
-                    background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%) !important;
+                    background-color: #28a745 !important;
+                    border-color: #28a745 !important;
                     color: white !important;
-                    border: none !important;
-                    border-bottom: 5px solid #1B5E20 !important;
-                    border-radius: 12px !important;
-                    font-size: 20px !important;
-                    font-weight: 800 !important;
-                    padding: 18px !important;
-                    transition: all 0.1s !important;
+                    font-size: 24px !important;
+                    font-weight: bold !important;
+                    padding: 15px 30px !important;
                 }
-                div.stButton > button[kind="primary"]:active {
-                    transform: translateY(4px);
-                    border-bottom: 1px solid #1B5E20 !important;
+                .big-question {
+                    font-size: 50px !important;
+                    font-weight: 800;
+                    color: #1e3a8a;
+                    text-align: center;
+                    background-color: #eff6ff;
+                    padding: 40px;
+                    border-radius: 25px;
+                    border: 5px solid #3b82f6;
+                    margin-bottom: 30px;
+                    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                    line-height: 1.2;
+                }
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
+                    background-color: #fff9c4 !important;
+                    border: 3px solid #fbc02d !important;
+                    border-radius: 20px !important;
+                    min-height: 120px !important;
+                    height: auto !important;
+                    white-space: normal !important;
+                    padding: 15px !important;
+                    margin-bottom: 15px !important;
+                    box-shadow: 0 6px 0 #f9a825 !important;
+                }
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
+                    font-size: 36px !important;
+                    font-weight: 800 !important;
+                    color: #333333 !important;
+                    line-height: 1.1 !important;
+                }
+                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
+                    background-color: #fff59d !important;
+                    transform: translateY(-3px);
+                    border-color: #f57f17 !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
 
-            # LÓGICA TRIVIA
+            # --- MODO CINE ---
+            col_header1, col_header2 = st.columns([3, 1])
+            with col_header1:
+                st.markdown("Genera un juego de preguntas interactivo.")
+            with col_header2:
+                modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
+            
+            if modo_cine:
+                st.markdown("""<style>[data-testid="stSidebar"], header, footer {display: none;}</style>""", unsafe_allow_html=True)
+
+            # --- LÓGICA TRIVIA ---
             if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
-                st.markdown("##### ⚙️ Configuración del Desafío")
                 col_game1, col_game2 = st.columns([2, 1])
                 with col_game1:
-                    tema_input = st.text_input("Tema:", placeholder="Ej: La Revolución Francesa...")
-                    lista_grados = ["1° Sec", "2° Sec", "3° Sec", "4° Sec", "5° Sec"]
-                    grado_input = st.selectbox("Grado:", lista_grados)
+                    tema_input = st.text_input("Tema:", placeholder="Ej: La Célula...")
+                    lista_grados = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
+                    grado_input = st.selectbox("Grado:", lista_grados, index=6)
                 with col_game2:
                     num_input = st.slider("Preguntas:", 1, 10, 5)
-                    modo_avance = st.radio("Modo:", ["Automático", "Guiado"])
+                    modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
-                st.write("")
-                if st.button("🎲 GENERAR PARTIDA", type="primary", use_container_width=True):
+                if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                     if not tema_input:
-                        st.warning("⚠️ Falta el tema.")
+                        st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("🧠 Cerebro IA trabajando..."):
-                            # Simulamos conexión para el ejemplo si falla el backend
+                        with st.spinner(f"🧠 Creando {num_input} desafíos..."):
                             respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
                             if respuesta_json:
                                 try:
@@ -1397,291 +1443,487 @@ def home_page():
                                     st.session_state['tema_actual'] = tema_input
                                     st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
                                     st.session_state['fase_pregunta'] = "respondiendo"
+                                    
                                     st.session_state['juego_en_lobby'] = True 
                                     st.session_state['juego_iniciado'] = True
                                     st.rerun()
-                                except: st.error("Error en formato IA")
-                            else: st.error("Error de conexión")
+                                except Exception as e: st.error(f"Error formato: {e}")
+                            else: st.error("Error conexión IA.")
+                st.divider()
 
             elif st.session_state.get('juego_en_lobby', False):
-                # PANTALLA DE TÍTULO (LOBBY)
+                tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
+                modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
+                
                 st.markdown(f"""
-                <div style="text-align: center; padding: 50px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                    <h1 style="font-size: 60px; color: #2E7D32; margin: 0;">🏆 TRIVIA</h1>
-                    <h3 style="color: #555;">{st.session_state.get('tema_actual')}</h3>
+                <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h1 style="font-size: 70px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
+                    <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+                    <p style="color: #888; font-weight: bold; font-size: 20px;">{modo_mostrar}</p>
+                    <br>
                 </div>
                 """, unsafe_allow_html=True)
-                st.write("")
-                c1, c2, c3 = st.columns([1, 2, 1])
-                with c2:
-                    if st.button("🚀 INICIAR AHORA", type="primary", use_container_width=True):
+                st.write("") 
+                col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
+                with col_btn:
+                    if st.button("🚀 EMPEZAR AHORA", type="primary", use_container_width=True):
                         st.session_state['juego_en_lobby'] = False
                         st.rerun()
-            
+
             elif not st.session_state.get('juego_terminado', False):
-                # JUEGO ACTIVO
                 idx = st.session_state['juego_indice']
                 preguntas = st.session_state['juego_preguntas']
-                p_actual = preguntas[idx]
-                
-                # Barra de progreso
-                c1, c2 = st.columns([3, 1])
-                c1.progress((idx + 1) / len(preguntas), text=f"Pregunta {idx+1}/{len(preguntas)}")
-                c2.metric("Puntaje", st.session_state['juego_puntaje'])
+                current_score = int(st.session_state['juego_puntaje'])
+                modo = st.session_state.get('modo_avance', 'auto')
+                fase = st.session_state.get('fase_pregunta', 'respondiendo')
 
-                # Pregunta
-                st.markdown(f"""
-                <div style="background:#E3F2FD; padding:30px; border-radius:15px; border-left:10px solid #1565C0; font-size:28px; font-weight:bold; color:#0D47A1; margin-bottom:20px;">
-                    {p_actual['pregunta']}
-                </div>
-                """, unsafe_allow_html=True)
+                if idx >= len(preguntas):
+                    st.session_state['juego_terminado'] = True
+                    st.rerun()
 
-                # Opciones
-                ops = p_actual['opciones']
+                pregunta_actual = preguntas[idx]
                 
-                # Función para procesar respuesta
-                def procesar(op):
-                    correcta = p_actual['respuesta_correcta']
-                    if op == correcta:
-                        st.session_state['juego_puntaje'] += 100
-                        st.toast("✅ ¡Correcto!", icon="🎉")
-                    else:
-                        st.toast(f"❌ Incorrecto. Era: {correcta}", icon="dk")
+                col_info1, col_info2 = st.columns([3, 1])
+                with col_info1:
+                    st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
+                    st.progress((idx + 1) / len(preguntas))
+                with col_info2:
+                    st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
+                
+                st.write("") 
+                st.markdown(f"""<div class="big-question">{pregunta_actual['pregunta']}</div>""", unsafe_allow_html=True)
+                
+                if fase == 'respondiendo':
+                    opciones = pregunta_actual['opciones']
+                    col_opt1, col_opt2 = st.columns(2)
                     
-                    time.sleep(1)
-                    if idx < len(preguntas) - 1:
-                        st.session_state['juego_indice'] += 1
+                    def responder(opcion_elegida):
+                        correcta = pregunta_actual['respuesta_correcta']
+                        puntos_por_pregunta = 100 / len(preguntas)
+                        es_correcta = (opcion_elegida == correcta)
+                        
+                        if es_correcta:
+                            st.session_state['juego_puntaje'] += puntos_por_pregunta
+                            st.session_state['ultimo_feedback'] = f"correcta|{int(puntos_por_pregunta)}"
+                        else:
+                            st.session_state['ultimo_feedback'] = f"incorrecta|{correcta}"
+
+                        if modo == 'auto':
+                            feedback_container = st.empty()
+                            if es_correcta:
+                                feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
+                            else:
+                                feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
+                            time.sleep(2.0)
+                            
+                            if st.session_state['juego_indice'] < len(preguntas) - 1:
+                                st.session_state['juego_indice'] += 1
+                            else:
+                                st.session_state['juego_terminado'] = True
+                            st.rerun()
+                        else:
+                            st.session_state['fase_pregunta'] = 'feedback'
+                            st.rerun()
+
+                    with col_opt1:
+                        if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
+                        if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
+                    with col_opt2:
+                        if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
+                        if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
+                
+                elif fase == 'feedback':
+                    tipo, valor = st.session_state['ultimo_feedback'].split("|")
+                    if tipo == "correcta":
+                        st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
                     else:
-                        st.session_state['juego_terminado'] = True
-                    st.rerun()
+                        st.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #f5c2c7; margin-bottom: 20px;">❌ INCORRECTO <br> <span style="font-size: 30px; color: #333;">La respuesta era: {valor}</span></div>""", unsafe_allow_html=True)
+                    
+                    col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
+                    with col_next2:
+                        if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True):
+                            if st.session_state['juego_indice'] < len(preguntas) - 1:
+                                st.session_state['juego_indice'] += 1
+                                st.session_state['fase_pregunta'] = 'respondiendo'
+                            else:
+                                st.session_state['juego_terminado'] = True
+                            st.rerun()
 
-                c_opt1, c_opt2 = st.columns(2)
-                if c_opt1.button(f"A) {ops[0]}", use_container_width=True): procesar(ops[0])
-                if c_opt2.button(f"B) {ops[1]}", use_container_width=True): procesar(ops[1])
-                if c_opt1.button(f"C) {ops[2]}", use_container_width=True): procesar(ops[2])
-                if c_opt2.button(f"D) {ops[3]}", use_container_width=True): procesar(ops[3])
+            elif st.session_state.get('juego_terminado', False):
+                puntaje = int(st.session_state['juego_puntaje'])
+                st.markdown(f"<h1 style='text-align: center; font-size: 80px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
+                col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
+                with col_center:
+                    if puntaje == 100:
+                        st.balloons()
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">🏆</div>""", unsafe_allow_html=True)
+                        st.success("¡MAESTRO TOTAL! 🌟")
+                    elif puntaje >= 60:
+                        st.snow()
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">😎</div>""", unsafe_allow_html=True)
+                        st.info("¡Bien hecho! Aprobado.")
+                    else:
+                        st.markdown("""<div style="text-align: center; font-size: 120px;">📚</div>""", unsafe_allow_html=True)
+                        st.warning("¡Buen intento! A repasar un poco más.")
 
-            else:
-                # FIN DEL JUEGO
-                st.balloons()
-                st.markdown(f"<h1 style='text-align: center;'>Puntaje Final: {st.session_state['juego_puntaje']}</h1>", unsafe_allow_html=True)
-                if st.button("🔄 Jugar de nuevo", type="primary"):
-                    st.session_state['juego_iniciado'] = False
-                    st.rerun()
+                    if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
+                        st.session_state['juego_iniciado'] = False 
+                        del st.session_state['juego_preguntas']
+                        del st.session_state['juego_terminado']
+                        st.rerun()
 
         # 3. JUEGO PUPILETRAS
         elif st.session_state['juego_actual'] == 'pupiletras':
+            
+            # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True, key="pupi_back"): volver_menu_juegos()
+                if st.button("🔙 Menú", use_container_width=True, key="pupi_back"):
+                    volver_menu_juegos()
             with col_title:
-                st.subheader("🔎 Pupiletras")
+                st.subheader("🔎 Pupiletras: Buscador de Palabras")
 
-            # --- CSS BOTÓN START (AZUL) ---
-            st.markdown("""
-                <style>
-                div.stButton > button[kind="primary"] {
-                    background: linear-gradient(180deg, #29B6F6 0%, #0288D1 100%) !important;
-                    border-bottom: 5px solid #01579B !important;
-                }
-                </style>
-            """, unsafe_allow_html=True)
-
+            # --- CONFIGURACIÓN ---
             if 'pupi_grid' not in st.session_state:
-                st.markdown("##### ⚙️ Configura tu Sopa de Letras")
-                c1, c2, c3 = st.columns([2, 1, 1])
-                tema = c1.text_input("Tema:", placeholder="Ej: Capitales...")
-                grado = c2.selectbox("Grado:", ["Primaria", "Secundaria"])
-                cant = c3.slider("Palabras:", 4, 10, 6)
+                st.info("Configura tu sopa de letras:")
                 
-                st.write("")
-                if st.button("🧩 GENERAR FICHA", type="primary", use_container_width=True):
-                    if not tema: st.warning("Falta tema")
+                col_conf1, col_conf2, col_conf3 = st.columns([2, 1, 1])
+                with col_conf1:
+                    tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
+                with col_conf2:
+                    lista_grados_pupi = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_pupi = st.selectbox("Grado:", lista_grados_pupi, index=5)
+                with col_conf3:
+                    cant_palabras = st.slider("Palabras:", 5, 12, 8) 
+
+                if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
+                    if not tema_pupi:
+                        st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("🖨️ Imprimiendo digitalmente..."):
-                            palabras = pedagogical_assistant.generar_palabras_pupiletras(tema, grado, cant)
-                            if palabras:
+                        with st.spinner("🤖 Diseñando ficha y juego interactivo..."):
+                            # A) IA genera palabras
+                            palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
+                            
+                            if palabras and len(palabras) > 0:
+                                # B) Algoritmo crea la matriz
                                 grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
-                                docx = pedagogical_assistant.generar_docx_pupiletras(grid, colocados, tema, grado)
+                                
+                                # C) Generamos el Word
+                                docx_buffer = pedagogical_assistant.generar_docx_pupiletras(grid, colocados, tema_pupi, grado_pupi)
+                                
+                                # Guardamos todo
                                 st.session_state['pupi_grid'] = grid
                                 st.session_state['pupi_data'] = colocados
-                                st.session_state['pupi_docx_bytes'] = docx.getvalue()
                                 st.session_state['pupi_found'] = set()
+                                st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue()
                                 st.rerun()
-                            else: st.error("Error IA")
+                            else:
+                                st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
+
+            # --- ZONA DE JUEGO ---
             else:
-                # VISTA TABLERO (Simplificada para no extender código, enfocada en diseño)
-                st.success("¡Ficha Generada!")
-                st.download_button("📥 Descargar Word", st.session_state['pupi_docx_bytes'], "Pupiletras.docx", use_container_width=True)
-                if st.button("🔄 Crear Otro", type="secondary"):
-                    del st.session_state['pupi_grid']
-                    st.rerun()
+                grid = st.session_state['pupi_grid']
+                palabras_data = st.session_state['pupi_data']
+                encontradas = st.session_state['pupi_found']
+
+                col_tablero, col_panel = st.columns([3, 1])
+
+                with col_tablero:
+                    st.markdown("##### 📍 Tablero Interactivo")
+                    
+                    celdas_iluminadas = set()
+                    for p_data in palabras_data:
+                        if p_data['palabra'] in encontradas:
+                            for coord in p_data['coords']:
+                                celdas_iluminadas.add(coord)
+
+                    html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
+                    for r in range(len(grid)):
+                        html_grid += "<tr>"
+                        for c in range(len(grid[0])):
+                            letra = grid[r][c]
+                            bg = "#ffffff"
+                            color = "#333"
+                            border = "1px solid #ccc"
+                            weight = "normal"
+                            
+                            if (r, c) in celdas_iluminadas:
+                                bg = "#ffeb3b"
+                                color = "#000"
+                                border = "2px solid #fbc02d"
+                                weight = "bold"
+                            
+                            html_grid += f'<td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 28px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
+                        html_grid += "</tr>"
+                    html_grid += "</table></div>"
+                    
+                    st.markdown(html_grid, unsafe_allow_html=True)
+
+                with col_panel:
+                    st.success("📄 Ficha Lista")
+                    st.download_button(
+                        label="📥 Descargar Word",
+                        data=st.session_state['pupi_docx_bytes'],
+                        file_name="Pupiletras_Clase.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+                    
+                    st.divider()
+                    st.markdown("##### 📝 Encontrar:")
+                    
+                    progreso = len(encontradas) / len(palabras_data)
+                    st.progress(progreso, text=f"{len(encontradas)} de {len(palabras_data)}")
+                    
+                    for i, p_item in enumerate(palabras_data):
+                        palabra_texto = p_item['palabra']
+                        if palabra_texto in encontradas:
+                            label = f"✅ {palabra_texto}"
+                            tipo = "primary"
+                        else:
+                            label = f"⬜ {palabra_texto}"
+                            tipo = "secondary"
+                        
+                        if st.button(label, key=f"btn_pupi_{i}", type=tipo, use_container_width=True):
+                            if palabra_texto in encontradas:
+                                st.session_state['pupi_found'].remove(palabra_texto)
+                            else:
+                                st.session_state['pupi_found'].add(palabra_texto)
+                            st.rerun()
+
+                    st.write("")
+                    if st.button("🔄 Reiniciar", type="secondary", use_container_width=True):
+                        del st.session_state['pupi_grid']
+                        st.rerun()
 
         # 4. JUEGO ROBOT (AHORCADO)
         elif st.session_state['juego_actual'] == 'ahorcado':
+            
+            # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True, key="robot_btn"):
-                    for k in ['robot_challenges', 'robot_level', 'robot_word']:
+                if st.button("🔙 Menú", use_container_width=True, key="robot_btn_back_top"):
+                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
+                    for k in keys_to_clear:
                         if k in st.session_state: del st.session_state[k]
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🔋 Recarga al Robot")
+                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
-            # ESTILOS ARCADE ORIGINALES (INTOCABLES)
+            # --- CSS ARCADE ---
             st.markdown("""
                 <style>
                 section[data-testid="stMain"] div.stButton > button {
-                    height: 60px; border-bottom: 5px solid #ccc; font-weight:bold;
+                    width: 100%;
+                    height: 70px !important;
+                    background-color: white !important;
+                    border: 2px solid #cfd8dc !important;
+                    border-bottom: 6px solid #b0bec5 !important;
+                    border-radius: 15px !important;
+                    margin-bottom: 10px !important;
+                    padding: 0px !important;
                 }
-                div.stButton > button[kind="primary"] {
-                    background-color: #FF5722 !important; border-color: #E64A19 !important;
+                section[data-testid="stMain"] div.stButton > button p {
+                    font-size: 36px !important;
+                    font-weight: 900 !important;
+                    color: #455a64 !important;
+                    line-height: 1 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button:hover:enabled {
+                    transform: translateY(-2px);
+                    background-color: #e1f5fe !important;
+                    border-color: #29b6f6 !important;
+                    border-bottom: 6px solid #0288d1 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button:hover:enabled p { color: #0277bd !important; }
+                section[data-testid="stMain"] div.stButton > button:active:enabled {
+                    transform: translateY(4px);
+                    border-bottom: 2px solid #0288d1 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] {
+                    background-color: #66bb6a !important;
+                    border-color: #43a047 !important;
+                    border-bottom: 6px solid #2e7d32 !important;
+                }
+                section[data-testid="stMain"] div.stButton > button[kind="primary"] p { color: white !important; }
+                section[data-testid="stMain"] div.stButton > button:disabled {
+                    background-color: #ef5350 !important;
+                    border-color: #c62828 !important;
+                    border-bottom: 2px solid #b71c1c !important;
+                    opacity: 1 !important;
+                    transform: translateY(4px);
+                }
+                section[data-testid="stMain"] div.stButton > button:disabled p { color: white !important; }
+                
+                /* ANTÍDOTO */
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button {
+                    height: auto !important;
+                    border: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    border-bottom: 1px solid rgba(49, 51, 63, 0.2) !important;
+                    background-color: white !important;
+                    border-radius: 0.25rem !important;
+                    box-shadow: none !important;
+                    padding: 0.25rem 0.75rem !important;
+                    margin-bottom: 0 !important;
+                }
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button p {
+                    font-size: 16px !important;
+                    font-weight: normal !important;
+                    color: inherit !important;
+                    line-height: normal !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
 
+            # --- CONFIGURACIÓN ---
             if 'robot_challenges' not in st.session_state:
-                c1, c2 = st.columns([3, 1])
-                tema = c1.text_input("Misión:", placeholder="Ej: Verbos en Inglés")
-                cant = c2.slider("Niveles:", 3, 10, 5)
-                st.write("")
-                if st.button("🤖 INICIAR MISIÓN", type="primary", use_container_width=True):
-                    if not tema: st.warning("Falta misión")
+                st.info("Configura la misión de rescate:")
+                
+                col_c1, col_c2, col_c3 = st.columns([2, 1, 1])
+                with col_c1:
+                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos...")
+                with col_c2:
+                    lista_grados_robot = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_robot = st.selectbox("Grado:", lista_grados_robot, index=5)
+                with col_c3:
+                    cant_robot = st.slider("Palabras:", 3, 10, 5)
+                
+                if st.button("🤖 Iniciar Misión", type="primary", use_container_width=True):
+                    if not tema_robot:
+                        st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("Cargando baterías..."):
-                            retos = pedagogical_assistant.generar_reto_ahorcado(tema, "General", cant)
-                            if retos:
+                        with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
+                            retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
+                            if retos and len(retos) > 0:
                                 st.session_state['robot_challenges'] = retos
                                 st.session_state['robot_level'] = 0
                                 st.session_state['robot_score'] = 0
                                 st.session_state['robot_errors'] = 0
                                 st.session_state['robot_max_errors'] = 6
-                                st.session_state['robot_word'] = retos[0]['palabra'].upper()
-                                st.session_state['robot_hint'] = retos[0]['pista']
+                                
+                                primer_reto = retos[0]
+                                st.session_state['robot_word'] = primer_reto['palabra'].upper()
+                                st.session_state['robot_hint'] = primer_reto['pista']
                                 st.session_state['robot_guesses'] = set()
                                 st.rerun()
-            else:
-                # JUEGO ROBOT ACTIVO
-                word = st.session_state['robot_word']
-                err = st.session_state['robot_errors']
-                
-                c1, c2 = st.columns([3, 1])
-                c1.markdown(f"### Pista: {st.session_state['robot_hint']}")
-                c2.markdown(f"### 🔋 {6-err}/6")
-                
-                # Palabra Oculta
-                disp = " ".join([l if l in st.session_state['robot_guesses'] else "_" for l in word])
-                st.markdown(f"<h1 style='text-align:center; font-family:monospace; letter-spacing:10px;'>{disp}</h1>", unsafe_allow_html=True)
-                
-                # Teclado (Simplificado)
-                cols = st.columns(9)
-                for i, l in enumerate("ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"):
-                    dis = l in st.session_state['robot_guesses']
-                    if cols[i%9].button(l, key=l, disabled=dis):
-                        st.session_state['robot_guesses'].add(l)
-                        if l not in word: st.session_state['robot_errors'] += 1
-                        st.rerun()
-                
-                # Check Win/Loss
-                if all(l in st.session_state['robot_guesses'] for l in word):
-                    st.success("¡Ganaste nivel!")
-                    if st.button("Siguiente"):
-                        st.session_state['robot_level'] += 1
-                        # (Lógica simplificada de avance...)
-                        st.rerun()
-                if err >= 6:
-                    st.error(f"Perdiste. Palabra: {word}")
-                    if st.button("Reintentar"): 
-                        st.session_state['robot_errors'] = 0
-                        st.session_state['robot_guesses'] = set()
-                        st.rerun()
+                            else:
+                                st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
 
-        # 5. JUEGO PIXEL ART (NUEVO - REVELADOR VISUAL)
+            # --- ZONA DE JUEGO ---
+            else:
+                alerta_placeholder = st.empty()
+
+                nivel_idx = st.session_state['robot_level']
+                total_niveles = len(st.session_state['robot_challenges'])
+                palabra = st.session_state['robot_word']
+                errores = st.session_state['robot_errors']
+                max_errores = st.session_state['robot_max_errors']
+                letras_adivinadas = st.session_state['robot_guesses']
+                
+                # A) MONITOR
+                progreso_mision = (nivel_idx) / total_niveles
+                st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
+
+                baterias_restantes = max_errores - errores
+                emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
+                
+                col_hint, col_bat = st.columns([3, 1])
+                with col_hint:
+                    st.markdown(f"""
+                    <div style="font-size: 32px; color: #1565c0; font-weight: 600; margin-top: 15px; line-height: 1.3;">
+                        💡 {st.session_state['robot_hint']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_bat:
+                    st.markdown(f"<div style='font-size: 55px; text-align: right; letter-spacing: -8px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+
+                # B) PALABRA
+                palabra_mostrar = ""
+                ganado = True
+                for letra in palabra:
+                    if letra in letras_adivinadas:
+                        palabra_mostrar += letra + " "
+                    else:
+                        palabra_mostrar += "_ "
+                        ganado = False
+                
+                st.markdown(f"""
+                <div style="text-align: center; font-size: 85px; letter-spacing: 12px; font-family: monospace; color: #333; font-weight: 900; margin: 40px 0;">
+                    {palabra_mostrar}
+                </div>
+                """, unsafe_allow_html=True)
+
+                # C) CONTROL
+                if ganado:
+                    st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
+                    if nivel_idx < total_niveles - 1:
+                        if st.button("➡️ Siguiente Nivel", type="primary", use_container_width=True):
+                            st.session_state['robot_score'] += 100
+                            st.session_state['robot_level'] += 1
+                            siguiente_reto = st.session_state['robot_challenges'][st.session_state['robot_level']]
+                            st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
+                            st.session_state['robot_hint'] = siguiente_reto['pista']
+                            st.session_state['robot_guesses'] = set()
+                            st.session_state['robot_errors'] = 0 # REINICIO BATERÍAS AL GANAR
+                            st.rerun()
+                    else:
+                        st.balloons()
+                        st.markdown("""<div style="text-align: center; padding: 20px; background-color: #d4edda; border-radius: 20px;"><h1>🏆 ¡MISIÓN COMPLETADA!</h1></div>""", unsafe_allow_html=True)
+                        if st.button("🔄 Nueva Misión", type="primary"):
+                            del st.session_state['robot_challenges']
+                            st.rerun()
+                        
+                elif errores >= max_errores:
+                    st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
+                        st.session_state['robot_guesses'] = set()
+                        st.session_state['robot_errors'] = 0
+                        st.rerun()
+                        
+                else:
+                    # D) TECLADO ARCADE
+                    st.write("")
+                    letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+                    cols = st.columns(9)
+                    
+                    for i, letra in enumerate(letras_teclado):
+                        desactivado = letra in letras_adivinadas
+                        type_btn = "secondary"
+                        if desactivado and letra in palabra: 
+                            type_btn = "primary"
+                            
+                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
+                            st.session_state['robot_guesses'].add(letra)
+                            if letra not in palabra:
+                                st.session_state['robot_errors'] += 1
+                                alerta_placeholder.markdown("""
+                                    <div style="background-color: #ffebee; border: 2px solid #ef5350; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                                        <h2 style="color: #b71c1c; margin:0; font-size: 40px;">💥 ¡CORTOCIRCUITO!</h2>
+                                        <p style="color: #c62828; font-size: 24px; font-weight: bold;">Has perdido una batería</p>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                                time.sleep(1.5)
+                            st.rerun()
+
+        # 5. JUEGO PIXEL ART (EL REVELADOR VISUAL - NUEVO)
         elif st.session_state['juego_actual'] == 'pixel_art':
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True, key="pixel_back"): volver_menu_juegos()
+                if st.button("🔙 Menú", use_container_width=True, key="pixel_back"):
+                    volver_menu_juegos()
             with col_title:
                 st.subheader("🖼️ El Revelador Visual")
-
-            # ESTILOS DEL JUEGO
-            st.markdown("""
-                <style>
-                /* Estilo para la imagen borrosa */
-                .blur-img {
-                    transition: filter 0.5s ease;
-                    border-radius: 15px;
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-                }
-                div.stButton > button[kind="primary"] {
-                    background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%) !important;
-                    border-bottom: 5px solid #E65100 !important;
-                }
-                </style>
-            """, unsafe_allow_html=True)
-
-            # LÓGICA DE JUEGO
-            if 'pixel_img' not in st.session_state:
-                # 1. CONFIGURACIÓN
-                st.markdown("##### ⚙️ Configura el Reto")
-                col1, col2 = st.columns([3, 1])
-                tema_pixel = col1.selectbox("Categoría:", ["Animales", "Monumentos", "Personajes Históricos", "Ciencia"])
-                
-                st.write("")
-                if st.button("🎨 INICIAR REVELADOR", type="primary", use_container_width=True):
-                    # Simulamos selección de imagen (En prod usaríamos Google Images o IA)
-                    imagenes = {
-                        "Animales": "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&q=80", # León
-                        "Monumentos": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&q=80", # Taj Mahal
-                        "Personajes Históricos": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Shakespeare.jpg/600px-Shakespeare.jpg",
-                        "Ciencia": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80" # Laboratorio
-                    }
-                    respuestas = {
-                        "Animales": "leon", "Monumentos": "taj mahal", "Personajes Históricos": "shakespeare", "Ciencia": "quimica"
-                    }
-                    
-                    st.session_state['pixel_img'] = imagenes[tema_pixel]
-                    st.session_state['pixel_answer'] = respuestas[tema_pixel]
-                    st.session_state['pixel_blur'] = 20 # Nivel de desenfoque inicial (muy borroso)
-                    st.session_state['pixel_intentos'] = 0
-                    st.rerun()
-            else:
-                # 2. PANTALLA DE JUEGO
-                blur_val = st.session_state['pixel_blur']
-                img_url = st.session_state['pixel_img']
-                
-                # Mostramos imagen con filtro CSS
-                st.markdown(f"""
-                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                    <img src="{img_url}" class="blur-img" style="width: 100%; max-width: 500px; filter: blur({blur_val}px);">
-                </div>
-                """, unsafe_allow_html=True)
-                
-                c1, c2 = st.columns([3, 1])
-                guess = c1.text_input("¿Qué es?", placeholder="Escribe tu respuesta...")
-                
-                if c2.button("Adivinar", type="primary", use_container_width=True):
-                    if guess.lower() in st.session_state['pixel_answer']:
-                        st.balloons()
-                        st.success("🎉 ¡CORRECTO! Imagen revelada.")
-                        st.session_state['pixel_blur'] = 0 # Quitar blur
-                        if st.button("Jugar otro"):
-                            del st.session_state['pixel_img']
-                            st.rerun()
-                    else:
-                        st.error("❌ Incorrecto. La imagen se aclara un poco...")
-                        if st.session_state['pixel_blur'] > 0:
-                            st.session_state['pixel_blur'] -= 5 # Reducir blur
-                        st.rerun()
-
-                # Botón de pista
-                if st.button("🔍 Pedir Pista (Aclarar Imagen)", use_container_width=True):
-                    if st.session_state['pixel_blur'] > 0:
-                        st.session_state['pixel_blur'] -= 5
-                        st.rerun()
+            
+            st.info("🚧 Módulo 'Revelador Visual' en construcción. ¡Pronto disponible!")
+            st.image("https://via.placeholder.com/800x400.png?text=Pixel+Art+Game+Coming+Soon", use_container_width=True)    
     
-
-
+    
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
@@ -1705,27 +1947,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
