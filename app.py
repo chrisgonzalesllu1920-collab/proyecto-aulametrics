@@ -1292,13 +1292,11 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-        # --- B. DEFINICIÓN DEL MENÚ (ESTILO TARJETAS LIMPIO) ---
+        # --- B. DEFINICIÓN DEL MENÚ (CON KEYS ÚNICAS PARA EVITAR ERROR) ---
         def mostrar_menu_juegos():
             # 1. CSS LOCAL (SOLO PARA ESTE MENÚ)
             st.markdown("""
             <style>
-                /* Estilo para los botones-tarjeta del menú de juegos */
-                /* Afectamos a los botones dentro de este contenedor específico */
                 div.stButton > button {
                     background-color: white !important;
                     border: 1px solid #e0e0e0 !important;
@@ -1309,16 +1307,12 @@ def home_page():
                     height: auto !important;
                     padding: 20px !important;
                 }
-
-                /* Hover */
                 div.stButton > button:hover {
                     transform: translateY(-3px);
                     box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
-                    border-color: #1A237E !important; /* Azul al pasar el mouse */
+                    border-color: #1A237E !important;
                     color: #1A237E !important;
                 }
-
-                /* El texto de los botones */
                 div.stButton > button p {
                     font-size: 18px !important;
                     font-weight: 700 !important;
@@ -1338,36 +1332,35 @@ def home_page():
             col1, col2 = st.columns(2, gap="large")
             
             with col1:
-                # 1. TRIVIA
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🧠</div>', unsafe_allow_html=True)
-                # Usamos saltos de línea para darle altura y formato
-                if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_game_trivia", use_container_width=True):
+                # CAMBIO DE KEY AQUÍ 👇
+                if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_menu_trivia_unique", use_container_width=True):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
-                # 2. PUPILETRAS
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">ABC</div>', unsafe_allow_html=True)
-                if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_game_pupi", use_container_width=True):
+                # CAMBIO DE KEY AQUÍ 👇
+                if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_menu_pupi_unique", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
-            st.write("") # Espacio vertical
+            st.write("") 
 
             # --- FILA 2 ---
             col3, col4 = st.columns(2, gap="large")
             
             with col3:
-                # 3. ROBOT
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🤖</div>', unsafe_allow_html=True)
-                if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_game_robot", use_container_width=True):
+                # CAMBIO DE KEY AQUÍ 👇
+                if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_menu_robot_unique", use_container_width=True):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
-                # 4. REVELADOR VISUAL
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🖼️</div>', unsafe_allow_html=True)
-                if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_game_pixel", use_container_width=True):
+                # CAMBIO DE KEY AQUÍ 👇
+                if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_menu_pixel_unique", use_container_width=True):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
@@ -1984,6 +1977,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
