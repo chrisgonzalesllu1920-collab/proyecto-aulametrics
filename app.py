@@ -30,19 +30,31 @@ st.set_page_config(
   initial_sidebar_state="collapsed"
 )
 
-# --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA POPPINS + LIMPIEZA) ---
+# --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA ROBOTO + LIMPIEZA) ---
 st.markdown("""
     <style>
     /* =========================================
-       A. TIPOGRAFÍA MODERNA (POPPINS)
+       A. TIPOGRAFÍA INSTITUCIONAL (ROBOTO)
     ========================================= */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+    /* Importamos la fuente de Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
     html, body, [class*="css"] {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Roboto', sans-serif;
     }
-    h1, h2, h3 { font-weight: 800 !important; letter-spacing: -1px; }
-    p, div, label { font-weight: 400; }
+    
+    /* Títulos: Fuertes y Estructurados */
+    h1, h2, h3 { 
+        font-weight: 900 !important; 
+        letter-spacing: -0.5px;
+        color: #1A237E; /* Azul oscuro institucional por defecto */
+    }
+    
+    /* Texto general: Máxima legibilidad */
+    p, div, label, span { 
+        font-weight: 400;
+        font-size: 16px; /* Un poco más grande para lectura cómoda */
+    }
 
     /* =========================================
        B. LIMPIEZA DE INTERFAZ
@@ -61,7 +73,7 @@ st.markdown("""
     }
 
     /* =========================================
-       C. BARRA LATERAL GLOBAL (SIEMPRE AZUL)
+       C. BARRA LATERAL GLOBAL (AZUL PROFUNDO)
     ========================================= */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
@@ -77,18 +89,19 @@ st.markdown("""
         color: #FFFFFF !important;
     }
     
-    /* Estilo de botones dentro del Sidebar (Translucidos) */
+    /* Estilo de botones dentro del Sidebar */
     section[data-testid="stSidebar"] div.stButton > button {
         background-color: rgba(255, 255, 255, 0.1) !important;
         color: white !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        font-weight: 500 !important; /* Peso medio para botones */
     }
     section[data-testid="stSidebar"] div.stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.2) !important;
         border-color: white !important;
     }
     
-    /* Estilo Botón de Descarga (Azul brillante) */
+    /* Estilo Botón de Descarga General */
     div[data-testid="stDownloadButton"] > button {
         background-color: #007bff !important;
         color: white !important;
@@ -1933,6 +1946,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
