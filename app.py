@@ -1294,7 +1294,7 @@ def home_page():
 
                
 # ==========================================
-# === VISTA: MENÚ DE SELECCIÓN DE JUEGOS (2x2) ===
+# === VISTA: MENÚ DE SELECCIÓN DE JUEGOS (ALINEACIÓN PERFECTA) ===
 # ==========================================
 def mostrar_menu_juegos():
     st.markdown("""
@@ -1310,6 +1310,7 @@ def mostrar_menu_juegos():
     with col1:
         # 1. TRIVIA
         st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
+        # Usamos 3 saltos de línea (\n\n\n) para empujar el texto abajo del icono
         if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
             st.session_state['juego_actual'] = 'trivia'
             st.rerun()
@@ -1321,13 +1322,13 @@ def mostrar_menu_juegos():
             st.session_state['juego_actual'] = 'pupiletras'
             st.rerun()
 
-    st.write("") # Espacio vertical
+    st.write("") # Espacio vertical entre filas
 
     # --- FILA 2 ---
     col3, col4 = st.columns(2, gap="large")
     
     with col3:
-        # 3. ROBOT (AHORCADO)
+        # 3. ROBOT
         st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
         if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
             st.session_state['juego_actual'] = 'ahorcado'
@@ -1336,8 +1337,8 @@ def mostrar_menu_juegos():
     with col4:
         # 4. REVELADOR VISUAL (NUEVO)
         st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
-            st.session_state['juego_actual'] = 'pixel_art' # Nueva clave de estado
+        if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen.", key="btn_game_pixel"):
+            st.session_state['juego_actual'] = 'pixel_art'
             st.rerun()
 
                
@@ -1971,6 +1972,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
