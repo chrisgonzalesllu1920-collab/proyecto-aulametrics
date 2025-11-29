@@ -1280,11 +1280,11 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# 5. GAMIFICACIÓN (MINI-LOBBY + JUEGOS)
+# 5. GAMIFICACIÓN (MINI-LOBBY + JUEGOS) 
     elif pagina == "Gamificación":
         
-        # --- 0. GESTIÓN DE NAVEGACIÓN INTERNA ---
-        # Variable para saber qué juego estamos jugando (None = Menú Principal de Juegos)
+        # --- A. GESTIÓN DE ESTADO ---
+        # Variable maestra para saber qué juego estamos jugando (None = Menú Principal)
         if 'juego_actual' not in st.session_state:
             st.session_state['juego_actual'] = None 
 
@@ -1292,61 +1292,62 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
+        # --- B. DEFINICIÓN DEL MENÚ (ALINEACIÓN PERFECTA) ---
+        def mostrar_menu_juegos():
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
+                <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ==========================================
-# === VISTA: MENÚ DE SELECCIÓN DE JUEGOS (ALINEACIÓN PERFECTA) ===
-# ==========================================
-def mostrar_menu_juegos():
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
-        <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # --- FILA 1 ---
-    col1, col2 = st.columns(2, gap="large")
-    
-    with col1:
-        # 1. TRIVIA
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
-        # Usamos 3 saltos de línea (\n\n\n) para empujar el texto abajo del icono
-        if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
-            st.session_state['juego_actual'] = 'trivia'
-            st.rerun()
-
-    with col2:
-        # 2. PUPILETRAS
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
-            st.session_state['juego_actual'] = 'pupiletras'
-            st.rerun()
-
-    st.write("") # Espacio vertical entre filas
-
-    # --- FILA 2 ---
-    col3, col4 = st.columns(2, gap="large")
-    
-    with col3:
-        # 3. ROBOT
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
-            st.session_state['juego_actual'] = 'ahorcado'
-            st.rerun()
-
-    with col4:
-        # 4. REVELADOR VISUAL (NUEVO)
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen.", key="btn_game_pixel"):
-            st.session_state['juego_actual'] = 'pixel_art'
-            st.rerun()
-
-               
-        # ==========================================
-        # === VISTA 2: JUEGO TRIVIA (MODO PROYECTOR) ===
-        # ==========================================
-        elif st.session_state['juego_actual'] == 'trivia':
+            # --- FILA 1 ---
+            col1, col2 = st.columns(2, gap="large")
             
+            with col1:
+                # 1. TRIVIA
+                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
+                # Usamos saltos de línea idénticos para forzar altura
+                if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
+                    st.session_state['juego_actual'] = 'trivia'
+                    st.rerun()
+
+            with col2:
+                # 2. PUPILETRAS
+                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
+                if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
+                    st.session_state['juego_actual'] = 'pupiletras'
+                    st.rerun()
+
+            st.write("") # Espacio vertical
+
+            # --- FILA 2 ---
+            col3, col4 = st.columns(2, gap="large")
+            
+            with col3:
+                # 3. ROBOT
+                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
+                if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
+                    st.session_state['juego_actual'] = 'ahorcado'
+                    st.rerun()
+
+            with col4:
+                # 4. REVELADOR VISUAL (NUEVO)
+                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
+                if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
+                    st.session_state['juego_actual'] = 'pixel_art'
+                    st.rerun()
+
+        # ==========================================
+        # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
+        # ==========================================
+        
+        # 1. SI NO HAY JUEGO SELECCIONADO -> MOSTRAR MENÚ
+        if st.session_state['juego_actual'] is None:
+            mostrar_menu_juegos()
+
+        # 2. JUEGO TRIVIA
+        elif st.session_state['juego_actual'] == 'trivia':
             # Barra superior de retorno
             col_back, col_title = st.columns([1, 5])
             with col_back:
@@ -1355,22 +1356,19 @@ def mostrar_menu_juegos():
             with col_title:
                 st.subheader("Desafío Trivia")
 
-            # --- CSS AGRESIVO (TEXTOS GIGANTES PARA PROYECTOR) ---
+            # --- CSS TRIVIA ---
             st.markdown("""
                 <style>
-                /* 1. Botón "GENERAR" (Verde) */
                 div.stButton > button[kind="primary"] {
                     background-color: #28a745 !important;
                     border-color: #28a745 !important;
                     color: white !important;
-                    font-size: 24px !important; /* Más grande */
+                    font-size: 24px !important;
                     font-weight: bold !important;
                     padding: 15px 30px !important;
                 }
-                
-                /* 2. LA PREGUNTA (GIGANTE 50px) */
                 .big-question {
-                    font-size: 50px !important; /* ANTES: 38px */
+                    font-size: 50px !important;
                     font-weight: 800;
                     color: #1e3a8a;
                     text-align: center;
@@ -1382,29 +1380,23 @@ def mostrar_menu_juegos():
                     box-shadow: 0 6px 15px rgba(0,0,0,0.15);
                     line-height: 1.2;
                 }
-                
-                /* 3. LAS ALTERNATIVAS (Cajas) */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
                     background-color: #fff9c4 !important;
                     border: 3px solid #fbc02d !important;
                     border-radius: 20px !important;
-                    min-height: 120px !important; /* Más altas */
+                    min-height: 120px !important;
                     height: auto !important;
                     white-space: normal !important;
                     padding: 15px !important;
                     margin-bottom: 15px !important;
                     box-shadow: 0 6px 0 #f9a825 !important;
                 }
-                
-                /* 4. TEXTO ALTERNATIVAS (GIGANTE 36px) */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
-                    font-size: 36px !important; /* ANTES: 28px */
+                    font-size: 36px !important;
                     font-weight: 800 !important;
                     color: #333333 !important;
                     line-height: 1.1 !important;
                 }
-
-                /* Hover */
                 section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
                     background-color: #fff59d !important;
                     transform: translateY(-3px);
@@ -1421,15 +1413,9 @@ def mostrar_menu_juegos():
                 modo_cine = st.checkbox("📺 Modo Cine", help="Oculta la barra lateral.")
             
             if modo_cine:
-                st.markdown("""
-                    <style>
-                        [data-testid="stSidebar"] {display: none;}
-                        header[data-testid="stHeader"] {display: none;}
-                        footer {display: none;}
-                    </style>
-                """, unsafe_allow_html=True)
+                st.markdown("""<style>[data-testid="stSidebar"], header, footer {display: none;}</style>""", unsafe_allow_html=True)
 
-            # --- LÓGICA DE TRIVIA ---
+            # --- LÓGICA TRIVIA ---
             if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
                 col_game1, col_game2 = st.columns([2, 1])
                 with col_game1:
@@ -1502,7 +1488,6 @@ def mostrar_menu_juegos():
                     st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
                     st.progress((idx + 1) / len(preguntas))
                 with col_info2:
-                    # PUNTAJE GIGANTE (45px)
                     st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
                 
                 st.write("") 
@@ -1586,21 +1571,19 @@ def mostrar_menu_juegos():
                         del st.session_state['juego_preguntas']
                         del st.session_state['juego_terminado']
                         st.rerun()
-                
-        # ==========================================
-        # === VISTA 3: JUEGO PUPILETRAS (V2.0 - GRADOS Y TAMAÑO) ===
-        # ==========================================
+
+        # 3. JUEGO PUPILETRAS
         elif st.session_state['juego_actual'] == 'pupiletras':
             
-            # --- 1. BARRA SUPERIOR ---
+            # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True):
+                if st.button("🔙 Menú", use_container_width=True, key="pupi_back"):
                     volver_menu_juegos()
             with col_title:
                 st.subheader("🔎 Pupiletras: Buscador de Palabras")
 
-            # --- 2. CONFIGURACIÓN ---
+            # --- CONFIGURACIÓN ---
             if 'pupi_grid' not in st.session_state:
                 st.info("Configura tu sopa de letras:")
                 
@@ -1608,14 +1591,13 @@ def mostrar_menu_juegos():
                 with col_conf1:
                     tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
                 with col_conf2:
-                    # LISTA DE GRADOS COMPLETA
                     lista_grados_pupi = [
                         "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
                         "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
                     ]
                     grado_pupi = st.selectbox("Grado:", lista_grados_pupi, index=5)
                 with col_conf3:
-                    cant_palabras = st.slider("Palabras:", 5, 12, 8) # Ajustado max a 12 para grilla 12x12
+                    cant_palabras = st.slider("Palabras:", 5, 12, 8) 
 
                 if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
                     if not tema_pupi:
@@ -1626,7 +1608,7 @@ def mostrar_menu_juegos():
                             palabras = pedagogical_assistant.generar_palabras_pupiletras(tema_pupi, grado_pupi, cant_palabras)
                             
                             if palabras and len(palabras) > 0:
-                                # B) Algoritmo crea la matriz (Ahora usa 12x12 por defecto en backend)
+                                # B) Algoritmo crea la matriz
                                 grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
                                 
                                 # C) Generamos el Word
@@ -1641,13 +1623,12 @@ def mostrar_menu_juegos():
                             else:
                                 st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
 
-            # --- 3. ZONA DE JUEGO (TABLERO) ---
+            # --- ZONA DE JUEGO ---
             else:
                 grid = st.session_state['pupi_grid']
                 palabras_data = st.session_state['pupi_data']
                 encontradas = st.session_state['pupi_found']
 
-                # DIVISIÓN: 70% JUEGO | 30% PANEL
                 col_tablero, col_panel = st.columns([3, 1])
 
                 with col_tablero:
@@ -1659,7 +1640,6 @@ def mostrar_menu_juegos():
                             for coord in p_data['coords']:
                                 celdas_iluminadas.add(coord)
 
-                    # HTML COMPACTO CON CELDAS GIGANTES (45px)
                     html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
                     for r in range(len(grid)):
                         html_grid += "<tr>"
@@ -1676,7 +1656,6 @@ def mostrar_menu_juegos():
                                 border = "2px solid #fbc02d"
                                 weight = "bold"
                             
-                            # AQUÍ ESTÁ EL CAMBIO DE TAMAÑO: 45px celda, 28px fuente
                             html_grid += f'<td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-family: monospace; font-size: 28px; font-weight: {weight}; background-color: {bg}; color: {color}; border: {border}; cursor: default;">{letra}</td>'
                         html_grid += "</tr>"
                     html_grid += "</table></div>"
@@ -1720,13 +1699,10 @@ def mostrar_menu_juegos():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-               
-        # ==========================================
-        # === VISTA 4: JUEGO ROBOT (V4.7 - FINAL REAL: CONSISTENCIA UI) ===
-        # ==========================================
+        # 4. JUEGO ROBOT (AHORCADO)
         elif st.session_state['juego_actual'] == 'ahorcado':
             
-            # --- 1. BARRA SUPERIOR ESTÁNDAR (Vuelve a su lugar) ---
+            # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
                 if st.button("🔙 Menú", use_container_width=True, key="robot_btn_back_top"):
@@ -1737,29 +1713,25 @@ def mostrar_menu_juegos():
             with col_title:
                 st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
-            # --- 2. CSS ARCADE CON "ANTÍDOTO" ---
+            # --- CSS ARCADE ---
             st.markdown("""
                 <style>
-                /* --- A. ESTILO ARCADE GLOBAL PARA LOS BOTONES DE ESTA VISTA --- */
                 section[data-testid="stMain"] div.stButton > button {
                     width: 100%;
-                    height: 70px !important; /* Altura fija gigante */
+                    height: 70px !important;
                     background-color: white !important;
                     border: 2px solid #cfd8dc !important;
-                    border-bottom: 6px solid #b0bec5 !important; /* Efecto 3D */
+                    border-bottom: 6px solid #b0bec5 !important;
                     border-radius: 15px !important;
                     margin-bottom: 10px !important;
                     padding: 0px !important;
-                    transition: all 0.1s ease !important;
                 }
-                /* Texto gigante */
                 section[data-testid="stMain"] div.stButton > button p {
                     font-size: 36px !important;
                     font-weight: 900 !important;
                     color: #455a64 !important;
                     line-height: 1 !important;
                 }
-                /* Hover Azul */
                 section[data-testid="stMain"] div.stButton > button:hover:enabled {
                     transform: translateY(-2px);
                     background-color: #e1f5fe !important;
@@ -1767,20 +1739,16 @@ def mostrar_menu_juegos():
                     border-bottom: 6px solid #0288d1 !important;
                 }
                 section[data-testid="stMain"] div.stButton > button:hover:enabled p { color: #0277bd !important; }
-                /* Click */
                 section[data-testid="stMain"] div.stButton > button:active:enabled {
                     transform: translateY(4px);
                     border-bottom: 2px solid #0288d1 !important;
-                    margin-top: 4px !important;
                 }
-                /* Acierto Verde */
                 section[data-testid="stMain"] div.stButton > button[kind="primary"] {
                     background-color: #66bb6a !important;
                     border-color: #43a047 !important;
                     border-bottom: 6px solid #2e7d32 !important;
                 }
                 section[data-testid="stMain"] div.stButton > button[kind="primary"] p { color: white !important; }
-                /* Error Rojo */
                 section[data-testid="stMain"] div.stButton > button:disabled {
                     background-color: #ef5350 !important;
                     border-color: #c62828 !important;
@@ -1789,9 +1757,8 @@ def mostrar_menu_juegos():
                     transform: translateY(4px);
                 }
                 section[data-testid="stMain"] div.stButton > button:disabled p { color: white !important; }
-
-                /* --- B. ANTÍDOTO: RESTAURAR EL BOTÓN DE LA BARRA SUPERIOR --- */
-                /* Este selector específico busca el botón en la primera fila horizontal y le quita el estilo arcade */
+                
+                /* ANTÍDOTO */
                 section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button {
                     height: auto !important;
                     border: 1px solid rgba(49, 51, 63, 0.2) !important;
@@ -1801,7 +1768,6 @@ def mostrar_menu_juegos():
                     box-shadow: none !important;
                     padding: 0.25rem 0.75rem !important;
                     margin-bottom: 0 !important;
-                    transform: none !important;
                 }
                 section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button p {
                     font-size: 16px !important;
@@ -1809,15 +1775,10 @@ def mostrar_menu_juegos():
                     color: inherit !important;
                     line-height: normal !important;
                 }
-                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button:hover {
-                     background-color: white !important;
-                     border-color: rgba(49, 51, 63, 0.2) !important;
-                     color: rgba(49, 51, 63, 0.8) !important;
-                }
                 </style>
             """, unsafe_allow_html=True)
 
-            # --- 3. CONFIGURACIÓN ---
+            # --- CONFIGURACIÓN ---
             if 'robot_challenges' not in st.session_state:
                 st.info("Configura la misión de rescate:")
                 
@@ -1854,7 +1815,7 @@ def mostrar_menu_juegos():
                             else:
                                 st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
 
-            # --- 4. ZONA DE JUEGO ---
+            # --- ZONA DE JUEGO ---
             else:
                 alerta_placeholder = st.empty()
 
@@ -1909,6 +1870,7 @@ def mostrar_menu_juegos():
                             st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
                             st.session_state['robot_hint'] = siguiente_reto['pista']
                             st.session_state['robot_guesses'] = set()
+                            st.session_state['robot_errors'] = 0 # REINICIO BATERÍAS AL GANAR
                             st.rerun()
                     else:
                         st.balloons()
@@ -1949,6 +1911,20 @@ def mostrar_menu_juegos():
                                 time.sleep(1.5)
                             st.rerun()
 
+        # 5. JUEGO PIXEL ART (EL REVELADOR VISUAL - NUEVO)
+        elif st.session_state['juego_actual'] == 'pixel_art':
+            col_back, col_title = st.columns([1, 5])
+            with col_back:
+                if st.button("🔙 Menú", use_container_width=True, key="pixel_back"):
+                    volver_menu_juegos()
+            with col_title:
+                st.subheader("🖼️ El Revelador Visual")
+            
+            st.info("🚧 Módulo 'Revelador Visual' en construcción. ¡Pronto disponible!")
+            st.image("https://via.placeholder.com/800x400.png?text=Pixel+Art+Game+Coming+Soon", use_container_width=True)
+    
+
+
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
@@ -1972,6 +1948,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
