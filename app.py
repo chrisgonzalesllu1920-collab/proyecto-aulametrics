@@ -33,47 +33,67 @@ st.set_page_config(
 # --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA POPPINS + LIMPIEZA) ---
 st.markdown("""
     <style>
-    /* --- A. TIPOGRAFÍA MODERNA (POPPINS) --- */
+    /* =========================================
+       A. TIPOGRAFÍA MODERNA (POPPINS)
+    ========================================= */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Poppins', sans-serif;
     }
+    h1, h2, h3 { font-weight: 800 !important; letter-spacing: -1px; }
+    p, div, label { font-weight: 400; }
+
+    /* =========================================
+       B. LIMPIEZA DE INTERFAZ
+    ========================================= */
+    /* Ocultar elementos nativos de Streamlit */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
+    [data-testid="stHeaderActionElements"] { display: none !important; }
+    footer { visibility: hidden; }
+    header { visibility: hidden !important; }
+    [data-testid="stHeader"] { background: transparent !important; }
     
-    /* Títulos con peso extra y estilo moderno */
-    h1, h2, h3 {
-        font-weight: 800 !important;
-        letter-spacing: -1px;
-    }
-    
-    /* Texto general legible */
-    p, div, label {
-        font-weight: 400;
+    /* Eliminar margen superior excesivo */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
     }
 
-    /* --- B. LIMPIEZA DE INTERFAZ (TU CÓDIGO ANTERIOR) --- */
-    /* 1. Ocultar cadenas (enlaces) buscando en cualquier profundidad */
-    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
-        display: none !important;
+    /* =========================================
+       C. BARRA LATERAL GLOBAL (SIEMPRE AZUL)
+    ========================================= */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
+        border-right: 1px solid #1a237e;
     }
     
-    /* 2. Ocultar el contenedor específico de iconos de acción */
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
+    /* Forzar textos del sidebar a BLANCO */
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] span, 
+    section[data-testid="stSidebar"] div, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] li {
+        color: #FFFFFF !important;
     }
     
-    /* 3. Ocultar pie de página */
-    footer {visibility: hidden;}
+    /* Estilo de botones dentro del Sidebar (Translucidos) */
+    section[data-testid="stSidebar"] div.stButton > button {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    section[data-testid="stSidebar"] div.stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border-color: white !important;
+    }
     
-    /* 4. ESTILO BOTÓN AZUL (Descarga) */
+    /* Estilo Botón de Descarga (Azul brillante) */
     div[data-testid="stDownloadButton"] > button {
         background-color: #007bff !important;
         color: white !important;
         border: none !important;
         border-radius: 5px !important;
-    }
-    div[data-testid="stDownloadButton"] > button:hover {
-        background-color: #0056b3 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -1913,6 +1933,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
