@@ -1294,49 +1294,89 @@ def home_page():
 
         # --- B. DEFINICIÓN DEL MENÚ (ALINEACIÓN PERFECTA) ---
         def mostrar_menu_juegos():
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
-                <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
-            </div>
-            """, unsafe_allow_html=True)
+    # 1. CSS LOCAL (SOLO PARA ESTE MENÚ)
+    # Usamos selectores muy específicos para que no se escapen a otros lados
+    st.markdown("""
+    <style>
+        /* Estilo para los botones-tarjeta del menú de juegos */
+        /* Buscamos botones que tengan saltos de línea (\n) lo que indica que son nuestros botones grandes */
+        div.stButton > button:has(div p:contains("\\n")) { 
+            /* Esto es un truco, pero para mayor seguridad usaremos el enfoque de "Altura Mínima" */
+        }
+        
+        /* ENFOQUE SEGURO: Afectar solo a botones dentro de columnas con gap="large" en esta vista */
+        /* Como Streamlit no permite IDs fáciles, usaremos el estilo visual directo */
+        
+        div.stButton > button {
+            /* Solo aplicamos estilo tarjeta si el botón es "grande" (tiene mucho texto) */
+            /* Restauramos el estilo de tarjeta blanca bonita */
+            background-color: white !important;
+            border: 1px solid #e0e0e0 !important;
+            border-radius: 15px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+            transition: all 0.2s ease !important;
+            color: #333 !important;
+        }
 
-            # --- FILA 1 ---
-            col1, col2 = st.columns(2, gap="large")
-            
-            with col1:
-                # 1. TRIVIA
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
-                # Usamos saltos de línea idénticos para forzar altura
-                if st.button("\n\n\nDesafío de Trivia\n\nPreguntas y respuestas.", key="btn_game_trivia"):
-                    st.session_state['juego_actual'] = 'trivia'
-                    st.rerun()
+        /* Hover */
+        div.stButton > button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
+            border-color: #1A237E !important; /* Azul al pasar el mouse */
+            color: #1A237E !important;
+        }
 
-            with col2:
-                # 2. PUPILETRAS
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">ABC</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nCazador de Palabras\n\nPupiletras interactivo.", key="btn_game_pupi"):
-                    st.session_state['juego_actual'] = 'pupiletras'
-                    st.rerun()
+        /* El Icono y Texto */
+        div.stButton > button p {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
-            st.write("") # Espacio vertical
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
+        <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-            # --- FILA 2 ---
-            col3, col4 = st.columns(2, gap="large")
-            
-            with col3:
-                # 3. ROBOT
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🤖</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nRescata al Robot\n\nAdivina la palabra oculta.", key="btn_game_robot"):
-                    st.session_state['juego_actual'] = 'ahorcado'
-                    st.rerun()
+    # --- FILA 1 ---
+    col1, col2 = st.columns(2, gap="large")
+    
+    with col1:
+        # 1. TRIVIA
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🧠</div>', unsafe_allow_html=True)
+        # Usamos saltos de línea para darle altura
+        if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_game_trivia", use_container_width=True):
+            st.session_state['juego_actual'] = 'trivia'
+            st.rerun()
 
-            with col4:
-                # 4. REVELADOR VISUAL (NUEVO)
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -70px; position: relative; z-index: 5; pointer-events: none;">🖼️</div>', unsafe_allow_html=True)
-                if st.button("\n\n\nEl Revelador Visual\n\nAdivina la imagen pixelada.", key="btn_game_pixel"):
-                    st.session_state['juego_actual'] = 'pixel_art'
-                    st.rerun()
+    with col2:
+        # 2. PUPILETRAS
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">ABC</div>', unsafe_allow_html=True)
+        if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_game_pupi", use_container_width=True):
+            st.session_state['juego_actual'] = 'pupiletras'
+            st.rerun()
+
+    st.write("") # Espacio vertical
+
+    # --- FILA 2 ---
+    col3, col4 = st.columns(2, gap="large")
+    
+    with col3:
+        # 3. ROBOT
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🤖</div>', unsafe_allow_html=True)
+        if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_game_robot", use_container_width=True):
+            st.session_state['juego_actual'] = 'ahorcado'
+            st.rerun()
+
+    with col4:
+        # 4. REVELADOR VISUAL (AQUÍ ESTÁ EL NUEVO)
+        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🖼️</div>', unsafe_allow_html=True)
+        if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_game_pixel", use_container_width=True):
+            st.session_state['juego_actual'] = 'pixel_art'
+            st.rerun()
 
         # ==========================================
         # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
@@ -1947,6 +1987,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
