@@ -1361,10 +1361,6 @@ def home_page():
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
-        # --- C. ROUTER ---
-        if st.session_state['juego_actual'] is None:
-            mostrar_menu_juegos()
-
         # ==========================================
         # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
         # ==========================================
@@ -1974,6 +1970,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
