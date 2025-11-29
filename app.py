@@ -1280,11 +1280,10 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-# 5. GAMIFICACIÓN (MINI-LOBBY + JUEGOS) 
+# 5. GAMIFICACIÓN (VERSIÓN LIMPIA V3)
     elif pagina == "Gamificación":
         
         # --- A. GESTIÓN DE ESTADO ---
-        # Variable maestra para saber qué juego estamos jugando (None = Menú Principal)
         if 'juego_actual' not in st.session_state:
             st.session_state['juego_actual'] = None 
 
@@ -1292,9 +1291,9 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-        # --- B. DEFINICIÓN DEL MENÚ (CON KEYS ÚNICAS PARA EVITAR ERROR) ---
+        # --- B. DEFINICIÓN DEL MENÚ ---
         def mostrar_menu_juegos():
-            # 1. CSS LOCAL (SOLO PARA ESTE MENÚ)
+            # CSS Local
             st.markdown("""
             <style>
                 div.stButton > button {
@@ -1328,43 +1327,41 @@ def home_page():
             </div>
             """, unsafe_allow_html=True)
 
-            # --- FILA 1 ---
+            # FILA 1
             col1, col2 = st.columns(2, gap="large")
-            
             with col1:
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🧠</div>', unsafe_allow_html=True)
-                # CAMBIO DE KEY AQUÍ 👇
-                if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_menu_trivia_unique", use_container_width=True):
+                # CLAVE V3 PARA EVITAR ERROR
+                if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_trivia_v3", use_container_width=True):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">ABC</div>', unsafe_allow_html=True)
-                # CAMBIO DE KEY AQUÍ 👇
-                if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_menu_pupi_unique", use_container_width=True):
+                # CLAVE V3 PARA EVITAR ERROR
+                if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_pupi_v3", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
             st.write("") 
 
-            # --- FILA 2 ---
+            # FILA 2
             col3, col4 = st.columns(2, gap="large")
-            
             with col3:
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🤖</div>', unsafe_allow_html=True)
-                # CAMBIO DE KEY AQUÍ 👇
-                if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_menu_robot_unique", use_container_width=True):
+                # CLAVE V3 PARA EVITAR ERROR
+                if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_robot_v3", use_container_width=True):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🖼️</div>', unsafe_allow_html=True)
-                # CAMBIO DE KEY AQUÍ 👇
-                if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_menu_pixel_unique", use_container_width=True):
+                # CLAVE V3 PARA EVITAR ERROR
+                if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_pixel_v3", use_container_width=True):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
-        # --- C. ROUTER (SELECTOR DE JUEGOS) ---
+        # --- C. ROUTER ---
         if st.session_state['juego_actual'] is None:
             mostrar_menu_juegos()
 
@@ -1977,6 +1974,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
