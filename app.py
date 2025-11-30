@@ -302,62 +302,64 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V7.0 - CORRECCIÓN DE CONTRASTE Y VISIBILIDAD) ===
+# === 4. PÁGINA DE LOGIN (V8.0 - PANTALLA COMPLETA "FULL BLEED") ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS CORREGIDO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS AGRESIVO) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Ocupando toda la pantalla) */
+        /* 1. FONDO DEGRADADO EN TODO EL VISOR (Sin bordes blancos) */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
             background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
             background-size: cover;
-            background-attachment: fixed; /* Para que no se mueva al scrollear */
+            background-attachment: fixed;
         }
         
-        /* Hacer transparente la barra superior para que se vea más fondo */
-        [data-testid="stHeader"] {
-            background-color: rgba(0,0,0,0);
+        /* 2. ELIMINAR LOS MÁRGENES BLANCOS DE STREAMLIT */
+        .block-container {
+            padding-top: 2rem !important; /* Reducir espacio arriba */
+            padding-bottom: 2rem !important;
+            max-width: 900px !important; /* Evitar que se estire demasiado en pantallas anchas */
         }
-
-        /* 2. TARJETA CENTRAL (Blanca y visible) */
+        
+        /* 3. OCULTAR BARRA SUPERIOR (HEADER) */
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: none !important; /* Desaparece la barra gris/blanca de arriba */
+        }
+        
+        /* 4. TARJETA CENTRAL (Diseño Limpio) */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: #ffffff; /* Blanco puro */
+            background-color: #ffffff;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4); /* Sombra más fuerte para separar del fondo */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Sombra profunda */
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* 3. ¡CORRECCIÓN CRÍTICA! - FORZAR TEXTO NEGRO EN INPUTS */
-        /* Esto arregla que no se vea lo que escribes */
+        /* 5. TEXTO NEGRO (Corrección de visibilidad) */
         input[type="text"], input[type="password"] {
-            color: #000000 !important; /* Texto negro */
-            background-color: #F5F5F5 !important; /* Fondo gris muy suave en el input */
+            color: #000000 !important;
+            background-color: #F5F5F5 !important;
             border: 1px solid #E0E0E0 !important;
-            -webkit-text-fill-color: #000000 !important; /* Fix para Safari/Chrome */
-            caret-color: #000000 !important; /* El cursor que parpadea también negro */
+            caret-color: #000000 !important;
         }
-
-        /* 4. ETIQUETAS Y TEXTOS (Labels) */
         label, p, .stMarkdown {
-            color: #212121 !important; /* Gris casi negro para leer bien */
+            color: #212121 !important;
         }
         
-        /* Títulos principales fuera de la tarjeta (Bienvenidos...) */
+        /* Títulos */
         h2, h3, h2 span, h3 span {
-            color: #FFFFFF !important; /* Blanco brillante */
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5); /* Sombra para leerse sobre el degradado */
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        
-        /* Títulos DENTRO del formulario (Acceso Docente) */
         div.stForm h3, div.stForm h3 span {
-            color: #3E0E69 !important; /* Morado oscuro para contraste */
+            color: #3E0E69 !important; /* Título dentro del form */
             text-shadow: none !important;
         }
 
-        /* 5. PESTAÑAS (Tabs) */
+        /* 6. PESTAÑAS */
         button[data-baseweb="tab"] {
             background-color: rgba(255,255,255,0.2) !important;
             color: white !important;
@@ -365,13 +367,19 @@ def login_page():
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: white !important;
-            color: #E94057 !important; /* Color activo */
+            color: #E94057 !important;
         }
+        
+        /* Ocultar footer por si acaso */
+        footer {visibility: hidden;}
+        
     </style>
     """, unsafe_allow_html=True)
 
     # --- B. ESTRUCTURA DE LA PÁGINA ---
-    col1, col_centro, col3 = st.columns([1, 2, 1])
+    # Usamos columnas para centrar la tarjeta, pero con proporciones ajustadas
+    # [1, 6, 1] hace que la columna central sea más ancha en móviles pero centrada en PC
+    col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
         # LOGOTIPO
@@ -408,12 +416,10 @@ def login_page():
 
         # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
-            # Generador de ID
             if 'form_reset_id' not in st.session_state:
                 st.session_state['form_reset_id'] = 0
             reset_id = st.session_state['form_reset_id']
 
-            # Mensaje de éxito
             if st.session_state.get('registro_exitoso', False):
                 st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
                 st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
@@ -447,7 +453,6 @@ def login_page():
 
         st.divider()
         
-        # URL de contacto
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -2361,6 +2366,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
