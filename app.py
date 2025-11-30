@@ -848,17 +848,21 @@ def mostrar_sidebar():
         st.caption("🏫 AulaMetrics v3.0 Beta")
 
 # =========================================================================
-# === 5.5. SUB-VISTA: PORTADA (V7.0 - GEOMETRÍA + CEREBRO TEMPORAL) ===
+# === 5.5. SUB-VISTA: PORTADA (V7.1 - HORA PERÚ CORREGIDA) ===
 # =========================================================================
 def mostrar_home():
-    """Dibuja la parrilla de tarjetas V6.1 con Saludo Inteligente."""
+    """Dibuja la parrilla de tarjetas con Saludo Contextual (Hora Perú)."""
     
-    # --- A. LÓGICA DE TIEMPO Y FECHA (NUEVO CEREBRO) ---
-    from datetime import datetime
-    ahora = datetime.now()
+    # --- A. LÓGICA DE TIEMPO Y FECHA (AJUSTE PERÚ) ---
+    from datetime import datetime, timedelta
+    
+    # Obtenemos la hora del servidor y restamos 5 horas (UTC-5)
+    ahora_servidor = datetime.now()
+    ahora = ahora_servidor - timedelta(hours=5)
+    
     hora = ahora.hour
     
-    # 1. Determinar el Saludo según la hora
+    # 1. Determinar el Saludo
     if 5 <= hora < 12:
         saludo = "Buenos días"
         emoji_saludo = "☀️"
@@ -869,7 +873,7 @@ def mostrar_home():
         saludo = "Buenas noches"
         emoji_saludo = "🌙"
         
-    # 2. Formatear la Fecha en Español (Manual para evitar errores de servidor)
+    # 2. Formatear la Fecha en Español
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     
@@ -1979,6 +1983,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
