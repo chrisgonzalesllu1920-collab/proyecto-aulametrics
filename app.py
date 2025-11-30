@@ -1304,57 +1304,58 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-# --- B. DEFINICIÓN DEL MENÚ (ESTILO B: CRISTAL HOLOGRÁFICO) ---
+# --- B. DEFINICIÓN DEL MENÚ (ESTILO C: GAME CARTRIDGE - ALTO CONTRASTE) ---
         def mostrar_menu_juegos():
-            # 1. CSS GLASSMORPHISM (PROTEGIENDO EL SIDEBAR)
+            # 1. CSS VIBRANTE (SOLO ZONA PRINCIPAL)
             st.markdown("""
             <style>
-                /* SELECTOR ESPECÍFICO: Solo afecta a botones en la zona principal (Main), NO al Sidebar */
+                /* Selector específico para la zona principal (NO Sidebar) */
                 section[data-testid="stMain"] div.stButton > button {
-                    /* Fondo de Cristal */
-                    background: rgba(255, 255, 255, 0.1) !important; /* Blanco muy transparente */
-                    backdrop-filter: blur(10px) !important; /* Efecto Borroso detrás */
-                    -webkit-backdrop-filter: blur(10px) !important;
+                    /* FONDO: Degradado Intenso (Indigo a Morado) para contrastar con el gris */
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
                     
-                    /* Borde Sutil */
-                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                    border-radius: 16px !important;
+                    /* Borde y Forma */
+                    border: none !important;
+                    border-radius: 20px !important; /* Muy redondeado */
                     
-                    /* Sombra y Color */
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+                    /* Texto */
                     color: white !important;
+                    font-family: 'Verdana', sans-serif !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 1px !important;
+                    
+                    /* Sombra de "Tarjeta Flotante" */
+                    box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3) !important;
                     
                     /* Geometría */
                     height: auto !important;
-                    padding: 30px 20px !important;
-                    transition: all 0.3s ease !important;
+                    padding: 25px 15px !important;
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
                 }
 
-                /* Efecto Hover: Se vuelve más sólido y brillante */
+                /* Hover: Se eleva y brilla */
                 section[data-testid="stMain"] div.stButton > button:hover {
-                    transform: translateY(-5px);
-                    background: rgba(255, 255, 255, 0.2) !important; /* Más blanco */
-                    border: 1px solid rgba(255, 255, 255, 0.5) !important; /* Borde brilla */
-                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
+                    transform: translateY(-6px) scale(1.02);
+                    box-shadow: 0 15px 30px rgba(118, 75, 162, 0.5) !important;
+                    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important; /* Invierte degradado */
                 }
 
-                /* Texto del Título */
+                /* Texto del Título e Icono */
                 section[data-testid="stMain"] div.stButton > button p {
-                    font-family: 'Poppins', sans-serif !important;
-                    font-size: 20px !important;
-                    font-weight: 600 !important;
-                    letter-spacing: 1px !important;
-                    text-transform: uppercase !important;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra para leer bien sobre cualquier fondo */
+                    font-size: 19px !important;
+                    font-weight: 800 !important;
+                    margin: 0 !important;
+                    line-height: 1.4 !important;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 }
             </style>
             """, unsafe_allow_html=True)
 
-            # TÍTULO ESTILIZADO (Blanco Limpio)
+            # TÍTULO (Ajustado a color oscuro para que se lea en el gris)
             st.markdown("""
-            <div style="text-align: center; margin-bottom: 40px;">
-                <h2 style="color: #FFFFFF; font-size: 40px; font-weight: 800; letter-spacing: -1px;">💎 ZONA DE JUEGOS</h2>
-                <p style="color: #E0E0E0; font-size: 18px; font-weight: 300;">Experiencias interactivas de aprendizaje</p>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
+                <p style="color: #616161; font-size: 18px; font-weight: 500;">Selecciona tu desafío</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1363,13 +1364,13 @@ def home_page():
             
             with col1:
                 # TRIVIA
-                if st.button("🧠 TRIVIA\n\nDesafío de Conocimiento", key="btn_glass_trivia", use_container_width=True):
+                if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
                 # PUPILETRAS
-                if st.button("🔤 PUPILETRAS\n\nBúsqueda Visual", key="btn_glass_pupi", use_container_width=True):
+                if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
@@ -1379,13 +1380,13 @@ def home_page():
             
             with col3:
                 # ROBOT
-                if st.button("🤖 ROBOT\n\nLógica Deductiva", key="btn_glass_robot", use_container_width=True):
+                if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
                 # PIXEL ART
-                if st.button("🖼️ PIXEL ART\n\nDescubrimiento Visual", key="btn_glass_pixel", use_container_width=True):
+                if st.button("🖼️ PIXEL ART\n\nDescubre la Imagen", key="btn_card_pixel", use_container_width=True):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
@@ -1998,5 +1999,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
