@@ -1976,7 +1976,7 @@ def home_page():
                     if 'sorteo_lista' in st.session_state: del st.session_state['sorteo_lista']
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🎰 Sorteador Digital Pro")
+                st.subheader("🎰 Sorteador Digital")
 
             # --- ESTADO INICIAL DEL SORTEO ---
             if 'sorteo_lista' not in st.session_state:
@@ -2034,20 +2034,86 @@ def home_page():
                         else:
                             st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
 
-            # --- ZONA DE JUEGO (ETAPA 3 - PREPARACIÓN) ---
+            # --- ZONA DE JUEGO (ETAPA 3 - LA ACCIÓN) ---
             else:
-                # Si ya tenemos lista, mostramos esto (El escenario listo para girar)
-                st.info(f"✅ ¡Todo listo! Tenemos **{len(st.session_state['sorteo_lista'])}** participantes cargados.")
+                # 1. INFORMACIÓN DEL JUEGO
+                total_participantes = len(st.session_state['sorteo_lista'])
+                total_ganadores = st.session_state.get('sorteo_cantidad', 1)
                 
-                # Pequeña vista previa
-                with st.expander("Ver lista de participantes"):
-                    st.write(st.session_state['sorteo_lista'])
+                st.info(f"✅ Participantes: **{total_participantes}** | Se elegirán: **{total_ganadores}**")
+                
+                # Botón Gigante de Acción
+                st.write("")
+                if st.button("🎲 ¡GIRAR RULETA!", type="primary", use_container_width=True):
+                    
+                    import random
+                    import time
+                    
+                    # Preparamos el contenedor para los resultados
+                    contenedor_resultados = st.container()
+                    lista_candidatos = st.session_state['sorteo_lista'].copy()
+                    ganadores_ronda = []
 
-                st.write("---")
-                st.write("🚧 **AQUÍ IRÁ LA ANIMACIÓN DEL SORTEO EN EL SIGUIENTE PASO**")
-                
-                if st.button("🔄 Cambiar Lista (Reiniciar)", type="secondary"):
+                    # ZONA DE ANIMACIÓN (Donde ocurre la magia)
+                    animacion_box = st.empty()
+                    
+                    # Bucle para sacar a los ganadores uno por uno
+                    for i in range(total_ganadores):
+                        
+                        # A) EFECTO DE RULETA (Nombres pasando rápido)
+                        # Hacemos que dure unos 2 segundos por ganador
+                        for _ in range(15): 
+                            nombre_random = random.choice(lista_candidatos)
+                            animacion_box.markdown(f"""
+                            <div style="text-align: center; padding: 40px; background-color: #f0f2f6; border-radius: 15px; border: 2px dashed #ccc;">
+                                <h2 style="color: #999; font-size: 40px; margin: 0;">🎲 {nombre_random}...</h2>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            time.sleep(0.1) # Velocidad del cambio
+                        
+                        # B) ELEGIR GANADOR REAL
+                        if lista_candidatos:
+                            ganador = random.choice(lista_candidatos)
+                            lista_candidatos.remove(ganador) # Para que no salga dos veces en la misma tirada
+                            ganadores_ronda.append(ganador)
+                            
+                            # C) MOSTRAR GANADOR (Revelación)
+                            animacion_box.markdown(f"""
+                            <div style="text-align: center; padding: 40px; background: linear-gradient(135deg, #00C853 0%, #B2FF59 100%); border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: scale(1.05);">
+                                <h1 style="color: #1b5e20; font-size: 50px; margin: 0; text-shadow: 0 2px 4px rgba(255,255,255,0.5);">🎉 {ganador}</h1>
+                                <p style="color: #1b5e20; font-weight: bold;">¡Seleccionado n° {i+1}!</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            st.balloons() # Efecto de fiesta
+                            time.sleep(2) # Pausa para aplaudir antes del siguiente
+                        else:
+                            st.warning("¡Se acabaron los participantes!")
+                            break
+                    
+                    # D) LIMPIAR ANIMACIÓN Y MOSTRAR RESUMEN FINAL
+                    animacion_box.empty()
+                    st.session_state['sorteo_ganadores'] = ganadores_ronda
+
+                # --- MOSTRAR RESULTADOS FINALES (TABLERITOS) ---
+                if 'sorteo_ganadores' in st.session_state and st.session_state['sorteo_ganadores']:
+                    st.divider()
+                    st.markdown("### 🏆 Estudiantes Seleccionados:")
+                    
+                    # Mostramos los ganadores en tarjetas bonitas
+                    for idx, nombre in enumerate(st.session_state['sorteo_ganadores']):
+                        st.markdown(f"""
+                        <div style="padding: 15px; margin-bottom: 10px; background-color: white; border-left: 10px solid #2962FF; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center;">
+                            <div style="font-size: 24px; margin-right: 15px;">#{idx + 1}</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #333;">{nombre}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                # Botón de Reinicio
+                st.write("")
+                if st.button("🔄 Nueva Lista / Reiniciar", type="secondary"):
                     del st.session_state['sorteo_lista']
+                    if 'sorteo_ganadores' in st.session_state: del st.session_state['sorteo_ganadores']
                     st.rerun()
     
     
@@ -2074,6 +2140,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
