@@ -1795,205 +1795,233 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-        # 4. JUEGO ROBOT (AHORCADO - V8.0 DISEÑO FINAL)
+        # 4. JUEGO ROBOT (AHORCADO - VERSIÓN HÍBRIDA: CONFIGURACIÓN ORIGINAL + MEJORAS)
         elif st.session_state['juego_actual'] == 'ahorcado':
             
             # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True, key="robot_btn"):
-                    for k in ['robot_challenges', 'robot_level', 'robot_word']:
+                if st.button("🔙 Menú", use_container_width=True, key="robot_btn_back_top"):
+                    keys_to_clear = ['robot_challenges', 'robot_level', 'robot_word']
+                    for k in keys_to_clear:
                         if k in st.session_state: del st.session_state[k]
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🔋 Recarga al Robot")
+                st.subheader("🔋 Recarga al Robot: Misión en Cadena")
 
-            # --- CSS ARCADE (TECLADO GRANDE Y AZUL) ---
+            # --- CSS ARCADE (MEJORADO PARA LETRAS GIGANTES) ---
             st.markdown("""
                 <style>
-                /* Estilo del Teclado (Botones 3D Azules) */
+                /* Botón del Teclado */
                 section[data-testid="stMain"] div.stButton > button {
-                    height: 70px !important; 
-                    width: 100% !important;
-                    border: 2px solid #1E88E5 !important; /* Borde Azul Fuerte */
-                    border-radius: 12px !important;
+                    width: 100%;
+                    height: 85px !important; /* Más alto para la letra gigante */
                     background-color: white !important;
-                    color: #0D47A1 !important; /* Texto Azul Oscuro (Casi Negro) */
-                    font-size: 28px !important; /* Letra Grande */
-                    font-weight: 900 !important;
-                    box-shadow: 0 5px 0 #1565C0 !important; /* Sombra sólida 3D */
-                    transition: all 0.1s !important;
+                    border: 3px solid #1E88E5 !important; /* Borde Azul Fuerte */
+                    border-radius: 15px !important;
                     margin-bottom: 10px !important;
-                    padding: 0 !important;
+                    padding: 0px !important;
+                    box-shadow: 0 5px 0 #1565C0 !important; /* Sombra 3D */
                 }
                 
-                /* Efecto al presionar (Hundirse) */
-                section[data-testid="stMain"] div.stButton > button:active:enabled {
-                    transform: translateY(4px) !important;
-                    box-shadow: none !important;
+                /* FUERZA BRUTA PARA EL TEXTO (LETRA) */
+                section[data-testid="stMain"] div.stButton > button p {
+                    font-size: 45px !important; /* <--- AQUÍ ESTÁ EL CAMBIO (ANTES 36px) */
+                    font-weight: 900 !important;
+                    color: #0D47A1 !important; /* Azul Oscuro */
+                    line-height: 1 !important;
                 }
 
-                /* Hover (Brillo) */
+                /* Hover */
                 section[data-testid="stMain"] div.stButton > button:hover:enabled {
+                    transform: translateY(-2px);
                     background-color: #E3F2FD !important;
                 }
-
-                /* Letras ya usadas (Deshabilitadas) */
-                section[data-testid="stMain"] div.stButton > button:disabled {
-                    background-color: #ECEFF1 !important;
-                    color: #B0BEC5 !important;
-                    border-color: #CFD8DC !important;
+                
+                /* Click */
+                section[data-testid="stMain"] div.stButton > button:active:enabled {
+                    transform: translateY(4px);
                     box-shadow: none !important;
-                    opacity: 0.6 !important;
-                    transform: translateY(4px) !important;
                 }
 
-                /* Botones de Navegación (Siguiente/Reiniciar) - Estilo Naranja */
+                /* Botones de Navegación (Start, Next) - Texto Normal */
+                div.stButton > button[kind="primary"] p { 
+                    color: white !important; 
+                    font-size: 20px !important; 
+                }
                 div.stButton > button[kind="primary"] {
-                    background-color: #FF5722 !important; 
+                    background-color: #FF5722 !important;
                     border-color: #E64A19 !important;
-                    box-shadow: 0 5px 0 #BF360C !important;
-                    color: white !important;
+                }
+                
+                /* Botones Deshabilitados (Letras usadas) */
+                section[data-testid="stMain"] div.stButton > button:disabled {
+                    background-color: #CFD8DC !important;
+                    border-color: #B0BEC5 !important;
+                    opacity: 0.6 !important;
+                    box-shadow: none !important;
+                    transform: translateY(4px);
+                }
+                
+                /* ANTÍDOTO (Para no romper el menú de arriba) */
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button {
+                    height: auto !important;
+                    box-shadow: none !important;
+                    border: 1px solid rgba(49, 51, 63, 0.2) !important;
+                }
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:first-child div.stButton > button p {
+                    font-size: 16px !important;
+                    color: inherit !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
 
-            # --- CONFIGURACIÓN ---
+            # --- CONFIGURACIÓN (MANTENIENDO TU ESTRUCTURA DE 3 COLUMNAS) ---
             if 'robot_challenges' not in st.session_state:
-                c1, c2 = st.columns([3, 1])
-                tema = c1.text_input("Misión:", placeholder="Ej: Verbos en Inglés")
-                cant = c2.slider("Niveles:", 3, 10, 5)
+                st.info("Configura la misión de rescate:")
                 
-                st.write("")
-                if st.button("🤖 INICIAR MISIÓN", type="primary", use_container_width=True):
-                    if not tema: st.warning("Falta misión")
+                col_c1, col_c2, col_c3 = st.columns([2, 1, 1])
+                with col_c1:
+                    tema_robot = st.text_input("Tema del Reto:", placeholder="Ej: Sistema Solar, Verbos...")
+                with col_c2:
+                    lista_grados_robot = [
+                        "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
+                        "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
+                    ]
+                    grado_robot = st.selectbox("Grado:", lista_grados_robot, index=5)
+                with col_c3:
+                    cant_robot = st.slider("Palabras:", 3, 10, 5)
+                
+                if st.button("🤖 Iniciar Misión", type="primary", use_container_width=True):
+                    if not tema_robot:
+                        st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner("Cargando baterías..."):
-                            retos = pedagogical_assistant.generar_reto_ahorcado(tema, "General", cant)
-                            if retos:
+                        with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
+                            retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
+                            if retos and len(retos) > 0:
                                 st.session_state['robot_challenges'] = retos
                                 st.session_state['robot_level'] = 0
                                 st.session_state['robot_score'] = 0
                                 st.session_state['robot_errors'] = 0
                                 st.session_state['robot_max_errors'] = 6
-                                st.session_state['robot_word'] = retos[0]['palabra'].upper()
-                                st.session_state['robot_hint'] = retos[0]['pista']
+                                
+                                primer_reto = retos[0]
+                                st.session_state['robot_word'] = primer_reto['palabra'].upper()
+                                st.session_state['robot_hint'] = primer_reto['pista']
                                 st.session_state['robot_guesses'] = set()
                                 st.rerun()
-                            else: st.error("Error IA")
-            
+                            else:
+                                st.error("Error conectando con el servidor central (IA). Intenta de nuevo.")
+
             # --- ZONA DE JUEGO ---
             else:
-                import time 
-                
-                contenedor_audio = st.empty()
+                import time # Importamos time para los efectos
                 alerta_placeholder = st.empty()
+                contenedor_audio = st.empty() # Para sonido
+
+                nivel_idx = st.session_state['robot_level']
+                total_niveles = len(st.session_state['robot_challenges'])
+                palabra = st.session_state['robot_word']
+                errores = st.session_state['robot_errors']
+                max_errores = st.session_state['robot_max_errors']
+                letras_adivinadas = st.session_state['robot_guesses']
                 
-                word = st.session_state['robot_word']
-                err = st.session_state['robot_errors']
+                # A) MONITOR
+                progreso_mision = (nivel_idx) / total_niveles
+                st.progress(progreso_mision, text=f"Nivel {nivel_idx + 1} de {total_niveles} | Puntaje: {st.session_state['robot_score']}")
+
+                baterias_restantes = max_errores - errores
+                emoji_bateria = "🔋" * baterias_restantes + "🪫" * errores
                 
-                # A) MONITOR (PISTA GRANDE + BATERÍA)
-                c1, c2 = st.columns([3, 1])
-                with c1:
-                    # Pista Estilizada Grande
+                col_hint, col_bat = st.columns([3, 1])
+                with col_hint:
+                    # Pista Grande
                     st.markdown(f"""
-                    <div style="background-color: #E3F2FD; padding: 20px; border-radius: 15px; border-left: 8px solid #2196F3;">
-                        <h2 style="margin:0; color: #0D47A1; font-size: 32px; font-weight: bold;">💡 Pista: {st.session_state['robot_hint']}</h2>
+                    <div style="background-color: #E3F2FD; padding: 15px; border-radius: 10px; border-left: 6px solid #2196F3;">
+                        <h3 style="margin:0; color: #0D47A1; font-size: 28px;">💡 {st.session_state['robot_hint']}</h3>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                with c2:
-                    baterias_restantes = 6 - err
-                    emoji_bateria = "🔋" * baterias_restantes + "🪫" * err
-                    st.markdown(f"<div style='font-size: 45px; text-align: right; padding-top: 10px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
-                
-                # B) PALABRA OCULTA (GIGANTE)
-                disp = " ".join([l if l in st.session_state['robot_guesses'] else "_" for l in word])
+                with col_bat:
+                    st.markdown(f"<div style='font-size: 45px; text-align: right;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+
+                # B) PALABRA
+                palabra_mostrar = ""
+                ganado = True
+                for letra in palabra:
+                    if letra in letras_adivinadas:
+                        palabra_mostrar += letra + " "
+                    else:
+                        palabra_mostrar += "_ "
+                        ganado = False
                 
                 st.markdown(f"""
-                <h1 style="
-                    text-align: center; 
-                    font-size: 90px !important; 
-                    font-family: 'Courier New', monospace; 
-                    font-weight: 900 !important; 
-                    color: #263238 !important; 
-                    margin: 30px 0 !important; 
-                    letter-spacing: 15px !important;
-                    line-height: 1.2 !important;
-                ">
-                    {disp}
+                <h1 style="text-align: center; font-size: 85px; font-family: monospace; color: #333; font-weight: 900; margin: 30px 0; letter-spacing: 10px;">
+                    {palabra_mostrar}
                 </h1>
                 """, unsafe_allow_html=True)
-                
-                # C) TECLADO ARCADE
-                st.write("")
-                cols = st.columns(9)
-                letras = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
-                
-                for i, l in enumerate(letras):
-                    dis = l in st.session_state['robot_guesses']
-                    # El color cambia si ya fue usada
-                    tipo_btn = "secondary"
-                    if dis and l in word: tipo_btn = "primary"
-                    
-                    if cols[i%9].button(l, key=f"key_{l}", disabled=dis, type=tipo_btn, use_container_width=True):
-                        st.session_state['robot_guesses'].add(l)
-                        
-                        if l in word:
-                            # ✅ ACIERTO: Sonido Ding
-                            t_stamp = time.time()
-                            contenedor_audio.markdown(f"""
-                                <audio autoplay="true" style="display:none;">
-                                <source src="https://www.soundjay.com/buttons/sounds/button-3.mp3?t={t_stamp}" type="audio/mp3">
-                                </audio>
-                            """, unsafe_allow_html=True)
-                            time.sleep(0.3)
-                            st.rerun()
-                        else:
-                            # ❌ ERROR: Sonido Zap
-                            st.session_state['robot_errors'] += 1
-                            t_stamp = time.time()
-                            
-                            contenedor_audio.markdown(f"""
-                                <audio autoplay="true" style="display:none;">
-                                <source src="https://www.soundjay.com/buttons/sounds/button-10.mp3?t={t_stamp}" type="audio/mp3">
-                                </audio>
-                            """, unsafe_allow_html=True)
-                            
-                            alerta_placeholder.markdown("""
-                                <div style="background-color: #ffebee; border: 4px solid #ef5350; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 20px #ef5350;">
-                                    <h2 style="color: #b71c1c; margin:0; font-size: 35px;">💥 ¡ERROR!</h2>
-                                </div>
-                            """, unsafe_allow_html=True)
-                            time.sleep(1.0)
-                            st.rerun()
-                
-                # D) FINALES
-                if all(l in st.session_state['robot_guesses'] for l in word):
-                    st.success("¡Nivel Completado!")
-                    if st.button("Siguiente Nivel", type="primary"):
-                        st.session_state['robot_level'] += 1
-                        if st.session_state['robot_level'] < len(st.session_state['robot_challenges']):
-                            siguiente = st.session_state['robot_challenges'][st.session_state['robot_level']]
-                            st.session_state['robot_word'] = siguiente['palabra'].upper()
-                            st.session_state['robot_hint'] = siguiente['pista']
-                            st.session_state['robot_guesses'] = set()
-                            st.session_state['robot_errors'] = 0
-                            st.rerun()
-                        else:
-                            st.balloons()
-                            st.success("🏆 ¡Misión Cumplida!")
-                            if st.button("Volver al Menú"):
-                                for k in ['robot_challenges', 'robot_level', 'robot_word']:
-                                    if k in st.session_state: del st.session_state[k]
-                                volver_menu_juegos()
 
-                if err >= 6:
-                    st.error(f"💀 PALABRA: **{word}**")
-                    if st.button("⚡ Reintentar", type="primary"): 
-                        st.session_state['robot_errors'] = 0
+                # C) CONTROL
+                if ganado:
+                    st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
+                    if nivel_idx < total_niveles - 1:
+                        if st.button("➡️ Siguiente Nivel", type="primary", use_container_width=True):
+                            st.session_state['robot_score'] += 100
+                            st.session_state['robot_level'] += 1
+                            siguiente_reto = st.session_state['robot_challenges'][st.session_state['robot_level']]
+                            st.session_state['robot_word'] = siguiente_reto['palabra'].upper()
+                            st.session_state['robot_hint'] = siguiente_reto['pista']
+                            st.session_state['robot_guesses'] = set()
+                            # ⚠️ CORRECCIÓN APLICADA: NO REINICIAMOS ERRORES AQUÍ
+                            # st.session_state['robot_errors'] = 0 <--- ELIMINADO
+                            st.rerun()
+                    else:
+                        st.balloons()
+                        st.markdown("""<div style="text-align: center; padding: 20px; background-color: #d4edda; border-radius: 20px;"><h1>🏆 ¡MISIÓN COMPLETADA!</h1></div>""", unsafe_allow_html=True)
+                        if st.button("🔄 Nueva Misión", type="primary"):
+                            del st.session_state['robot_challenges']
+                            st.rerun()
+                        
+                elif errores >= max_errores:
+                    st.error(f"💀 BATERÍA AGOTADA. La palabra era: **{palabra}**")
+                    if st.button("⚡ Reintentar Nivel", type="secondary", use_container_width=True):
                         st.session_state['robot_guesses'] = set()
+                        st.session_state['robot_errors'] = 0 # Aquí SÍ reseteamos porque murió
                         st.rerun()
+                        
+                else:
+                    # D) TECLADO ARCADE
+                    st.write("")
+                    letras_teclado = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+                    cols = st.columns(9)
+                    
+                    for i, letra in enumerate(letras_teclado):
+                        desactivado = letra in letras_adivinadas
+                        type_btn = "secondary"
+                        if desactivado and letra in palabra: 
+                            type_btn = "primary"
+                            
+                        if cols[i % 9].button(letra, key=f"key_{letra}", disabled=desactivado, type=type_btn, use_container_width=True):
+                            st.session_state['robot_guesses'].add(letra)
+                            
+                            # Lógica de Audio y Error
+                            if letra in palabra:
+                                # ACIERTO
+                                t_stamp = time.time()
+                                contenedor_audio.markdown(f"""<audio autoplay style="display:none;"><source src="https://www.soundjay.com/buttons/sounds/button-3.mp3?t={t_stamp}"></audio>""", unsafe_allow_html=True)
+                                time.sleep(0.2)
+                            else:
+                                # ERROR
+                                st.session_state['robot_errors'] += 1
+                                t_stamp = time.time()
+                                contenedor_audio.markdown(f"""<audio autoplay style="display:none;"><source src="https://www.soundjay.com/buttons/sounds/button-10.mp3?t={t_stamp}"></audio>""", unsafe_allow_html=True)
+                                alerta_placeholder.markdown("""
+                                    <div style="background-color: #ffebee; border: 3px solid #ef5350; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                                        <h2 style="color: #b71c1c; margin:0; font-size: 30px;">💥 ¡CORTOCIRCUITO!</h2>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                                time.sleep(1.0)
+                            
+                            st.rerun()
                         
         # 5. JUEGO SORTEADOR (ETAPA 2: CARGA DE DATOS)
         elif st.session_state['juego_actual'] == 'sorteador':
@@ -2244,6 +2272,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
