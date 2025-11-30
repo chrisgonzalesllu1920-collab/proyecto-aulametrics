@@ -59,16 +59,25 @@ st.markdown("""
     /* =========================================
        B. LIMPIEZA DE INTERFAZ
     ========================================= */
-    /* Ocultar elementos nativos de Streamlit */
+    /* Ocultamos elementos innecesarios pero DEJAMOS el header funcional */
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     footer { visibility: hidden; }
-    header { visibility: hidden !important; }
-    [data-testid="stHeader"] { background: transparent !important; }
+    
+    /* EL CAMBIO CLAVE: No usamos display:none, sino transparencia */
+    [data-testid="stHeader"] { 
+        background-color: rgba(0,0,0,0) !important; /* Transparente */
+        z-index: 999 !important; /* Asegurar que esté encima para poder dar click */
+    }
+    
+    /* Ajustamos el color de los iconos del header (hamburguesa/flecha) a blanco/gris para que se vean */
+    [data-testid="stHeader"] button {
+        color: #E0E0E0 !important;
+    }
     
     /* Eliminar margen superior excesivo */
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 3rem !important; /* Un poco más de espacio para que no se solape con el botón del menú */
         padding-bottom: 0rem !important;
     }
 
@@ -1970,6 +1979,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
