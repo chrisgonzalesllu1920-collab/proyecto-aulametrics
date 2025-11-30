@@ -1304,73 +1304,72 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-# --- B. DEFINICIÓN DEL MENÚ (ESTILO A: CYBERPUNK NEON) ---
+# --- B. DEFINICIÓN DEL MENÚ (ESTILO B: CRISTAL HOLOGRÁFICO) ---
         def mostrar_menu_juegos():
-            # 1. CSS NEON (SOLO PARA ESTE MENÚ)
+            # 1. CSS GLASSMORPHISM (PROTEGIENDO EL SIDEBAR)
             st.markdown("""
             <style>
-                /* Contenedor del botón estilo Cyberpunk */
-                div.stButton > button {
-                    background: linear-gradient(145deg, #0f2027, #203a43, #2c5364) !important; /* Fondo oscuro degradado */
-                    border: 1px solid #00f260 !important; /* Borde Verde Neón inicial */
-                    border-radius: 12px !important;
-                    box-shadow: 0 0 10px rgba(0, 242, 96, 0.2) !important; /* Resplandor suave */
-                    color: #ffffff !important;
-                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+                /* SELECTOR ESPECÍFICO: Solo afecta a botones en la zona principal (Main), NO al Sidebar */
+                section[data-testid="stMain"] div.stButton > button {
+                    /* Fondo de Cristal */
+                    background: rgba(255, 255, 255, 0.1) !important; /* Blanco muy transparente */
+                    backdrop-filter: blur(10px) !important; /* Efecto Borroso detrás */
+                    -webkit-backdrop-filter: blur(10px) !important;
+                    
+                    /* Borde Sutil */
+                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                    border-radius: 16px !important;
+                    
+                    /* Sombra y Color */
+                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+                    color: white !important;
+                    
+                    /* Geometría */
                     height: auto !important;
-                    padding: 25px 15px !important;
-                    position: relative;
-                    overflow: hidden;
+                    padding: 30px 20px !important;
+                    transition: all 0.3s ease !important;
                 }
 
-                /* Efecto Hover: ¡Explosión de Neón! */
-                div.stButton > button:hover {
-                    transform: translateY(-5px) scale(1.02);
-                    border-color: #0575E6 !important; /* Cambia a Azul Eléctrico */
-                    box-shadow: 0 0 20px rgba(5, 117, 230, 0.6), 0 0 40px rgba(5, 117, 230, 0.3) !important;
-                    z-index: 10;
+                /* Efecto Hover: Se vuelve más sólido y brillante */
+                section[data-testid="stMain"] div.stButton > button:hover {
+                    transform: translateY(-5px);
+                    background: rgba(255, 255, 255, 0.2) !important; /* Más blanco */
+                    border: 1px solid rgba(255, 255, 255, 0.5) !important; /* Borde brilla */
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
                 }
 
                 /* Texto del Título */
-                div.stButton > button p {
-                    font-family: 'Courier New', monospace !important; /* Fuente tipo código/hacker */
+                section[data-testid="stMain"] div.stButton > button p {
+                    font-family: 'Poppins', sans-serif !important;
                     font-size: 20px !important;
-                    font-weight: 900 !important;
-                    letter-spacing: 2px !important;
+                    font-weight: 600 !important;
+                    letter-spacing: 1px !important;
                     text-transform: uppercase !important;
-                    margin: 0 !important;
-                    text-shadow: 0 0 5px rgba(255,255,255,0.5);
-                }
-                
-                /* Icono dentro del botón (Hack para que el emoji brille) */
-                div.stButton > button::before {
-                    content: ''; /* Aquí iría el icono si usáramos FontAwesome, pero usamos emojis en el texto */
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra para leer bien sobre cualquier fondo */
                 }
             </style>
             """, unsafe_allow_html=True)
 
-            # TÍTULO ESTILIZADO
+            # TÍTULO ESTILIZADO (Blanco Limpio)
             st.markdown("""
             <div style="text-align: center; margin-bottom: 40px;">
-                <h2 style="color: #00f260; font-size: 42px; font-weight: 800; text-shadow: 0 0 10px rgba(0,242,96,0.5); font-family: sans-serif;">⚡ ZONA ARCADE ⚡</h2>
-                <p style="color: #a8c0ff; font-size: 18px; letter-spacing: 1px;">SELECCIONA TU MISIÓN</p>
+                <h2 style="color: #FFFFFF; font-size: 40px; font-weight: 800; letter-spacing: -1px;">💎 ZONA DE JUEGOS</h2>
+                <p style="color: #E0E0E0; font-size: 18px; font-weight: 300;">Experiencias interactivas de aprendizaje</p>
             </div>
             """, unsafe_allow_html=True)
 
             # --- PARRILLA DE JUEGOS ---
-            # Nota: Quitamos los emojis flotantes externos para meterlos DENTRO del botón y que sea una sola unidad.
-            
             col1, col2 = st.columns(2, gap="large")
             
             with col1:
-                # TRIVIA (Emoji integrado en el texto del botón)
-                if st.button("🧠 TRIVIA\n\nDesafío Mental", key="btn_neon_trivia", use_container_width=True):
+                # TRIVIA
+                if st.button("🧠 TRIVIA\n\nDesafío de Conocimiento", key="btn_glass_trivia", use_container_width=True):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
                 # PUPILETRAS
-                if st.button("🔤 PUPILETRAS\n\nCaza Palabras", key="btn_neon_pupi", use_container_width=True):
+                if st.button("🔤 PUPILETRAS\n\nBúsqueda Visual", key="btn_glass_pupi", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
@@ -1380,13 +1379,13 @@ def home_page():
             
             with col3:
                 # ROBOT
-                if st.button("🤖 ROBOT\n\nRescate Lógico", key="btn_neon_robot", use_container_width=True):
+                if st.button("🤖 ROBOT\n\nLógica Deductiva", key="btn_glass_robot", use_container_width=True):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
                 # PIXEL ART
-                if st.button("👾 PIXEL ART\n\nRevelador Visual", key="btn_neon_pixel", use_container_width=True):
+                if st.button("🖼️ PIXEL ART\n\nDescubrimiento Visual", key="btn_glass_pixel", use_container_width=True):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
@@ -1999,4 +1998,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
