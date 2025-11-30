@@ -149,25 +149,41 @@ def navegar_a(pagina):
 # =========================================================================
 
 def mostrar_home():
-    # --- 💉 ANTÍDOTO CSS: RESTAURAR BARRA LATERAL Y FLECHA ---
+    # --- 💉 ANTÍDOTO CSS V2.0: FORZAR VISIBILIDAD DE LA FLECHA ---
     st.markdown("""
         <style>
-        /* 1. Hacemos visible la barra superior de nuevo */
+        /* 1. RESTAURAR HEADER (Pero hacerlo transparente) */
         header[data-testid="stHeader"] {
-            display: block !important;
             background-color: transparent !important;
+            display: block !important; /* Asegura que exista */
+            height: 60px !important; /* Altura fija para que no colapse */
         }
         
-        /* 2. Forzamos que la flecha del menú sea visible y de color oscuro */
+        /* 2. FORZAR VISIBILIDAD DEL BOTÓN DEL MENÚ (La Flecha) */
+        /* Apuntamos a todos los posibles selectores del botón */
+        button[kind="header"] {
+            background-color: rgba(255, 255, 255, 0.5) !important; /* Fondo semitransparente para verlo */
+            border-radius: 50% !important;
+            color: #333333 !important; /* Flecha negra */
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 999999 !important; /* Ponerlo encima de todo */
+            position: fixed !important; /* Fijarlo en la pantalla */
+            top: 15px !important;
+            left: 15px !important;
+        }
+        
+        /* Selector específico para cuando está colapsado */
         [data-testid="collapsedControl"] {
             display: block !important;
-            color: #333333 !important; /* Color gris oscuro para que se vea */
-            z-index: 99999 !important; /* Encima de todo */
+            color: #333333 !important;
+            z-index: 999999 !important;
         }
-        
-        /* 3. Ajustamos el margen superior para que el título no quede tapado */
+
+        /* 3. Ajuste de contenido para que no choque con la flecha */
         .block-container {
-            padding-top: 4rem !important;
+            padding-top: 3rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2423,6 +2439,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
