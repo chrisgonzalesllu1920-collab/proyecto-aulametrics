@@ -1913,8 +1913,10 @@ def home_page():
 
             # --- ZONA DE JUEGO ---
             else:
+                import time # <--- ¡SOLUCIÓN! Importamos time aquí para que funcione la pausa
+                
                 alerta_placeholder = st.empty()
-
+                
                 nivel_idx = st.session_state['robot_level']
                 total_niveles = len(st.session_state['robot_challenges'])
                 palabra = st.session_state['robot_word']
@@ -1955,7 +1957,7 @@ def home_page():
                 </div>
                 """, unsafe_allow_html=True)
 
-                # C) CONTROL
+                # C) CONTROL Y TECLADO
                 if ganado:
                     st.success(f"🎉 ¡CORRECTO! La palabra era: **{palabra}**")
                     if nivel_idx < total_niveles - 1:
@@ -2004,7 +2006,7 @@ def home_page():
                                         <p style="color: #c62828; font-size: 24px; font-weight: bold;">Has perdido una batería</p>
                                     </div>
                                 """, unsafe_allow_html=True)
-                                time.sleep(1.5)
+                                time.sleep(1.5) # Ahora sí funcionará
                             st.rerun()
 
         # 5. JUEGO SORTEADOR (ETAPA 2: CARGA DE DATOS)
@@ -2256,6 +2258,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
