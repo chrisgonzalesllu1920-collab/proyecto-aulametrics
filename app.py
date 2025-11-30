@@ -145,10 +145,34 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - ICONOS CLOUD) ===
+# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - CON ANTÍDOTO CSS) ===
 # =========================================================================
 
 def mostrar_home():
+    # --- 💉 ANTÍDOTO CSS: RESTAURAR BARRA LATERAL Y FLECHA ---
+    st.markdown("""
+        <style>
+        /* 1. Hacemos visible la barra superior de nuevo */
+        header[data-testid="stHeader"] {
+            display: block !important;
+            background-color: transparent !important;
+        }
+        
+        /* 2. Forzamos que la flecha del menú sea visible y de color oscuro */
+        [data-testid="collapsedControl"] {
+            display: block !important;
+            color: #333333 !important; /* Color gris oscuro para que se vea */
+            z-index: 99999 !important; /* Encima de todo */
+        }
+        
+        /* 3. Ajustamos el margen superior para que el título no quede tapado */
+        .block-container {
+            padding-top: 4rem !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # --- CONTENIDO NORMAL DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
@@ -157,7 +181,7 @@ def mostrar_home():
     col1, col2 = st.columns(2)
     
     with col1:
-        # TARJETA 1: FUSIÓN DE ANÁLISIS (GENERAL + ESTUDIANTE)
+        # TARJETA 1: FUSIÓN DE ANÁLISIS
         st.markdown("""
         <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -2399,5 +2423,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
