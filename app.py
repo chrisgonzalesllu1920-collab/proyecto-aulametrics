@@ -302,22 +302,74 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V5.0 - SOLUCIÓN ID DINÁMICO) ===
+# === 4. PÁGINA DE LOGIN (V6.0 - DISEÑO "SUNSET TECH" + FUNCIONALIDAD) ===
 # =========================================================================
 def login_page():
+    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS) ---
+    st.markdown("""
+    <style>
+        /* 1. FONDO DEGRADADO (Morado a Naranja) */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%); /* Fondo de reserva */
+            background: -webkit-linear-gradient(to right, #4A00E0, #8E2DE2);  /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        }
+
+        /* 2. CONTENEDOR CENTRAL (Efecto Tarjeta Blanca) */
+        /* Buscamos el contenedor vertical donde están los inputs */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        /* 3. TEXTOS Y TÍTULOS (Para que resalten) */
+        h2, h3 {
+            color: #FFFFFF !important; /* Títulos en Blanco sobre el degradado */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        p {
+            color: #F0F0F0 !important; /* Subtítulos gris muy claro */
+            font-size: 18px !important;
+        }
+        
+        /* Ajuste para los textos DENTRO de la tarjeta blanca (volvemos a negro) */
+        div[data-testid="stVerticalBlock"] div.stForm p, 
+        div[data-testid="stVerticalBlock"] div.stForm label {
+            color: #333333 !important;
+            text-shadow: none !important;
+        }
+
+        /* 4. BOTONES (Estilo más moderno) */
+        div.stButton > button {
+            border-radius: 10px !important;
+            height: 50px !important;
+            font-weight: bold !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- B. ESTRUCTURA DE LA PÁGINA ---
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
+        # Logotipo
         st.image("assets/logotipo-aulametrics.png", width=300)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("Tu asistente pedagógico y analista de datos.")
+        
+        # Creamos un contenedor visual para el Login/Registro
+        # (El CSS de arriba le dará estilo de tarjeta blanca a esto)
+        st.write("") 
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
             with st.form("login_form"):
+                st.markdown("### 🔐 Acceso Docente") # Título dentro de la tarjeta
                 email = st.text_input("Correo Electrónico", key="login_email")
                 password = st.text_input("Contraseña", type="password", key="login_password")
                 submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
@@ -338,24 +390,24 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
-        # --- PESTAÑA 2: REGISTRO (CON RESET POR ID) ---
+        # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
             
-            # 1. GENERADOR DE ID DINÁMICO (Para limpiar el formulario)
+            # 1. GENERADOR DE ID DINÁMICO
             if 'form_reset_id' not in st.session_state:
                 st.session_state['form_reset_id'] = 0
             
-            # Variable auxiliar para el ID actual
             reset_id = st.session_state['form_reset_id']
 
-            # A. MOSTRAR MENSAJE SI LA BANDERA ESTÁ ACTIVA
+            # A. MOSTRAR MENSAJE DE ÉXITO (Fuera del form para que se vea bien)
             if st.session_state.get('registro_exitoso', False):
                 st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'** para ingresar.")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
                 st.balloons()
 
             with st.form("register_form"):
-                # 2. USAMOS EL ID EN LAS KEYS (Esto hace la magia)
+                st.markdown("### 📝 Nuevo Usuario")
+                # 2. USAMOS EL ID EN LAS KEYS
                 name = st.text_input("Nombre", key=f"reg_name_{reset_id}")
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}")
                 password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}")
@@ -376,13 +428,10 @@ def login_page():
                                 }
                             })
                             
-                            # 3. CAMBIAR EL ID PARA "RESETEAR" EL FORMULARIO
-                            # Al aumentar el número, en la próxima recarga las keys serán nuevas 
-                            # y los campos aparecerán vacíos.
+                            # 3. CAMBIAR EL ID Y ACTIVAR MENSAJE
                             st.session_state['form_reset_id'] += 1
                             st.session_state['registro_exitoso'] = True
                             
-                            # Recargamos para aplicar cambios
                             st.rerun()
                                 
                         except Exception as e:
@@ -390,20 +439,22 @@ def login_page():
 
         st.divider()
         
+        # Link de contacto (Estilo Botón Transparente)
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
             display: inline-block;
             width: 100%;
-            padding: 10px 0;
-            background-color: #0068C9;
+            padding: 12px 0;
+            background-color: rgba(255, 255, 255, 0.2); /* Blanco Transparente */
             color: white;
             text-align: center;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-weight: bold;
-            box-sizing: border-box; 
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
         ">
             ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
         </a>
@@ -2302,6 +2353,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
