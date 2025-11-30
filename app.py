@@ -145,7 +145,7 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO) ===
+# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - ICONOS CLOUD) ===
 # =========================================================================
 
 def mostrar_home():
@@ -159,20 +159,22 @@ def mostrar_home():
     with col1:
         # TARJETA 1: FUSIÓN DE ANÁLISIS (GENERAL + ESTUDIANTE)
         st.markdown("""
-        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: 180px;">
-            <h3 style="color: #1565c0; text-align: center;">📊 Sistema de Evaluación</h3>
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: auto; min-height: 220px;">
+            <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
+            <h3 style="color: #1565c0; text-align: center; margin-top: 0;">📊 Sistema de Evaluación</h3>
             <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
-            navegar_a("Sistema de Evaluación") # Nombre de la nueva página unificada
+            navegar_a("Sistema de Evaluación") 
             st.rerun()
 
     with col2:
         # TARJETA 2: ASISTENTE
         st.markdown("""
-        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: 180px;">
-            <h3 style="color: #6a1b9a; text-align: center;">🧠 Asistente Pedagógico</h3>
+        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: auto; min-height: 220px;">
+            <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
+            <h3 style="color: #6a1b9a; text-align: center; margin-top: 0;">🧠 Asistente Pedagógico</h3>
             <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -188,8 +190,9 @@ def mostrar_home():
     with col3:
         # TARJETA 3: RECURSOS
         st.markdown("""
-        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: 180px;">
-            <h3 style="color: #ef6c00; text-align: center;">📂 Banco de Recursos</h3>
+        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: auto; min-height: 220px;">
+            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
+            <h3 style="color: #ef6c00; text-align: center; margin-top: 0;">📂 Banco de Recursos</h3>
             <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -200,8 +203,9 @@ def mostrar_home():
     with col4:
         # TARJETA 4: GAMIFICACIÓN
         st.markdown("""
-        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: 180px;">
-            <h3 style="color: #c2185b; text-align: center;">🎮 Gamificación</h3>
+        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: auto; min-height: 220px;">
+            <img src="https://img.icons8.com/fluency/96/controller.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
+            <h3 style="color: #c2185b; text-align: center; margin-top: 0;">🎮 Gamificación</h3>
             <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -2395,4 +2399,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
