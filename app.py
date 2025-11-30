@@ -302,18 +302,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN ===
+# === 4. PÁGINA DE LOGIN (CON FEEDBACK DE ÉXITO) ===
 # =========================================================================
 def login_page():
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
-        st.image("assets/logotipo-aulametrics.png", width=300)
+        # Asegúrate de que la ruta de la imagen sea correcta en tu proyecto
+        # st.image("assets/logotipo-aulametrics.png", width=300) 
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("Tu asistente pedagógico y analista de datos.")
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
+        # --- PESTAÑA 1: LOGIN ---
         with tab_login:
             with st.form("login_form"):
                 email = st.text_input("Correo Electrónico", key="login_email")
@@ -333,6 +335,7 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
+        # --- PESTAÑA 2: REGISTRO (AQUÍ ESTÁ LA MEJORA) ---
         with tab_register:
             with st.form("register_form"):
                 name = st.text_input("Nombre", key="register_name")
@@ -345,6 +348,7 @@ def login_page():
                         st.warning("Por favor, completa todos los campos.")
                     else:
                         try:
+                            # 1. Intentamos crear el usuario
                             user = supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
@@ -352,14 +356,25 @@ def login_page():
                                     "data": { 'full_name': name }
                                 }
                             })
-                            st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
-                            st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
+                            
+                            # 2. FEEDBACK POSITIVO (LA MEJORA) 🚀
+                            import time # Importamos time aquí por si acaso no está arriba
+                            
+                            st.balloons() # Efecto visual de fiesta
+                            st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                            st.markdown(f"**Bienvenido/a, {name}.** Ya estás registrado en el sistema.")
+                            st.info("👈 Ahora ve a la pestaña **'Iniciar Sesión'** e ingresa tus datos.")
+                            
+                            # 3. Pausa para que el usuario lea el mensaje
+                            with st.spinner("Guardando tus credenciales..."):
+                                time.sleep(2.5)
+                                
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
         st.divider()
         
-        # URL de tu página de github
+        # URL de tu página de github/landing
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -367,7 +382,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 10px 0;
-            background-color: #0068C9; /* Azul Profesional */
+            background-color: #0068C9;
             color: white;
             text-align: center;
             text-decoration: none;
@@ -2272,6 +2287,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
