@@ -302,14 +302,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (CON FEEDBACK DE ÉXITO) ===
+# === 4. PÁGINA DE LOGIN (CORREGIDA: CON LOGO Y FEEDBACK) ===
 # =========================================================================
 def login_page():
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
-        # Asegúrate de que la ruta de la imagen sea correcta en tu proyecto
-        # st.image("assets/logotipo-aulametrics.png", width=300) 
+        # ✅ LOGOTIPO RESTAURADO AQUÍ ABAJO
+        st.image("assets/logotipo-aulametrics.png", width=300)
+        
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("Tu asistente pedagógico y analista de datos.")
         
@@ -335,7 +336,7 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
-        # --- PESTAÑA 2: REGISTRO (AQUÍ ESTÁ LA MEJORA) ---
+        # --- PESTAÑA 2: REGISTRO (CON FEEDBACK) ---
         with tab_register:
             with st.form("register_form"):
                 name = st.text_input("Nombre", key="register_name")
@@ -357,15 +358,14 @@ def login_page():
                                 }
                             })
                             
-                            # 2. FEEDBACK POSITIVO (LA MEJORA) 🚀
-                            import time # Importamos time aquí por si acaso no está arriba
-                            
-                            st.balloons() # Efecto visual de fiesta
+                            # 2. FEEDBACK POSITIVO
+                            import time
+                            st.balloons()
                             st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
                             st.markdown(f"**Bienvenido/a, {name}.** Ya estás registrado en el sistema.")
                             st.info("👈 Ahora ve a la pestaña **'Iniciar Sesión'** e ingresa tus datos.")
                             
-                            # 3. Pausa para que el usuario lea el mensaje
+                            # 3. Pausa para leer
                             with st.spinner("Guardando tus credenciales..."):
                                 time.sleep(2.5)
                                 
@@ -2287,6 +2287,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
