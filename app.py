@@ -302,13 +302,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V9.0 - ESTILO TRANSPARENTE / GLASS) ===
+# === 4. PÁGINA DE LOGIN (V10.0 - GLASSMORPHISM CON TEXTO OSCURO) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS TRANSPARENTE) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO EN TODA LA PANTALLA */
+        /* 1. FONDO DEGRADADO (Toda la pantalla) */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
             background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
@@ -316,7 +316,7 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* 2. ELIMINAR MÁRGENES Y CABECERA */
+        /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
@@ -326,60 +326,65 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA INVISIBLE (El cambio clave) */
+        /* 3. TARJETA DE CRISTAL (SEMI-TRANSPARENTE) */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: rgba(255, 255, 255, 0.1); /* 10% de blanco (Cristal) */
-            backdrop-filter: blur(10px); /* Efecto borroso detrás */
+            background-color: rgba(255, 255, 255, 0.25); /* Un poco más blanco para contraste */
+            backdrop-filter: blur(15px); /* Más borroso para que el texto se lea bien */
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 4. TEXTOS EN BLANCO (Para leer sobre morado) */
-        h2, h3, h1, p, label, .stMarkdown {
+        /* 4. TEXTOS GLOBALES (Blancos para el fondo oscuro fuera de la tarjeta) */
+        h1, h2, h3, p {
             color: #FFFFFF !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 5. CORRECCIÓN: TEXTOS DENTRO DEL FORMULARIO (OSCUROS) */
+        /* Aquí está la solución: Forzamos negro dentro de la tarjeta */
+        div.stForm label p, div.stForm h3, div.stForm h3 span {
+            color: #1a1a1a !important; /* Negro casi puro */
+            text-shadow: none !important;
+            font-weight: 600 !important;
+        }
+        div.stForm p {
+             color: #1a1a1a !important;
+             text-shadow: none !important;
+        }
+
+        /* 6. INPUTS (CAJAS DE TEXTO) */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important; /* TEXTO NEGRO AL ESCRIBIR */
+            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo casi blanco */
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            border-radius: 8px !important;
         }
         
-        /* Título del Formulario (Acceso Docente) */
-        div.stForm h3 span {
-            color: #FFFFFF !important; 
-        }
-
-        /* 5. INPUTS (Cajas de texto estilo cristal) */
-        input[type="text"], input[type="password"] {
-            color: #FFFFFF !important; /* Lo que escribes es blanco */
-            background-color: rgba(255, 255, 255, 0.2) !important; /* Fondo semi-transparente */
-            border: 1px solid rgba(255, 255, 255, 0.5) !important;
-            border-radius: 10px !important;
-        }
-        /* Color del placeholder (texto de ayuda) */
+        /* Color del placeholder (el texto de ayuda gris) */
         ::placeholder {
-            color: rgba(255, 255, 255, 0.7) !important;
+            color: #555555 !important; /* Gris oscuro */
+            opacity: 1 !important;
         }
 
-        /* 6. PESTAÑAS MEJORADAS */
+        /* 7. PESTAÑAS */
         button[data-baseweb="tab"] {
             background-color: rgba(0,0,0,0.2) !important;
-            color: rgba(255,255,255,0.7) !important;
-            border-radius: 5px !important;
-            margin-right: 5px !important;
-        }
-        button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: white !important;
-            color: #E94057 !important; /* Texto rosa/rojo al estar activo */
+            color: rgba(255,255,255,0.9) !important;
             font-weight: bold !important;
         }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            color: #E94057 !important; /* Texto rosa al seleccionar */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
         
-        /* Footer fuera */
         footer {visibility: hidden;}
-        
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA DE LA PÁGINA ---
-    # Centrado perfecto
+    # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
@@ -397,7 +402,7 @@ def login_page():
             with st.form("login_form"):
                 st.markdown("### 🔐 Acceso Docente")
                 email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="••••••••")
+                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                 submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                 
                 if submitted:
@@ -429,7 +434,7 @@ def login_page():
                 st.markdown("### 📝 Nuevo Usuario")
                 name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña segura")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                 
                 submitted = st.form_submit_button("Registrarme", use_container_width=True)
                 
@@ -460,13 +465,13 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 12px 0;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.15);
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 8px;
             font-weight: bold;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             transition: all 0.3s;
         ">
             ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
@@ -2366,6 +2371,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
