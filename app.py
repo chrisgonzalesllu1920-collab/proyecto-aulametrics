@@ -302,50 +302,70 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V6.0 - DISEÑO "SUNSET TECH" + FUNCIONALIDAD) ===
+# === 4. PÁGINA DE LOGIN (V7.0 - CORRECCIÓN DE CONTRASTE Y VISIBILIDAD) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS CORREGIDO) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Morado a Naranja) */
+        /* 1. FONDO DEGRADADO (Ocupando toda la pantalla) */
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%); /* Fondo de reserva */
-            background: -webkit-linear-gradient(to right, #4A00E0, #8E2DE2);  /* Chrome 10-25, Safari 5.1-6 */
-            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
+            background-size: cover;
+            background-attachment: fixed; /* Para que no se mueva al scrollear */
+        }
+        
+        /* Hacer transparente la barra superior para que se vea más fondo */
+        [data-testid="stHeader"] {
+            background-color: rgba(0,0,0,0);
         }
 
-        /* 2. CONTENEDOR CENTRAL (Efecto Tarjeta Blanca) */
-        /* Buscamos el contenedor vertical donde están los inputs */
+        /* 2. TARJETA CENTRAL (Blanca y visible) */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 30px;
+            background-color: #ffffff; /* Blanco puro */
+            padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); /* Sombra más fuerte para separar del fondo */
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* 3. ¡CORRECCIÓN CRÍTICA! - FORZAR TEXTO NEGRO EN INPUTS */
+        /* Esto arregla que no se vea lo que escribes */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important; /* Texto negro */
+            background-color: #F5F5F5 !important; /* Fondo gris muy suave en el input */
+            border: 1px solid #E0E0E0 !important;
+            -webkit-text-fill-color: #000000 !important; /* Fix para Safari/Chrome */
+            caret-color: #000000 !important; /* El cursor que parpadea también negro */
+        }
+
+        /* 4. ETIQUETAS Y TEXTOS (Labels) */
+        label, p, .stMarkdown {
+            color: #212121 !important; /* Gris casi negro para leer bien */
         }
         
-        /* 3. TEXTOS Y TÍTULOS (Para que resalten) */
-        h2, h3 {
-            color: #FFFFFF !important; /* Títulos en Blanco sobre el degradado */
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        p {
-            color: #F0F0F0 !important; /* Subtítulos gris muy claro */
-            font-size: 18px !important;
+        /* Títulos principales fuera de la tarjeta (Bienvenidos...) */
+        h2, h3, h2 span, h3 span {
+            color: #FFFFFF !important; /* Blanco brillante */
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5); /* Sombra para leerse sobre el degradado */
         }
         
-        /* Ajuste para los textos DENTRO de la tarjeta blanca (volvemos a negro) */
-        div[data-testid="stVerticalBlock"] div.stForm p, 
-        div[data-testid="stVerticalBlock"] div.stForm label {
-            color: #333333 !important;
+        /* Títulos DENTRO del formulario (Acceso Docente) */
+        div.stForm h3, div.stForm h3 span {
+            color: #3E0E69 !important; /* Morado oscuro para contraste */
             text-shadow: none !important;
         }
 
-        /* 4. BOTONES (Estilo más moderno) */
-        div.stButton > button {
-            border-radius: 10px !important;
-            height: 50px !important;
-            font-weight: bold !important;
+        /* 5. PESTAÑAS (Tabs) */
+        button[data-baseweb="tab"] {
+            background-color: rgba(255,255,255,0.2) !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: white !important;
+            color: #E94057 !important; /* Color activo */
         }
     </style>
     """, unsafe_allow_html=True)
@@ -354,14 +374,12 @@ def login_page():
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
-        # Logotipo
+        # LOGOTIPO
         st.image("assets/logotipo-aulametrics.png", width=300)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("Tu asistente pedagógico y analista de datos.")
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
-        # Creamos un contenedor visual para el Login/Registro
-        # (El CSS de arriba le dará estilo de tarjeta blanca a esto)
         st.write("") 
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -369,7 +387,7 @@ def login_page():
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
             with st.form("login_form"):
-                st.markdown("### 🔐 Acceso Docente") # Título dentro de la tarjeta
+                st.markdown("### 🔐 Acceso Docente")
                 email = st.text_input("Correo Electrónico", key="login_email")
                 password = st.text_input("Contraseña", type="password", key="login_password")
                 submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
@@ -383,23 +401,19 @@ def login_page():
                         st.session_state.logged_in = True
                         st.session_state.user = session.user
                         st.session_state.show_welcome_message = True
-                        
                         if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                        
                         st.rerun() 
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
         # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
-            
-            # 1. GENERADOR DE ID DINÁMICO
+            # Generador de ID
             if 'form_reset_id' not in st.session_state:
                 st.session_state['form_reset_id'] = 0
-            
             reset_id = st.session_state['form_reset_id']
 
-            # A. MOSTRAR MENSAJE DE ÉXITO (Fuera del form para que se vea bien)
+            # Mensaje de éxito
             if st.session_state.get('registro_exitoso', False):
                 st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
                 st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
@@ -407,7 +421,6 @@ def login_page():
 
             with st.form("register_form"):
                 st.markdown("### 📝 Nuevo Usuario")
-                # 2. USAMOS EL ID EN LAS KEYS
                 name = st.text_input("Nombre", key=f"reg_name_{reset_id}")
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}")
                 password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}")
@@ -419,7 +432,6 @@ def login_page():
                         st.warning("Por favor, completa todos los campos.")
                     else:
                         try:
-                            # Crear usuario
                             user = supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
@@ -427,19 +439,15 @@ def login_page():
                                     "data": { 'full_name': name }
                                 }
                             })
-                            
-                            # 3. CAMBIAR EL ID Y ACTIVAR MENSAJE
                             st.session_state['form_reset_id'] += 1
                             st.session_state['registro_exitoso'] = True
-                            
                             st.rerun()
-                                
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
         st.divider()
         
-        # Link de contacto (Estilo Botón Transparente)
+        # URL de contacto
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -447,7 +455,7 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 12px 0;
-            background-color: rgba(255, 255, 255, 0.2); /* Blanco Transparente */
+            background-color: rgba(255, 255, 255, 0.2);
             color: white;
             text-align: center;
             text-decoration: none;
@@ -2353,6 +2361,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
