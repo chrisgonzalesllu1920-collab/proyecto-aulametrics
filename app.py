@@ -2034,7 +2034,7 @@ def home_page():
                         else:
                             st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
 
-            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO FIX PRO 🔊) ---
+            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO SINCRONIZADO 🎰) ---
             else:
                 total_participantes = len(st.session_state['sorteo_lista'])
                 total_ganadores = st.session_state.get('sorteo_cantidad', 1)
@@ -2055,32 +2055,34 @@ def home_page():
                     lista_candidatos = st.session_state['sorteo_lista'].copy()
                     ganadores_ronda = []
                     
-                    # Contenedores vacíos para manejar el flujo visual y auditivo
+                    # Contenedores vacíos
                     contenedor_audio_giro = st.empty()
                     contenedor_animacion = st.empty()
                     contenedor_audio_win = st.empty()
                     
-                    # 🔊 SONIDO 1: GIRO (Bucle)
-                    # Truco ?t=... para evitar caché y forzar reproducción siempre
+                    # 1. ACTIVAR SONIDO DE GIRO (BUCLE)
+                    # Usamos un sonido de "Slot Machine Rolling" más ruidoso
                     t_stamp = time.time()
                     audio_html_giro = f"""
                         <audio autoplay loop>
-                        <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_736858e37e.mp3?t={t_stamp}" type="audio/mp3">
+                        <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3?t={t_stamp}" type="audio/mp3">
                         </audio>
                     """
                     contenedor_audio_giro.markdown(audio_html_giro, unsafe_allow_html=True)
+                    
+                    # ⚠️ LA SOLUCIÓN: Pequeña pausa para asegurar que el navegador cargue el audio
+                    time.sleep(0.5) 
                     
                     # Bucle de ganadores
                     for i in range(total_ganadores):
                         
                         # A) ANIMACIÓN VISUAL
                         velocidad = 0.05
-                        ciclos = 25 # Un poco más largo para disfrutar el sonido
+                        ciclos = 25 
                         
                         for paso in range(ciclos): 
                             nombre_random = random.choice(lista_candidatos)
                             
-                            # Efecto LED
                             color_texto = "#FFF"
                             if paso % 2 == 0: color_texto = "#FFD700"
                             
@@ -2109,13 +2111,10 @@ def home_page():
                             lista_candidatos.remove(ganador)
                             ganadores_ronda.append(ganador)
                             
-                            # 🛑 SILENCIAR GIRO MOMENTÁNEAMENTE (Opcional, o dejarlo de fondo)
-                            # contenedor_audio_giro.empty() 
-                            # Nota: A veces es mejor dejar el giro de fondo si hay varios ganadores seguidos, 
-                            # pero para el efecto dramático, lo pausaremos si es el último.
+                            # C) DETENER GIRO Y SONAR VICTORIA
+                            # Nota: No borramos contenedor_audio_giro aquí para que no haya silencio incómodo,
+                            # lo solapamos con el de victoria y luego borramos.
                             
-                            # 🔊 SONIDO 2: VICTORIA (Ding Ding!)
-                            # Usamos un ID diferente para que se superponga o suene claro
                             t_stamp_win = time.time()
                             audio_html_win = f"""
                                 <audio autoplay>
@@ -2123,8 +2122,9 @@ def home_page():
                                 </audio>
                             """
                             contenedor_audio_win.markdown(audio_html_win, unsafe_allow_html=True)
+                            contenedor_audio_giro.empty() # AHORA SÍ callamos el giro
                             
-                            # C) PANTALLA GANADOR
+                            # D) PANTALLA GANADOR
                             contenedor_animacion.markdown(f"""
                             <div style="
                                 text-align: center; padding: 40px; 
@@ -2140,17 +2140,27 @@ def home_page():
                             """, unsafe_allow_html=True)
                             
                             st.balloons()
-                            time.sleep(3.5) # Dejar que suene la fanfarria
+                            time.sleep(4) # Tiempo para celebrar
                             
-                            # Limpiar sonido de victoria para la siguiente ronda
-                            contenedor_audio_win.empty() 
+                            contenedor_audio_win.empty() # Callar victoria
+                            
+                            # Si faltan ganadores, reactivamos sonido de giro
+                            if i < total_ganadores - 1:
+                                t_stamp_loop = time.time()
+                                audio_html_loop = f"""
+                                    <audio autoplay loop>
+                                    <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3?t={t_stamp_loop}" type="audio/mp3">
+                                    </audio>
+                                """
+                                contenedor_audio_giro.markdown(audio_html_loop, unsafe_allow_html=True)
+                                time.sleep(0.5) # Pausa técnica para recargar sonido
                                 
                         else:
-                            st.warning("¡Lista vacía!")
+                            st.warning("¡Se acabaron los participantes!")
                             break
                     
-                    # D) FIN DEL JUEGO
-                    contenedor_audio_giro.empty() # Apagar sonido de giro definitivamente
+                    # D) LIMPIEZA FINAL
+                    contenedor_audio_giro.empty()
                     contenedor_animacion.empty()
                     st.session_state['sorteo_ganadores'] = ganadores_ronda
 
@@ -2205,6 +2215,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
