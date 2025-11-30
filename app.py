@@ -1795,7 +1795,7 @@ def home_page():
                         del st.session_state['pupi_grid']
                         st.rerun()
 
-# 4. JUEGO ROBOT (AHORCADO - VERSIÓN FINAL AUDIO + VISUAL)
+        # 4. JUEGO ROBOT (AHORCADO - V8.0 DISEÑO FINAL)
         elif st.session_state['juego_actual'] == 'ahorcado':
             
             # --- BARRA SUPERIOR ---
@@ -1808,14 +1808,52 @@ def home_page():
             with col_title:
                 st.subheader("🔋 Recarga al Robot")
 
-            # --- CSS ARCADE ---
+            # --- CSS ARCADE (TECLADO GRANDE Y AZUL) ---
             st.markdown("""
                 <style>
+                /* Estilo del Teclado (Botones 3D Azules) */
                 section[data-testid="stMain"] div.stButton > button {
-                    height: 60px; border-bottom: 5px solid #ccc; font-weight:bold;
+                    height: 70px !important; 
+                    width: 100% !important;
+                    border: 2px solid #1E88E5 !important; /* Borde Azul Fuerte */
+                    border-radius: 12px !important;
+                    background-color: white !important;
+                    color: #0D47A1 !important; /* Texto Azul Oscuro (Casi Negro) */
+                    font-size: 28px !important; /* Letra Grande */
+                    font-weight: 900 !important;
+                    box-shadow: 0 5px 0 #1565C0 !important; /* Sombra sólida 3D */
+                    transition: all 0.1s !important;
+                    margin-bottom: 10px !important;
+                    padding: 0 !important;
                 }
+                
+                /* Efecto al presionar (Hundirse) */
+                section[data-testid="stMain"] div.stButton > button:active:enabled {
+                    transform: translateY(4px) !important;
+                    box-shadow: none !important;
+                }
+
+                /* Hover (Brillo) */
+                section[data-testid="stMain"] div.stButton > button:hover:enabled {
+                    background-color: #E3F2FD !important;
+                }
+
+                /* Letras ya usadas (Deshabilitadas) */
+                section[data-testid="stMain"] div.stButton > button:disabled {
+                    background-color: #ECEFF1 !important;
+                    color: #B0BEC5 !important;
+                    border-color: #CFD8DC !important;
+                    box-shadow: none !important;
+                    opacity: 0.6 !important;
+                    transform: translateY(4px) !important;
+                }
+
+                /* Botones de Navegación (Siguiente/Reiniciar) - Estilo Naranja */
                 div.stButton > button[kind="primary"] {
-                    background-color: #FF5722 !important; border-color: #E64A19 !important;
+                    background-color: #FF5722 !important; 
+                    border-color: #E64A19 !important;
+                    box-shadow: 0 5px 0 #BF360C !important;
+                    color: white !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -1848,34 +1886,39 @@ def home_page():
             else:
                 import time 
                 
-                # Espacios reservados
                 contenedor_audio = st.empty()
                 alerta_placeholder = st.empty()
                 
                 word = st.session_state['robot_word']
                 err = st.session_state['robot_errors']
                 
-                # A) MONITOR DE VIDAS
+                # A) MONITOR (PISTA GRANDE + BATERÍA)
                 c1, c2 = st.columns([3, 1])
-                c1.markdown(f"### 💡 Pista: {st.session_state['robot_hint']}")
+                with c1:
+                    # Pista Estilizada Grande
+                    st.markdown(f"""
+                    <div style="background-color: #E3F2FD; padding: 20px; border-radius: 15px; border-left: 8px solid #2196F3;">
+                        <h2 style="margin:0; color: #0D47A1; font-size: 32px; font-weight: bold;">💡 Pista: {st.session_state['robot_hint']}</h2>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
-                baterias_restantes = 6 - err
-                emoji_bateria = "🔋" * baterias_restantes + "🪫" * err
-                c2.markdown(f"<div style='font-size: 40px; text-align: right;'>{emoji_bateria}</div>", unsafe_allow_html=True)
+                with c2:
+                    baterias_restantes = 6 - err
+                    emoji_bateria = "🔋" * baterias_restantes + "🪫" * err
+                    st.markdown(f"<div style='font-size: 45px; text-align: right; padding-top: 10px;'>{emoji_bateria}</div>", unsafe_allow_html=True)
                 
-                # B) PALABRA OCULTA (TAMAÑO JUMBO REAL - H1 FORZADO)
+                # B) PALABRA OCULTA (GIGANTE)
                 disp = " ".join([l if l in st.session_state['robot_guesses'] else "_" for l in word])
                 
-                # Usamos H1 con !important para que nada lo haga pequeño
                 st.markdown(f"""
                 <h1 style="
                     text-align: center; 
                     font-size: 90px !important; 
                     font-family: 'Courier New', monospace; 
                     font-weight: 900 !important; 
-                    color: #212121 !important; 
-                    margin: 20px 0 !important; 
-                    letter-spacing: 10px !important;
+                    color: #263238 !important; 
+                    margin: 30px 0 !important; 
+                    letter-spacing: 15px !important;
                     line-height: 1.2 !important;
                 ">
                     {disp}
@@ -1889,6 +1932,7 @@ def home_page():
                 
                 for i, l in enumerate(letras):
                     dis = l in st.session_state['robot_guesses']
+                    # El color cambia si ya fue usada
                     tipo_btn = "secondary"
                     if dis and l in word: tipo_btn = "primary"
                     
@@ -1896,21 +1940,20 @@ def home_page():
                         st.session_state['robot_guesses'].add(l)
                         
                         if l in word:
-                            # ✅ ACIERTO: Audio Ding (Usando timestamp para evitar caché)
+                            # ✅ ACIERTO: Sonido Ding
                             t_stamp = time.time()
                             contenedor_audio.markdown(f"""
                                 <audio autoplay="true" style="display:none;">
                                 <source src="https://www.soundjay.com/buttons/sounds/button-3.mp3?t={t_stamp}" type="audio/mp3">
                                 </audio>
                             """, unsafe_allow_html=True)
-                            time.sleep(0.3) # Pausa técnica para cargar audio
+                            time.sleep(0.3)
                             st.rerun()
                         else:
-                            # ❌ ERROR: Audio Error + Alerta
+                            # ❌ ERROR: Sonido Zap
                             st.session_state['robot_errors'] += 1
                             t_stamp = time.time()
                             
-                            # Sonido Error (Más corto y efectivo)
                             contenedor_audio.markdown(f"""
                                 <audio autoplay="true" style="display:none;">
                                 <source src="https://www.soundjay.com/buttons/sounds/button-10.mp3?t={t_stamp}" type="audio/mp3">
@@ -1918,7 +1961,7 @@ def home_page():
                             """, unsafe_allow_html=True)
                             
                             alerta_placeholder.markdown("""
-                                <div style="background-color: #ffebee; border: 4px solid #ef5350; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
+                                <div style="background-color: #ffebee; border: 4px solid #ef5350; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 20px #ef5350;">
                                     <h2 style="color: #b71c1c; margin:0; font-size: 35px;">💥 ¡ERROR!</h2>
                                 </div>
                             """, unsafe_allow_html=True)
@@ -2201,6 +2244,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
