@@ -1965,17 +1965,17 @@ def home_page():
                                 time.sleep(1.5)
                             st.rerun()
 
-        # 5. JUEGO PIXEL ART (EL REVELADOR VISUAL - NUEVO)
-        elif st.session_state['juego_actual'] == 'pixel_art':
+        # 5. JUEGO SORTEADOR (NUEVO)
+        elif st.session_state['juego_actual'] == 'sorteador':
+            # Barra Superior
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True, key="pixel_back"):
+                if st.button("🔙 Menú", use_container_width=True, key="sorteo_back"): 
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🖼️ El Revelador Visual")
-            
-            st.info("🚧 Módulo 'Revelador Visual' en construcción. ¡Pronto disponible!")
-            st.image("https://via.placeholder.com/800x400.png?text=Pixel+Art+Game+Coming+Soon", use_container_width=True)    
+                st.subheader("🎰 Sorteador Digital de Estudiantes")
+
+            st.info("🚧 Zona de configuración lista. Esperando instrucciones para la Fase 2 (Carga de Datos).")
     
     
 # =========================================================================
@@ -2001,6 +2001,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
