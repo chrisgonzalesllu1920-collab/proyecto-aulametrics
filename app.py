@@ -2034,7 +2034,7 @@ def home_page():
                         else:
                             st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
 
-            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO MECÁNICO REAL 🎰) ---
+            # --- ZONA DE JUEGO (ETAPA FINAL - GANADOR GIGANTE 🎰) ---
             else:
                 total_participantes = len(st.session_state['sorteo_lista'])
                 total_ganadores = st.session_state.get('sorteo_cantidad', 1)
@@ -2060,9 +2060,8 @@ def home_page():
                     contenedor_animacion = st.empty()
                     contenedor_audio_win = st.empty()
                     
-                    # 1. ACTIVAR SONIDO MECÁNICO (TIPO RUEDA DE LA FORTUNA)
+                    # 1. ACTIVAR SONIDO MECÁNICO (Latido)
                     t_stamp = time.time()
-                    # Este audio es puro "Clicking" mecánico
                     audio_html_giro = f"""
                         <audio autoplay loop>
                         <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3?t={t_stamp}" type="audio/mp3">
@@ -2076,7 +2075,7 @@ def home_page():
                     # Bucle de ganadores
                     for i in range(total_ganadores):
                         
-                        # A) ANIMACIÓN VISUAL
+                        # A) ANIMACIÓN VISUAL (Giro)
                         velocidad = 0.05
                         ciclos = 25 
                         
@@ -2120,19 +2119,20 @@ def home_page():
                             """
                             contenedor_audio_win.markdown(audio_html_win, unsafe_allow_html=True)
                             
-                            # Pausar el ruido mecánico para escuchar la victoria
+                            # Pausar el ruido mecánico
                             contenedor_audio_giro.empty() 
                             
-                            # C) PANTALLA GANADOR
+                            # C) PANTALLA GANADOR (TAMAÑO JUMBO)
+                            # Cambios aquí: padding reducido, font-size aumentado a 90px
                             contenedor_animacion.markdown(f"""
                             <div style="
-                                text-align: center; padding: 40px; 
+                                text-align: center; padding: 20px; 
                                 background: radial-gradient(circle, rgba(255,215,0,1) 0%, rgba(255,140,0,1) 100%); 
                                 border: 5px solid #FFF; border-radius: 15px; 
                                 box-shadow: 0 0 60px #FF8C00; animation: pulse 0.5s infinite;
                             ">
                                 <h3 style="color: #FFF; margin:0; text-shadow: 1px 1px 2px black;">🏆 GANADOR #{i+1}</h3>
-                                <h1 style="color: #FFF; font-size: 60px; margin: 10px 0; font-weight: 900; text-shadow: 3px 3px 0px #000;">
+                                <h1 style="color: #FFF; font-size: 90px; margin: 5px 0; font-weight: 900; text-shadow: 4px 4px 0px #000; line-height: 1;">
                                     {ganador}
                                 </h1>
                             </div>
@@ -2214,6 +2214,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
