@@ -1400,12 +1400,13 @@ def home_page():
         if st.session_state['juego_actual'] is None:
             mostrar_menu_juegos()
 
-        # 2. JUEGO TRIVIA
+        # 2. JUEGO TRIVIA (CORREGIDO: ERROR DE TIEMPO SOLUCIONADO)
         elif st.session_state['juego_actual'] == 'trivia':
+            
             # Barra superior de retorno
             col_back, col_title = st.columns([1, 5])
             with col_back:
-                if st.button("🔙 Menú", use_container_width=True):
+                if st.button("🔙 Menú", use_container_width=True): 
                     volver_menu_juegos()
             with col_title:
                 st.subheader("Desafío Trivia")
@@ -1551,7 +1552,10 @@ def home_page():
                     opciones = pregunta_actual['opciones']
                     col_opt1, col_opt2 = st.columns(2)
                     
+                    # --- AQUÍ ESTABA EL ERROR ---
                     def responder(opcion_elegida):
+                        import time # <--- ¡AGREGADO! Soluciona el error NameError
+                        
                         correcta = pregunta_actual['respuesta_correcta']
                         puntos_por_pregunta = 100 / len(preguntas)
                         es_correcta = (opcion_elegida == correcta)
@@ -1568,7 +1572,8 @@ def home_page():
                                 feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
                             else:
                                 feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
-                            time.sleep(2.0)
+                            
+                            time.sleep(2.0) # Ahora sí funcionará
                             
                             if st.session_state['juego_indice'] < len(preguntas) - 1:
                                 st.session_state['juego_indice'] += 1
@@ -2214,6 +2219,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
