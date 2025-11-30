@@ -302,13 +302,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V10.0 - GLASSMORPHISM CON TEXTO OSCURO) ===
+# === 4. PÁGINA DE LOGIN (V11.0 - COLORES CORREGIDOS Y BOTONES SÓLIDOS) ===
 # =========================================================================
 def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Toda la pantalla) */
+        /* 1. FONDO DEGRADADO */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
             background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
@@ -326,26 +326,25 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (SEMI-TRANSPARENTE) */
+        /* 3. TARJETA DE CRISTAL */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: rgba(255, 255, 255, 0.25); /* Un poco más blanco para contraste */
-            backdrop-filter: blur(15px); /* Más borroso para que el texto se lea bien */
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 4. TEXTOS GLOBALES (Blancos para el fondo oscuro fuera de la tarjeta) */
+        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
         h1, h2, h3, p {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* 5. CORRECCIÓN: TEXTOS DENTRO DEL FORMULARIO (OSCUROS) */
-        /* Aquí está la solución: Forzamos negro dentro de la tarjeta */
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
         div.stForm label p, div.stForm h3, div.stForm h3 span {
-            color: #1a1a1a !important; /* Negro casi puro */
+            color: #1a1a1a !important;
             text-shadow: none !important;
             font-weight: 600 !important;
         }
@@ -354,32 +353,54 @@ def login_page():
              text-shadow: none !important;
         }
 
-        /* 6. INPUTS (CAJAS DE TEXTO) */
+        /* 6. INPUTS */
         input[type="text"], input[type="password"] {
-            color: #000000 !important; /* TEXTO NEGRO AL ESCRIBIR */
-            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo casi blanco */
-            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #000000 !important;
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 8px !important;
         }
-        
-        /* Color del placeholder (el texto de ayuda gris) */
         ::placeholder {
-            color: #555555 !important; /* Gris oscuro */
+            color: #555555 !important;
             opacity: 1 !important;
         }
 
-        /* 7. PESTAÑAS */
-        button[data-baseweb="tab"] {
-            background-color: rgba(0,0,0,0.2) !important;
-            color: rgba(255,255,255,0.9) !important;
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* Texto Negro en las pestañas inactivas para que se lea */
+        button[data-baseweb="tab"] div p {
+            color: #333333 !important; 
             font-weight: bold !important;
+            text-shadow: none !important;
         }
+        /* Fondo blanco semitransparente para pestañas inactivas */
+        button[data-baseweb="tab"] {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            margin-right: 5px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
-            color: #E94057 !important; /* Texto rosa al seleccionar */
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #E94057 !important; /* Rosa intenso */
+        }
         
+        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
+        /* Afecta a los botones secundarios dentro del form */
+        div.stForm button[kind="secondary"] {
+            background-color: #ffffff !important;
+            color: #E94057 !important;
+            border: 2px solid #E94057 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"]:hover {
+            background-color: #E94057 !important;
+            color: white !important;
+        }
+
         footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -436,6 +457,7 @@ def login_page():
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
                 password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                 
+                # Botón de Registrarme (Ahora se verá con borde rojo gracias al CSS)
                 submitted = st.form_submit_button("Registrarme", use_container_width=True)
                 
                 if submitted:
@@ -458,23 +480,26 @@ def login_page():
 
         st.divider()
         
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
             display: inline-block;
             width: 100%;
-            padding: 12px 0;
-            background-color: rgba(255, 255, 255, 0.15);
+            padding: 15px 0;
+            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
             color: white;
             text-align: center;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
             transition: all 0.3s;
+            border: none;
         ">
-            ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
+            💬 ¿Dudas? Contáctanos
         </a>
         """, unsafe_allow_html=True)
         
@@ -2371,6 +2396,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
