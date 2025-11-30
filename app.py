@@ -302,22 +302,128 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN ===
+# === 4. PÁGINA DE LOGIN (V11.0 - COLORES CORREGIDOS Y BOTONES SÓLIDOS) ===
 # =========================================================================
 def login_page():
-    col1, col_centro, col3 = st.columns([1, 2, 1])
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    st.markdown("""
+    <style>
+        /* 1. FONDO DEGRADADO */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        
+        /* 2. LIMPIEZA DE INTERFAZ */
+        .block-container {
+            padding-top: 3rem !important;
+            padding-bottom: 2rem !important;
+        }
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: none !important;
+        }
+        
+        /* 3. TARJETA DE CRISTAL */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        h1, h2, h3, p {
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
+        div.stForm label p, div.stForm h3, div.stForm h3 span {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+            font-weight: 600 !important;
+        }
+        div.stForm p {
+             color: #1a1a1a !important;
+             text-shadow: none !important;
+        }
+
+        /* 6. INPUTS */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important;
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        ::placeholder {
+            color: #555555 !important;
+            opacity: 1 !important;
+        }
+
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* Texto Negro en las pestañas inactivas para que se lea */
+        button[data-baseweb="tab"] div p {
+            color: #333333 !important; 
+            font-weight: bold !important;
+            text-shadow: none !important;
+        }
+        /* Fondo blanco semitransparente para pestañas inactivas */
+        button[data-baseweb="tab"] {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            margin-right: 5px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #E94057 !important; /* Rosa intenso */
+        }
+        
+        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
+        /* Afecta a los botones secundarios dentro del form */
+        div.stForm button[kind="secondary"] {
+            background-color: #ffffff !important;
+            color: #E94057 !important;
+            border: 2px solid #E94057 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"]:hover {
+            background-color: #E94057 !important;
+            color: white !important;
+        }
+
+        footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- B. ESTRUCTURA ---
+    col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
         st.image("assets/logotipo-aulametrics.png", width=300)
+        
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("Tu asistente pedagógico y analista de datos.")
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        
+        st.write("") 
         
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
+        # --- PESTAÑA 1: LOGIN ---
         with tab_login:
             with st.form("login_form"):
-                email = st.text_input("Correo Electrónico", key="login_email")
-                password = st.text_input("Contraseña", type="password", key="login_password")
+                st.markdown("### 🔐 Acceso Docente")
+                email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                 submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                 
                 if submitted:
@@ -329,15 +435,28 @@ def login_page():
                         st.session_state.logged_in = True
                         st.session_state.user = session.user
                         st.session_state.show_welcome_message = True
+                        if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
                         st.rerun() 
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
+        # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            reset_id = st.session_state['form_reset_id']
+
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                
             with st.form("register_form"):
-                name = st.text_input("Nombre", key="register_name")
-                email = st.text_input("Correo Electrónico", key="register_email")
-                password = st.text_input("Contraseña", type="password", key="register_password")
+                st.markdown("### 📝 Nuevo Usuario")
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                
+                # Botón de Registrarme (Ahora se verá con borde rojo gracias al CSS)
                 submitted = st.form_submit_button("Registrarme", use_container_width=True)
                 
                 if submitted:
@@ -352,33 +471,37 @@ def login_page():
                                     "data": { 'full_name': name }
                                 }
                             })
-                            st.success("¡Registro exitoso! Ya puedes iniciar sesión.")
-                            st.info("Ve a la pestaña 'Iniciar Sesión' para ingresar.")
+                            st.session_state['form_reset_id'] += 1
+                            st.session_state['registro_exitoso'] = True
+                            st.rerun()
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
         st.divider()
         
-        # URL de tu página de github
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
             display: inline-block;
             width: 100%;
-            padding: 10px 0;
-            background-color: #0068C9; /* Azul Profesional */
+            padding: 15px 0;
+            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
             color: white;
             text-align: center;
             text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            box-sizing: border-box; 
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
         ">
-            ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
+            💬 ¿Dudas? Contáctanos
         </a>
         """, unsafe_allow_html=True)
-
+        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
 # =========================================================================
@@ -2272,6 +2395,17 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
