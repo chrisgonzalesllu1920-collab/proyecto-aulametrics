@@ -302,13 +302,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V4.0 - CON LOGO Y BANDERA DE ÉXITO) ===
+# === 4. PÁGINA DE LOGIN (V5.0 - SOLUCIÓN ID DINÁMICO) ===
 # =========================================================================
 def login_page():
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
-        # ✅ 1. LOGOTIPO (Asegurado)
         st.image("assets/logotipo-aulametrics.png", width=300)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
@@ -333,28 +332,34 @@ def login_page():
                         st.session_state.user = session.user
                         st.session_state.show_welcome_message = True
                         
-                        # Limpiamos la bandera de registro si existía
                         if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
                         
                         st.rerun() 
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
-        # --- PESTAÑA 2: REGISTRO (LÓGICA DE BANDERA) ---
+        # --- PESTAÑA 2: REGISTRO (CON RESET POR ID) ---
         with tab_register:
-            # ✅ A. MOSTRAR MENSAJE SI LA BANDERA ESTÁ ACTIVA
-            # Este mensaje persiste incluso después de que el formulario se limpie
+            
+            # 1. GENERADOR DE ID DINÁMICO (Para limpiar el formulario)
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            
+            # Variable auxiliar para el ID actual
+            reset_id = st.session_state['form_reset_id']
+
+            # A. MOSTRAR MENSAJE SI LA BANDERA ESTÁ ACTIVA
             if st.session_state.get('registro_exitoso', False):
                 st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
                 st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'** para ingresar.")
                 st.balloons()
-                # Opcional: Apagamos los globos para la próxima recarga automática para no saturar
-                # pero dejamos el mensaje verde.
 
             with st.form("register_form"):
-                name = st.text_input("Nombre", key="register_name")
-                email = st.text_input("Correo Electrónico", key="register_email")
-                password = st.text_input("Contraseña", type="password", key="register_password")
+                # 2. USAMOS EL ID EN LAS KEYS (Esto hace la magia)
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}")
+                
                 submitted = st.form_submit_button("Registrarme", use_container_width=True)
                 
                 if submitted:
@@ -362,7 +367,7 @@ def login_page():
                         st.warning("Por favor, completa todos los campos.")
                     else:
                         try:
-                            # 1. Crear usuario en Supabase
+                            # Crear usuario
                             user = supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
@@ -371,16 +376,13 @@ def login_page():
                                 }
                             })
                             
-                            # ✅ B. ACTIVAR BANDERA Y LIMPIAR DATOS
-                            # 1. Activamos la "Memoria de Éxito"
+                            # 3. CAMBIAR EL ID PARA "RESETEAR" EL FORMULARIO
+                            # Al aumentar el número, en la próxima recarga las keys serán nuevas 
+                            # y los campos aparecerán vacíos.
+                            st.session_state['form_reset_id'] += 1
                             st.session_state['registro_exitoso'] = True
                             
-                            # 2. Borramos los campos por seguridad (Limpieza inmediata)
-                            st.session_state["register_name"] = ""
-                            st.session_state["register_email"] = ""
-                            st.session_state["register_password"] = ""
-                            
-                            # 3. Recargamos YA MISMO para que el usuario vea el form vacío y el mensaje verde
+                            # Recargamos para aplicar cambios
                             st.rerun()
                                 
                         except Exception as e:
@@ -388,7 +390,6 @@ def login_page():
 
         st.divider()
         
-        # URL de contacto
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -407,7 +408,7 @@ def login_page():
             ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
         </a>
         """, unsafe_allow_html=True)
-
+        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
 # =========================================================================
@@ -2301,6 +2302,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
