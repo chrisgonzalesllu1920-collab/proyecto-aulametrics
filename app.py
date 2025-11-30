@@ -1965,17 +1965,90 @@ def home_page():
                                 time.sleep(1.5)
                             st.rerun()
 
-        # 5. JUEGO SORTEADOR (NUEVO)
+        # 5. JUEGO SORTEADOR (ETAPA 2: CARGA DE DATOS)
         elif st.session_state['juego_actual'] == 'sorteador':
-            # Barra Superior
+            
+            # --- BARRA SUPERIOR ---
             col_back, col_title = st.columns([1, 5])
             with col_back:
                 if st.button("🔙 Menú", use_container_width=True, key="sorteo_back"): 
+                    # Limpiamos variables al salir
+                    if 'sorteo_lista' in st.session_state: del st.session_state['sorteo_lista']
                     volver_menu_juegos()
             with col_title:
-                st.subheader("🎰 Sorteador Digital de Estudiantes")
+                st.subheader("🎰 Sorteador Digital Pro")
 
-            st.info("🚧 Zona de configuración lista. Esperando instrucciones para la Fase 2 (Carga de Datos).")
+            # --- ESTADO INICIAL DEL SORTEO ---
+            if 'sorteo_lista' not in st.session_state:
+                st.session_state['sorteo_lista'] = [] # Lista vacía al inicio
+
+            # Si la lista está vacía, mostramos la CONFIGURACIÓN
+            if not st.session_state['sorteo_lista']:
+                st.markdown("##### 1️⃣ Paso 1: Carga los participantes")
+                
+                # Usamos Pestañas para organizar las opciones
+                tab_manual, tab_excel = st.tabs(["📝 Escribir Lista", "📂 Subir Excel"])
+                
+                lista_temporal = []
+
+                # OPCIÓN A: MANUAL
+                with tab_manual:
+                    texto_input = st.text_area("Pega o escribe los nombres (uno por línea):", height=150, placeholder="Juan Perez\nMaria Lopez\nCarlos...")
+                    if texto_input:
+                        lista_temporal = [nombre.strip() for nombre in texto_input.split('\n') if nombre.strip()]
+
+                # OPCIÓN B: EXCEL
+                with tab_excel:
+                    uploaded_file = st.file_uploader("Sube tu lista (Excel .xlsx)", type=['xlsx'])
+                    if uploaded_file is not None:
+                        try:
+                            import pandas as pd
+                            df = pd.read_excel(uploaded_file)
+                            # Intentamos adivinar la columna de nombres (la primera que sea texto)
+                            col_nombres = df.columns[0] # Por defecto la primera
+                            lista_temporal = df[col_nombres].dropna().astype(str).tolist()
+                            st.success(f"✅ Se encontraron {len(lista_temporal)} nombres en la columna '{col_nombres}'")
+                        except Exception as e:
+                            st.error(f"Error al leer el archivo: {e}")
+
+                st.write("")
+                st.markdown("##### 2️⃣ Paso 2: Configura el Sorteo")
+                
+                c1, c2 = st.columns([2, 1])
+                with c1:
+                    # Si hay datos cargados temporalmente, ajustamos el slider
+                    max_val = len(lista_temporal) if lista_temporal else 10
+                    cant_ganadores = st.slider("¿Cuántos estudiantes necesitas?", 1, max_val, 1)
+                
+                with c2:
+                    st.write("") # Espacio para alinear botón
+                    if st.button("💾 GUARDAR Y CONTINUAR", type="primary", use_container_width=True):
+                        if len(lista_temporal) > 0:
+                            if cant_ganadores > len(lista_temporal):
+                                st.error("¡Pides más ganadores que participantes!")
+                            else:
+                                st.session_state['sorteo_lista'] = lista_temporal
+                                st.session_state['sorteo_cantidad'] = cant_ganadores
+                                st.session_state['sorteo_ganadores'] = [] # Aquí guardaremos los que salgan
+                                st.rerun()
+                        else:
+                            st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
+
+            # --- ZONA DE JUEGO (ETAPA 3 - PREPARACIÓN) ---
+            else:
+                # Si ya tenemos lista, mostramos esto (El escenario listo para girar)
+                st.info(f"✅ ¡Todo listo! Tenemos **{len(st.session_state['sorteo_lista'])}** participantes cargados.")
+                
+                # Pequeña vista previa
+                with st.expander("Ver lista de participantes"):
+                    st.write(st.session_state['sorteo_lista'])
+
+                st.write("---")
+                st.write("🚧 **AQUÍ IRÁ LA ANIMACIÓN DEL SORTEO EN EL SIGUIENTE PASO**")
+                
+                if st.button("🔄 Cambiar Lista (Reiniciar)", type="secondary"):
+                    del st.session_state['sorteo_lista']
+                    st.rerun()
     
     
 # =========================================================================
@@ -2001,6 +2074,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
