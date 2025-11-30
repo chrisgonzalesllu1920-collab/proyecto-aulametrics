@@ -449,8 +449,7 @@ def login_page():
             if st.session_state.get('registro_exitoso', False):
                 st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
                 st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                st.balloons()
-
+                
             with st.form("register_form"):
                 st.markdown("### 📝 Nuevo Usuario")
                 name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
@@ -2396,6 +2395,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
