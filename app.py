@@ -302,13 +302,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V8.0 - PANTALLA COMPLETA "FULL BLEED") ===
+# === 4. PÁGINA DE LOGIN (V9.0 - ESTILO TRANSPARENTE / GLASS) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS AGRESIVO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (CSS TRANSPARENTE) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO EN TODO EL VISOR (Sin bordes blancos) */
+        /* 1. FONDO DEGRADADO EN TODA LA PANTALLA */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
             background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
@@ -316,73 +316,73 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* 2. ELIMINAR LOS MÁRGENES BLANCOS DE STREAMLIT */
+        /* 2. ELIMINAR MÁRGENES Y CABECERA */
         .block-container {
-            padding-top: 2rem !important; /* Reducir espacio arriba */
+            padding-top: 3rem !important;
             padding-bottom: 2rem !important;
-            max-width: 900px !important; /* Evitar que se estire demasiado en pantallas anchas */
         }
-        
-        /* 3. OCULTAR BARRA SUPERIOR (HEADER) */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
-            display: none !important; /* Desaparece la barra gris/blanca de arriba */
+            display: none !important;
         }
         
-        /* 4. TARJETA CENTRAL (Diseño Limpio) */
+        /* 3. TARJETA INVISIBLE (El cambio clave) */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1); /* 10% de blanco (Cristal) */
+            backdrop-filter: blur(10px); /* Efecto borroso detrás */
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Sombra profunda */
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
 
-        /* 5. TEXTO NEGRO (Corrección de visibilidad) */
-        input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: #F5F5F5 !important;
-            border: 1px solid #E0E0E0 !important;
-            caret-color: #000000 !important;
-        }
-        label, p, .stMarkdown {
-            color: #212121 !important;
+        /* 4. TEXTOS EN BLANCO (Para leer sobre morado) */
+        h2, h3, h1, p, label, .stMarkdown {
+            color: #FFFFFF !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         
-        /* Títulos */
-        h2, h3, h2 span, h3 span {
-            color: #FFFFFF !important;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        div.stForm h3, div.stForm h3 span {
-            color: #3E0E69 !important; /* Título dentro del form */
-            text-shadow: none !important;
+        /* Título del Formulario (Acceso Docente) */
+        div.stForm h3 span {
+            color: #FFFFFF !important; 
         }
 
-        /* 6. PESTAÑAS */
+        /* 5. INPUTS (Cajas de texto estilo cristal) */
+        input[type="text"], input[type="password"] {
+            color: #FFFFFF !important; /* Lo que escribes es blanco */
+            background-color: rgba(255, 255, 255, 0.2) !important; /* Fondo semi-transparente */
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            border-radius: 10px !important;
+        }
+        /* Color del placeholder (texto de ayuda) */
+        ::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        /* 6. PESTAÑAS MEJORADAS */
         button[data-baseweb="tab"] {
-            background-color: rgba(255,255,255,0.2) !important;
-            color: white !important;
-            font-weight: bold;
+            background-color: rgba(0,0,0,0.2) !important;
+            color: rgba(255,255,255,0.7) !important;
+            border-radius: 5px !important;
+            margin-right: 5px !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: white !important;
-            color: #E94057 !important;
+            color: #E94057 !important; /* Texto rosa/rojo al estar activo */
+            font-weight: bold !important;
         }
         
-        /* Ocultar footer por si acaso */
+        /* Footer fuera */
         footer {visibility: hidden;}
         
     </style>
     """, unsafe_allow_html=True)
 
     # --- B. ESTRUCTURA DE LA PÁGINA ---
-    # Usamos columnas para centrar la tarjeta, pero con proporciones ajustadas
-    # [1, 6, 1] hace que la columna central sea más ancha en móviles pero centrada en PC
+    # Centrado perfecto
     col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
-        # LOGOTIPO
         st.image("assets/logotipo-aulametrics.png", width=300)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
@@ -396,8 +396,8 @@ def login_page():
         with tab_login:
             with st.form("login_form"):
                 st.markdown("### 🔐 Acceso Docente")
-                email = st.text_input("Correo Electrónico", key="login_email")
-                password = st.text_input("Contraseña", type="password", key="login_password")
+                email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="••••••••")
                 submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                 
                 if submitted:
@@ -427,9 +427,9 @@ def login_page():
 
             with st.form("register_form"):
                 st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}")
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña segura")
                 
                 submitted = st.form_submit_button("Registrarme", use_container_width=True)
                 
@@ -460,13 +460,13 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 12px 0;
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 8px;
             font-weight: bold;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s;
         ">
             ¿Dudas? Contáctanos (WhatsApp/TikTok/Email)
@@ -2366,6 +2366,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
