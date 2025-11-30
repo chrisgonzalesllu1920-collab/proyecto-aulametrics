@@ -1388,7 +1388,7 @@ def home_page():
                 # CAMBIO: DE PIXEL ART A SORTEADOR
                 st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🎰</div>', unsafe_allow_html=True)
                 # Nota: Cambiamos la key para limpiar el estado anterior
-                if st.button("\n\nSorteador\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
+                if st.button("\n\nSorteador\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
                     st.session_state['juego_actual'] = 'sorteador' # Nueva ID interna
                     st.rerun()
 
@@ -2001,6 +2001,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
