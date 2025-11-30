@@ -2034,20 +2034,19 @@ def home_page():
                         else:
                             st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
 
-            # --- ZONA DE JUEGO (ETAPA 3 - CASINO MODE 🎰) ---
+            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO FIX PRO 🔊) ---
             else:
                 total_participantes = len(st.session_state['sorteo_lista'])
                 total_ganadores = st.session_state.get('sorteo_cantidad', 1)
                 
-                # Diseño de cabecera tipo Casino
+                # Diseño Cabecera Casino
                 st.markdown(f"""
-                <div style="background-color: #111; padding: 15px; border-radius: 10px; border: 2px solid #FFD700; text-align: center; margin-bottom: 20px;">
+                <div style="background-color: #111; padding: 15px; border-radius: 10px; border: 2px solid #FFD700; text-align: center; margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);">
                     <p style="color: #FFD700; font-family: monospace; font-size: 18px; margin: 0;">🎰 CASINO AULAMETRICS 🎰</p>
                     <p style="color: #FFF; margin: 0;">Participantes: <b>{total_participantes}</b> | Premios: <b>{total_ganadores}</b></p>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Botón de Acción
                 if st.button("🎲 GIRAR LA SUERTE", type="primary", use_container_width=True):
                     
                     import random
@@ -2055,45 +2054,45 @@ def home_page():
                     
                     lista_candidatos = st.session_state['sorteo_lista'].copy()
                     ganadores_ronda = []
-                    animacion_box = st.empty()
                     
-                    # Sonido de "Rodillos Girando" (Loop corto)
-                    # Truco: Inyectamos audio oculto autoplay
-                    sound_spin = """
+                    # Contenedores vacíos para manejar el flujo visual y auditivo
+                    contenedor_audio_giro = st.empty()
+                    contenedor_animacion = st.empty()
+                    contenedor_audio_win = st.empty()
+                    
+                    # 🔊 SONIDO 1: GIRO (Bucle)
+                    # Truco ?t=... para evitar caché y forzar reproducción siempre
+                    t_stamp = time.time()
+                    audio_html_giro = f"""
                         <audio autoplay loop>
-                        <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_736858e37e.mp3" type="audio/mp3">
+                        <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_736858e37e.mp3?t={t_stamp}" type="audio/mp3">
                         </audio>
                     """
-                    placeholder_audio = st.empty()
-                    placeholder_audio.markdown(sound_spin, unsafe_allow_html=True)
+                    contenedor_audio_giro.markdown(audio_html_giro, unsafe_allow_html=True)
                     
                     # Bucle de ganadores
                     for i in range(total_ganadores):
                         
-                        # A) ANIMACIÓN VISUAL (ESTILO TRAGAMONEDAS)
-                        # Velocidad variable: Empieza rápido, termina lento (Suspenso)
+                        # A) ANIMACIÓN VISUAL
                         velocidad = 0.05
-                        ciclos = 20 # Cuántos nombres pasan antes de parar
+                        ciclos = 25 # Un poco más largo para disfrutar el sonido
                         
                         for paso in range(ciclos): 
                             nombre_random = random.choice(lista_candidatos)
                             
-                            # Efecto Visual: Pantalla LED Negra con Texto Neón
+                            # Efecto LED
                             color_texto = "#FFF"
-                            if paso % 2 == 0: color_texto = "#FFD700" # Parpadeo Dorado/Blanco
+                            if paso % 2 == 0: color_texto = "#FFD700"
                             
-                            animacion_box.markdown(f"""
+                            contenedor_animacion.markdown(f"""
                             <div style="
-                                text-align: center; 
-                                padding: 40px; 
+                                text-align: center; padding: 40px; 
                                 background: linear-gradient(180deg, #000 0%, #333 50%, #000 100%); 
-                                border: 5px solid #FFD700; 
-                                border-radius: 15px; 
+                                border: 5px solid #FFD700; border-radius: 15px; 
                                 box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-                                font-family: 'Courier New', monospace;
-                                overflow: hidden;
+                                font-family: 'Courier New', monospace; overflow: hidden;
                             ">
-                                <h3 style="color: #555; margin:0; font-size: 20px;">...GIRANDO...</h3>
+                                <h3 style="color: #555; margin:0; font-size: 20px;">🎰 GIRANDO...</h3>
                                 <h1 style="color: {color_texto}; font-size: 55px; margin: 10px 0; text-shadow: 0 0 10px {color_texto};">
                                     {nombre_random}
                                 </h1>
@@ -2101,73 +2100,70 @@ def home_page():
                             </div>
                             """, unsafe_allow_html=True)
                             
-                            # Ralentizar al final para suspenso
-                            if paso > ciclos - 5: velocidad += 0.05 
+                            if paso > ciclos - 8: velocidad += 0.04 
                             time.sleep(velocidad)
                         
-                        # B) ELEGIR GANADOR REAL
+                        # B) ELEGIR GANADOR
                         if lista_candidatos:
                             ganador = random.choice(lista_candidatos)
                             lista_candidatos.remove(ganador)
                             ganadores_ronda.append(ganador)
                             
-                            # Detener sonido de giro y poner sonido de VICTORIA
-                            placeholder_audio.empty() # Callar giro
-                            sound_win = """
+                            # 🛑 SILENCIAR GIRO MOMENTÁNEAMENTE (Opcional, o dejarlo de fondo)
+                            # contenedor_audio_giro.empty() 
+                            # Nota: A veces es mejor dejar el giro de fondo si hay varios ganadores seguidos, 
+                            # pero para el efecto dramático, lo pausaremos si es el último.
+                            
+                            # 🔊 SONIDO 2: VICTORIA (Ding Ding!)
+                            # Usamos un ID diferente para que se superponga o suene claro
+                            t_stamp_win = time.time()
+                            audio_html_win = f"""
                                 <audio autoplay>
-                                <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3" type="audio/mp3">
+                                <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3?t={t_stamp_win}" type="audio/mp3">
                                 </audio>
                             """
-                            st.markdown(sound_win, unsafe_allow_html=True) # Sonido Win (Ding ding ding!)
+                            contenedor_audio_win.markdown(audio_html_win, unsafe_allow_html=True)
                             
-                            # C) PANTALLA DE GANADOR (ESTILO JACKPOT)
-                            animacion_box.markdown(f"""
+                            # C) PANTALLA GANADOR
+                            contenedor_animacion.markdown(f"""
                             <div style="
-                                text-align: center; 
-                                padding: 40px; 
+                                text-align: center; padding: 40px; 
                                 background: radial-gradient(circle, rgba(255,215,0,1) 0%, rgba(255,140,0,1) 100%); 
-                                border: 5px solid #FFF; 
-                                border-radius: 15px; 
-                                box-shadow: 0 0 50px #FF8C00;
-                                animation: pulse 1s infinite;
+                                border: 5px solid #FFF; border-radius: 15px; 
+                                box-shadow: 0 0 60px #FF8C00; animation: pulse 0.5s infinite;
                             ">
-                                <h3 style="color: #FFF; margin:0; text-shadow: 1px 1px 2px black;">🏆 SELECCIONADO #{i+1}</h3>
-                                <h1 style="color: #FFF; font-size: 60px; margin: 10px 0; font-weight: 900; text-shadow: 2px 2px 0px #000;">
+                                <h3 style="color: #FFF; margin:0; text-shadow: 1px 1px 2px black;">🏆 GANADOR #{i+1}</h3>
+                                <h1 style="color: #FFF; font-size: 60px; margin: 10px 0; font-weight: 900; text-shadow: 3px 3px 0px #000;">
                                     {ganador}
                                 </h1>
-                                <p style="color: #FFF; font-weight: bold;">¡Felicidades!</p>
                             </div>
                             """, unsafe_allow_html=True)
                             
                             st.balloons()
-                            time.sleep(3) # Tiempo para celebrar antes del siguiente
+                            time.sleep(3.5) # Dejar que suene la fanfarria
                             
-                            # Si hay más ganadores, volvemos a poner el sonido de giro
-                            if i < total_ganadores - 1:
-                                placeholder_audio.markdown(sound_spin, unsafe_allow_html=True)
+                            # Limpiar sonido de victoria para la siguiente ronda
+                            contenedor_audio_win.empty() 
                                 
                         else:
-                            st.warning("¡Se acabaron los participantes!")
+                            st.warning("¡Lista vacía!")
                             break
                     
-                    # D) LIMPIEZA FINAL
-                    placeholder_audio.empty() # Silencio total
-                    animacion_box.empty()
+                    # D) FIN DEL JUEGO
+                    contenedor_audio_giro.empty() # Apagar sonido de giro definitivamente
+                    contenedor_animacion.empty()
                     st.session_state['sorteo_ganadores'] = ganadores_ronda
 
-                # --- MOSTRAR RESULTADOS (HISTORIAL) ---
+                # --- RESULTADOS FINALES ---
                 if 'sorteo_ganadores' in st.session_state and st.session_state['sorteo_ganadores']:
                     st.divider()
-                    st.markdown("### 🌟 Ganadores de la Ronda:")
+                    st.markdown("### 🌟 Ganadores Oficiales:")
                     
                     for idx, nombre in enumerate(st.session_state['sorteo_ganadores']):
                         st.markdown(f"""
                         <div style="
-                            padding: 15px; 
-                            margin-bottom: 10px; 
-                            background: white; 
-                            border-left: 10px solid #FFD700; 
-                            border-radius: 10px; 
+                            padding: 15px; margin-bottom: 10px; background: white; 
+                            border-left: 10px solid #FFD700; border-radius: 10px; 
                             box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
                             display: flex; align-items: center; justify-content: space-between;
                         ">
@@ -2180,7 +2176,7 @@ def home_page():
                         """, unsafe_allow_html=True)
 
                 st.write("")
-                if st.button("🔄 Nueva Ronda (Reiniciar)", type="secondary"):
+                if st.button("🔄 Reiniciar Sorteo", type="secondary"):
                     del st.session_state['sorteo_lista']
                     if 'sorteo_ganadores' in st.session_state: del st.session_state['sorteo_ganadores']
                     st.rerun()
@@ -2209,6 +2205,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
