@@ -147,43 +147,51 @@ def navegar_a(pagina):
 # =========================================================================
 # === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - CON ANTÍDOTO CSS) ===
 # =========================================================================
-
 def mostrar_home():
-    # --- 💉 ANTÍDOTO CSS V2.0: FORZAR VISIBILIDAD DE LA FLECHA ---
+    # --- 💉 ANTÍDOTO CSS V3.0: FLECHA INDESTRUCTIBLE ---
     st.markdown("""
         <style>
-        /* 1. RESTAURAR HEADER (Pero hacerlo transparente) */
+        /* 1. RESTAURAR LA CABECERA (Invisible pero funcional) */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
-            display: block !important; /* Asegura que exista */
-            height: 60px !important; /* Altura fija para que no colapse */
+            display: block !important;
+            visibility: visible !important;
         }
-        
-        /* 2. FORZAR VISIBILIDAD DEL BOTÓN DEL MENÚ (La Flecha) */
-        /* Apuntamos a todos los posibles selectores del botón */
-        button[kind="header"] {
-            background-color: rgba(255, 255, 255, 0.5) !important; /* Fondo semitransparente para verlo */
-            border-radius: 50% !important;
-            color: #333333 !important; /* Flecha negra */
+
+        /* 2. FORZAR LA FLECHA (Botón de Menú) */
+        /* Apuntamos a todos los nombres posibles que usa Streamlit */
+        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
-            z-index: 999999 !important; /* Ponerlo encima de todo */
-            position: fixed !important; /* Fijarlo en la pantalla */
+            
+            /* ESTILO VISUAL FUERTE */
+            color: #000000 !important; /* Icono Negro */
+            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo Blanco semi-transparente */
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            border-radius: 8px !important;
+            
+            /* POSICIÓN FIJA (Para que nunca se vaya) */
+            position: fixed !important;
             top: 15px !important;
             left: 15px !important;
+            z-index: 9999999 !important; /* Encima de todo el universo */
+            
+            /* TAMAÑO ASEGURADO */
+            width: 40px !important;
+            height: 40px !important;
+            padding: 5px !important;
         }
         
-        /* Selector específico para cuando está colapsado */
-        [data-testid="collapsedControl"] {
-            display: block !important;
-            color: #333333 !important;
-            z-index: 999999 !important;
+        /* 3. COLOREAR EL DIBUJO DE LA FLECHA (SVG) */
+        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
+            fill: #000000 !important;
+            stroke: #000000 !important;
         }
 
-        /* 3. Ajuste de contenido para que no choque con la flecha */
+        /* 4. Ajuste de contenido */
         .block-container {
-            padding-top: 3rem !important;
+            padding-top: 4rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2439,6 +2447,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
