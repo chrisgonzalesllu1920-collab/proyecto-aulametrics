@@ -1304,73 +1304,89 @@ def home_page():
             st.session_state['juego_actual'] = None
             st.rerun()
 
-        # --- B. DEFINICIÓN DEL MENÚ ---
+# --- B. DEFINICIÓN DEL MENÚ (ESTILO A: CYBERPUNK NEON) ---
         def mostrar_menu_juegos():
-            # CSS Local
+            # 1. CSS NEON (SOLO PARA ESTE MENÚ)
             st.markdown("""
             <style>
+                /* Contenedor del botón estilo Cyberpunk */
                 div.stButton > button {
-                    background-color: white !important;
-                    border: 1px solid #e0e0e0 !important;
-                    border-radius: 15px !important;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-                    transition: all 0.2s ease !important;
-                    color: #333 !important;
+                    background: linear-gradient(145deg, #0f2027, #203a43, #2c5364) !important; /* Fondo oscuro degradado */
+                    border: 1px solid #00f260 !important; /* Borde Verde Neón inicial */
+                    border-radius: 12px !important;
+                    box-shadow: 0 0 10px rgba(0, 242, 96, 0.2) !important; /* Resplandor suave */
+                    color: #ffffff !important;
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
                     height: auto !important;
-                    padding: 20px !important;
+                    padding: 25px 15px !important;
+                    position: relative;
+                    overflow: hidden;
                 }
+
+                /* Efecto Hover: ¡Explosión de Neón! */
                 div.stButton > button:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
-                    border-color: #1A237E !important;
-                    color: #1A237E !important;
+                    transform: translateY(-5px) scale(1.02);
+                    border-color: #0575E6 !important; /* Cambia a Azul Eléctrico */
+                    box-shadow: 0 0 20px rgba(5, 117, 230, 0.6), 0 0 40px rgba(5, 117, 230, 0.3) !important;
+                    z-index: 10;
                 }
+
+                /* Texto del Título */
                 div.stButton > button p {
-                    font-size: 18px !important;
-                    font-weight: 700 !important;
-                    line-height: 1.5 !important;
+                    font-family: 'Courier New', monospace !important; /* Fuente tipo código/hacker */
+                    font-size: 20px !important;
+                    font-weight: 900 !important;
+                    letter-spacing: 2px !important;
+                    text-transform: uppercase !important;
+                    margin: 0 !important;
+                    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+                }
+                
+                /* Icono dentro del botón (Hack para que el emoji brille) */
+                div.stButton > button::before {
+                    content: ''; /* Aquí iría el icono si usáramos FontAwesome, pero usamos emojis en el texto */
                 }
             </style>
             """, unsafe_allow_html=True)
 
+            # TÍTULO ESTILIZADO
             st.markdown("""
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #1A237E; font-size: 36px; font-weight: 800;">🎮 Zona de Gamificación</h2>
-                <p style="color: #546E7A; font-size: 18px;">Selecciona una dinámica para activar tu clase</p>
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="color: #00f260; font-size: 42px; font-weight: 800; text-shadow: 0 0 10px rgba(0,242,96,0.5); font-family: sans-serif;">⚡ ZONA ARCADE ⚡</h2>
+                <p style="color: #a8c0ff; font-size: 18px; letter-spacing: 1px;">SELECCIONA TU MISIÓN</p>
             </div>
             """, unsafe_allow_html=True)
 
-            # FILA 1
+            # --- PARRILLA DE JUEGOS ---
+            # Nota: Quitamos los emojis flotantes externos para meterlos DENTRO del botón y que sea una sola unidad.
+            
             col1, col2 = st.columns(2, gap="large")
+            
             with col1:
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🧠</div>', unsafe_allow_html=True)
-                # CLAVE V3 PARA EVITAR ERROR
-                if st.button("\n\nDesafío de Trivia\nPreguntas y respuestas", key="btn_trivia_v3", use_container_width=True):
+                # TRIVIA (Emoji integrado en el texto del botón)
+                if st.button("🧠 TRIVIA\n\nDesafío Mental", key="btn_neon_trivia", use_container_width=True):
                     st.session_state['juego_actual'] = 'trivia'
                     st.rerun()
 
             with col2:
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">ABC</div>', unsafe_allow_html=True)
-                # CLAVE V3 PARA EVITAR ERROR
-                if st.button("\n\nCazador de Palabras\nSopa de letras interactiva", key="btn_pupi_v3", use_container_width=True):
+                # PUPILETRAS
+                if st.button("🔤 PUPILETRAS\n\nCaza Palabras", key="btn_neon_pupi", use_container_width=True):
                     st.session_state['juego_actual'] = 'pupiletras'
                     st.rerun()
 
             st.write("") 
 
-            # FILA 2
             col3, col4 = st.columns(2, gap="large")
+            
             with col3:
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🤖</div>', unsafe_allow_html=True)
-                # CLAVE V3 PARA EVITAR ERROR
-                if st.button("\n\nRescata al Robot\nAdivina la palabra oculta", key="btn_robot_v3", use_container_width=True):
+                # ROBOT
+                if st.button("🤖 ROBOT\n\nRescate Lógico", key="btn_neon_robot", use_container_width=True):
                     st.session_state['juego_actual'] = 'ahorcado'
                     st.rerun()
 
             with col4:
-                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🖼️</div>', unsafe_allow_html=True)
-                # CLAVE V3 PARA EVITAR ERROR
-                if st.button("\n\nEl Revelador Visual\nAdivina la imagen oculta", key="btn_pixel_v3", use_container_width=True):
+                # PIXEL ART
+                if st.button("👾 PIXEL ART\n\nRevelador Visual", key="btn_neon_pixel", use_container_width=True):
                     st.session_state['juego_actual'] = 'pixel_art'
                     st.rerun()
 
@@ -1983,12 +1999,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
 
