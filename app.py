@@ -2034,7 +2034,7 @@ def home_page():
                         else:
                             st.warning("⚠️ La lista está vacía. Escribe nombres o sube un Excel.")
 
-            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO SINCRONIZADO 🎰) ---
+            # --- ZONA DE JUEGO (ETAPA 3 - AUDIO MECÁNICO REAL 🎰) ---
             else:
                 total_participantes = len(st.session_state['sorteo_lista'])
                 total_ganadores = st.session_state.get('sorteo_cantidad', 1)
@@ -2060,17 +2060,17 @@ def home_page():
                     contenedor_animacion = st.empty()
                     contenedor_audio_win = st.empty()
                     
-                    # 1. ACTIVAR SONIDO DE GIRO (BUCLE)
-                    # Usamos un sonido de "Slot Machine Rolling" más ruidoso
+                    # 1. ACTIVAR SONIDO MECÁNICO (TIPO RUEDA DE LA FORTUNA)
                     t_stamp = time.time()
+                    # Este audio es puro "Clicking" mecánico
                     audio_html_giro = f"""
                         <audio autoplay loop>
-                        <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3?t={t_stamp}" type="audio/mp3">
+                        <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3?t={t_stamp}" type="audio/mp3">
                         </audio>
                     """
                     contenedor_audio_giro.markdown(audio_html_giro, unsafe_allow_html=True)
                     
-                    # ⚠️ LA SOLUCIÓN: Pequeña pausa para asegurar que el navegador cargue el audio
+                    # Pausa técnica para carga de audio
                     time.sleep(0.5) 
                     
                     # Bucle de ganadores
@@ -2111,10 +2111,7 @@ def home_page():
                             lista_candidatos.remove(ganador)
                             ganadores_ronda.append(ganador)
                             
-                            # C) DETENER GIRO Y SONAR VICTORIA
-                            # Nota: No borramos contenedor_audio_giro aquí para que no haya silencio incómodo,
-                            # lo solapamos con el de victoria y luego borramos.
-                            
+                            # 2. SONIDO VICTORIA (Ding!)
                             t_stamp_win = time.time()
                             audio_html_win = f"""
                                 <audio autoplay>
@@ -2122,9 +2119,11 @@ def home_page():
                                 </audio>
                             """
                             contenedor_audio_win.markdown(audio_html_win, unsafe_allow_html=True)
-                            contenedor_audio_giro.empty() # AHORA SÍ callamos el giro
                             
-                            # D) PANTALLA GANADOR
+                            # Pausar el ruido mecánico para escuchar la victoria
+                            contenedor_audio_giro.empty() 
+                            
+                            # C) PANTALLA GANADOR
                             contenedor_animacion.markdown(f"""
                             <div style="
                                 text-align: center; padding: 40px; 
@@ -2140,20 +2139,20 @@ def home_page():
                             """, unsafe_allow_html=True)
                             
                             st.balloons()
-                            time.sleep(4) # Tiempo para celebrar
+                            time.sleep(4) 
                             
-                            contenedor_audio_win.empty() # Callar victoria
+                            contenedor_audio_win.empty() 
                             
-                            # Si faltan ganadores, reactivamos sonido de giro
+                            # Si faltan ganadores, reactivamos sonido mecánico
                             if i < total_ganadores - 1:
                                 t_stamp_loop = time.time()
                                 audio_html_loop = f"""
                                     <audio autoplay loop>
-                                    <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3?t={t_stamp_loop}" type="audio/mp3">
+                                    <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3?t={t_stamp_loop}" type="audio/mp3">
                                     </audio>
                                 """
                                 contenedor_audio_giro.markdown(audio_html_loop, unsafe_allow_html=True)
-                                time.sleep(0.5) # Pausa técnica para recargar sonido
+                                time.sleep(0.5) 
                                 
                         else:
                             st.warning("¡Se acabaron los participantes!")
@@ -2215,6 +2214,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
