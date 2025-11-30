@@ -302,13 +302,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (CORREGIDA: CON LOGO Y FEEDBACK) ===
+# === 4. PÁGINA DE LOGIN (V4.0 - CON LOGO Y BANDERA DE ÉXITO) ===
 # =========================================================================
 def login_page():
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
-        # ✅ LOGOTIPO RESTAURADO AQUÍ ABAJO
+        # ✅ 1. LOGOTIPO (Asegurado)
         st.image("assets/logotipo-aulametrics.png", width=300)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
@@ -332,12 +332,25 @@ def login_page():
                         st.session_state.logged_in = True
                         st.session_state.user = session.user
                         st.session_state.show_welcome_message = True
+                        
+                        # Limpiamos la bandera de registro si existía
+                        if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                        
                         st.rerun() 
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
-        # --- PESTAÑA 2: REGISTRO (CON FEEDBACK) ---
+        # --- PESTAÑA 2: REGISTRO (LÓGICA DE BANDERA) ---
         with tab_register:
+            # ✅ A. MOSTRAR MENSAJE SI LA BANDERA ESTÁ ACTIVA
+            # Este mensaje persiste incluso después de que el formulario se limpie
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'** para ingresar.")
+                st.balloons()
+                # Opcional: Apagamos los globos para la próxima recarga automática para no saturar
+                # pero dejamos el mensaje verde.
+
             with st.form("register_form"):
                 name = st.text_input("Nombre", key="register_name")
                 email = st.text_input("Correo Electrónico", key="register_email")
@@ -349,7 +362,7 @@ def login_page():
                         st.warning("Por favor, completa todos los campos.")
                     else:
                         try:
-                            # 1. Intentamos crear el usuario
+                            # 1. Crear usuario en Supabase
                             user = supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
@@ -358,23 +371,24 @@ def login_page():
                                 }
                             })
                             
-                            # 2. FEEDBACK POSITIVO
-                            import time
-                            st.balloons()
-                            st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                            st.markdown(f"**Bienvenido/a, {name}.** Ya estás registrado en el sistema.")
-                            st.info("👈 Ahora ve a la pestaña **'Iniciar Sesión'** e ingresa tus datos.")
+                            # ✅ B. ACTIVAR BANDERA Y LIMPIAR DATOS
+                            # 1. Activamos la "Memoria de Éxito"
+                            st.session_state['registro_exitoso'] = True
                             
-                            # 3. Pausa para leer
-                            with st.spinner("Guardando tus credenciales..."):
-                                time.sleep(2.5)
+                            # 2. Borramos los campos por seguridad (Limpieza inmediata)
+                            st.session_state["register_name"] = ""
+                            st.session_state["register_email"] = ""
+                            st.session_state["register_password"] = ""
+                            
+                            # 3. Recargamos YA MISMO para que el usuario vea el form vacío y el mensaje verde
+                            st.rerun()
                                 
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
         st.divider()
         
-        # URL de tu página de github/landing
+        # URL de contacto
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
@@ -2287,6 +2301,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
