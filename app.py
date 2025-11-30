@@ -1481,29 +1481,66 @@ def home_page():
                     num_input = st.slider("Preguntas:", 1, 10, 5)
                     modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
+                # BOTÓN GENERAR CON SISTEMA DE "AUTO-REPARACIÓN" (3 VIDAS)
                 if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
                     if not tema_input:
                         st.warning("⚠️ Escribe un tema.")
                     else:
-                        with st.spinner(f"🧠 Creando {num_input} desafíos..."):
-                            respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
-                            if respuesta_json:
-                                try:
-                                    clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
-                                    preguntas = json.loads(clean_json)
-                                    st.session_state['juego_preguntas'] = preguntas
-                                    st.session_state['juego_indice'] = 0
-                                    st.session_state['juego_puntaje'] = 0
-                                    st.session_state['juego_terminado'] = False
-                                    st.session_state['tema_actual'] = tema_input
-                                    st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
-                                    st.session_state['fase_pregunta'] = "respondiendo"
+                        # Variables de control de reintentos
+                        intentos = 0
+                        max_intentos = 3
+                        exito = False
+                        
+                        # Espacio para mensajes temporales
+                        placeholder_estado = st.empty()
+                        
+                        # Bucle de intentos (La magia de la resiliencia)
+                        while intentos < max_intentos and not exito:
+                            intentos += 1
+                            try:
+                                msg_intento = f"🧠 Creando desafíos..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
+                                
+                                with st.spinner(msg_intento):
+                                    # 1. Llamada a la IA
+                                    respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
                                     
-                                    st.session_state['juego_en_lobby'] = True 
-                                    st.session_state['juego_iniciado'] = True
-                                    st.rerun()
-                                except Exception as e: st.error(f"Error formato: {e}")
-                            else: st.error("Error conexión IA.")
+                                    if respuesta_json:
+                                        # 2. Limpieza agresiva del JSON
+                                        clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
+                                        
+                                        # 3. Intento de conversión (Aquí es donde suele fallar)
+                                        preguntas = json.loads(clean_json)
+                                        
+                                        # 4. Si pasa la línea anterior, ¡ÉXITO! Guardamos todo.
+                                        st.session_state['juego_preguntas'] = preguntas
+                                        st.session_state['juego_indice'] = 0
+                                        st.session_state['juego_puntaje'] = 0
+                                        st.session_state['juego_terminado'] = False
+                                        st.session_state['tema_actual'] = tema_input
+                                        st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
+                                        st.session_state['fase_pregunta'] = "respondiendo"
+                                        
+                                        st.session_state['juego_en_lobby'] = True 
+                                        st.session_state['juego_iniciado'] = True
+                                        
+                                        exito = True # Rompemos el bucle
+                                        st.rerun()
+                                    else:
+                                        raise Exception("Respuesta vacía de la IA")
+
+                            except json.JSONDecodeError:
+                                # ¡Ajá! Aquí capturamos el error de la coma (Expecting , delimiter)
+                                import time
+                                time.sleep(1) # Esperamos un segundo para no saturar
+                                continue # Volvemos a empezar el bucle while
+                                
+                            except Exception as e:
+                                st.error(f"Error inesperado: {e}")
+                                break # Si es otro error, paramos
+                        
+                        # Si después de 3 intentos sigue fallando...
+                        if not exito:
+                            st.error("❌ La IA está teniendo dificultades con este tema específico. Por favor, intenta cambiar ligeramente el nombre del tema.")
                 st.divider()
 
             elif st.session_state.get('juego_en_lobby', False):
@@ -2219,6 +2256,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
