@@ -145,22 +145,49 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (BARRA LATERAL SIEMPRE VISIBLE) ===
+# === 1.C. PANTALLA DE INICIO (PROTECCIÓN TOTAL DE FLECHA) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- 🔒 CANDADO CSS: IMPEDIR QUE SE CIERRE LA BARRA LATERAL ---
+    # --- 🛡️ CSS BLINDADO PARA LA FLECHA ---
     st.markdown("""
         <style>
-        /* 1. Ocultamos el botón 'X' o '<' dentro de la barra lateral */
-        [data-testid="stSidebarCollapseButton"] {
-            display: none !important;
-            visibility: hidden !important;
+        /* 1. FORZAR VISIBILIDAD DEL HEADER (El contenedor padre) */
+        header[data-testid="stHeader"] {
+            background: transparent !important;
+            display: block !important;
+            visibility: visible !important;
+            height: auto !important;
+        }
+
+        /* 2. PROTECCIÓN DE LA FLECHA (Botón de colapsar) */
+        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            color: #333 !important;
+            
+            /* Truco: Forzar posición y capa superior */
+            position: fixed !important;
+            top: 1rem !important;
+            left: 1rem !important;
+            z-index: 1000002 !important; /* Capa más alta que el login */
+            
+            /* Fondo para que se vea siempre */
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            border-radius: 50% !important;
+            padding: 0.5rem !important;
         }
         
-        /* 2. Por seguridad, ocultamos también el disparador externo si existiera */
-        [data-testid="collapsedControl"] {
-            display: none !important;
+        /* 3. COLOREAR EL ICONO DE LA FLECHA */
+        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
+            fill: #333333 !important;
+            stroke: #333333 !important;
+        }
+
+        /* 4. EVITAR QUE EL CONTENIDO SUBA DEMASIADO */
+        .block-container {
+            padding-top: 4rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2416,6 +2443,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
