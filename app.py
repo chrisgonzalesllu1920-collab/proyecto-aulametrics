@@ -151,32 +151,35 @@ def mostrar_home():
     # --- ☢️ CSS NUCLEAR: SOBRESCRIBIR REGLAS GLOBALES ---
     st.markdown("""
         <style>
-        /* Usamos 'html body' para tener más peso que el CSS global */
+        /* 1. FORZAR FONDO BLANCO EN EL HEADER */
+        /* Usamos 'html body' para ganar especificidad sobre el CSS global */
         html body [data-testid="stHeader"] {
-            background-color: #ffffff !important; /* Forzar fondo blanco */
+            background-color: #ffffff !important; 
             opacity: 1 !important;
             visibility: visible !important;
             display: block !important;
         }
 
-        /* Forzar color de flecha y botón de menú */
+        /* 2. FORZAR COLOR AZUL OSCURO EN LA FLECHA */
+        /* Esto anula el color #E0E0E0 definido en app.py */
         html body [data-testid="collapsedControl"],
         html body [data-testid="stSidebarCollapsedControl"],
         html body [data-testid="stHeader"] button {
-            color: #1A237E !important; /* Azul Oscuro */
+            color: #1A237E !important; /* Azul Oscuro Institucional */
             fill: #1A237E !important;
             display: block !important;
             visibility: visible !important;
-            z-index: 999999999 !important; /* Ganar la guerra de capas */
+            z-index: 999999999 !important; /* Capa superior */
         }
         
-        /* Asegurar que el SVG interno cambie de color */
+        /* 3. ASEGURAR QUE EL DIBUJO SVG TAMBIÉN SEA AZUL */
         html body [data-testid="stHeader"] button svg,
         html body [data-testid="collapsedControl"] svg {
             fill: #1A237E !important;
             stroke: #1A237E !important;
         }
 
+        /* 4. AJUSTE DE MARGEN */
         .block-container {
             padding-top: 3rem !important;
         }
@@ -2434,6 +2437,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
