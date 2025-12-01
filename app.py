@@ -27,7 +27,7 @@ st.set_page_config(
   page_title="AulaMetrics", 
   page_icon="assets/isotipo.png",
   layout="wide",
-  initial_sidebar_state="collapsed"
+  initial_sidebar_state="expanded"
 )
 
 # --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA ROBOTO + LIMPIEZA) ---
@@ -72,7 +72,7 @@ st.markdown("""
     
     /* Ajustamos el color de los iconos del header (hamburguesa/flecha) a blanco/gris para que se vean */
     [data-testid="stHeader"] button {
-        color: #E0E0E0 !important;
+        color: #1A237E !important;
     }
     
     /* Eliminar margen superior excesivo */
@@ -2409,6 +2409,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
