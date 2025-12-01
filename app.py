@@ -140,13 +140,13 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (CORREGIDA: FLECHA BLANCA + TARJETAS RESTAURADAS) ===
+# === 1.C. PANTALLA DE INICIO (RESTAURACIÓN VISUAL COMPLETA) ===
 # =========================================================================
 
 def mostrar_home():
     """Dibuja la parrilla de tarjetas con Saludo Contextual (Hora Perú)."""
     
-    # --- A. LÓGICA DE TIEMPO Y FECHA (AJUSTE PERÚ) ---
+    # --- A. LÓGICA DE TIEMPO Y FECHA ---
     from datetime import datetime, timedelta
     ahora_servidor = datetime.now()
     ahora = ahora_servidor - timedelta(hours=5)
@@ -169,43 +169,75 @@ def mostrar_home():
     mes_nombre = meses[ahora.month - 1]
     fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
 
-    # --- B. ESTILOS CSS (LIMPIO Y CORREGIDO) ---
+    # --- B. ESTILOS CSS (REPARACIÓN DE FLECHA Y TARJETAS) ---
     st.markdown("""
         <style>
-        /* --- 1. HEADER Y FLECHA (VISIBLE Y BLANCA) --- */
-        /* Restauramos el header pero lo hacemos transparente */
+        /* --- 1. FLECHA BLANCA (OBLIGATORIA) --- */
+        /* Usamos 'html body' para ganar la guerra de estilos y forzar blanco */
+        html body [data-testid="stHeader"] button,
+        html body [data-testid="collapsedControl"],
+        html body [data-testid="stSidebarCollapsedControl"] {
+            color: #FFFFFF !important; /* BLANCO PURO */
+            fill: #FFFFFF !important;
+            display: block !important;
+            visibility: visible !important;
+            z-index: 99999999 !important;
+        }
+        
+        /* Aseguramos el dibujo SVG interno */
+        html body [data-testid="stHeader"] button svg,
+        html body [data-testid="collapsedControl"] svg {
+            fill: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
+        
+        /* Header transparente pero visible */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
             display: block !important;
             visibility: visible !important;
         }
 
-        /* FORZAR FLECHA BLANCA (Para que se vea sobre el fondo Morado) */
-        /* Apuntamos a todos los posibles selectores del botón */
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stHeader"] button {
-            color: #FFFFFF !important; /* COLOR BLANCO PURO */
-            fill: #FFFFFF !important;
-            display: block !important;
-            visibility: visible !important;
-            z-index: 999999 !important; /* Asegurar que esté encima */
+        /* --- 2. RESTAURACIÓN DE TARJETAS (ESTILO BONITO) --- */
+        /* Esta clase hará que las cajas se vean grandes y elegantes otra vez */
+        .card-box {
+            border-radius: 15px;
+            padding: 25px;
+            height: 280px; /* Altura fija para que todas sean iguales */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
         }
-        
-        /* Aseguramos el SVG interno también */
-        [data-testid="collapsedControl"] svg,
-        [data-testid="stHeader"] button svg {
-            fill: #FFFFFF !important;
-            stroke: #FFFFFF !important;
+        .card-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .card-img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 0 10px 0;
+        }
+        .card-text {
+            color: #555;
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
-        /* --- 2. ELIMINAR MÁRGENES SUPERIORES --- */
-        .block-container {
-            padding-top: 3rem !important; /* Espacio para la cabecera */
-            padding-bottom: 0rem !important;
-        }
-
-        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
+        /* --- 3. FONDO PRINCIPAL (MORADO) --- */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: 
@@ -214,27 +246,24 @@ def mostrar_home():
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
             background-attachment: fixed;
         }
-        
-        /* NOTA: SE ELIMINÓ EL BLOQUE "TARJETAS GEOMÉTRICAS" QUE ROMPÍA EL DISEÑO */
         </style>
     """, unsafe_allow_html=True)
     
     # --- CONTENIDO ---
-    # Saludo con tipografía especial (del CSS global)
-    st.markdown(f'<h1 class="gradient-title-dashboard">{emoji_saludo} {saludo}, estimado docente</h1>', unsafe_allow_html=True)
-    st.markdown(f"*{fecha_texto}*")
+    st.markdown(f'<h1 class="gradient-title-dashboard" style="color:white;">{emoji_saludo} {saludo}, estimado docente</h1>', unsafe_allow_html=True)
+    st.markdown(f"<p style='color: white; opacity: 0.8;'>*{fecha_texto}*</p>", unsafe_allow_html=True)
     st.divider()
 
     # --- FILA 1 ---
     col1, col2 = st.columns(2)
     
     with col1:
-        # TARJETA 1 (Estilo Original Restaurado)
+        # TARJETA 1 (RESTAURADA)
         st.markdown("""
-        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; min-height: 220px;">
-            <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
-            <h3 style="color: #1565c0; text-align: center; margin-top: 0;">📊 Sistema de Evaluación</h3>
-            <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
+        <div class="card-box" style="background-color: #e3f2fd; border: 1px solid #90caf9;">
+            <img src="https://img.icons8.com/fluency/96/bullish.png" class="card-img">
+            <h3 class="card-title" style="color: #1565c0;">📊 Sistema de Evaluación</h3>
+            <p class="card-text">Sube tus notas, visualiza estadísticas globales y genera libretas individuales.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
@@ -242,30 +271,30 @@ def mostrar_home():
             st.rerun()
 
     with col2:
-        # TARJETA 2
+        # TARJETA 2 (RESTAURADA)
         st.markdown("""
-        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; min-height: 220px;">
-            <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
-            <h3 style="color: #6a1b9a; text-align: center; margin-top: 0;">🧠 Asistente Pedagógico</h3>
-            <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
+        <div class="card-box" style="background-color: #f3e5f5; border: 1px solid #ce93d8;">
+            <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" class="card-img">
+            <h3 class="card-title" style="color: #6a1b9a;">🧠 Asistente Pedagógico</h3>
+            <p class="card-text">Diseña sesiones de aprendizaje y documentos curriculares con IA.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") # Espacio vertical
+    st.write("") 
 
     # --- FILA 2 ---
     col3, col4 = st.columns(2)
     
     with col3:
-        # TARJETA 3
+        # TARJETA 3 (RESTAURADA)
         st.markdown("""
-        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; min-height: 220px;">
-            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
-            <h3 style="color: #ef6c00; text-align: center; margin-top: 0;">📂 Banco de Recursos</h3>
-            <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
+        <div class="card-box" style="background-color: #fff3e0; border: 1px solid #ffcc80;">
+            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" class="card-img">
+            <h3 class="card-title" style="color: #ef6c00;">📂 Banco de Recursos</h3>
+            <p class="card-text">Descarga formatos oficiales, registros auxiliares y guías.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
@@ -273,12 +302,12 @@ def mostrar_home():
             st.rerun()
 
     with col4:
-        # TARJETA 4
+        # TARJETA 4 (RESTAURADA)
         st.markdown("""
-        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; min-height: 220px;">
-            <img src="https://img.icons8.com/fluency/96/controller.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
-            <h3 style="color: #c2185b; text-align: center; margin-top: 0;">🎮 Gamificación</h3>
-            <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
+        <div class="card-box" style="background-color: #fce4ec; border: 1px solid #f48fb1;">
+            <img src="https://img.icons8.com/fluency/96/controller.png" class="card-img">
+            <h3 class="card-title" style="color: #c2185b;">🎮 Gamificación</h3>
+            <p class="card-text">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
@@ -2454,6 +2483,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
