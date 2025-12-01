@@ -140,16 +140,12 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DISEÑO FINAL: CRISTAL DE NEÓN + FLECHA BLANCA) ===
+# === 1.C. PANTALLA DE INICIO (V9.5 - PROPORCIONES Y PROTECCIÓN SIDEBAR) ===
 # =========================================================================
 
 def mostrar_home():
-    """
-    Pantalla de inicio con diseño de alto impacto (Glassmorphism) 
-    y corrección definitiva de la flecha.
-    """
     
-    # --- A. LÓGICA DE FECHA (Ajuste Perú) ---
+    # --- A. LÓGICA DE FECHA ---
     from datetime import datetime, timedelta
     ahora = datetime.now() - timedelta(hours=5)
     hora = ahora.hour
@@ -162,30 +158,30 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. CSS MAGISTRAL (AQUÍ ESTÁ EL DISEÑO) ---
+    # --- B. CSS DE ALTO IMPACTO (PROTEGIENDO EL SIDEBAR) ---
     st.markdown("""
         <style>
-        /* 1. FLECHA BLANCA (NIVEL NUCLEAR) */
-        /* Forzamos el color blanco en el botón y en el dibujo SVG interno */
+        /* 1. FLECHA BLANCA (FORZADO) */
         [data-testid="stHeader"] button, 
         [data-testid="collapsedControl"],
-        button[kind="header"] {
+        [data-testid="stSidebarCollapsedControl"] {
             color: #FFFFFF !important;
-            border-color: #FFFFFF !important;
+            fill: #FFFFFF !important;
+            display: block !important;
+            visibility: visible !important;
         }
-        /* Esto pinta el icono SVG específicamente */
+        /* Pintamos el SVG interno */
         [data-testid="stHeader"] button svg,
-        [data-testid="collapsedControl"] svg {
+        [data-testid="collapsedControl"] svg,
+        [data-testid="stSidebarCollapsedControl"] svg {
             fill: #FFFFFF !important;
             stroke: #FFFFFF !important;
         }
-        
-        /* 2. HEADER TRANSPARENTE */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
         }
 
-        /* 3. FONDO MORADO CON DEGRADADO (ÉPICO) */
+        /* 2. FONDO DEGRADADO DEEP PURPLE */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: 
@@ -195,100 +191,95 @@ def mostrar_home():
             background-attachment: fixed;
         }
 
-        /* 4. TARJETAS CON EFECTO "CRISTAL DE NEÓN" (WOW EFFECT) */
-        /* Transformamos el botón estándar en una tarjeta de lujo */
-        div.stButton > button {
+        /* 3. TARJETAS DE CRISTAL (SOLO EN LA ZONA PRINCIPAL) */
+        /* Usamos section[data-testid="stMain"] para NO afectar al Sidebar */
+        section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            min-height: 220px; /* Altura para que sean cuadrados grandes */
-            background: rgba(255, 255, 255, 0.05) !important; /* Fondo transparente oscuro */
-            backdrop-filter: blur(10px); /* Efecto vidrio borroso */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px !important;
+            min-height: 260px !important; /* Altura fija para cuadrados */
+            
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 25px !important;
+            border-left: 8px solid #FFD600 !important; /* Detalle dorado */
+            
             color: #FFFFFF !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             
-            /* Sombra suave inicial */
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            
-            /* Animación suave */
-            transition: all 0.3s ease-in-out !important;
-            
-            /* Alineación de contenido */
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             padding: 20px !important;
+            transition: all 0.3s ease;
         }
 
-        /* Borde lateral de color para cada tarjeta (Diferenciación) */
-        /* Nota: Como Streamlit no deja diferenciar botones por CSS, usaremos un borde genérico brillante */
-        div.stButton > button {
-            border-left: 6px solid #FFD700 !important; /* Borde dorado */
-        }
-
-        /* EFECTO HOVER (AL PASAR EL MOUSE) */
-        div.stButton > button:hover {
-            transform: translateY(-8px) scale(1.02); /* Se levanta y crece */
-            background: rgba(255, 255, 255, 0.15) !important; /* Más brillante */
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), /* Resplandor dorado */
-                        0 0 40px rgba(255, 215, 0, 0.2) !important;
+        /* Hover Efecto */
+        section[data-testid="stMain"] div.stButton > button:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 15px 40px rgba(255, 214, 0, 0.3); /* Resplandor dorado */
             border-color: #FFFFFF !important;
         }
 
-        /* TIPOGRAFÍA DENTRO DE LOS BOTONES */
-        div.stButton > button p {
-            font-size: 1.2rem !important;
-            font-weight: 700 !important;
-            color: #FFFFFF !important;
-            margin-top: 15px !important;
-            text-transform: uppercase;
+        /* 4. TEXTO DENTRO DE LAS TARJETAS (GIGANTE) */
+        section[data-testid="stMain"] div.stButton > button p {
+            font-size: 26px !important; /* AUMENTADO */
+            font-weight: 800 !important;
             letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 15px !important;
+            line-height: 1.3 !important;
         }
 
-        /* Eliminar márgenes superiores */
+        /* Ajuste márgenes */
         .block-container { padding-top: 3rem !important; }
         </style>
     """, unsafe_allow_html=True)
     
-    # --- C. CONTENIDO ---
-    
-    # Encabezado Centrado
+    # --- C. ENCABEZADO ---
     st.markdown(f"""
         <div style="text-align: center; margin-bottom: 40px; padding-top: 10px;">
-            <h1 style="color: #FFFFFF; font-size: 48px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.3);">
+            <h1 style="color: #FFFFFF; font-size: 55px; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.4);">
                 {emoji} {saludo}, Docente
             </h1>
-            <p style="color: #FFD54F; font-size: 18px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">
+            <p style="color: #FFD54F; font-size: 22px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
                 📅 {fecha}
             </p>
         </div>
     """, unsafe_allow_html=True)
     
-    # --- D. PARRILLA DE HERRAMIENTAS ---
+    # --- D. PARRILLA (ICONOS GIGANTES DE 100px) ---
     
     col1, col2 = st.columns(2, gap="large")
     
     with col1:
-        # Usamos emojis grandes dentro del botón para simular iconos
+        # TARJETA 1
+        # Icono aumentado a 100px y texto con saltos de línea para centrar
         if st.button("📊\n\nSISTEMA DE\nEVALUACIÓN", key="btn_eval", use_container_width=True):
             navegar_a("Sistema de Evaluación")
             st.rerun()
 
     with col2:
+        # TARJETA 2
         if st.button("🧠\n\nASISTENTE\nPEDAGÓGICO", key="btn_asist", use_container_width=True):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") # Separador
+    st.write("") 
 
     col3, col4 = st.columns(2, gap="large")
     
     with col3:
+        # TARJETA 3
         if st.button("📂\n\nBANCO DE\nRECURSOS", key="btn_rec", use_container_width=True):
             navegar_a("Recursos")
             st.rerun()
 
     with col4:
+        # TARJETA 4
         if st.button("🎮\n\nZONA DE\nGAMIFICACIÓN", key="btn_game", use_container_width=True):
             navegar_a("Gamificación")
             st.rerun()
@@ -2319,6 +2310,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
