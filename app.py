@@ -1041,29 +1041,27 @@ def mostrar_home():
     mes_nombre = meses[ahora.month - 1]
     fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
 
-    # --- B. ESTILOS CSS (CORREGIDO PARA MOSTRAR FLECHA) ---
+# --- B. ESTILOS CSS (CORREGIDO Y COMPLETO) ---
     st.markdown("""
         <style>
-        /* --- 1. HEADER Y FLECHA (LO MÁS IMPORTANTE) --- */
-        /* Restauramos el header pero lo hacemos transparente */
+        /* --- 1. HEADER Y FLECHA --- */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
             display: block !important;
             visibility: visible !important;
         }
 
-        /* FORZAR FLECHA BLANCA (Para que se vea sobre el fondo Morado) */
+        /* FORZAR FLECHA BLANCA (Para fondo Morado) */
         [data-testid="collapsedControl"],
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="stHeader"] button {
-            color: #FFFFFF !important; /* BLANCO */
+            color: #FFFFFF !important;
             fill: #FFFFFF !important;
             display: block !important;
             visibility: visible !important;
             z-index: 999999 !important;
         }
         
-        /* Aseguramos el SVG */
         [data-testid="collapsedControl"] svg,
         [data-testid="stHeader"] button svg {
             fill: #FFFFFF !important;
@@ -1072,22 +1070,11 @@ def mostrar_home():
 
         /* --- 2. ELIMINAR MÁRGENES --- */
         .block-container {
-            padding-top: 3rem !important; /* Dejamos espacio para la flecha */
+            padding-top: 3rem !important;
             padding-bottom: 0rem !important;
         }
 
-        /* --- 3. BARRA LATERAL (INTOCABLE) --- */
-        section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
-            border-right: 1px solid #1a237e;
-        }
-        section[data-testid="stSidebar"] * { color: white !important; }
-        section[data-testid="stSidebar"] div.stButton > button {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        }
-
-        /* --- 4. FONDO PRINCIPAL (MORADO ÉPICO) --- */
+        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: 
@@ -1095,10 +1082,8 @@ def mostrar_home():
                 radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
         }
-        </style>
-    """, unsafe_allow_html=True)
 
-        /* --- 4. TARJETAS GEOMÉTRICAS --- */
+        /* --- 4. TARJETAS GEOMÉTRICAS (AHORA SÍ ESTÁ DENTRO) --- */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
             min-height: 240px !important; 
@@ -1118,30 +1103,6 @@ def mostrar_home():
             justify-content: center;
             padding: 30px !important;
             text-align: center !important;
-        }
-
-        section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5) !important;
-            z-index: 10;
-        }
-
-        section[data-testid="stMain"] div.stButton > button p {
-            font-size: 24px !important;
-            font-weight: 800 !important;
-            color: #263238 !important;
-            margin-top: 15px !important;
-        }
-        
-        section[data-testid="stMain"] div.stButton > button small {
-            font-size: 16px !important;
-            color: #78909C !important;
-        }
-
-        .card-icon {
-            font-size: 60px;
-            margin-bottom: 0px; 
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2454,6 +2415,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
