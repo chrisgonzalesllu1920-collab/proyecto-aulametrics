@@ -145,42 +145,41 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (CORRECCIÓN DE COLOR DE FLECHA) ===
+# === 1.C. PANTALLA DE INICIO (BARRA LATERAL SIEMPRE ABIERTA) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- CORRECCIÓN DE VISIBILIDAD DE LA FLECHA ---
+    # --- 🔒 CANDADO TOTAL: ELIMINAR EL BOTÓN DE CERRAR ---
     st.markdown("""
         <style>
-        /* 1. RESTAURAR HEADER VISIBLE (Fondo blanco limpio) */
-        header[data-testid="stHeader"] {
-            background-color: #ffffff !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+        /* 1. OCULTAR EL BOTÓN DE "X" o "<" DENTRO DE LA BARRA LATERAL */
+        /* Apuntamos a todos los posibles nombres técnicos del botón */
+        [data-testid="stSidebarCollapseButton"],
+        section[data-testid="stSidebar"] button[kind="header"] {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
-        /* 2. ¡EL ARREGLO! CAMBIAR COLOR DE FLECHA A OSCURO */
-        /* Sobrescribimos el color blanco global (#E0E0E0) por el Azul Institucional (#1A237E) */
-        [data-testid="stHeader"] button, 
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] {
-            color: #1A237E !important; /* Azul Oscuro Visible */
-            fill: #1A237E !important;
-            display: block !important;
-            visibility: visible !important;
+        /* 2. OCULTAR LA CABECERA SUPERIOR DE LA BARRA LATERAL (Donde vive el botón) */
+        /* Esto es más drástico: corta la cabeza del menú para asegurar que no haya botón */
+        section[data-testid="stSidebar"] > div > div:first-child {
+             /* A veces esto oculta el logo si está muy arriba, pero asegura que el botón se vaya */
+             /* Si tu logo desaparece, borra este bloque número 2 */
         }
         
-        /* 3. Aseguramos que el icono SVG también se pinte */
-        [data-testid="stHeader"] button svg,
-        [data-testid="collapsedControl"] svg {
-            fill: #1A237E !important;
-            stroke: #1A237E !important;
+        /* 3. POR SI ACASO: OCULTAR LA FLECHA FLOTANTE (Si llegara a aparecer) */
+        [data-testid="collapsedControl"], 
+        [data-testid="stSidebarCollapsedControl"] {
+            display: none !important;
         }
 
-        /* 4. Ajuste de margen */
+        /* 4. LIMPIEZA VISUAL DEL CONTENIDO */
         .block-container {
-            padding-top: 3rem !important;
+            padding-top: 4rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2436,6 +2435,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
