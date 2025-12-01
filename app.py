@@ -148,16 +148,41 @@ def navegar_a(pagina):
 # === 1.C. PANTALLA DE INICIO (BLOQUEO POR CAPA INVISIBLE) ===
 # =========================================================================
 def mostrar_home():
-    # --- PRUEBA ROJA (SOLO PARA VERIFICAR) ---
+    # --- ☢️ CSS NUCLEAR: SOBRESCRIBIR REGLAS GLOBALES ---
     st.markdown("""
         <style>
-        /* ESTO DEBE PONER TODO EL FONDO DE ROJO */
+        /* Usamos 'html body' para tener más peso que el CSS global */
+        html body [data-testid="stHeader"] {
+            background-color: #ffffff !important; /* Forzar fondo blanco */
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+
+        /* Forzar color de flecha y botón de menú */
+        html body [data-testid="collapsedControl"],
+        html body [data-testid="stSidebarCollapsedControl"],
+        html body [data-testid="stHeader"] button {
+            color: #1A237E !important; /* Azul Oscuro */
+            fill: #1A237E !important;
+            display: block !important;
+            visibility: visible !important;
+            z-index: 999999999 !important; /* Ganar la guerra de capas */
+        }
+        
+        /* Asegurar que el SVG interno cambie de color */
+        html body [data-testid="stHeader"] button svg,
+        html body [data-testid="collapsedControl"] svg {
+            fill: #1A237E !important;
+            stroke: #1A237E !important;
+        }
+
         .block-container {
-            background-color: red !important;
+            padding-top: 3rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
-    
+
     # --- CONTENIDO DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
@@ -2409,6 +2434,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
