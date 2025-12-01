@@ -140,59 +140,98 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (BLOQUEO POR CAPA INVISIBLE) ===
+# === 1.C. PANTALLA DE INICIO (CORREGIDA: FLECHA BLANCA + TARJETAS RESTAURADAS) ===
 # =========================================================================
+
 def mostrar_home():
-    # --- ☢️ CSS NUCLEAR: SOBRESCRIBIR REGLAS GLOBALES ---
+    """Dibuja la parrilla de tarjetas con Saludo Contextual (Hora Perú)."""
+    
+    # --- A. LÓGICA DE TIEMPO Y FECHA (AJUSTE PERÚ) ---
+    from datetime import datetime, timedelta
+    ahora_servidor = datetime.now()
+    ahora = ahora_servidor - timedelta(hours=5)
+    hora = ahora.hour
+    
+    if 5 <= hora < 12:
+        saludo = "Buenos días"
+        emoji_saludo = "☀️"
+    elif 12 <= hora < 19:
+        saludo = "Buenas tardes"
+        emoji_saludo = "🌤️"
+    else:
+        saludo = "Buenas noches"
+        emoji_saludo = "🌙"
+        
+    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    dia_nombre = dias_semana[ahora.weekday()]
+    dia_numero = ahora.day
+    mes_nombre = meses[ahora.month - 1]
+    fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
+
+    # --- B. ESTILOS CSS (LIMPIO Y CORREGIDO) ---
     st.markdown("""
         <style>
-        /* 1. FORZAR FONDO BLANCO EN EL HEADER */
-        /* Usamos 'html body' para ganar especificidad sobre el CSS global */
-        html body [data-testid="stHeader"] {
-            background-color: #ffffff !important; 
-            opacity: 1 !important;
-            visibility: visible !important;
+        /* --- 1. HEADER Y FLECHA (VISIBLE Y BLANCA) --- */
+        /* Restauramos el header pero lo hacemos transparente */
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
             display: block !important;
+            visibility: visible !important;
         }
 
-        /* 2. FORZAR COLOR AZUL OSCURO EN LA FLECHA */
-        /* Esto anula el color #E0E0E0 definido en app.py */
-        html body [data-testid="collapsedControl"],
-        html body [data-testid="stSidebarCollapsedControl"],
-        html body [data-testid="stHeader"] button {
-            color: #FFFFFF !important; /* Azul Oscuro Institucional */
+        /* FORZAR FLECHA BLANCA (Para que se vea sobre el fondo Morado) */
+        /* Apuntamos a todos los posibles selectores del botón */
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stHeader"] button {
+            color: #FFFFFF !important; /* COLOR BLANCO PURO */
             fill: #FFFFFF !important;
             display: block !important;
             visibility: visible !important;
-            z-index: 999999999 !important; /* Capa superior */
+            z-index: 999999 !important; /* Asegurar que esté encima */
         }
         
-        /* 3. ASEGURAR QUE EL DIBUJO SVG TAMBIÉN SEA AZUL */
-        html body [data-testid="stHeader"] button svg,
-        html body [data-testid="collapsedControl"] svg {
+        /* Aseguramos el SVG interno también */
+        [data-testid="collapsedControl"] svg,
+        [data-testid="stHeader"] button svg {
             fill: #FFFFFF !important;
             stroke: #FFFFFF !important;
         }
 
-        /* 4. AJUSTE DE MARGEN */
+        /* --- 2. ELIMINAR MÁRGENES SUPERIORES --- */
         .block-container {
-            padding-top: 3rem !important;
+            padding-top: 3rem !important; /* Espacio para la cabecera */
+            padding-bottom: 0rem !important;
         }
+
+        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
+        [data-testid="stAppViewContainer"] {
+            background-color: #4A148C !important;
+            background: 
+                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
+            background-attachment: fixed;
+        }
+        
+        /* NOTA: SE ELIMINÓ EL BLOQUE "TARJETAS GEOMÉTRICAS" QUE ROMPÍA EL DISEÑO */
         </style>
     """, unsafe_allow_html=True)
-
-    # --- CONTENIDO DE LA PÁGINA ---
-    st.title("🚀 Bienvenido a AulaMetrics")
-    st.markdown("### Selecciona una herramienta para comenzar:")
+    
+    # --- CONTENIDO ---
+    # Saludo con tipografía especial (del CSS global)
+    st.markdown(f'<h1 class="gradient-title-dashboard">{emoji_saludo} {saludo}, estimado docente</h1>', unsafe_allow_html=True)
+    st.markdown(f"*{fecha_texto}*")
     st.divider()
 
     # --- FILA 1 ---
     col1, col2 = st.columns(2)
     
     with col1:
-        # TARJETA 1
+        # TARJETA 1 (Estilo Original Restaurado)
         st.markdown("""
-        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: auto; min-height: 220px;">
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
             <h3 style="color: #1565c0; text-align: center; margin-top: 0;">📊 Sistema de Evaluación</h3>
             <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
@@ -205,7 +244,7 @@ def mostrar_home():
     with col2:
         # TARJETA 2
         st.markdown("""
-        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: auto; min-height: 220px;">
+        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
             <h3 style="color: #6a1b9a; text-align: center; margin-top: 0;">🧠 Asistente Pedagógico</h3>
             <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
@@ -215,7 +254,7 @@ def mostrar_home():
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") 
+    st.write("") # Espacio vertical
 
     # --- FILA 2 ---
     col3, col4 = st.columns(2)
@@ -223,7 +262,7 @@ def mostrar_home():
     with col3:
         # TARJETA 3
         st.markdown("""
-        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: auto; min-height: 220px;">
+        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
             <h3 style="color: #ef6c00; text-align: center; margin-top: 0;">📂 Banco de Recursos</h3>
             <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
@@ -236,7 +275,7 @@ def mostrar_home():
     with col4:
         # TARJETA 4
         st.markdown("""
-        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: auto; min-height: 220px;">
+        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/controller.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
             <h3 style="color: #c2185b; text-align: center; margin-top: 0;">🎮 Gamificación</h3>
             <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
@@ -2415,6 +2454,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
