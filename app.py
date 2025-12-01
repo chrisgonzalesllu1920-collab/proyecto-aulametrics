@@ -145,41 +145,27 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (RESTAURACIÓN TOTAL DE CABECERA) ===
+# === 1.C. PANTALLA DE INICIO (BARRA LATERAL SIEMPRE VISIBLE) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- CSS DE RESTAURACIÓN (ELIMINA EL EFECTO DEL LOGIN) ---
+    # --- 🔒 CANDADO CSS: IMPEDIR QUE SE CIERRE LA BARRA LATERAL ---
     st.markdown("""
         <style>
-        /* 1. OBLIGAR A MOSTRAR EL HEADER (Quitamos el display: none) */
-        header[data-testid="stHeader"] {
-            display: block !important;
-            visibility: visible !important;
-            background-color: transparent !important; /* Transparente para que se vea bonito */
-        }
-
-        /* 2. OBLIGAR A MOSTRAR EL BOTÓN (Flecha/Hamburguesa) */
-        /* Apuntamos a todos los posibles IDs que usa Streamlit */
-        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
-            display: block !important;
-            visibility: visible !important;
-            color: #333333 !important; /* Color oscuro para que se note */
+        /* 1. Ocultamos el botón 'X' o '<' dentro de la barra lateral */
+        [data-testid="stSidebarCollapseButton"] {
+            display: none !important;
+            visibility: hidden !important;
         }
         
-        /* 3. Asegurar que el icono SVG (el dibujo de la flecha) tenga color */
-        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
-            fill: #333333 !important;
-        }
-
-        /* 4. Ajuste de margen para que el contenido no se solape con el header restaurado */
-        .block-container {
-            padding-top: 3rem !important;
+        /* 2. Por seguridad, ocultamos también el disparador externo si existiera */
+        [data-testid="collapsedControl"] {
+            display: none !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENIDO DE LA PÁGINA (Tus tarjetas originales) ---
+    # --- CONTENIDO DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
@@ -2430,6 +2416,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
