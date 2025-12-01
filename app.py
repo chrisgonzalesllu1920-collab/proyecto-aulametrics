@@ -145,34 +145,34 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (BARRA LATERAL BLOQUEADA - VERSIÓN NUCLEAR) ===
+# === 1.C. PANTALLA DE INICIO (ESTRATEGIA SEGURA: SIN TRUCOS CSS) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- 🔒 CANDADO TOTAL CSS ---
+    # --- LIMPIEZA TOTAL DE ESTILOS ---
+    # En lugar de pelear con el CSS, le decimos al navegador:
+    # "Muestra el header normal, como en cualquier app de Streamlit"
     st.markdown("""
         <style>
-        /* 1. MATAR EL BOTÓN DE CERRAR (X / <) */
-        [data-testid="stSidebarCollapseButton"], 
-        section[data-testid="stSidebar"] button[kind="header"],
-        button[kind="header"] {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            width: 0 !important;
+        /* Restaurar la visibilidad del header estándar */
+        header[data-testid="stHeader"] {
+            display: block !important;
+            visibility: visible !important;
+            background-color: white !important; /* Fondo blanco sólido para evitar conflictos */
+            opacity: 1 !important;
+            z-index: 999 !important;
         }
 
-        /* 2. MATAR EL BOTÓN DE ABRIR (>) POR SI ACASO */
-        [data-testid="collapsedControl"], 
-        [data-testid="stSidebarCollapsedControl"] {
-            display: none !important;
-            visibility: hidden !important;
+        /* Asegurar que el botón de menú sea visible */
+        [data-testid="collapsedControl"] {
+            display: block !important;
+            visibility: visible !important;
+            color: #333 !important;
         }
-
-        /* 3. Ajuste visual para que el contenido no se pegue arriba */
+        
+        /* Ajuste de margen para que no se pegue al header */
         .block-container {
-            padding-top: 4rem !important;
+            padding-top: 2rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2428,6 +2428,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
