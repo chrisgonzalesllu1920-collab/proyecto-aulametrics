@@ -147,38 +147,17 @@ def navegar_a(pagina):
 # =========================================================================
 # === 1.C. PANTALLA DE INICIO (BLOQUEO POR CAPA INVISIBLE) ===
 # =========================================================================
-
 def mostrar_home():
-    # --- 🛡️ ESCUDO INVISIBLE: BLOQUEAR LA ESQUINA DEL SIDEBAR ---
+    # --- PRUEBA ROJA (SOLO PARA VERIFICAR) ---
     st.markdown("""
         <style>
-        /* 1. Ocultar visualmente el botón (Mejor esfuerzo) */
-        [data-testid="stSidebarCollapseButton"] {
-            display: none !important;
-            opacity: 0 !important;
-        }
-
-        /* 2. EL TRUCO MAESTRO: Crear una capa invisible encima de la zona del botón */
-        /* Esto evita que, si el botón sigue ahí, se le pueda dar clic */
-        div[data-testid="stSidebar"]::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 300px; /* Ancho de la barra lateral */
-            height: 50px; /* Altura de la cabecera donde está la X */
-            background: transparent; /* Invisible */
-            z-index: 999999; /* Encima de todo */
-            pointer-events: auto; /* Captura el clic para que no pase al botón */
-        }
-        
-        /* 3. Limpieza de cabecera general */
+        /* ESTO DEBE PONER TODO EL FONDO DE ROJO */
         .block-container {
-            padding-top: 2rem !important;
+            background-color: red !important;
         }
         </style>
     """, unsafe_allow_html=True)
-
+    
     # --- CONTENIDO DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
@@ -2430,6 +2409,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
