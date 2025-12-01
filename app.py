@@ -140,19 +140,19 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (VERSIÓN NATIVA - SIN ERRORES VISUALES) ===
+# === 1.C. PANTALLA DE INICIO (VERSIÓN NATIVA CON ESTILOS AVANZADOS) ===
 # =========================================================================
 
 def mostrar_home():
     """
-    Pantalla de inicio construida con componentes nativos de Streamlit.
-    Esta versión es resistente a problemas de CSS y garantiza la visualización
-    correcta de las tarjetas.
+    Pantalla de inicio construida con componentes nativos de Streamlit,
+    pero con los estilos CSS avanzados para el fondo y las tarjetas.
     """
     
     # --- A. LÓGICA DE FECHA (Ajuste para PERÚ UTC-5) ---
     from datetime import datetime, timedelta
     
+    # Restamos 5 horas para la zona horaria de Perú
     ahora = datetime.now() - timedelta(hours=5)
     hora = ahora.hour
     
@@ -165,10 +165,10 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. ÚNICO CSS NECESARIO (SOLO PARA LA FLECHA Y FONDO) ---
+    # --- B. CSS CORREGIDO Y COMPLETO ---
     st.markdown("""
         <style>
-        /* FORZAR FLECHA BLANCA (para fondo morado) */
+        /* FORZAR FLECHA BLANCA */
         [data-testid="stHeader"] button, [data-testid="collapsedControl"] {
             color: #FFFFFF !important;
             fill: #FFFFFF !important;
@@ -176,9 +176,35 @@ def mostrar_home():
         header[data-testid="stHeader"] {
             background-color: transparent !important;
         }
-        /* Fondo Morado Global */
+        
+        /* FONDO: GRADIENTE Y PUNTOS DE LUZ (CORREGIDO) */
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
+            /* Definimos el fondo con los tres degradados */
+            background:  
+                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
+            background-color: #4A148C !important; /* Fallback */
+        }
+        
+        /* AJUSTE PARA LAS CAJAS/CONTENEDORES NATIVOS */
+        /* Hacemos que la tarjeta se vea mejor, con un color de fondo blanco fuerte */
+        .stContainer {
+            background-color: #FFFFFF !important;
+            border-radius: 12px;
+            border-left: 6px solid #FFD600 !important; /* Barra lateral amarilla */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        /* ELIMINAR EL COLOR DE FONDO DE LOS TEXTOS DENTRO DEL CONTENEDOR */
+        .stContainer [data-testid="stCaption"], .stContainer [data-testid="stMarkdownContainer"] p {
+            color: #4A148C !important; /* Asegurar que el texto sea visible */
+        }
+        
+        /* ELIMINAR MÁRGENES TOP Y BOTTOM */
+        .block-container {
+            padding-top: 3rem !important;
+            padding-bottom: 0rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -186,18 +212,17 @@ def mostrar_home():
     # --- C. CONTENIDO VISUAL (USANDO PYTHON PURO) ---
     
     # Título y Saludo
-    st.markdown(f"# {emoji} {saludo}, estimado docente")
+    st.markdown(f"# {emoji} {saludo}, estimado docente", unsafe_allow_html=True)
     st.caption(f"📅 *{fecha}*")
     st.divider()
 
     # --- FILA 1 ---
-    # Columna 1 y Columna 2 para la primera fila de tarjetas
     col1, col2 = st.columns(2, gap="medium")
     
     with col1:
         # st.container(border=True) crea la tarjeta visible
         with st.container(border=True):
-            # Columnas internas para el ícono (1 parte) y el texto (3 partes)
+            # Columnas internas para el ícono y el texto
             col_icon, col_text = st.columns([1, 3])
             with col_icon:
                 st.image("https://img.icons8.com/fluency/96/bullish.png", width=70)
@@ -207,7 +232,6 @@ def mostrar_home():
             
             # Botón que ocupa todo el ancho de la tarjeta
             if st.button("👉 Entrar a Evaluación", key="btn_eval", use_container_width=True):
-                # Debes asegurarte de que la función navegar_a esté disponible o reemplazarla
                 # navegar_a("Sistema de Evaluación") 
                 st.rerun()
 
@@ -228,7 +252,6 @@ def mostrar_home():
     st.write("")
 
     # --- FILA 2 ---
-    # Columna 3 y Columna 4 para la segunda fila de tarjetas
     col3, col4 = st.columns(2, gap="medium")
     
     with col3:
@@ -2281,6 +2304,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
