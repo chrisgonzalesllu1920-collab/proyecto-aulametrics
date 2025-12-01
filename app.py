@@ -27,7 +27,7 @@ st.set_page_config(
   page_title="AulaMetrics", 
   page_icon="assets/isotipo.png",
   layout="wide",
-  initial_sidebar_state="collapsed"
+  initial_sidebar_state="expanded"
 )
 
 # --- ESTILOS CSS: MAQUILLAJE FINAL (TIPOGRAFÍA ROBOTO + LIMPIEZA) ---
@@ -36,54 +36,49 @@ st.markdown("""
     /* =========================================
        A. TIPOGRAFÍA INSTITUCIONAL (ROBOTO)
     ========================================= */
-    /* Importamos la fuente de Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
     }
     
-    /* Títulos: Fuertes y Estructurados */
+    /* Títulos */
     h1, h2, h3 { 
         font-weight: 900 !important; 
         letter-spacing: -0.5px;
-        color: #1A237E; /* Azul oscuro institucional por defecto */
+        color: #1A237E; 
     }
     
-    /* Texto general: Máxima legibilidad */
+    /* Texto general */
     p, div, label, span { 
         font-weight: 400;
-        font-size: 16px; /* Un poco más grande para lectura cómoda */
+        font-size: 16px; 
     }
 
     /* =========================================
        B. LIMPIEZA DE INTERFAZ
     ========================================= */
-    /* Ocultamos elementos innecesarios pero DEJAMOS el header funcional */
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     footer { visibility: hidden; }
     
-    /* EL CAMBIO CLAVE: No usamos display:none, sino transparencia */
+    /* HEADER TRANSPARENTE GLOBAL */
     [data-testid="stHeader"] { 
-        background-color: rgba(0,0,0,0) !important; /* Transparente */
-        z-index: 999 !important; /* Asegurar que esté encima para poder dar click */
+        background-color: rgba(0,0,0,0) !important; 
+        z-index: 999 !important; 
     }
     
-    /* Ajustamos el color de los iconos del header (hamburguesa/flecha) a blanco/gris para que se vean */
-    [data-testid="stHeader"] button {
-        color: #E0E0E0 !important;
-    }
+    /* NOTA: Eliminamos la regla de color forzado aquí para evitar conflictos */
     
-    /* Eliminar margen superior excesivo */
     .block-container {
-        padding-top: 3rem !important; /* Un poco más de espacio para que no se solape con el botón del menú */
+        padding-top: 3rem !important; 
         padding-bottom: 0rem !important;
     }
 
     /* =========================================
        C. BARRA LATERAL GLOBAL (AZUL PROFUNDO)
     ========================================= */
+    /* AHORA SÍ ESTÁ DENTRO DE LAS COMILLAS */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
         border-right: 1px solid #1a237e;
@@ -103,7 +98,7 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.1) !important;
         color: white !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        font-weight: 500 !important; /* Peso medio para botones */
+        font-weight: 500 !important; 
     }
     section[data-testid="stSidebar"] div.stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.2) !important;
@@ -145,69 +140,173 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO) ===
+# === 1.C. PANTALLA DE INICIO (V10 - DEGRADADO IZQUIERDO + ICONOS JUMBO) ===
 # =========================================================================
 
 def mostrar_home():
-    st.title("🚀 Bienvenido a AulaMetrics")
-    st.markdown("### Selecciona una herramienta para comenzar:")
-    st.divider()
+    
+    # --- A. LÓGICA DE FECHA ---
+    from datetime import datetime, timedelta
+    ahora = datetime.now() - timedelta(hours=5)
+    hora = ahora.hour
+    
+    if 5 <= hora < 12: saludo, emoji = "Buenos días", "☀️"
+    elif 12 <= hora < 19: saludo, emoji = "Buenas tardes", "🌤️"
+    else: saludo, emoji = "Buenas noches", "🌙"
+        
+    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- FILA 1 ---
-    col1, col2 = st.columns(2)
+    # --- B. ESTILOS CSS (AJUSTADOS) ---
+    st.markdown("""
+        <style>
+        /* 1. FLECHA BLANCA (INDISPENSABLE) */
+        [data-testid="stHeader"] button, 
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] {
+            color: #FFFFFF !important;
+            fill: #FFFFFF !important;
+            display: block !important;
+            visibility: visible !important;
+        }
+        [data-testid="stHeader"] button svg,
+        [data-testid="collapsedControl"] svg,
+        [data-testid="stSidebarCollapsedControl"] svg {
+            fill: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+        }
+
+        /* 2. FONDO MORADO CON DEGRADADO DESDE LA IZQUIERDA */
+        [data-testid="stAppViewContainer"] {
+            background-color: #4A148C !important;
+            background: 
+                /* EL CAMBIO: Naranja fuerte arriba a la IZQUIERDA (10% 10%) */
+                radial-gradient(circle at 10% 10%, rgba(255, 109, 0, 0.50) 0%, transparent 50%),
+                /* Luz Cian abajo a la derecha para balancear */
+                radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.30) 0%, transparent 50%),
+                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
+            background-attachment: fixed;
+        }
+
+        /* 3. TARJETAS DE CRISTAL (SOLO ZONA PRINCIPAL) */
+        section[data-testid="stMain"] div.stButton > button {
+            width: 100%;
+            min-height: 320px !important; /* Más altas para acomodar iconos grandes */
+            
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 30px !important;
+            border-left: 10px solid #FFD600 !important; /* Borde lateral más grueso */
+            
+            color: #FFFFFF !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px !important;
+            transition: all 0.3s ease;
+        }
+
+        /* Hover Efecto */
+        section[data-testid="stMain"] div.stButton > button:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 20px 50px rgba(255, 109, 0, 0.3); /* Resplandor Naranja al pasar mouse */
+            border-color: #FFFFFF !important;
+        }
+
+        /* 4. TEXTO DENTRO DE LAS TARJETAS (PROPORCIONAL) */
+        section[data-testid="stMain"] div.stButton > button p {
+            font-size: 30px !important; /* TÍTULO GIGANTE */
+            font-weight: 900 !important;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 20px !important;
+            line-height: 1.2 !important;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Ajuste márgenes */
+        .block-container { padding-top: 3rem !important; }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # --- C. ENCABEZADO ---
+    st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 50px; padding-top: 20px;">
+            <h1 style="color: #FFFFFF; font-size: 60px; margin-bottom: 5px; text-shadow: 0 0 25px rgba(255,109,0,0.6);">
+                {emoji} {saludo}, Docente
+            </h1>
+            <p style="color: #FFD54F; font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;">
+                📅 {fecha}
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # --- D. PARRILLA (ICONOS DE 120px) ---
+    
+    col1, col2 = st.columns(2, gap="large")
     
     with col1:
-        # TARJETA 1: FUSIÓN DE ANÁLISIS (GENERAL + ESTUDIANTE)
+        # Tarjeta 1
+        # Icono aumentado a 120px
         st.markdown("""
-        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: 180px;">
-            <h3 style="color: #1565c0; text-align: center;">📊 Sistema de Evaluación</h3>
-            <p style="text-align: center; color: #555;">Sube tus notas, visualiza estadísticas globales y genera libretas individuales en un solo lugar.</p>
+        <div style="pointer-events: none; text-align: center;">
+            <img src="https://img.icons8.com/fluency/240/bullish.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
-            navegar_a("Sistema de Evaluación") # Nombre de la nueva página unificada
+        # Botón transparente invisible encima de la imagen para capturar el clic
+        if st.button("\n\n\n\n\nSISTEMA DE\nEVALUACIÓN", key="btn_eval", use_container_width=True):
+            navegar_a("Sistema de Evaluación")
             st.rerun()
 
     with col2:
-        # TARJETA 2: ASISTENTE
+        # Tarjeta 2
         st.markdown("""
-        <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: 180px;">
-            <h3 style="color: #6a1b9a; text-align: center;">🧠 Asistente Pedagógico</h3>
-            <p style="text-align: center; color: #555;">Diseña sesiones de aprendizaje y documentos curriculares con ayuda de la IA.</p>
+        <div style="pointer-events: none; text-align: center;">
+            <img src="https://img.icons8.com/fluency/240/artificial-intelligence.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
+        if st.button("\n\n\n\n\nASISTENTE\nPEDAGÓGICO", key="btn_asist", use_container_width=True):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") # Espacio vertical
+    st.write("") 
 
-    # --- FILA 2 ---
-    col3, col4 = st.columns(2)
+    col3, col4 = st.columns(2, gap="large")
     
     with col3:
-        # TARJETA 3: RECURSOS
+        # Tarjeta 3
         st.markdown("""
-        <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: 180px;">
-            <h3 style="color: #ef6c00; text-align: center;">📂 Banco de Recursos</h3>
-            <p style="text-align: center; color: #555;">Descarga formatos oficiales, registros auxiliares y guías.</p>
+        <div style="pointer-events: none; text-align: center;">
+            <img src="https://img.icons8.com/fluency/240/folder-invoices.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
+        if st.button("\n\n\n\n\nBANCO DE\nRECURSOS", key="btn_rec", use_container_width=True):
             navegar_a("Recursos")
             st.rerun()
 
     with col4:
-        # TARJETA 4: GAMIFICACIÓN
+        # Tarjeta 4
         st.markdown("""
-        <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: 180px;">
-            <h3 style="color: #c2185b; text-align: center;">🎮 Gamificación</h3>
-            <p style="text-align: center; color: #555;">Crea trivias y juegos interactivos para motivar a tus estudiantes.</p>
+        <div style="pointer-events: none; text-align: center;">
+            <img src="https://img.icons8.com/fluency/240/controller.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
+        if st.button("\n\n\n\n\nZONA DE\nGAMIFICACIÓN", key="btn_game", use_container_width=True):
             navegar_a("Gamificación")
             st.rerun()
+            
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
@@ -969,168 +1068,6 @@ def mostrar_sidebar():
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
         st.caption("🏫 AulaMetrics v3.0 Beta")
-
-# =========================================================================
-# === 5.5. SUB-VISTA: PORTADA (V7.1 - HORA PERÚ CORREGIDA) ===
-# =========================================================================
-def mostrar_home():
-    """Dibuja la parrilla de tarjetas con Saludo Contextual (Hora Perú)."""
-    
-    # --- A. LÓGICA DE TIEMPO Y FECHA (AJUSTE PERÚ) ---
-    from datetime import datetime, timedelta
-    
-    # Obtenemos la hora del servidor y restamos 5 horas (UTC-5)
-    ahora_servidor = datetime.now()
-    ahora = ahora_servidor - timedelta(hours=5)
-    
-    hora = ahora.hour
-    
-    # 1. Determinar el Saludo
-    if 5 <= hora < 12:
-        saludo = "Buenos días"
-        emoji_saludo = "☀️"
-    elif 12 <= hora < 19:
-        saludo = "Buenas tardes"
-        emoji_saludo = "🌤️"
-    else:
-        saludo = "Buenas noches"
-        emoji_saludo = "🌙"
-        
-    # 2. Formatear la Fecha en Español
-    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    
-    dia_nombre = dias_semana[ahora.weekday()]
-    dia_numero = ahora.day
-    mes_nombre = meses[ahora.month - 1]
-    
-    fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
-
-    # --- B. ESTILOS CSS (EXACTAMENTE TU CÓDIGO V6.1) ---
-    st.markdown("""
-        <style>
-        /* --- 1. ELIMINAR MÁRGENES DE STREAMLIT --- */
-        .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 0rem !important;
-        }
-        
-        /* Ocultamos el header */
-        header { visibility: hidden !important; }
-        [data-testid="stHeader"] { display: none !important; }
-
-        /* --- 2. BARRA LATERAL (INTOCABLE) --- */
-        section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
-            border-right: 1px solid #1a237e;
-        }
-        section[data-testid="stSidebar"] * { color: white !important; }
-        section[data-testid="stSidebar"] div.stButton > button {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        }
-
-        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
-        [data-testid="stAppViewContainer"] {
-            background-color: #4A148C !important;
-            background: 
-                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
-                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
-                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
-        }
-
-        /* --- 4. TARJETAS GEOMÉTRICAS --- */
-        section[data-testid="stMain"] div.stButton > button {
-            width: 100%;
-            min-height: 240px !important; 
-            height: 100% !important;
-            
-            background-color: #FFFFFF !important;
-            border: none !important;
-            border-left: 8px solid #FFD600 !important;
-            border-radius: 24px !important;
-            
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px !important;
-            text-align: center !important;
-        }
-
-        section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5) !important;
-            z-index: 10;
-        }
-
-        section[data-testid="stMain"] div.stButton > button p {
-            font-size: 24px !important;
-            font-weight: 800 !important;
-            color: #263238 !important;
-            margin-top: 15px !important;
-        }
-        
-        section[data-testid="stMain"] div.stButton > button small {
-            font-size: 16px !important;
-            color: #78909C !important;
-        }
-
-        .card-icon {
-            font-size: 60px;
-            margin-bottom: 0px; 
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # --- C. ENCABEZADO DINÁMICO (AQUÍ USAMOS LAS VARIABLES) ---
-    st.markdown(f"""
-        <div style="margin-bottom: 30px; padding-top: 10px; text-align: center;">
-            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                ¡{saludo}, Docente! {emoji_saludo}
-            </h1>
-            <p style="color: #FFD54F; font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
-                📅 {fecha_texto}
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # --- D. PARRILLA GEOMÉTRICA (Igual que antes) ---
-    c1, c2 = st.columns(2, gap="large")
-    
-    with c1:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📊</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nSistema de Evaluación", key="card_eval"):
-            navegar_a("Sistema de Evaluación")
-            st.rerun()
-
-    with c2:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nAsistente Pedagógico", key="card_ia"):
-            navegar_a("Asistente Pedagógico")
-            st.rerun()
-
-    st.write("") 
-
-    c3, c4 = st.columns(2, gap="large")
-    
-    with c3:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🎮</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nZona de Gamificación", key="card_games"):
-            navegar_a("Gamificación")
-            st.rerun()
-
-    with c4:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📚</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nBanco de Recursos", key="card_resources"):
-            navegar_a("Recursos")
-            st.rerun()
-            
-    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -2395,36 +2332,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
