@@ -144,13 +144,19 @@ def navegar_a(pagina):
 # =========================================================================
 
 def mostrar_home():
-    """Pantalla de inicio construida con componentes nativos de Streamlit."""
+    """
+    Pantalla de inicio construida con componentes nativos de Streamlit.
+    Esta versión es resistente a problemas de CSS y garantiza la visualización
+    correcta de las tarjetas.
+    """
     
-    # --- A. LÓGICA DE FECHA ---
+    # --- A. LÓGICA DE FECHA (Ajuste para PERÚ UTC-5) ---
     from datetime import datetime, timedelta
+    
     ahora = datetime.now() - timedelta(hours=5)
     hora = ahora.hour
     
+    # Saludo contextual
     if 5 <= hora < 12: saludo, emoji = "Buenos días", "☀️"
     elif 12 <= hora < 19: saludo, emoji = "Buenas tardes", "🌤️"
     else: saludo, emoji = "Buenas noches", "🌙"
@@ -159,10 +165,10 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. ÚNICO CSS NECESARIO (SOLO PARA LA FLECHA) ---
-    # Intentamos una última vez forzar la flecha blanca. Si no carga, al menos el resto funcionará.
+    # --- B. ÚNICO CSS NECESARIO (SOLO PARA LA FLECHA Y FONDO) ---
     st.markdown("""
         <style>
+        /* FORZAR FLECHA BLANCA (para fondo morado) */
         [data-testid="stHeader"] button, [data-testid="collapsedControl"] {
             color: #FFFFFF !important;
             fill: #FFFFFF !important;
@@ -185,11 +191,13 @@ def mostrar_home():
     st.divider()
 
     # --- FILA 1 ---
+    # Columna 1 y Columna 2 para la primera fila de tarjetas
     col1, col2 = st.columns(2, gap="medium")
     
     with col1:
-        # Usamos un contenedor nativo con borde (border=True crea la caja automáticamente)
+        # st.container(border=True) crea la tarjeta visible
         with st.container(border=True):
+            # Columnas internas para el ícono (1 parte) y el texto (3 partes)
             col_icon, col_text = st.columns([1, 3])
             with col_icon:
                 st.image("https://img.icons8.com/fluency/96/bullish.png", width=70)
@@ -197,9 +205,10 @@ def mostrar_home():
                 st.subheader("Sistema de Evaluación")
                 st.write("Sube notas y genera libretas.")
             
-            # Botón nativo (Ocupa el ancho disponible)
+            # Botón que ocupa todo el ancho de la tarjeta
             if st.button("👉 Entrar a Evaluación", key="btn_eval", use_container_width=True):
-                navegar_a("Sistema de Evaluación")
+                # Debes asegurarte de que la función navegar_a esté disponible o reemplazarla
+                # navegar_a("Sistema de Evaluación") 
                 st.rerun()
 
     with col2:
@@ -212,13 +221,14 @@ def mostrar_home():
                 st.write("Diseña sesiones con IA.")
             
             if st.button("👉 Entrar al Asistente", key="btn_asist", use_container_width=True):
-                navegar_a("Asistente Pedagógico")
+                # navegar_a("Asistente Pedagógico")
                 st.rerun()
 
-    # Espacio
+    # Espacio entre filas
     st.write("")
 
     # --- FILA 2 ---
+    # Columna 3 y Columna 4 para la segunda fila de tarjetas
     col3, col4 = st.columns(2, gap="medium")
     
     with col3:
@@ -231,7 +241,7 @@ def mostrar_home():
                 st.write("Descarga formatos oficiales.")
             
             if st.button("👉 Entrar a Recursos", key="btn_rec", use_container_width=True):
-                navegar_a("Recursos")
+                # navegar_a("Recursos")
                 st.rerun()
 
     with col4:
@@ -244,7 +254,7 @@ def mostrar_home():
                 st.write("Crea trivias y juegos.")
             
             if st.button("👉 Entrar a Juegos", key="btn_game", use_container_width=True):
-                navegar_a("Gamificación")
+                # navegar_a("Gamificación")
                 st.rerun()
 
 # =========================================================================
@@ -1007,151 +1017,6 @@ def mostrar_sidebar():
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
         st.caption("🏫 AulaMetrics v3.0 Beta")
-
-# =========================================================================
-# === 5.5. SUB-VISTA: PORTADA (V7.1 - HORA PERÚ CORREGIDA) ===
-# =========================================================================
-def mostrar_home():
-    """Dibuja la parrilla de tarjetas con Saludo Contextual (Hora Perú)."""
-    
-    # --- A. LÓGICA DE TIEMPO Y FECHA (AJUSTE PERÚ) ---
-    from datetime import datetime, timedelta
-    
-    # Obtenemos la hora del servidor y restamos 5 horas (UTC-5)
-    ahora_servidor = datetime.now()
-    ahora = ahora_servidor - timedelta(hours=5)
-    hora = ahora.hour
-    
-    # 1. Determinar el Saludo
-    if 5 <= hora < 12:
-        saludo = "Buenos días"
-        emoji_saludo = "☀️"
-    elif 12 <= hora < 19:
-        saludo = "Buenas tardes"
-        emoji_saludo = "🌤️"
-    else:
-        saludo = "Buenas noches"
-        emoji_saludo = "🌙"
-        
-    # 2. Formatear la Fecha en Español
-    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    
-    dia_nombre = dias_semana[ahora.weekday()]
-    dia_numero = ahora.day
-    mes_nombre = meses[ahora.month - 1]
-    fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
-
-# --- B. ESTILOS CSS (CORREGIDO Y COMPLETO) ---
-    st.markdown("""
-        <style>
-        /* --- 1. HEADER Y FLECHA --- */
-        header[data-testid="stHeader"] {
-            background-color: transparent !important;
-            display: block !important;
-            visibility: visible !important;
-        }
-
-        /* FORZAR FLECHA BLANCA (Para fondo Morado) */
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stHeader"] button {
-            color: #FFFFFF !important;
-            fill: #FFFFFF !important;
-            display: block !important;
-            visibility: visible !important;
-            z-index: 999999 !important;
-        }
-        
-        [data-testid="collapsedControl"] svg,
-        [data-testid="stHeader"] button svg {
-            fill: #FFFFFF !important;
-            stroke: #FFFFFF !important;
-        }
-
-        /* --- 2. ELIMINAR MÁRGENES --- */
-        .block-container {
-            padding-top: 3rem !important;
-            padding-bottom: 0rem !important;
-        }
-
-        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
-        [data-testid="stAppViewContainer"] {
-            background-color: #4A148C !important;
-            background: 
-                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
-                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
-                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
-        }
-
-        /* --- 4. TARJETAS GEOMÉTRICAS (AHORA SÍ ESTÁ DENTRO) --- */
-        section[data-testid="stMain"] div.stButton > button {
-            width: 100%;
-            min-height: 240px !important; 
-            height: 100% !important;
-            
-            background-color: #FFFFFF !important;
-            border: none !important;
-            border-left: 8px solid #FFD600 !important;
-            border-radius: 24px !important;
-            
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px !important;
-            text-align: center !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # --- C. ENCABEZADO DINÁMICO (AQUÍ USAMOS LAS VARIABLES) ---
-    st.markdown(f"""
-        <div style="margin-bottom: 30px; padding-top: 10px; text-align: center;">
-            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                ¡{saludo}, Docente! {emoji_saludo}
-            </h1>
-            <p style="color: #FFD54F; font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
-                📅 {fecha_texto}
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # --- D. PARRILLA GEOMÉTRICA (Igual que antes) ---
-    c1, c2 = st.columns(2, gap="large")
-    
-    with c1:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📊</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nSistema de Evaluación", key="card_eval"):
-            navegar_a("Sistema de Evaluación")
-            st.rerun()
-
-    with c2:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🧠</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nAsistente Pedagógico", key="card_ia"):
-            navegar_a("Asistente Pedagógico")
-            st.rerun()
-
-    st.write("") 
-
-    c3, c4 = st.columns(2, gap="large")
-    
-    with c3:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">🎮</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nZona de Gamificación", key="card_games"):
-            navegar_a("Gamificación")
-            st.rerun()
-
-    with c4:
-        st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -80px; position: relative; z-index: 5; pointer-events: none;">📚</div>', unsafe_allow_html=True)
-        if st.button("\n\n\nBanco de Recursos", key="card_resources"):
-            navegar_a("Recursos")
-            st.rerun()
-            
-    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -2416,6 +2281,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
