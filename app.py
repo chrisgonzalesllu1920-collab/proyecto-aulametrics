@@ -1105,7 +1105,7 @@ def mostrar_home():
     st.markdown(f"""
         <div style="margin-bottom: 30px; padding-top: 10px; text-align: center;">
             <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                ¡{saludo}, Estimado docente! {emoji_saludo}
+                ¡{saludo}, Docente! {emoji_saludo}
             </h1>
             <p style="color: #FFD54F; font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
                 📅 {fecha_texto}
@@ -2409,6 +2409,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
