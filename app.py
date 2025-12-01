@@ -145,33 +145,42 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (ESTRATEGIA SEGURA: SIN TRUCOS CSS) ===
+# === 1.C. PANTALLA DE INICIO (CORRECCIÓN DE COLOR DE FLECHA) ===
 # =========================================================================
+
 def mostrar_home():
-    # --- LIMPIEZA TOTAL DE ESTILOS ---
-    # En lugar de pelear con el CSS, le decimos al navegador:
-    # "Muestra el header normal, como en cualquier app de Streamlit"
+    # --- CORRECCIÓN DE VISIBILIDAD DE LA FLECHA ---
     st.markdown("""
         <style>
-        /* Restaurar la visibilidad del header estándar */
+        /* 1. RESTAURAR HEADER VISIBLE (Fondo blanco limpio) */
         header[data-testid="stHeader"] {
+            background-color: #ffffff !important;
             display: block !important;
             visibility: visible !important;
-            background-color: white !important; /* Fondo blanco sólido para evitar conflictos */
             opacity: 1 !important;
-            z-index: 999 !important;
         }
 
-        /* Asegurar que el botón de menú sea visible */
-        [data-testid="collapsedControl"] {
+        /* 2. ¡EL ARREGLO! CAMBIAR COLOR DE FLECHA A OSCURO */
+        /* Sobrescribimos el color blanco global (#E0E0E0) por el Azul Institucional (#1A237E) */
+        [data-testid="stHeader"] button, 
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] {
+            color: #1A237E !important; /* Azul Oscuro Visible */
+            fill: #1A237E !important;
             display: block !important;
             visibility: visible !important;
-            color: #333 !important;
         }
         
-        /* Ajuste de margen para que no se pegue al header */
+        /* 3. Aseguramos que el icono SVG también se pinte */
+        [data-testid="stHeader"] button svg,
+        [data-testid="collapsedControl"] svg {
+            fill: #1A237E !important;
+            stroke: #1A237E !important;
+        }
+
+        /* 4. Ajuste de margen */
         .block-container {
-            padding-top: 2rem !important;
+            padding-top: 3rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2427,6 +2436,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
