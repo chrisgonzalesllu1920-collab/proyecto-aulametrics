@@ -76,7 +76,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-    /* =========================================
+    /* 
+    =========================================
        C. BARRA LATERAL GLOBAL (AZUL PROFUNDO)
     ========================================= */
     section[data-testid="stSidebar"] {
@@ -2454,6 +2455,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
