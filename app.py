@@ -170,8 +170,8 @@ def mostrar_home():
         /* 3. ASEGURAR QUE EL DIBUJO SVG TAMBIÉN SEA AZUL */
         html body [data-testid="stHeader"] button svg,
         html body [data-testid="collapsedControl"] svg {
-            fill: #1A237E !important;
-            stroke: #1A237E !important;
+            fill: #FFFFFF !important;
+            stroke: #FFFFFF !important;
         }
 
         /* 4. AJUSTE DE MARGEN */
@@ -2415,6 +2415,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
