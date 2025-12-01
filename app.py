@@ -145,58 +145,58 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - CON ANTÍDOTO CSS) ===
+# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - REINICIO MAESTRO) ===
 # =========================================================================
+
 def mostrar_home():
-    # --- 💉 ANTÍDOTO CSS V3.0: FLECHA INDESTRUCTIBLE ---
+    # --- 💉 REINICIO MAESTRO DE CABECERA ---
+    # Esto elimina cualquier rastro del estilo del Login
     st.markdown("""
         <style>
-        /* 1. RESTAURAR LA CABECERA (Invisible pero funcional) */
+        /* 1. OBLIGAR al Header a mostrarse (Reset) */
         header[data-testid="stHeader"] {
-            background-color: transparent !important;
             display: block !important;
             visibility: visible !important;
+            background-color: transparent !important;
+            height: auto !important; /* Dejar que tenga su altura natural */
+            opacity: 1 !important;
+            z-index: 99999 !important;
         }
 
-        /* 2. FORZAR LA FLECHA (Botón de Menú) */
-        /* Apuntamos a todos los nombres posibles que usa Streamlit */
-        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
+        /* 2. OBLIGAR a la Flecha a mostrarse (Reset) */
+        /* Apuntamos a todos los nombres posibles de la flecha en Streamlit */
+        [data-testid="collapsedControl"], 
+        [data-testid="stSidebarCollapsedControl"],
+        button[kind="header"] {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
-            
-            /* ESTILO VISUAL FUERTE */
-            color: #000000 !important; /* Icono Negro */
-            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo Blanco semi-transparente */
-            border: 1px solid rgba(0,0,0,0.1) !important;
+            color: #000000 !important; /* Color Negro */
+            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo blanco */
             border-radius: 8px !important;
             
-            /* POSICIÓN FIJA (Para que nunca se vaya) */
+            /* Posición forzada */
             position: fixed !important;
-            top: 15px !important;
-            left: 15px !important;
-            z-index: 9999999 !important; /* Encima de todo el universo */
-            
-            /* TAMAÑO ASEGURADO */
-            width: 40px !important;
-            height: 40px !important;
-            padding: 5px !important;
+            top: 20px !important;
+            left: 20px !important;
+            z-index: 1000000 !important;
         }
         
-        /* 3. COLOREAR EL DIBUJO DE LA FLECHA (SVG) */
-        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
+        /* 3. Colorear el icono SVG dentro del botón */
+        [data-testid="stSidebarCollapsedControl"] svg,
+        [data-testid="collapsedControl"] svg {
             fill: #000000 !important;
             stroke: #000000 !important;
         }
 
-        /* 4. Ajuste de contenido */
+        /* 4. Separación del contenido */
         .block-container {
             padding-top: 4rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENIDO NORMAL DE LA PÁGINA ---
+    # --- CONTENIDO DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
@@ -205,7 +205,7 @@ def mostrar_home():
     col1, col2 = st.columns(2)
     
     with col1:
-        # TARJETA 1: FUSIÓN DE ANÁLISIS
+        # TARJETA 1
         st.markdown("""
         <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -218,7 +218,7 @@ def mostrar_home():
             st.rerun()
 
     with col2:
-        # TARJETA 2: ASISTENTE
+        # TARJETA 2
         st.markdown("""
         <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -236,7 +236,7 @@ def mostrar_home():
     col3, col4 = st.columns(2)
     
     with col3:
-        # TARJETA 3: RECURSOS
+        # TARJETA 3
         st.markdown("""
         <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -249,7 +249,7 @@ def mostrar_home():
             st.rerun()
 
     with col4:
-        # TARJETA 4: GAMIFICACIÓN
+        # TARJETA 4
         st.markdown("""
         <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/controller.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -2447,6 +2447,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
