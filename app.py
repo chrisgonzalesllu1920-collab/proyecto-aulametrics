@@ -145,58 +145,41 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (DASHBOARD UNIFICADO - REINICIO MAESTRO) ===
+# === 1.C. PANTALLA DE INICIO (RESTAURACIÓN TOTAL DE CABECERA) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- 💉 REINICIO MAESTRO DE CABECERA ---
-    # Esto elimina cualquier rastro del estilo del Login
+    # --- CSS DE RESTAURACIÓN (ELIMINA EL EFECTO DEL LOGIN) ---
     st.markdown("""
         <style>
-        /* 1. OBLIGAR al Header a mostrarse (Reset) */
+        /* 1. OBLIGAR A MOSTRAR EL HEADER (Quitamos el display: none) */
         header[data-testid="stHeader"] {
             display: block !important;
             visibility: visible !important;
-            background-color: transparent !important;
-            height: auto !important; /* Dejar que tenga su altura natural */
-            opacity: 1 !important;
-            z-index: 99999 !important;
+            background-color: transparent !important; /* Transparente para que se vea bonito */
         }
 
-        /* 2. OBLIGAR a la Flecha a mostrarse (Reset) */
-        /* Apuntamos a todos los nombres posibles de la flecha en Streamlit */
-        [data-testid="collapsedControl"], 
-        [data-testid="stSidebarCollapsedControl"],
-        button[kind="header"] {
+        /* 2. OBLIGAR A MOSTRAR EL BOTÓN (Flecha/Hamburguesa) */
+        /* Apuntamos a todos los posibles IDs que usa Streamlit */
+        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
             display: block !important;
             visibility: visible !important;
-            opacity: 1 !important;
-            color: #000000 !important; /* Color Negro */
-            background-color: rgba(255, 255, 255, 0.8) !important; /* Fondo blanco */
-            border-radius: 8px !important;
-            
-            /* Posición forzada */
-            position: fixed !important;
-            top: 20px !important;
-            left: 20px !important;
-            z-index: 1000000 !important;
+            color: #333333 !important; /* Color oscuro para que se note */
         }
         
-        /* 3. Colorear el icono SVG dentro del botón */
-        [data-testid="stSidebarCollapsedControl"] svg,
-        [data-testid="collapsedControl"] svg {
-            fill: #000000 !important;
-            stroke: #000000 !important;
+        /* 3. Asegurar que el icono SVG (el dibujo de la flecha) tenga color */
+        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
+            fill: #333333 !important;
         }
 
-        /* 4. Separación del contenido */
+        /* 4. Ajuste de margen para que el contenido no se solape con el header restaurado */
         .block-container {
-            padding-top: 4rem !important;
+            padding-top: 3rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENIDO DE LA PÁGINA ---
+    # --- CONTENIDO DE LA PÁGINA (Tus tarjetas originales) ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
@@ -230,7 +213,7 @@ def mostrar_home():
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") # Espacio vertical
+    st.write("") 
 
     # --- FILA 2 ---
     col3, col4 = st.columns(2)
@@ -2447,6 +2430,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
