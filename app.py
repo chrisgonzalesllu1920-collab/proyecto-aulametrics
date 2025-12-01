@@ -147,7 +147,6 @@ def navegar_a(pagina):
 # =========================================================================
 # === 1.C. PANTALLA DE INICIO (ESTRATEGIA SEGURA: SIN TRUCOS CSS) ===
 # =========================================================================
-
 def mostrar_home():
     # --- LIMPIEZA TOTAL DE ESTILOS ---
     # En lugar de pelear con el CSS, le decimos al navegador:
@@ -2428,6 +2427,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
