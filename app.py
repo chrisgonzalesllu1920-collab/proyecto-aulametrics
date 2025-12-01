@@ -148,7 +148,8 @@ def mostrar_home():
     
     # --- A. LÓGICA DE TIEMPO ---
     from datetime import datetime, timedelta
-    ahora = datetime.now() - timedelta(hours=5)
+    ahora_servidor = datetime.now()
+    ahora = ahora_servidor - timedelta(hours=5)
     hora = ahora.hour
     
     if 5 <= hora < 12: saludo, emoji = "Buenos días", "☀️"
@@ -159,27 +160,36 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. CSS SOLO PARA LA FLECHA Y FONDO ---
+    # --- B. CSS SOLO PARA LA FLECHA Y FONDO (INYECCIÓN DIRECTA) ---
     st.markdown("""
         <style>
         /* 1. FLECHA BLANCA A LA FUERZA */
-        [data-testid="stHeader"] button, [data-testid="collapsedControl"] {
+        /* Usamos selectores directos para ganar especificidad */
+        [data-testid="stHeader"] button,
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] {
             color: #FFFFFF !important;
             fill: #FFFFFF !important;
             display: block !important;
+            visibility: visible !important;
+            z-index: 9999999 !important;
         }
-        [data-testid="stHeader"] button svg, [data-testid="collapsedControl"] svg {
+        
+        /* Aseguramos el color del icono SVG */
+        [data-testid="stHeader"] button svg,
+        [data-testid="collapsedControl"] svg {
             fill: #FFFFFF !important;
             stroke: #FFFFFF !important;
         }
         
-        /* 2. HEADER TRANSPARENTE */
+        /* 2. HEADER VISIBLE PERO TRANSPARENTE */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
             display: block !important;
+            visibility: visible !important;
         }
 
-        /* 3. FONDO MORADO */
+        /* 3. FONDO MORADO GLOBAL */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
@@ -194,15 +204,16 @@ def mostrar_home():
     """, unsafe_allow_html=True)
     
     # --- CONTENIDO ---
-    st.markdown(f'<h1 style="color:white; font-size: 2.5em; font-weight: 700;">{emoji} {saludo}, estimado docente</h1>', unsafe_allow_html=True)
-    st.markdown(f"<p style='color: white; opacity: 0.9; font-size: 1.1rem; margin-top: -15px;'>*{fecha}*</p>", unsafe_allow_html=True)
+    st.markdown(f'<h1 style="color:white; font-family:sans-serif; font-weight:800;">{emoji} {saludo}, estimado docente</h1>', unsafe_allow_html=True)
+    st.markdown(f"<p style='color: white; opacity: 0.9; margin-top: -10px;'>*{fecha}*</p>", unsafe_allow_html=True)
     st.divider()
 
-    # --- ESTILO COMÚN PARA LAS TARJETAS (Variable de Python para no repetir) ---
-    estilo_card = """
+    # --- DEFINICIÓN DE ESTILO "INLINE" (ESTO GARANTIZA EL DISEÑO) ---
+    # Pegamos este texto en cada tarjeta para obligar al navegador a usarlo
+    ESTILO_TARJETA = """
         border-radius: 20px;
         padding: 30px;
-        height: 280px;
+        min-height: 260px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         display: flex;
         flex-direction: column;
@@ -210,16 +221,17 @@ def mostrar_home():
         align-items: center;
         text-align: center;
         margin-bottom: 20px;
+        transition: transform 0.3s;
     """
     
     col1, col2 = st.columns(2)
     with col1:
-        # TARJETA 1
+        # TARJETA 1: EVALUACIÓN
         st.markdown(f"""
-        <div style="{estilo_card} background-color: #e3f2fd; border: 2px solid #90caf9;">
-            <img src="https://img.icons8.com/fluency/96/bullish.png" style="width: 90px; margin-bottom: 15px;">
-            <h3 style="color: #1565c0; margin:0; font-size:1.5rem;">📊 Sistema de Evaluación</h3>
-            <p style="color: #555; font-size:1rem;">Sube tus notas, visualiza estadísticas y genera libretas.</p>
+        <div style="{ESTILO_TARJETA} background-color: #e3f2fd; border: 2px solid #90caf9;">
+            <img src="https://img.icons8.com/fluency/96/bullish.png" style="width: 80px; margin-bottom: 15px; display:block; margin-left:auto; margin-right:auto;">
+            <h3 style="color: #1565c0; margin:0 0 10px 0; font-size:1.4rem; font-weight:700;">📊 Sistema de Evaluación</h3>
+            <p style="color: #444; font-size:1rem; margin:0;">Sube tus notas, visualiza estadísticas y genera libretas.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Evaluación", key="btn_home_evaluacion", use_container_width=True):
@@ -227,12 +239,12 @@ def mostrar_home():
             st.rerun()
 
     with col2:
-        # TARJETA 2
+        # TARJETA 2: ASISTENTE
         st.markdown(f"""
-        <div style="{estilo_card} background-color: #f3e5f5; border: 2px solid #ce93d8;">
-            <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="width: 90px; margin-bottom: 15px;">
-            <h3 style="color: #6a1b9a; margin:0; font-size:1.5rem;">🧠 Asistente Pedagógico</h3>
-            <p style="color: #555; font-size:1rem;">Diseña sesiones y documentos curriculares con IA.</p>
+        <div style="{ESTILO_TARJETA} background-color: #f3e5f5; border: 2px solid #ce93d8;">
+            <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="width: 80px; margin-bottom: 15px; display:block; margin-left:auto; margin-right:auto;">
+            <h3 style="color: #6a1b9a; margin:0 0 10px 0; font-size:1.4rem; font-weight:700;">🧠 Asistente Pedagógico</h3>
+            <p style="color: #444; font-size:1rem; margin:0;">Diseña sesiones y documentos curriculares con IA.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar al Asistente", key="btn_home_asistente", use_container_width=True):
@@ -243,12 +255,12 @@ def mostrar_home():
 
     col3, col4 = st.columns(2)
     with col3:
-        # TARJETA 3
+        # TARJETA 3: RECURSOS
         st.markdown(f"""
-        <div style="{estilo_card} background-color: #fff3e0; border: 2px solid #ffcc80;">
-            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="width: 90px; margin-bottom: 15px;">
-            <h3 style="color: #ef6c00; margin:0; font-size:1.5rem;">📂 Banco de Recursos</h3>
-            <p style="color: #555; font-size:1rem;">Descarga formatos oficiales y registros auxiliares.</p>
+        <div style="{ESTILO_TARJETA} background-color: #fff3e0; border: 2px solid #ffcc80;">
+            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="width: 80px; margin-bottom: 15px; display:block; margin-left:auto; margin-right:auto;">
+            <h3 style="color: #ef6c00; margin:0 0 10px 0; font-size:1.4rem; font-weight:700;">📂 Banco de Recursos</h3>
+            <p style="color: #444; font-size:1rem; margin:0;">Descarga formatos oficiales y registros auxiliares.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Recursos", key="btn_home_recursos", use_container_width=True):
@@ -256,12 +268,12 @@ def mostrar_home():
             st.rerun()
 
     with col4:
-        # TARJETA 4
+        # TARJETA 4: GAMIFICACIÓN
         st.markdown(f"""
-        <div style="{estilo_card} background-color: #fce4ec; border: 2px solid #f48fb1;">
-            <img src="https://img.icons8.com/fluency/96/controller.png" style="width: 90px; margin-bottom: 15px;">
-            <h3 style="color: #c2185b; margin:0; font-size:1.5rem;">🎮 Gamificación</h3>
-            <p style="color: #555; font-size:1rem;">Crea trivias y juegos interactivos para motivar.</p>
+        <div style="{ESTILO_TARJETA} background-color: #fce4ec; border: 2px solid #f48fb1;">
+            <img src="https://img.icons8.com/fluency/96/controller.png" style="width: 80px; margin-bottom: 15px; display:block; margin-left:auto; margin-right:auto;">
+            <h3 style="color: #c2185b; margin:0 0 10px 0; font-size:1.4rem; font-weight:700;">🎮 Gamificación</h3>
+            <p style="color: #444; font-size:1rem; margin:0;">Crea trivias y juegos interactivos para motivar.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("👉 Entrar a Juegos", key="btn_home_juegos", use_container_width=True):
@@ -2437,5 +2449,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
