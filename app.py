@@ -145,41 +145,36 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (BARRA LATERAL SIEMPRE ABIERTA) ===
+# === 1.C. PANTALLA DE INICIO (BLOQUEO POR CAPA INVISIBLE) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- 🔒 CANDADO TOTAL: ELIMINAR EL BOTÓN DE CERRAR ---
+    # --- 🛡️ ESCUDO INVISIBLE: BLOQUEAR LA ESQUINA DEL SIDEBAR ---
     st.markdown("""
         <style>
-        /* 1. OCULTAR EL BOTÓN DE "X" o "<" DENTRO DE LA BARRA LATERAL */
-        /* Apuntamos a todos los posibles nombres técnicos del botón */
-        [data-testid="stSidebarCollapseButton"],
-        section[data-testid="stSidebar"] button[kind="header"] {
+        /* 1. Ocultar visualmente el botón (Mejor esfuerzo) */
+        [data-testid="stSidebarCollapseButton"] {
             display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
             opacity: 0 !important;
-            pointer-events: none !important;
         }
 
-        /* 2. OCULTAR LA CABECERA SUPERIOR DE LA BARRA LATERAL (Donde vive el botón) */
-        /* Esto es más drástico: corta la cabeza del menú para asegurar que no haya botón */
-        section[data-testid="stSidebar"] > div > div:first-child {
-             /* A veces esto oculta el logo si está muy arriba, pero asegura que el botón se vaya */
-             /* Si tu logo desaparece, borra este bloque número 2 */
+        /* 2. EL TRUCO MAESTRO: Crear una capa invisible encima de la zona del botón */
+        /* Esto evita que, si el botón sigue ahí, se le pueda dar clic */
+        div[data-testid="stSidebar"]::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px; /* Ancho de la barra lateral */
+            height: 50px; /* Altura de la cabecera donde está la X */
+            background: transparent; /* Invisible */
+            z-index: 999999; /* Encima de todo */
+            pointer-events: auto; /* Captura el clic para que no pase al botón */
         }
         
-        /* 3. POR SI ACASO: OCULTAR LA FLECHA FLOTANTE (Si llegara a aparecer) */
-        [data-testid="collapsedControl"], 
-        [data-testid="stSidebarCollapsedControl"] {
-            display: none !important;
-        }
-
-        /* 4. LIMPIEZA VISUAL DEL CONTENIDO */
+        /* 3. Limpieza de cabecera general */
         .block-container {
-            padding-top: 4rem !important;
+            padding-top: 2rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -2435,6 +2430,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
