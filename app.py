@@ -145,54 +145,42 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (PROTECCIÓN TOTAL DE FLECHA) ===
+# === 1.C. PANTALLA DE INICIO (BARRA LATERAL BLOQUEADA/FIJA) ===
 # =========================================================================
 
 def mostrar_home():
-    # --- 🛡️ CSS BLINDADO PARA LA FLECHA ---
+    # --- 🔒 CANDADO TOTAL: ELIMINAR OPCIÓN DE CERRAR BARRA LATERAL ---
     st.markdown("""
         <style>
-        /* 1. FORZAR VISIBILIDAD DEL HEADER (El contenedor padre) */
-        header[data-testid="stHeader"] {
-            background: transparent !important;
-            display: block !important;
-            visibility: visible !important;
-            height: auto !important;
-        }
-
-        /* 2. PROTECCIÓN DE LA FLECHA (Botón de colapsar) */
-        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            color: #333 !important;
-            
-            /* Truco: Forzar posición y capa superior */
-            position: fixed !important;
-            top: 1rem !important;
-            left: 1rem !important;
-            z-index: 1000002 !important; /* Capa más alta que el login */
-            
-            /* Fondo para que se vea siempre */
-            background-color: rgba(255, 255, 255, 0.8) !important;
-            border-radius: 50% !important;
-            padding: 0.5rem !important;
+        /* 1. OCULTAR EL BOTÓN DE "CERRAR" DENTRO DE LA BARRA LATERAL */
+        /* Apuntamos a todos los posibles selectores modernos y antiguos */
+        [data-testid="stSidebarCollapseButton"] {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important; /* Evita clics fantasmas */
         }
         
-        /* 3. COLOREAR EL ICONO DE LA FLECHA */
-        [data-testid="collapsedControl"] svg, [data-testid="stSidebarCollapsedControl"] svg {
-            fill: #333333 !important;
-            stroke: #333333 !important;
+        /* 2. OCULTAR CUALQUIER BOTÓN EN LA CABECERA DEL SIDEBAR */
+        section[data-testid="stSidebar"] header {
+            display: none !important;
         }
 
-        /* 4. EVITAR QUE EL CONTENIDO SUBA DEMASIADO */
+        /* 3. POR SI ACASO: OCULTAR LA FLECHA FLOTANTE (Si llegara a aparecer) */
+        [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] {
+            display: none !important;
+        }
+        
+        /* 4. LIMPIEZA VISUAL DEL CONTENIDO */
         .block-container {
             padding-top: 4rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENIDO DE LA PÁGINA ---
+    # --- CONTENIDO NORMAL DE LA PÁGINA ---
     st.title("🚀 Bienvenido a AulaMetrics")
     st.markdown("### Selecciona una herramienta para comenzar:")
     st.divider()
@@ -201,7 +189,7 @@ def mostrar_home():
     col1, col2 = st.columns(2)
     
     with col1:
-        # TARJETA 1
+        # TARJETA 1: EVALUACIÓN
         st.markdown("""
         <div style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; border: 1px solid #90caf9; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/bullish.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -214,7 +202,7 @@ def mostrar_home():
             st.rerun()
 
     with col2:
-        # TARJETA 2
+        # TARJETA 2: ASISTENTE
         st.markdown("""
         <div style="background-color: #f3e5f5; padding: 20px; border-radius: 10px; border: 1px solid #ce93d8; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -226,13 +214,13 @@ def mostrar_home():
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") 
+    st.write("") # Espacio vertical
 
     # --- FILA 2 ---
     col3, col4 = st.columns(2)
     
     with col3:
-        # TARJETA 3
+        # TARJETA 3: RECURSOS
         st.markdown("""
         <div style="background-color: #fff3e0; padding: 20px; border-radius: 10px; border: 1px solid #ffcc80; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/folder-invoices.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -245,7 +233,7 @@ def mostrar_home():
             st.rerun()
 
     with col4:
-        # TARJETA 4
+        # TARJETA 4: GAMIFICACIÓN
         st.markdown("""
         <div style="background-color: #fce4ec; padding: 20px; border-radius: 10px; border: 1px solid #f48fb1; height: auto; min-height: 220px;">
             <img src="https://img.icons8.com/fluency/96/controller.png" style="display: block; margin-left: auto; margin-right: auto; width: 60px; margin-bottom: 10px;">
@@ -2443,6 +2431,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
