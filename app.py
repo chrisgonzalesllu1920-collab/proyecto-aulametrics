@@ -140,23 +140,19 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (FUTURISTA Y CENTRADA V3 - FINAL) ===
+# === 1.C. PANTALLA DE INICIO (V9.0 - FUNCIONAL Y GEOMÉTRICA) ===
 # =========================================================================
 
 def mostrar_home():
     """
-    Dibuja la parrilla de tarjetas con diseño futurista, saludo centrado 
-    y estilos avanzados, usando componentes nativos de Streamlit con CSS.
+    Pantalla de inicio con Navegación Arreglada y Diseño de Losas Sólidas.
     """
     
-    # --- A. LÓGICA DE FECHA (Ajuste para PERÚ UTC-5) ---
+    # --- A. LÓGICA DE TIEMPO ---
     from datetime import datetime, timedelta
-    
-    # Restamos 5 horas para la zona horaria de Perú (UTC-5)
     ahora = datetime.now() - timedelta(hours=5)
     hora = ahora.hour
     
-    # Saludo contextual
     if 5 <= hora < 12: saludo, emoji = "Buenos días", "☀️"
     elif 12 <= hora < 19: saludo, emoji = "Buenas tardes", "🌤️"
     else: saludo, emoji = "Buenas noches", "🌙"
@@ -165,161 +161,112 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. CSS CORREGIDO Y COMPLETO CON ESTILO FUTURISTA ---
-    # Este bloque contiene la magia del diseño.
+    # --- B. CSS CORREGIDO (FLECHA Y TARJETAS) ---
     st.markdown("""
         <style>
-        /* 1. FLECHA BLANCA Y HEADER TRANSPARENTE */
-        /* Asegura que la flecha de control de la barra lateral sea blanca */
-        [data-testid="stHeader"] button, 
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] {
+        /* 1. FLECHA BLANCA (Indestructible) */
+        [data-testid="stHeader"] button, [data-testid="collapsedControl"] {
             color: #FFFFFF !important;
             fill: #FFFFFF !important;
+            display: block !important;
+            visibility: visible !important;
         }
         header[data-testid="stHeader"] {
             background-color: transparent !important;
         }
         
-        /* 2. FONDO: GRADIENTE Y PUNTOS DE LUZ (EL MORADO ÉPICO) */
+        /* 2. FONDO MORADO CON DEGRADADO */
         [data-testid="stAppViewContainer"] {
-            background:  
-                /* Punto de luz naranja en la esquina superior derecha */
-                radial-gradient(circle at 85% 5%, rgba(255, 109, 0, 0.60) 0%, transparent 60%),
-                /* Punto de luz cian en la esquina inferior izquierda */
-                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
-                /* Degradado principal de morado oscuro a claro */
-                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
             background-color: #4A148C !important;
+            background:  
+                radial-gradient(circle at 90% 10%, rgba(255, 109, 0, 0.5) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.4) 0%, transparent 50%),
+                linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
         }
         
-        /* 3. ESTILO DE TARJETAS FUTURISTA (st.container) */
-        .stContainer {
-            /* Fondo muy oscuro para el contraste futurista */
-            background-color: #1A0A4A !important; 
-            border: 1px solid #FFD60055; 
-            border-radius: 12px;
-            min-height: 220px;
+        /* 3. TARJETAS: LOSAS BLANCAS SÓLIDAS Y CUADRADAS */
+        /* Usamos selectores profundos para asegurar el estilo */
+        div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] > div.stButton > button {
+            width: 100%;
+            aspect-ratio: 1/1; /* Truco CSS para forzar forma cuadrada */
+            min-height: 250px; /* Altura mínima para pantallas anchas */
             
-            /* Brillo de Neón */
-            box-shadow: 0 0 15px rgba(255, 214, 0, 0.5), /* Brillo amarillo */
-                        0 0 5px rgba(0, 229, 255, 0.3); /* Brillo cian */
-            transition: all 0.3s;
+            background-color: #FFFFFF !important; /* Blanco Sólido */
+            border: none !important;
+            border-radius: 24px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px !important;
+            transition: transform 0.2s;
         }
-        .stContainer:hover {
-            /* Brillo más intenso al pasar el mouse */
-            box-shadow: 0 0 25px rgba(255, 214, 0, 0.8),
-                        0 0 10px rgba(0, 229, 255, 0.5);
+        
+        /* Efecto al pasar el mouse */
+        div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] > div.stButton > button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
         }
 
-        /* 4. ESTILO DEL TEXTO EN TARJETAS OSCURAS */
-        .stContainer [data-testid="stMarkdownContainer"] h3 {
-            color: #FFD600 !important; /* Título amarillo brillante */
-            font-weight: 700;
-        }
-        .stContainer [data-testid="stMarkdownContainer"] p {
-            color: #FFFFFF !important; /* Texto principal blanco */
-            font-size: 14px;
-        }
-        /* 5. ESTILO DEL BOTÓN PRINCIPAL */
-        .stContainer button {
-            background-color: #FFD600 !important;
-            color: #1A0A4A !important;
-            font-weight: bold;
-            border-radius: 8px;
-            box-shadow: 0 4px #A08300; 
-            margin-top: 10px;
-        }
-        .stContainer button:active {
-            box-shadow: 0 2px #A08300;
-            transform: translateY(2px);
+        /* Texto dentro de las tarjetas */
+        div.stButton > button p {
+            color: #333333 !important; /* Texto oscuro para leer bien */
+            font-size: 22px !important;
+            font-weight: 800 !important;
         }
         
-        /* 6. ELIMINAR MÁRGENES TOP Y BOTTOM */
-        .block-container {
-            padding-top: 3rem !important;
-            padding-bottom: 0rem !important;
-        }
+        /* Eliminar márgenes */
+        .block-container { padding-top: 3rem !important; }
         </style>
     """, unsafe_allow_html=True)
     
-    # --- C. ENCABEZADO DINÁMICO (CENTRADO) ---
+    # --- C. CONTENIDO ---
+    
+    # Encabezado Centrado
     st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 30px; padding-top: 10px;">
-            <h1 style="color: #FFFFFF; font-size: 52px; margin-bottom: 5px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                {emoji} ¡{saludo}, Docente!
-            </h1>
-            <p style="color: #FFD54F; font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;">
-                📅 {fecha}
-            </p>
+        <div style="text-align: center; margin-bottom: 40px; padding-top: 20px;">
+            <h1 style="color: #FFFFFF; font-size: 50px; margin-bottom: 10px;">{emoji} {saludo}, Docente</h1>
+            <p style="color: #FFD54F; font-size: 20px; font-weight: 500; text-transform: uppercase;">📅 {fecha}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    st.divider()
-
-    # --- D. PARRILLA DE TARJETAS FUTURISTAS ---
+    # --- D. PARRILLA DE TARJETAS (USANDO EMOJIS NATIVOS EN EL BOTÓN) ---
+    # Nota: Ponemos el icono y el texto DENTRO del botón para que sea una sola pieza sólida
     
-    # --- FILA 1 ---
-    col1, col2 = st.columns(2, gap="medium")
+    col1, col2 = st.columns(2, gap="large")
     
     with col1:
-        with st.container(border=True):
-            col_icon, col_text = st.columns([1, 3])
-            with col_icon:
-                st.image("https://img.icons8.com/fluency/96/bullish.png", width=70) 
-            with col_text:
-                st.subheader("Sistema de Evaluación")
-                st.write("Sube notas, monitorea el progreso y genera libretas.")
-            
-            if st.button("👉 Entrar a Evaluación", key="btn_eval", use_container_width=True):
-                # Debes tener la función 'navegar_a' definida en tu aplicación
-                # navegar_a("Sistema de Evaluación") 
-                st.rerun()
+        # Tarjeta 1
+        if st.button("📊\n\nSISTEMA DE\nEVALUACIÓN", key="card_eval", use_container_width=True):
+            navegar_a("Sistema de Evaluación") # <--- ¡AHORA SÍ ESTÁ ACTIVO!
+            st.rerun()
 
     with col2:
-        with st.container(border=True):
-            col_icon, col_text = st.columns([1, 3])
-            with col_icon:
-                st.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=70)
-            with col_text:
-                st.subheader("Asistente Pedagógico")
-                st.write("Diseña sesiones de aprendizaje y genera material didáctico con IA.")
-            
-            if st.button("👉 Entrar al Asistente", key="btn_asist", use_container_width=True):
-                # navegar_a("Asistente Pedagógico")
-                st.rerun()
+        # Tarjeta 2
+        if st.button("🧠\n\nASISTENTE\nPEDAGÓGICO", key="card_ia", use_container_width=True):
+            navegar_a("Asistente Pedagógico") # <--- ACTIVO
+            st.rerun()
 
-    # Espacio entre filas
-    st.write("")
+    st.write("") # Espaciador
 
-    # --- FILA 2 ---
-    col3, col4 = st.columns(2, gap="medium")
+    col3, col4 = st.columns(2, gap="large")
     
     with col3:
-        with st.container(border=True):
-            col_icon, col_text = st.columns([1, 3])
-            with col_icon:
-                st.image("https://img.icons8.com/fluency/96/folder-invoices.png", width=70)
-            with col_text:
-                st.subheader("Banco de Recursos")
-                st.write("Descarga formatos oficiales, plantillas de planificación y guías.")
-            
-            if st.button("👉 Entrar a Recursos", key="btn_rec", use_container_width=True):
-                # navegar_a("Recursos")
-                st.rerun()
+        # Tarjeta 3
+        if st.button("📂\n\nBANCO DE\nRECURSOS", key="card_rec", use_container_width=True):
+            navegar_a("Recursos") # <--- ACTIVO
+            st.rerun()
 
     with col4:
-        with st.container(border=True):
-            col_icon, col_text = st.columns([1, 3])
-            with col_icon:
-                st.image("https://img.icons8.com/fluency/96/controller.png", width=70)
-            with col_text:
-                st.subheader("Zona de Gamificación")
-                st.write("Crea trivias, juegos interactivos y sistemas de puntos para motivar a tus alumnos.")
+        # Tarjeta 4
+        if st.button("🎮\n\nZONA DE\nGAMIFICACIÓN", key="card_game", use_container_width=True):
+            navegar_a("Gamificación") # <--- ACTIVO
+            st.rerun()
             
-            if st.button("👉 Entrar a Juegos", key="btn_game", use_container_width=True):
-                # navegar_a("Gamificación")
-                st.rerun()
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
@@ -2345,6 +2292,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
