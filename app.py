@@ -36,50 +36,45 @@ st.markdown("""
     /* =========================================
        A. TIPOGRAFÍA INSTITUCIONAL (ROBOTO)
     ========================================= */
-    /* Importamos la fuente de Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
     }
     
-    /* Títulos: Fuertes y Estructurados */
+    /* Títulos */
     h1, h2, h3 { 
         font-weight: 900 !important; 
         letter-spacing: -0.5px;
-        color: #1A237E; /* Azul oscuro institucional por defecto */
+        color: #1A237E; 
     }
     
-    /* Texto general: Máxima legibilidad */
+    /* Texto general */
     p, div, label, span { 
         font-weight: 400;
-        font-size: 16px; /* Un poco más grande para lectura cómoda */
+        font-size: 16px; 
     }
 
     /* =========================================
-       B. LIMPIEZA DE INTERFAZ
+       B. LIMPIEZA DE INTERFAZ (VERSIÓN LIMPIA)
     ========================================= */
-    /* Ocultamos elementos innecesarios pero DEJAMOS el header funcional */
+    /* Solo ocultamos elementos secundarios, NO EL HEADER PRINCIPAL */
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     footer { visibility: hidden; }
     
-    /* EL CAMBIO CLAVE: No usamos display:none, sino transparencia */
-    [data-testid="stHeader"] { 
-        background-color: rgba(0,0,0,0) !important; /* Transparente */
-        z-index: 999 !important; /* Asegurar que esté encima para poder dar click */
-    }
+    /* BORRADO: Ya no ocultamos el header globalmente */
+    /* BORRADO: Ya no forzamos el color de la flecha globalmente */
     
-    /* Ajustamos el color de los iconos del header (hamburguesa/flecha) a blanco/gris para que se vean */
-    [data-testid="stHeader"] button {
-        color: #1A237E !important;
-    }
-    
-    /* Eliminar margen superior excesivo */
     .block-container {
-        padding-top: 3rem !important; /* Un poco más de espacio para que no se solape con el botón del menú */
+        padding-top: 3rem !important; 
         padding-bottom: 0rem !important;
     }
+
+    /* ... (El resto de la sección C. BARRA LATERAL GLOBAL sigue igual) ... */
+    /* ... */
+    </style>
+""", unsafe_allow_html=True)
 
     /* =========================================
        C. BARRA LATERAL GLOBAL (AZUL PROFUNDO)
@@ -1024,7 +1019,6 @@ def mostrar_home():
     # Obtenemos la hora del servidor y restamos 5 horas (UTC-5)
     ahora_servidor = datetime.now()
     ahora = ahora_servidor - timedelta(hours=5)
-    
     hora = ahora.hour
     
     # 1. Determinar el Saludo
@@ -1045,23 +1039,44 @@ def mostrar_home():
     dia_nombre = dias_semana[ahora.weekday()]
     dia_numero = ahora.day
     mes_nombre = meses[ahora.month - 1]
-    
     fecha_texto = f"{dia_nombre}, {dia_numero} de {mes_nombre}"
 
-    # --- B. ESTILOS CSS (EXACTAMENTE TU CÓDIGO V6.1) ---
+    # --- B. ESTILOS CSS (CORREGIDO PARA MOSTRAR FLECHA) ---
     st.markdown("""
         <style>
-        /* --- 1. ELIMINAR MÁRGENES DE STREAMLIT --- */
-        .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 0rem !important;
+        /* --- 1. HEADER Y FLECHA (LO MÁS IMPORTANTE) --- */
+        /* Restauramos el header pero lo hacemos transparente */
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        /* FORZAR FLECHA BLANCA (Para que se vea sobre el fondo Morado) */
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stHeader"] button {
+            color: #FFFFFF !important; /* BLANCO */
+            fill: #FFFFFF !important;
+            display: block !important;
+            visibility: visible !important;
+            z-index: 999999 !important;
         }
         
-        /* Ocultamos el header */
-        header { visibility: hidden !important; }
-        [data-testid="stHeader"] { display: none !important; }
+        /* Aseguramos el SVG */
+        [data-testid="collapsedControl"] svg,
+        [data-testid="stHeader"] button svg {
+            fill: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
 
-        /* --- 2. BARRA LATERAL (INTOCABLE) --- */
+        /* --- 2. ELIMINAR MÁRGENES --- */
+        .block-container {
+            padding-top: 3rem !important; /* Dejamos espacio para la flecha */
+            padding-bottom: 0rem !important;
+        }
+
+        /* --- 3. BARRA LATERAL (INTOCABLE) --- */
         section[data-testid="stSidebar"] {
             background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
             border-right: 1px solid #1a237e;
@@ -1072,7 +1087,7 @@ def mostrar_home():
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
 
-        /* --- 3. FONDO PRINCIPAL (MORADO ÉPICO) --- */
+        /* --- 4. FONDO PRINCIPAL (MORADO ÉPICO) --- */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: 
@@ -1080,6 +1095,8 @@ def mostrar_home():
                 radial-gradient(circle at 0% 100%, rgba(0, 229, 255, 0.3) 0%, transparent 50%),
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
         }
+        </style>
+    """, unsafe_allow_html=True)
 
         /* --- 4. TARJETAS GEOMÉTRICAS --- */
         section[data-testid="stMain"] div.stButton > button {
@@ -2437,6 +2454,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
