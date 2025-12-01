@@ -140,7 +140,7 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (V10 - DEGRADADO IZQUIERDO + ICONOS JUMBO) ===
+# === 1.C. PANTALLA DE INICIO (V11 - COMPACTA, MODERNA Y PROPORCIONAL) ===
 # =========================================================================
 
 def mostrar_home():
@@ -158,10 +158,10 @@ def mostrar_home():
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     fecha = f"{dias[ahora.weekday()]}, {ahora.day} de {meses[ahora.month - 1]}"
 
-    # --- B. ESTILOS CSS (AJUSTADOS) ---
+    # --- B. ESTILOS CSS (REESCALADOS PARA ENCAJAR) ---
     st.markdown("""
         <style>
-        /* 1. FLECHA BLANCA (INDISPENSABLE) */
+        /* 1. FLECHA BLANCA */
         [data-testid="stHeader"] button, 
         [data-testid="collapsedControl"],
         [data-testid="stSidebarCollapsedControl"] {
@@ -180,92 +180,90 @@ def mostrar_home():
             background-color: transparent !important;
         }
 
-        /* 2. FONDO MORADO CON DEGRADADO DESDE LA IZQUIERDA */
+        /* 2. FONDO DEGRADADO */
         [data-testid="stAppViewContainer"] {
             background-color: #4A148C !important;
             background: 
-                /* EL CAMBIO: Naranja fuerte arriba a la IZQUIERDA (10% 10%) */
                 radial-gradient(circle at 10% 10%, rgba(255, 109, 0, 0.50) 0%, transparent 50%),
-                /* Luz Cian abajo a la derecha para balancear */
                 radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.30) 0%, transparent 50%),
                 linear-gradient(135deg, #311B92 0%, #4A148C 100%) !important;
             background-attachment: fixed;
         }
 
-        /* 3. TARJETAS DE CRISTAL (SOLO ZONA PRINCIPAL) */
+        /* 3. TARJETAS DE CRISTAL (TAMAÑO COMPACTO) */
         section[data-testid="stMain"] div.stButton > button {
             width: 100%;
-            min-height: 320px !important; /* Más altas para acomodar iconos grandes */
+            /* REDUCCIÓN: De 320px a 200px para que quepan */
+            min-height: 200px !important; 
             
             background: rgba(255, 255, 255, 0.08) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            border-radius: 30px !important;
-            border-left: 10px solid #FFD600 !important; /* Borde lateral más grueso */
+            border-radius: 20px !important;
+            border-left: 6px solid #FFD600 !important;
             
             color: #FFFFFF !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px !important;
+            padding: 15px !important; /* Menos padding */
             transition: all 0.3s ease;
         }
 
-        /* Hover Efecto */
         section[data-testid="stMain"] div.stButton > button:hover {
-            transform: translateY(-10px) scale(1.02);
+            transform: translateY(-5px) scale(1.01);
             background: rgba(255, 255, 255, 0.15) !important;
-            box-shadow: 0 20px 50px rgba(255, 109, 0, 0.3); /* Resplandor Naranja al pasar mouse */
+            box-shadow: 0 10px 30px rgba(255, 109, 0, 0.25);
             border-color: #FFFFFF !important;
         }
 
-        /* 4. TEXTO DENTRO DE LAS TARJETAS (PROPORCIONAL) */
+        /* 4. TEXTO PROPORCIONAL (MÁS PEQUEÑO PERO LEGIBLE) */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 30px !important; /* TÍTULO GIGANTE */
-            font-weight: 900 !important;
-            letter-spacing: 1px;
+            font-size: 20px !important; /* REDUCCIÓN: De 30px a 20px */
+            font-weight: 800 !important;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin-top: 20px !important;
-            line-height: 1.2 !important;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            margin-top: 10px !important;
+            line-height: 1.1 !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* Ajuste márgenes */
-        .block-container { padding-top: 3rem !important; }
+        .block-container { padding-top: 2rem !important; }
         </style>
     """, unsafe_allow_html=True)
     
-    # --- C. ENCABEZADO ---
+    # --- C. ENCABEZADO (MÁS COMPACTO) ---
     st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 50px; padding-top: 20px;">
-            <h1 style="color: #FFFFFF; font-size: 60px; margin-bottom: 5px; text-shadow: 0 0 25px rgba(255,109,0,0.6);">
+        <div style="text-align: center; margin-bottom: 30px; padding-top: 10px;">
+            <h1 style="color: #FFFFFF; font-size: 42px; margin-bottom: 0px; text-shadow: 0 0 20px rgba(255,109,0,0.6);">
                 {emoji} {saludo}, Docente
             </h1>
-            <p style="color: #FFD54F; font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;">
+            <p style="color: #FFD54F; font-size: 18px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">
                 📅 {fecha}
             </p>
         </div>
     """, unsafe_allow_html=True)
     
-    # --- D. PARRILLA (ICONOS DE 120px) ---
+    # --- D. PARRILLA COMPACTA (ICONOS DE 80px) ---
     
-    col1, col2 = st.columns(2, gap="large")
+    col1, col2 = st.columns(2, gap="medium")
     
     with col1:
         # Tarjeta 1
-        # Icono aumentado a 120px
+        # REDUCCIÓN: Icono de 120px a 80px
         st.markdown("""
         <div style="pointer-events: none; text-align: center;">
-            <img src="https://img.icons8.com/fluency/240/bullish.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
+            <img src="https://img.icons8.com/fluency/240/bullish.png" style="width: 80px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        # Botón transparente invisible encima de la imagen para capturar el clic
-        if st.button("\n\n\n\n\nSISTEMA DE\nEVALUACIÓN", key="btn_eval", use_container_width=True):
+        # REDUCCIÓN: Menos saltos de línea (\n) para reducir altura del botón
+        if st.button("\n\n\nSISTEMA DE\nEVALUACIÓN", key="btn_eval", use_container_width=True):
             navegar_a("Sistema de Evaluación")
             st.rerun()
 
@@ -273,25 +271,25 @@ def mostrar_home():
         # Tarjeta 2
         st.markdown("""
         <div style="pointer-events: none; text-align: center;">
-            <img src="https://img.icons8.com/fluency/240/artificial-intelligence.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
+            <img src="https://img.icons8.com/fluency/240/artificial-intelligence.png" style="width: 80px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("\n\n\n\n\nASISTENTE\nPEDAGÓGICO", key="btn_asist", use_container_width=True):
+        if st.button("\n\n\nASISTENTE\nPEDAGÓGICO", key="btn_asist", use_container_width=True):
             navegar_a("Asistente Pedagógico")
             st.rerun()
 
-    st.write("") 
+    st.write("") # Espacio pequeño
 
-    col3, col4 = st.columns(2, gap="large")
+    col3, col4 = st.columns(2, gap="medium")
     
     with col3:
         # Tarjeta 3
         st.markdown("""
         <div style="pointer-events: none; text-align: center;">
-            <img src="https://img.icons8.com/fluency/240/folder-invoices.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
+            <img src="https://img.icons8.com/fluency/240/folder-invoices.png" style="width: 80px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("\n\n\n\n\nBANCO DE\nRECURSOS", key="btn_rec", use_container_width=True):
+        if st.button("\n\n\nBANCO DE\nRECURSOS", key="btn_rec", use_container_width=True):
             navegar_a("Recursos")
             st.rerun()
 
@@ -299,14 +297,14 @@ def mostrar_home():
         # Tarjeta 4
         st.markdown("""
         <div style="pointer-events: none; text-align: center;">
-            <img src="https://img.icons8.com/fluency/240/controller.png" style="width: 120px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
+            <img src="https://img.icons8.com/fluency/240/controller.png" style="width: 80px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
         </div>
         """, unsafe_allow_html=True)
-        if st.button("\n\n\n\n\nZONA DE\nGAMIFICACIÓN", key="btn_game", use_container_width=True):
+        if st.button("\n\n\nZONA DE\nGAMIFICACIÓN", key="btn_game", use_container_width=True):
             navegar_a("Gamificación")
             st.rerun()
             
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
 # =========================================================================
 # === 2. INICIALIZACIÓN SUPABASE Y ESTADO ===
@@ -2332,4 +2330,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
+
 
