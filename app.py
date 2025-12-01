@@ -161,7 +161,7 @@ def mostrar_home():
         html body [data-testid="stSidebarCollapsedControl"],
         html body [data-testid="stHeader"] button {
             color: #FFFFFF !important; /* Azul Oscuro Institucional */
-            fill: #1A237E !important;
+            fill: #FFFFFF !important;
             display: block !important;
             visibility: visible !important;
             z-index: 999999999 !important; /* Capa superior */
@@ -2415,6 +2415,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
