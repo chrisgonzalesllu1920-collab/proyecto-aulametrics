@@ -140,7 +140,7 @@ def navegar_a(pagina):
     st.session_state['pagina_actual'] = pagina
 
 # =========================================================================
-# === 1.C. PANTALLA DE INICIO (V11 - COMPACTA Y PROPORCIONAL) ===
+# === 1.C. PANTALLA DE INICIO (V11 - COMPACTA, MODERNA Y PROPORCIONAL) ===
 # =========================================================================
 
 def mostrar_home():
@@ -2330,5 +2330,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
