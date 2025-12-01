@@ -56,30 +56,29 @@ st.markdown("""
     }
 
     /* =========================================
-       B. LIMPIEZA DE INTERFAZ (VERSIÓN LIMPIA)
+       B. LIMPIEZA DE INTERFAZ
     ========================================= */
-    /* Solo ocultamos elementos secundarios, NO EL HEADER PRINCIPAL */
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     footer { visibility: hidden; }
     
-    /* BORRADO: Ya no ocultamos el header globalmente */
-    /* BORRADO: Ya no forzamos el color de la flecha globalmente */
+    /* HEADER TRANSPARENTE GLOBAL */
+    [data-testid="stHeader"] { 
+        background-color: rgba(0,0,0,0) !important; 
+        z-index: 999 !important; 
+    }
+    
+    /* NOTA: Eliminamos la regla de color forzado aquí para evitar conflictos */
     
     .block-container {
         padding-top: 3rem !important; 
         padding-bottom: 0rem !important;
     }
 
-    /* ... (El resto de la sección C. BARRA LATERAL GLOBAL sigue igual) ... */
-    /* ... */
-    </style>
-""", unsafe_allow_html=True)
-
-    /* 
-    =========================================
+    /* =========================================
        C. BARRA LATERAL GLOBAL (AZUL PROFUNDO)
     ========================================= */
+    /* AHORA SÍ ESTÁ DENTRO DE LAS COMILLAS */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a237e 0%, #283593 100%) !important;
         border-right: 1px solid #1a237e;
@@ -99,7 +98,7 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.1) !important;
         color: white !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        font-weight: 500 !important; /* Peso medio para botones */
+        font-weight: 500 !important; 
     }
     section[data-testid="stSidebar"] div.stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.2) !important;
@@ -2455,6 +2454,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
