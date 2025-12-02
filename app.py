@@ -383,13 +383,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.4 - FIX DE MARGEN FINAL EN SUBTÍTULO) ===
+# === 4. PÁGINA DE LOGIN (V12.5 - FIX DE SYNTAX ERROR) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
     
     # Inicializar el estado de la vista de recuperación
-    if 'view_recuperar_pass' no in st.session_state:
+    if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
@@ -2436,6 +2436,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
