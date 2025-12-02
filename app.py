@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.8 - FIX Contraste y Recuadro AGRESIVO) ===
+# === 4. PÁGINA DE LOGIN (V11.9 - FIX DEFINITIVO DE CONTRASTE Y RECUADRO) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -428,10 +428,23 @@ def login_page():
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+        
+        /* 10. CORRECCIÓN 1: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        /* ATACA al contenedor de la imagen y los textos HASTA el glass-card */
+        div[data-testid="stVerticalBlock"] > div > div:first-child,
+        div[data-testid="stImage"] > img,
+        div[data-testid="stMarkdownContainer"] {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
-        /* Aseguramos que los textos de labels, títulos y párrafos dentro del formulario sean oscuros */
-        .glass-card label p, .glass-card h3, .glass-card h3 span, .glass-card p {
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
+        /* Aseguramos que los labels, títulos y párrafos dentro del formulario sean oscuros */
+        .glass-card label p, 
+        .glass-card h3, 
+        .glass-card h3 span, 
+        .glass-card p {
             color: #1a1a1a !important;
             text-shadow: none !important;
             font-weight: 600 !important; 
@@ -475,22 +488,22 @@ def login_page():
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #0f0303 !important;
-            /* FIX 3: Color del botón (ROJO) */
+            background-color: #ffffff !important;
             color: #E94057 !important; 
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
-        /* CORRECCIÓN 2: Forzamos el color del TEXTO dentro del botón secundario a rojo */
-        div.stForm button[kind="secondary"] p, button[key="btn_cancel_recov"] p {
-             color: #E94057 !important; 
+        /* CORRECCIÓN 2: FUERZA el color del TEXTO a rojo dentro del botón secundario */
+        div.stForm button[kind="secondary"] p, 
+        button[key="btn_cancel_recov"] p {
+             color: #E94057 !important; /* <--- Rojo */
              text-shadow: none !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #E94057 !important;
             color: white !important; 
         }
-        /* CORRECCIÓN 2: En hover, el texto debe ser blanco */
+        /* En hover, el texto debe ser blanco */
         div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
             color: white !important; 
         }
@@ -500,36 +513,24 @@ def login_page():
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            /* FIX 2: Mantenemos negro oscuro para alto contraste */
             color: #333333 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
-        /* CORRECCIÓN 2: Forzamos el color del TEXTO dentro del enlace a oscuro */
+        /* CORRECCIÓN 2: FUERZA el color del TEXTO a oscuro dentro del enlace */
         button[key="btn_olvide_pass_login"] p {
-            color: #333333 !important; 
+            color: #333333 !important; /* <--- Negro oscuro */
             text-shadow: none !important;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #E94057 !important; /* Cambiamos a color primario en hover */
+            color: #E94057 !important; 
             text-decoration: none;
         }
-        /* CORRECCIÓN 2: En hover, el texto dentro debe ser rojo */
+        /* En hover, el texto dentro debe ser rojo */
         button[key="btn_olvide_pass_login"]:hover p {
             color: #E94057 !important; 
-        }
-
-        /* 10. CORRECCIÓN 1: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        /* Aplicamos estilos agresivos para eliminar el fondo de cualquier elemento fuera de la glass-card */
-        div[data-testid="stMarkdownContainer"], 
-        div[data-testid="stSubheader"] > div,
-        div[data-testid="stImage"], /* Nuevo y agresivo selector para la imagen */
-        div[data-testid*="stVerticalBlock"] > div > div:not(.glass-card) {
-            background: none !important;
-            border: none !important;
-            box-shadow: none !important;
         }
         
         footer {visibility: hidden;}
@@ -542,6 +543,7 @@ def login_page():
     with col_centro:
         
         # Elementos fuera de la tarjeta
+        # Estos elementos (imagen y markdown) están ahora bajo el selector agresivo de la sección 10.
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
@@ -555,7 +557,6 @@ def login_page():
             
             with st.form("recovery_form", clear_on_submit=True):
                 st.markdown("### 🔄 Restablecer Contraseña")
-                # El texto de info/warning ahora usa el color #1a1a1a gracias al CSS
                 st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
                 
                 email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
@@ -592,7 +593,7 @@ def login_page():
                     
                     if submitted:
                         try:
-                            # Asegúrate de que 'supabase' está definido en tu código principal
+                            # Asume que 'supabase' está definido en tu código principal
                             session = supabase.auth.sign_in_with_password({
                                 "email": email,
                                 "password": password
@@ -2414,6 +2415,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
