@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.8 - Índigo/Cyan y Fix Botón Registro) ===
+# === 4. PÁGINA DE LOGIN (V12.9 - Fondo Pastel y Fix Botón Claro) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (CAMBIO: Deep Indigo/Cyan para un look más profesional) */
+        /* 1. FONDO DEGRADADO (CAMBIO: Pastel Suave - Gris Claro/Amarillo Pálido) */
         [data-testid="stAppViewContainer"] {
-            /* De: #1B263B (Índigo) -> A: #4A688C (Cian Grisáceo) */
-            background: linear-gradient(135deg, #1B263B 0%, #4A688C 100%); 
+            /* De: #F5F5DC (Beige Claro) -> A: #FFFACD (Limón Pálido) */
+            background: linear-gradient(135deg, #F5F5DC 0%, #FFFACD 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -424,17 +424,17 @@ def login_page():
             margin-top: 20px; /* Separación del encabezado */
         }
         
-        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro) */
+        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro/pastel) */
         h1, h2, h3 {
-            color: #FFFFFF !important; /* Blanco */
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            color: #1a1a1a !important; /* Oscuro */
+            text-shadow: none !important; 
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #FFFFFF !important; /* Blanco */
-             text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+             color: #1a1a1a !important; /* Oscuro */
+             text-shadow: none !important;
              margin-top: 0px !important; /* Elimina espacio superior */
              margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
@@ -511,22 +511,23 @@ def login_page():
             color: #E94057 !important; 
         }
 
-        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo Azul */
+        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO */
+        /* HACEMOS EL FONDO CLARO PARA QUE EL TEXTO NEGRO CONTRASTE */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #4682B4 !important; /* Azul (Steel Blue) */
-            border: 2px solid #4682B4 !important;
+            background-color: #FFFFFF !important; /* Blanco */
+            border: 2px solid #E94057 !important; /* Borde Rojo (Color de marca principal) */
         }
-        /* Texto del botón "Registrarme" (no seleccionado) */
+        /* Texto del botón "Registrarme" (no seleccionado) - Debe ser oscuro */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: white !important; /* Texto Blanco */
+            color: #1a1a1a !important; /* Texto Oscuro */
         }
         /* Hover del botón "Registrarme" */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]):hover {
-            background-color: #386A92 !important; /* Azul oscuro en hover */
+            background-color: #FAFAD2 !important; /* Amarillo muy pálido en hover */
         }
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) DENTRO DE FORMS */
-        /* Color de botón secundario a Azul (#4682B4) para coincidir con Iniciar Sesión */
+        /* Color de botón secundario a Azul (#4682B4) para darle un color de acción neutral */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #4682B4 !important; /* Azul */
             color: white !important; 
@@ -2455,6 +2456,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
