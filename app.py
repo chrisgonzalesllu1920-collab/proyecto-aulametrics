@@ -210,7 +210,7 @@ def mostrar_home():
         
         /* TÍTULO DEL BOTÓN (Primera línea) */
         section[data-testid="stMain"] div.stButton > button p {
-            font-size: 24px !important; /* <--- CAMBIA ESTO PARA EL TÍTULO */
+            font-size: 28px !important; /* <--- CAMBIA ESTO PARA EL TÍTULO */
             font-weight: 800 !important;
             color: #FFFFFF !important;
             letter-spacing: 0.5px;
@@ -2314,6 +2314,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
