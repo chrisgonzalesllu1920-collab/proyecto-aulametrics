@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.3 - ORDEN DE BOTONES Y DISEÑO ARREGLADO) ===
+# === 4. PÁGINA DE LOGIN (V11.4 - FIX Critical API Error y Orden de Botones) ===
 # =========================================================================
 def login_page():
     
@@ -472,7 +472,6 @@ def login_page():
         }
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
-        /* Aplicamos el estilo secundario también al botón de "Volver" */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
             color: #E94057 !important;
@@ -484,7 +483,7 @@ def login_page():
             color: white !important;
         }
         
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (Alineación corregida) */
+        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (MANTENEMOS ESTILOS DE LINK) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
@@ -498,11 +497,6 @@ def login_page():
         button[key="btn_olvide_pass_login"]:hover {
             color: #3E0E69 !important; 
             text-decoration: none;
-        }
-        /* Eliminamos el ajuste de alineación manual que causaba desorden */
-        [data-testid="stVerticalBlock"] > div:nth-child(3) {
-             /* Estilos anteriores removidos */
-             margin-top: 10px; /* Separación después del input */
         }
         
         footer {visibility: hidden;}
@@ -520,7 +514,7 @@ def login_page():
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
-        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
+        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL (FIX: Eliminado doble cierre) ---
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         
         # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
@@ -536,14 +530,13 @@ def login_page():
 
                 if submitted:
                     if email_recuperacion:
-                        # --- PUNTO DE INTEGRACIÓN CON SUPABASE (siguiente paso) ---
                         st.toast("Procesando solicitud...")
                         st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
                     else:
                         st.error("Por favor, ingresa un correo electrónico.")
                         
-            # Botón Secundario: Cancelar y volver (FUERA del formulario para no romper el submit)
-            st.write("") # Espaciador
+            # Botón Secundario: Cancelar y volver (FUERA del formulario)
+            st.write("") 
             if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                 st.session_state['view_recuperar_pass'] = False
                 st.rerun()
@@ -555,20 +548,13 @@ def login_page():
 
             # --- PESTAÑA 1: LOGIN ---
             with tab_login:
+                
                 with st.form("login_form"):
                     st.markdown("### 🔐 Acceso Docente")
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                     
-                    # 1. Botón de recuperación posicionado LÓGICAMENTE
-                    # Mantenemos el st.button fuera del form para evitar el error de Streamlit.
-                    # El espacio y alineación se ajustan por el CSS, pero aquí usamos un simple write/spacer.
-                    st.write("") 
-                    if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                        st.session_state['view_recuperar_pass'] = True
-                        st.rerun()
-                        
-                    # 2. Botón de Iniciar Sesión (Form submit)
+                    # El botón de inicio de sesión SIEMPRE va dentro del form
                     submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                     
                     if submitted:
@@ -589,6 +575,15 @@ def login_page():
                                 st.error("Credenciales incorrectas o correo no confirmado.")
                             else:
                                 st.error(f"Error al iniciar sesión: {e}")
+                
+                # SOLUCIÓN CRÍTICA: Botón de recuperación FUERA del st.form("login_form")
+                # Esto previene la StreamlitAPIException.
+                # Aparecerá visualmente debajo del botón "Iniciar Sesión".
+                st.write("") 
+                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                    st.session_state['view_recuperar_pass'] = True
+                    st.rerun()
+
 
             # --- PESTAÑA 2: REGISTRO ---
             with tab_register:
@@ -2388,6 +2383,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
