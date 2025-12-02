@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.7 - Gris Perla y Fix Botón Registro) ===
+# === 4. PÁGINA DE LOGIN (V12.8 - Índigo/Cyan y Fix Botón Registro) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (CAMBIO: Lila a Gris Perla/Amarillo para alto contraste con texto) */
+        /* 1. FONDO DEGRADADO (CAMBIO: Deep Indigo/Cyan para un look más profesional) */
         [data-testid="stAppViewContainer"] {
-            /* De: #B0A0D0 (Lila) -> A: #F0F0F0 (Gris Perla) */
-            background: linear-gradient(135deg, #F0F0F0 0%, #FFD700 70%, #FFA500 100%);
+            /* De: #1B263B (Índigo) -> A: #4A688C (Cian Grisáceo) */
+            background: linear-gradient(135deg, #1B263B 0%, #4A688C 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -424,17 +424,17 @@ def login_page():
             margin-top: 20px; /* Separación del encabezado */
         }
         
-        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro - CAMBIO: Texto fuera de la tarjeta a color oscuro) */
+        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro) */
         h1, h2, h3 {
-            color: #1a1a1a !important; /* Oscuro */
-            text-shadow: none !important; /* Eliminar sombra para texto oscuro */
+            color: #FFFFFF !important; /* Blanco */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #1a1a1a !important; /* Oscuro */
-             text-shadow: none !important; 
+             color: #FFFFFF !important; /* Blanco */
+             text-shadow: 0 2px 4px rgba(0,0,0,0.4);
              margin-top: 0px !important; /* Elimina espacio superior */
              margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
@@ -445,7 +445,6 @@ def login_page():
         }
         
         /* Nuevo FIX: Controla el espacio después de la descripción (Tu asistente...) */
-        /* Selecciona el último bloque de Markdown (que contiene la descripción) y fuerza margin-bottom a 0 */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"]:last-of-type p {
             margin-bottom: 0px !important; 
         }
@@ -460,7 +459,7 @@ def login_page():
             box-shadow: none !important;
         }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) - Ya estaban correctos */
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) - Mantiene alto contraste sobre glass-card */
         .glass-card label p, 
         .glass-card h3, 
         .glass-card h3 span {
@@ -501,6 +500,7 @@ def login_page():
             border-radius: 8px !important;
             margin-right: 5px !important;
             border: 1px solid rgba(0,0,0,0.1) !important;
+            transition: all 0.3s; /* Añadir transición para el efecto */
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
@@ -510,8 +510,22 @@ def login_page():
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #E94057 !important; 
         }
+
+        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo Azul */
+        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) {
+            background-color: #4682B4 !important; /* Azul (Steel Blue) */
+            border: 2px solid #4682B4 !important;
+        }
+        /* Texto del botón "Registrarme" (no seleccionado) */
+        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
+            color: white !important; /* Texto Blanco */
+        }
+        /* Hover del botón "Registrarme" */
+        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]):hover {
+            background-color: #386A92 !important; /* Azul oscuro en hover */
+        }
         
-        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
+        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) DENTRO DE FORMS */
         /* Color de botón secundario a Azul (#4682B4) para coincidir con Iniciar Sesión */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #4682B4 !important; /* Azul */
@@ -532,29 +546,6 @@ def login_page():
         }
         /* En hover, el texto debe ser blanco */
         div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
-            color: white !important; 
-        }
-
-        /* FIX ADICIONAL: Aplicar estilo azul al botón "Registrarme" de la pestaña, que también es secundario */
-        /* La pestaña de "Registrarme" usa un botón que está FUERA del formulario principal de LOGIN */
-        /* Este selector busca el botón que está directamente fuera de las pestañas pero sigue usando el tipo secondary */
-        /* Al usar un selector más amplio, aplicamos el estilo al botón "Registrarme" que se ve al inicio */
-        div[data-testid="stTabs"] + button[kind="secondary"] {
-            background-color: #4682B4 !important; /* Azul */
-            color: white !important; 
-            border: 2px solid #4682B4 !important;
-            font-weight: bold !important;
-        }
-        /* Texto del botón de pestaña "Registrarme" */
-        div[data-testid="stTabs"] + button[kind="secondary"] p {
-             color: white !important; 
-             text-shadow: none !important;
-        }
-        div[data-testid="stTabs"] + button[kind="secondary"]:hover {
-            background-color: #386A92 !important; /* Azul más oscuro */
-            color: white !important; 
-        }
-        div[data-testid="stTabs"] + button[kind="secondary"]:hover p {
             color: white !important; 
         }
 
@@ -2464,6 +2455,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
