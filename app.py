@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.5 - FIX Estético de Colores y Contraste) ===
+# === 4. PÁGINA DE LOGIN (V11.6 - FIX Final de Contraste y Recuadro) ===
 # =========================================================================
 def login_page():
     
@@ -474,7 +474,7 @@ def login_page():
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
-            /* FIX 3: Aseguramos que el texto sea el color principal para contraste */
+            /* FIX 3: Aseguramos texto rojo sobre fondo blanco */
             color: #E94057 !important; 
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
@@ -484,12 +484,12 @@ def login_page():
             color: white !important; /* Mantenemos blanco en hover, que es el fondo oscuro */
         }
         
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (MANTENEMOS ESTILOS DE LINK) */
+        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            /* FIX 2: Cambiamos el color de texto a negro oscuro para alto contraste */
+            /* FIX 2: Mantenemos negro oscuro para alto contraste */
             color: #333333 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
@@ -499,6 +499,11 @@ def login_page():
         button[key="btn_olvide_pass_login"]:hover {
             color: #E94057 !important; /* Cambiamos a color primario en hover */
             text-decoration: none;
+        }
+
+        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        div[data-testid="stMarkdownContainer"] {
+            background: none !important;
         }
         
         footer {visibility: hidden;}
@@ -524,6 +529,7 @@ def login_page():
             
             with st.form("recovery_form", clear_on_submit=True):
                 st.markdown("### 🔄 Restablecer Contraseña")
+                # El texto de info/warning ahora usa el color #1a1a1a gracias al CSS
                 st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
                 
                 email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
@@ -645,7 +651,7 @@ def login_page():
             transition: all 0.3s;
             border: none;
         ">
-            💬 ¿Dudas? Contáctanos/TikTok
+            💬 ¿Dudas? Contáctanos
         </a>
         """, unsafe_allow_html=True)
             
@@ -2382,6 +2388,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
