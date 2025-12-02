@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.6 - Lila, Botón Azul Registro) ===
+# === 4. PÁGINA DE LOGIN (V12.7 - Gris Perla y Fix Botón Registro) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (CAMBIO: Morado Oscuro a Lila para mejor visibilidad del texto) */
+        /* 1. FONDO DEGRADADO (CAMBIO: Lila a Gris Perla/Amarillo para alto contraste con texto) */
         [data-testid="stAppViewContainer"] {
-            /* De: #3E0E69 (Morado Oscuro) -> A: #B0A0D0 (Lila Suave) */
-            background: linear-gradient(135deg, #B0A0D0 0%, #E94057 50%, #F27121 100%);
+            /* De: #B0A0D0 (Lila) -> A: #F0F0F0 (Gris Perla) */
+            background: linear-gradient(135deg, #F0F0F0 0%, #FFD700 70%, #FFA500 100%);
             background-size: cover;
             background-attachment: fixed;
         }
@@ -413,7 +413,7 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) */
+        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) - Mantiene el efecto */
         .glass-card {
             background-color: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(15px);
@@ -424,17 +424,17 @@ def login_page():
             margin-top: 20px; /* Separación del encabezado */
         }
         
-        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro - CAMBIO: Texto fuera de la tarjeta a color oscuro) */
         h1, h2, h3 {
-            color: #FFFFFF !important;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: #1a1a1a !important; /* Oscuro */
+            text-shadow: none !important; /* Eliminar sombra para texto oscuro */
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #FFFFFF !important;
-             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+             color: #1a1a1a !important; /* Oscuro */
+             text-shadow: none !important; 
              margin-top: 0px !important; /* Elimina espacio superior */
              margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
@@ -460,7 +460,7 @@ def login_page():
             box-shadow: none !important;
         }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) - Ya estaban correctos */
         .glass-card label p, 
         .glass-card h3, 
         .glass-card h3 span {
@@ -478,7 +478,7 @@ def login_page():
             color: #1a1a1a !important;
         }
 
-        /* 6. INPUTS */
+        /* 6. INPUTS - Ya estaban correctos */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
             background-color: rgba(255, 255, 255, 0.9) !important;
@@ -512,7 +512,7 @@ def login_page():
         }
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
-        /* CAMBIO: Color de botón secundario a Azul (#4682B4) para coincidir con Iniciar Sesión */
+        /* Color de botón secundario a Azul (#4682B4) para coincidir con Iniciar Sesión */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #4682B4 !important; /* Azul */
             color: white !important; 
@@ -532,6 +532,29 @@ def login_page():
         }
         /* En hover, el texto debe ser blanco */
         div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
+            color: white !important; 
+        }
+
+        /* FIX ADICIONAL: Aplicar estilo azul al botón "Registrarme" de la pestaña, que también es secundario */
+        /* La pestaña de "Registrarme" usa un botón que está FUERA del formulario principal de LOGIN */
+        /* Este selector busca el botón que está directamente fuera de las pestañas pero sigue usando el tipo secondary */
+        /* Al usar un selector más amplio, aplicamos el estilo al botón "Registrarme" que se ve al inicio */
+        div[data-testid="stTabs"] + button[kind="secondary"] {
+            background-color: #4682B4 !important; /* Azul */
+            color: white !important; 
+            border: 2px solid #4682B4 !important;
+            font-weight: bold !important;
+        }
+        /* Texto del botón de pestaña "Registrarme" */
+        div[data-testid="stTabs"] + button[kind="secondary"] p {
+             color: white !important; 
+             text-shadow: none !important;
+        }
+        div[data-testid="stTabs"] + button[kind="secondary"]:hover {
+            background-color: #386A92 !important; /* Azul más oscuro */
+            color: white !important; 
+        }
+        div[data-testid="stTabs"] + button[kind="secondary"]:hover p {
             color: white !important; 
         }
 
@@ -658,6 +681,7 @@ def login_page():
                     email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
                     password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                     
+                    # El botón de registro usa type="secondary"
                     submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
                     
                     if submitted:
@@ -2440,6 +2464,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
