@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.6 - FIX Final de Contraste y Recuadro) ===
+# === 4. PÁGINA DE LOGIN (V11.7 - FIX Final de Contraste y Recuadro) ===
 # =========================================================================
 def login_page():
     
@@ -413,13 +413,13 @@ def login_page():
         
         /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) */
         .glass-card {
-             background-color: rgba(255, 255, 255, 0.25);
-             backdrop-filter: blur(15px);
-             padding: 40px;
-             border-radius: 20px;
-             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-             border: 1px solid rgba(255, 255, 255, 0.4);
-             margin-top: 20px; /* Separación del encabezado */
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            margin-top: 20px; /* Separación del encabezado */
         }
         
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
@@ -429,6 +429,7 @@ def login_page():
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
+        /* Aseguramos que los textos de labels, títulos y párrafos dentro del formulario sean oscuros */
         .glass-card label p, .glass-card h3, .glass-card h3 span, .glass-card p {
             color: #1a1a1a !important;
             text-shadow: none !important;
@@ -436,7 +437,7 @@ def login_page():
         }
         /* Color para el texto de info/warning en modo recuperación */
         div[data-testid="stNotification"] p {
-             color: #1a1a1a !important;
+            color: #1a1a1a !important;
         }
 
         /* 6. INPUTS */
@@ -474,16 +475,25 @@ def login_page():
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
-            /* FIX 3: Aseguramos texto rojo sobre fondo blanco */
+            /* FIX 3: Color del botón (ROJO) */
             color: #E94057 !important; 
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
+        /* CORRECCIÓN 2: Forzamos el color del TEXTO dentro del botón secundario a rojo */
+        div.stForm button[kind="secondary"] p, button[key="btn_cancel_recov"] p {
+             color: #E94057 !important; 
+             text-shadow: none !important;
+        }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #E94057 !important;
-            color: white !important; /* Mantenemos blanco en hover, que es el fondo oscuro */
+            color: white !important; 
         }
-        
+        /* CORRECCIÓN 2: En hover, el texto debe ser blanco */
+        div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
+            color: white !important; 
+        }
+
         /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
@@ -496,14 +506,28 @@ def login_page():
             cursor: pointer;
             width: fit-content;
         }
+        /* CORRECCIÓN 2: Forzamos el color del TEXTO dentro del enlace a oscuro */
+        button[key="btn_olvide_pass_login"] p {
+            color: #333333 !important; 
+            text-shadow: none !important;
+        }
         button[key="btn_olvide_pass_login"]:hover {
             color: #E94057 !important; /* Cambiamos a color primario en hover */
             text-decoration: none;
         }
+        /* CORRECCIÓN 2: En hover, el texto dentro debe ser rojo */
+        button[key="btn_olvide_pass_login"]:hover p {
+            color: #E94057 !important; 
+        }
 
-        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        div[data-testid="stMarkdownContainer"] {
+        /* 10. CORRECCIÓN 1: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        /* Aseguramos que los contenedores de Streamlit que envuelven el logo y el texto de bienvenida NO tengan fondo. */
+        div[data-testid="stMarkdownContainer"], 
+        div[data-testid="stSubheader"],
+        div[data-testid*="stVerticalBlock"] > div > div:not(.glass-card) {
             background: none !important;
+            border: none !important;
+            box-shadow: none !important;
         }
         
         footer {visibility: hidden;}
@@ -655,7 +679,7 @@ def login_page():
         </a>
         """, unsafe_allow_html=True)
             
-    # Fin del with col_centro
+    # Fin del with col_centro)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2388,6 +2412,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
