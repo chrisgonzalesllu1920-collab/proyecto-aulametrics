@@ -475,7 +475,7 @@ def login_page():
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #ffffff !important;
+            background-color: #0f0303 !important;
             /* FIX 3: Color del botón (ROJO) */
             color: #E94057 !important; 
             border: 2px solid #E94057 !important;
@@ -2414,6 +2414,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
