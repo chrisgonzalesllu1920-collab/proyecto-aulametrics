@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.4 - FIX Critical API Error y Orden de Botones) ===
+# === 4. PÁGINA DE LOGIN (V11.5 - FIX Estético de Colores y Contraste) ===
 # =========================================================================
 def login_page():
     
@@ -474,13 +474,14 @@ def login_page():
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
-            color: #E94057 !important;
+            /* FIX 3: Aseguramos que el texto sea el color principal para contraste */
+            color: #E94057 !important; 
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #E94057 !important;
-            color: white !important;
+            color: white !important; /* Mantenemos blanco en hover, que es el fondo oscuro */
         }
         
         /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (MANTENEMOS ESTILOS DE LINK) */
@@ -488,14 +489,15 @@ def login_page():
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #E94057 !important; 
+            /* FIX 2: Cambiamos el color de texto a negro oscuro para alto contraste */
+            color: #333333 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #3E0E69 !important; 
+            color: #E94057 !important; /* Cambiamos a color primario en hover */
             text-decoration: none;
         }
         
@@ -514,7 +516,7 @@ def login_page():
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
-        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL (FIX: Eliminado doble cierre) ---
+        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         
         # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
@@ -554,7 +556,6 @@ def login_page():
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                     
-                    # El botón de inicio de sesión SIEMPRE va dentro del form
                     submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                     
                     if submitted:
@@ -576,9 +577,7 @@ def login_page():
                             else:
                                 st.error(f"Error al iniciar sesión: {e}")
                 
-                # SOLUCIÓN CRÍTICA: Botón de recuperación FUERA del st.form("login_form")
-                # Esto previene la StreamlitAPIException.
-                # Aparecerá visualmente debajo del botón "Iniciar Sesión".
+                # Botón de recuperación FUERA del st.form("login_form")
                 st.write("") 
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
@@ -646,7 +645,7 @@ def login_page():
             transition: all 0.3s;
             border: none;
         ">
-            💬 ¿Dudas? Contáctanos
+            💬 ¿Dudas? Contáctanos/TikTok
         </a>
         """, unsafe_allow_html=True)
             
@@ -2383,6 +2382,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
