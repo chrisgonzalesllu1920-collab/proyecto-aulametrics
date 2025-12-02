@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.12 - Diseño Flotante Cálido) ===
+# === 4. PÁGINA DE LOGIN (V12.13 - Diseño Flotante Cálido - FIX) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -421,7 +421,7 @@ def login_page():
             border-radius: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-            margin-top: 20px; 
+            margin-top: 10px; /* Espacio mínimo después de las pestañas */
         }
         
         /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
@@ -443,9 +443,18 @@ def login_page():
         div[data-testid="stImage"] {
             margin-bottom: -15px !important; 
         }
-        /* Nuevo FIX: Controla el espacio después de la descripción (Tu asistente...) */
+        
+        /* FIX CLAVE: Elimina el espacio entre la descripción y las pestañas */
+        /* Aseguramos que el contenedor de la descripción no tenga margen inferior */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"]:last-of-type p {
             margin-bottom: 0px !important; 
+            padding-bottom: 0px !important;
+        }
+        /* Aseguramos que el contenedor de las pestañas no tenga padding superior */
+        div[data-testid="stTabs"] {
+            padding-top: 0px !important;
+            margin-top: 0px !important;
+            margin-bottom: 0px; /* Elimina el espacio antes de la Soft Glass Card */
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Marrón Oscuro para contraste sobre Soft Glass Card) */
@@ -480,9 +489,6 @@ def login_page():
             font-weight: bold !important;
             border-radius: 8px !important;
         }
-        div.stForm button[kind="primary"]:hover, button[key="btn_login_submit"]:hover {
-            background-color: #0056b3 !important; 
-        }
 
         /* 8. BOTÓN SECUNDARIO (GRIS NEUTRAL) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
@@ -499,21 +505,12 @@ def login_page():
         }
 
         /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Estilo Botón Flotante (Según imagen) */
-        /* Contenedor principal de Tabs: Elimina el padding y fondo */
-        div[data-testid="stTabs"] {
-            padding: 0px !important;
-            margin-bottom: 20px;
-        }
-        div[data-testid="stTabs"] > div:first-child {
-            padding-bottom: 0px !important;
-        }
-        
         /* Estilo general de las Pestañas (los botones en sí) */
         button[data-baseweb="tab"] {
-            border-radius: 8px !important; /* Bordes totalmente redondeados como botones */
+            border-radius: 8px !important; 
             margin-right: 15px !important;
             padding: 10px 20px !important;
-            border-bottom: none !important; /* Quitar línea inferior */
+            border-bottom: none !important; 
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
@@ -530,7 +527,7 @@ def login_page():
 
         /* Pestaña NO SELECCIONADA (Registrarme) - Fondo Azul Sólido */
         button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #4682B4 !important; /* Azul Sólido (o el que se prefiera para contraste) */
+            background-color: #4682B4 !important; /* Azul Sólido */
             border: 2px solid #4682B4 !important;
         }
         button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
@@ -553,13 +550,6 @@ def login_page():
             color: #5C4045 !important; 
             text-shadow: none !important;
         }
-        button[key="btn_olvide_pass_login"]:hover {
-            color: #007bff !important; /* Azul de acento en hover */
-            text-decoration: none;
-        }
-        button[key="btn_olvide_pass_login"]:hover p {
-            color: #007bff !important; 
-        }
 
         /* 11. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
         div[data-testid="stVerticalBlock"] > div > div:first-child,
@@ -570,21 +560,32 @@ def login_page():
             box-shadow: none !important;
         }
         
+        /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta) */
+        .contact-button-container {
+            position: fixed;
+            bottom: 30px; /* Distancia desde abajo */
+            right: 30px; /* Distancia desde la derecha */
+            width: 200px; /* Ancho fijo */
+            z-index: 1000;
+        }
+        /* Ocultar el footer que crea Streamlit */
         footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
     # --- B. ESTRUCTURA ---
+    # Usamos la columna central para centrar el contenido principal
     col1, col_centro, col3 = st.columns([1, 4, 1])
     
     with col_centro:
         
-        # Elementos fuera de la tarjeta
+        # Elementos fuera de la tarjeta: Logo, Título, Descripción
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
         # Tabs (Botones flotantes sobre el fondo)
+        # Los tabs aparecen inmediatamente después de la descripción gracias al FIX 4.
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
         # --- PESTAÑA 1: LOGIN (Contiene la Soft Glass Card) ---
@@ -695,37 +696,17 @@ def login_page():
                             
             # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
             st.markdown('</div>', unsafe_allow_html=True) 
-        
-        # Elementos fuera de la tarjeta (siempre visibles)
-        st.divider()
-        
-        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
-        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-        
-        # Usamos un bloque de columnas para simular el botón flotando a la derecha
-        col_space, col_contact = st.columns([1, 1])
-        with col_contact:
-            st.markdown(f"""
-            <a href="{url_netlify}" target="_blank" style="
-                display: inline-block;
-                width: 100%;
-                padding: 15px 0;
-                background-color: #28a745; /* Verde */
-                color: white;
-                text-align: center;
-                text-decoration: none;
-                border-radius: 10px;
-                font-size: 18px;
-                font-weight: 800;
-                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-                transition: all 0.3s;
-                border: none;
-            ">
-                💬 ¿Dudas? Contáctanos
-            </a>
-            """, unsafe_allow_html=True)
-            
-    # Fin del with col_centro)
+
+    # --- C. BOTÓN DE CONTACTO FLOTANTE (FUERA DEL LAYOUT DE COLUMNAS) ---
+    url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
+    
+    st.markdown(f"""
+    <div class="contact-button-container">
+        <a href="{url_netlify}" target="_blank">
+            💬 ¿Dudas? Contáctanos
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2458,6 +2439,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
