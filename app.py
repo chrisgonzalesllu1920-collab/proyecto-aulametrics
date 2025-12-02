@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.12 - Clásico Minimalista) ===
+# === 4. PÁGINA DE LOGIN (V12.12 - Diseño Flotante Cálido) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Clásico Minimalista: Gris Suave a Blanco) */
+        /* 1. FONDO DEGRADADO (Cálido: Púrpura/Lila a Melocotón/Naranja) */
         [data-testid="stAppViewContainer"] {
-            /* De: #F0F2F6 (Gris Claro) -> A: #FFFFFF (Blanco) */
-            background: linear-gradient(135deg, #F0F2F6 0%, #FFFFFF 100%); 
+            /* De: #7A5787 (Púrpura Suave) -> A: #D48E75 (Melocotón/Naranja Suave) */
+            background: linear-gradient(135deg, #7A5787 0%, #D48E75 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -413,27 +413,28 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA PRINCIPAL (Blanco Sólido y Elevada) */
-        .white-card {
-            background-color: #FFFFFF; 
+        /* 3. TARJETA PRINCIPAL (Soft Glass Card - Marrón/Rosa Translúcido) */
+        .soft-glass-card {
+            background-color: rgba(200, 160, 160, 0.4); /* Base Marrón/Rosa suave y translúcido */
+            backdrop-filter: blur(10px);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
             margin-top: 20px; 
-            border: 1px solid #E0E0E0; /* Borde sutil */
         }
         
-        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro) */
+        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
         h1, h2, h3 {
-            color: #333333 !important; /* Gris Oscuro */
-            text-shadow: none !important; 
+            color: #FFFFFF !important; /* Blanco */
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para resaltar */
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, 
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #555555 !important; /* Gris Medio */
-             text-shadow: none !important; 
+             color: #FFFFFF !important; 
+             text-shadow: 0 1px 3px rgba(0,0,0,0.5); 
              margin-top: 0px !important; 
              margin-bottom: 5px !important; 
              padding: 0px !important;
@@ -442,34 +443,36 @@ def login_page():
         div[data-testid="stImage"] {
             margin-bottom: -15px !important; 
         }
-        
         /* Nuevo FIX: Controla el espacio después de la descripción (Tu asistente...) */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"]:last-of-type p {
             margin-bottom: 0px !important; 
         }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
-        .white-card label p {
-            color: #333333 !important;
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Marrón Oscuro para contraste sobre Soft Glass Card) */
+        .soft-glass-card label p,
+        .soft-glass-card h3,
+        .soft-glass-card h3 span {
+            color: #4A2E33 !important; /* Marrón Oscuro */
+            text-shadow: none !important;
             font-weight: 600 !important; 
         }
-        .white-card p {
-            color: #555555 !important;
+        .soft-glass-card p {
+            color: #5C4045 !important;
+            text-shadow: none !important;
         }
 
-        /* 6. INPUTS - Diseño limpio */
+        /* 6. INPUTS - Diseño limpio y claro dentro del card */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: #FAFAFA !important; /* Gris muy claro */
-            border: 1px solid #CCCCCC !important; /* Borde sutil */
+            background-color: rgba(255, 255, 255, 0.8) !important; /* Blanco translúcido */
+            border: 1px solid rgba(0, 0, 0, 0.2) !important; 
             border-radius: 8px !important;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
         }
         ::placeholder {
-            color: #888888 !important;
+            color: #555555 !important;
         }
         
-        /* 7. BOTÓN PRINCIPAL (PRIMARIO) - AZUL INSTITUCIONAL */
+        /* 7. BOTONES PRINCIPALES (AZUL INSTITUCIONAL) */
         div.stForm button[kind="primary"], button[key="btn_login_submit"] {
             background-color: #007bff !important; /* Azul Primario */
             color: white !important; 
@@ -481,7 +484,7 @@ def login_page():
             background-color: #0056b3 !important; 
         }
 
-        /* 8. BOTÓN SECUNDARIO (REGISTRARME/VOLVER) - GRIS NEUTRAL */
+        /* 8. BOTÓN SECUNDARIO (GRIS NEUTRAL) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #6c757d !important; /* Gris Neutral */
             color: white !important; 
@@ -494,64 +497,77 @@ def login_page():
              color: white !important; 
              text-shadow: none !important;
         }
-        div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
-            background-color: #5a6268 !important; 
-            color: white !important; 
-        }
-        div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
-            color: white !important; 
-        }
 
-
-        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Diseño plano y moderno */
-        button[data-baseweb="tab"] div p {
-            color: #333333 !important;
-            font-weight: 500 !important;
-            text-shadow: none !important;
+        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Estilo Botón Flotante (Según imagen) */
+        /* Contenedor principal de Tabs: Elimina el padding y fondo */
+        div[data-testid="stTabs"] {
+            padding: 0px !important;
+            margin-bottom: 20px;
         }
-        button[data-baseweb="tab"] {
-            background-color: #E9ECEF !important; /* Gris de fondo de tabs */
-            border-radius: 8px 8px 0 0 !important;
-            margin-right: 2px !important;
-            border: 1px solid #CED4DA !important; 
-            border-bottom: none !important;
-            transition: all 0.2s;
+        div[data-testid="stTabs"] > div:first-child {
+            padding-bottom: 0px !important;
         }
         
-        /* Pestaña Seleccionada: Fondo blanco, borde inferior azul */
+        /* Estilo general de las Pestañas (los botones en sí) */
+        button[data-baseweb="tab"] {
+            border-radius: 8px !important; /* Bordes totalmente redondeados como botones */
+            margin-right: 15px !important;
+            padding: 10px 20px !important;
+            border-bottom: none !important; /* Quitar línea inferior */
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Pestaña SELECCIONADA (Iniciar Sesión) - Blanco con borde Azul */
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
-            border-bottom: 3px solid #007bff !important; /* Azul de acento */
-            margin-bottom: -1px; /* Para ocultar el borde del contenedor */
+            border: 2px solid #007bff !important; /* Borde Azul */
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #007bff !important; /* Azul de acento */
-            font-weight: 600 !important;
+            color: #007bff !important; /* Texto Azul */
+            font-weight: 700 !important;
         }
 
-        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA */
+        /* Pestaña NO SELECCIONADA (Registrarme) - Fondo Azul Sólido */
+        button[data-baseweb="tab"]:not([aria-selected="true"]) {
+            background-color: #4682B4 !important; /* Azul Sólido (o el que se prefiera para contraste) */
+            border: 2px solid #4682B4 !important;
+        }
+        button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
+            color: #FFFFFF !important; /* Texto Blanco */
+            font-weight: 700 !important;
+        }
+
+        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (Marrón Oscuro) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #007bff !important; 
+            color: #5C4045 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
-        /* FIX 3: Forzamos el color del TEXTO a azul */
         button[key="btn_olvide_pass_login"] p {
-            color: #007bff !important; 
+            color: #5C4045 !important; 
             text-shadow: none !important;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #0056b3 !important; /* Azul más oscuro en hover */
+            color: #007bff !important; /* Azul de acento en hover */
             text-decoration: none;
         }
-        /* En hover, el texto dentro debe ser azul oscuro */
         button[key="btn_olvide_pass_login"]:hover p {
-            color: #0056b3 !important; 
+            color: #007bff !important; 
+        }
+
+        /* 11. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
+        div[data-testid="stVerticalBlock"] > div > div:first-child,
+        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child,
+        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child > div {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
         }
         
         footer {visibility: hidden;}
@@ -568,41 +584,40 @@ def login_page():
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
-        # --- INICIO CONTENEDOR DE LA TARJETA BLANCA ---
-        st.markdown('<div class="white-card">', unsafe_allow_html=True)
-        
-        # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
-        if st.session_state['view_recuperar_pass']:
+        # Tabs (Botones flotantes sobre el fondo)
+        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
+
+        # --- PESTAÑA 1: LOGIN (Contiene la Soft Glass Card) ---
+        with tab_login:
+            # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
+            st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
             
-            with st.form("recovery_form", clear_on_submit=True):
-                st.markdown("### 🔄 Restablecer Contraseña")
-                st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
+            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN (Dentro del card) ---
+            if st.session_state['view_recuperar_pass']:
                 
-                email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
-                
-                submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+                with st.form("recovery_form_tab_login", clear_on_submit=True):
+                    st.markdown("### 🔄 Restablecer Contraseña")
+                    st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
+                    
+                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+                    
+                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
 
-                if submitted:
-                    if email_recuperacion:
-                        st.toast("Procesando solicitud...")
-                        st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
-                    else:
-                        st.error("Por favor, ingresa un correo electrónico.")
-                        
-            # Botón Secundario: Cancelar y volver (FUERA del formulario)
-            st.write("") 
-            if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
-                st.session_state['view_recuperar_pass'] = False
-                st.rerun()
+                    if submitted:
+                        if email_recuperacion:
+                            st.toast("Procesando solicitud...")
+                            st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
+                        else:
+                            st.error("Por favor, ingresa un correo electrónico.")
+                            
+                # Botón Secundario: Cancelar y volver (FUERA del formulario)
+                st.write("") 
+                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
+                    st.session_state['view_recuperar_pass'] = False
+                    st.rerun()
 
-        # --- VISTA NORMAL: LOGIN Y REGISTRO ---
-        else:
-            
-            tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-            # --- PESTAÑA 1: LOGIN ---
-            with tab_login:
-                
+            # --- VISTA NORMAL: LOGIN (Dentro del card) ---
+            else:
                 with st.form("login_form"):
                     st.markdown("### 🔐 Acceso Docente")
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
@@ -634,47 +649,52 @@ def login_page():
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
-
-
-            # --- PESTAÑA 2: REGISTRO ---
-            with tab_register:
-                if 'form_reset_id' not in st.session_state:
-                    st.session_state['form_reset_id'] = 0
-                reset_id = st.session_state['form_reset_id']
-
-                if st.session_state.get('registro_exitoso', False):
-                    st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                    st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
                     
-                with st.form("register_form"):
-                    st.markdown("### 📝 Nuevo Usuario")
-                    name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                    email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                    password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                    
-                    # El botón de registro usa type="secondary"
-                    submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                    
-                    if submitted:
-                        if not name or not email or not password:
-                            st.warning("Por favor, completa todos los campos.")
-                        else:
-                            try:
-                                user = supabase.auth.sign_up({
-                                    "email": email,
-                                    "password": password,
-                                    "options": {
-                                        "data": { 'full_name': name }
-                                    }
-                                })
-                                st.session_state['form_reset_id'] += 1
-                                st.session_state['registro_exitoso'] = True
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Error en el registro: {e}")
-        
-        # --- FIN CONTENEDOR DE LA TARJETA BLANCA ---
-        st.markdown('</div>', unsafe_allow_html=True) 
+            # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
+            st.markdown('</div>', unsafe_allow_html=True) 
+
+        # --- PESTAÑA 2: REGISTRO (Contiene la Soft Glass Card) ---
+        with tab_register:
+            # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
+            st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
+
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            reset_id = st.session_state['form_reset_id']
+
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                
+            with st.form("register_form"):
+                st.markdown("### 📝 Nuevo Usuario")
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                
+                # El botón de registro usa type="secondary"
+                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
+                
+                if submitted:
+                    if not name or not email or not password:
+                        st.warning("Por favor, completa todos los campos.")
+                    else:
+                        try:
+                            user = supabase.auth.sign_up({
+                                "email": email,
+                                "password": password,
+                                "options": {
+                                    "data": { 'full_name': name }
+                                }
+                            })
+                            st.session_state['form_reset_id'] += 1
+                            st.session_state['registro_exitoso'] = True
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error en el registro: {e}")
+                            
+            # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
+            st.markdown('</div>', unsafe_allow_html=True) 
         
         # Elementos fuera de la tarjeta (siempre visibles)
         st.divider()
@@ -682,25 +702,28 @@ def login_page():
         # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
         
-        st.markdown(f"""
-        <a href="{url_netlify}" target="_blank" style="
-            display: inline-block;
-            width: 100%;
-            padding: 15px 0;
-            background-color: #28a745; /* Verde */
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-            transition: all 0.3s;
-            border: none;
-        ">
-            💬 ¿Dudas? Contáctanos
-        </a>
-        """, unsafe_allow_html=True)
+        # Usamos un bloque de columnas para simular el botón flotando a la derecha
+        col_space, col_contact = st.columns([1, 1])
+        with col_contact:
+            st.markdown(f"""
+            <a href="{url_netlify}" target="_blank" style="
+                display: inline-block;
+                width: 100%;
+                padding: 15px 0;
+                background-color: #28a745; /* Verde */
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                border-radius: 10px;
+                font-size: 18px;
+                font-weight: 800;
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+                transition: all 0.3s;
+                border: none;
+            ">
+                💬 ¿Dudas? Contáctanos
+            </a>
+            """, unsafe_allow_html=True)
             
     # Fin del with col_centro)
         
@@ -2435,6 +2458,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
