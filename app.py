@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.11 - Restauración Amarillo Pastel Sutil) ===
+# === 4. PÁGINA DE LOGIN (V12.12 - Moderno Tecnológico) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (CAMBIO: Restaurado a Pastel Suave - Gris Claro/Amarillo Pálido) */
+        /* 1. FONDO DEGRADADO (Moderno Tecnológico: Azul Eléctrico a Púrpura) */
         [data-testid="stAppViewContainer"] {
-            /* De: #F5F5DC (Beige Claro) -> A: #FFFACD (Limón Pálido) */
-            background: linear-gradient(135deg, #F5F5DC 0%, #FFFACD 100%); 
+            /* De: #6E8EFB (Azul Claro) -> A: #A777E3 (Púrpura Eléctrico) */
+            background: linear-gradient(135deg, #6E8EFB 0%, #A777E3 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -413,28 +413,28 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) - Mantiene el efecto */
+        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) - Más translúcida */
         .glass-card {
-            background-color: rgba(255, 255, 255, 0.25);
+            background-color: rgba(255, 255, 255, 0.35); /* Más transparencia */
             backdrop-filter: blur(15px);
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6); /* Borde más brillante */
             margin-top: 20px; /* Separación del encabezado */
         }
         
-        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro/pastel - NECESARIO POR EL FONDO) */
+        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
         h1, h2, h3 {
-            color: #1a1a1a !important; /* Oscuro */
-            text-shadow: none !important; 
+            color: #FFFFFF !important; /* Blanco */
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para resaltar */
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #1a1a1a !important; /* Oscuro */
-             text-shadow: none !important;
+             color: #FFFFFF !important; /* Blanco */
+             text-shadow: 0 2px 5px rgba(0,0,0,0.5); 
              margin-top: 0px !important; /* Elimina espacio superior */
              margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
@@ -488,8 +488,41 @@ def login_page():
             color: #555555 !important;
             opacity: 1 !important;
         }
+        
+        /* 7. BOTÓN PRINCIPAL (PRIMARIO) - NARANJA VIBRANTE */
+        div.stForm button[kind="primary"], button[key="btn_login_submit"] {
+            background-color: #FF6F00 !important; /* Naranja Brillante (Acento Moderno) */
+            color: white !important; 
+            border: 2px solid #FF6F00 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="primary"]:hover, button[key="btn_login_submit"]:hover {
+            background-color: #E06000 !important; /* Naranja un poco más oscuro */
+            border: 2px solid #E06000 !important;
+        }
 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* 8. BOTÓN SECUNDARIO (REGISTRARME/VOLVER) - AZUL NEUTRAL */
+        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
+            background-color: #4682B4 !important; /* Azul Neutral */
+            color: white !important; 
+            border: 2px solid #4682B4 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"] p, 
+        button[key="btn_cancel_recov"] p {
+             color: white !important; 
+             text-shadow: none !important;
+        }
+        div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
+            background-color: #386A92 !important; /* Azul más oscuro */
+            color: white !important; 
+        }
+        div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
+            color: white !important; 
+        }
+
+
+        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Diseño plano y moderno */
         button[data-baseweb="tab"] div p {
             color: #333333 !important;
             font-weight: bold !important;
@@ -500,21 +533,23 @@ def login_page():
             border-radius: 8px !important;
             margin-right: 5px !important;
             border: 1px solid rgba(0,0,0,0.1) !important;
-            transition: all 0.3s; /* Añadir transición para el efecto */
+            transition: all 0.3s;
         }
+        
+        /* Pestaña Seleccionada: Usamos el naranja vibrante como acento */
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        /* El texto de la pestaña seleccionada ('Iniciar Sesión') se mantiene rojo/naranja */
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important; 
+            color: #FF6F00 !important; /* Naranja de acento */
         }
 
-        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO para texto negro */
+        /* FIX 9.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO para texto negro */
+        /* Fondo blanco para contraste + Borde Naranja (color de acento) */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #FFFFFF !important; /* Blanco (Relleno) */
-            border: 2px solid #E94057 !important; /* Borde Rojo (Color de marca principal) */
+            background-color: #FFFFFF !important; 
+            border: 2px solid #FF6F00 !important; 
         }
         /* Texto del botón "Registrarme" (no seleccionado) - Asegura color oscuro */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
@@ -525,31 +560,8 @@ def login_page():
             background-color: #F0F0F0 !important; /* Gris muy claro en hover */
         }
         
-        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) DENTRO DE FORMS */
-        /* Color de botón secundario a Azul (#4682B4) para darle un color de acción neutral */
-        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #4682B4 !important; /* Azul */
-            color: white !important; 
-            border: 2px solid #4682B4 !important;
-            font-weight: bold !important;
-        }
-        /* FIX 2: Forzamos el color del TEXTO a blanco (máxima especificidad) */
-        div.stForm button[kind="secondary"] p, 
-        button[key="btn_cancel_recov"] p {
-             color: white !important; 
-             text-shadow: none !important;
-        }
-        /* Hover: Oscurecer ligeramente el azul */
-        div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
-            background-color: #386A92 !important; /* Azul más oscuro */
-            color: white !important; 
-        }
-        /* En hover, el texto debe ser blanco */
-        div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
-            color: white !important; 
-        }
-
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
+        
+        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
@@ -566,12 +578,12 @@ def login_page():
             text-shadow: none !important;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #E94057 !important; 
+            color: #FF6F00 !important; /* Naranja de acento en hover */
             text-decoration: none;
         }
-        /* En hover, el texto dentro debe ser rojo */
+        /* En hover, el texto dentro debe ser naranja */
         button[key="btn_olvide_pass_login"]:hover p {
-            color: #E94057 !important; 
+            color: #FF6F00 !important; 
         }
         
         footer {visibility: hidden;}
@@ -2455,6 +2467,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
