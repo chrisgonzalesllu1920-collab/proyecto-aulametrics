@@ -383,13 +383,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.3 - FIX DE ESPACIO ENTRE SUBTÍTULO Y CARD) ===
+# === 4. PÁGINA DE LOGIN (V12.4 - FIX DE MARGEN FINAL EN SUBTÍTULO) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
     
     # Inicializar el estado de la vista de recuperación
-    if 'view_recuperar_pass' not in st.session_state:
+    if 'view_recuperar_pass' no in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
@@ -429,19 +429,26 @@ def login_page():
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio */
+        /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
              color: #FFFFFF !important;
              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
              margin-top: 0px !important; /* Elimina espacio superior */
-             margin-bottom: 5px !important; /* Mínimo espacio inferior */
+             margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
         }
         /* Elimina el espacio extra al final del logo */
         div[data-testid="stImage"] {
             margin-bottom: -15px !important; 
         }
+        
+        /* Nuevo FIX: Controla el espacio después de la descripción (Tu asistente...) */
+        /* Selecciona el último bloque de Markdown (que contiene la descripción) y fuerza margin-bottom a 0 */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"]:last-of-type p {
+            margin-bottom: 0px !important; 
+        }
+
 
         /* 10. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
         div[data-testid="stVerticalBlock"] > div > div:first-child,
@@ -2429,6 +2436,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
