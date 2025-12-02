@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.0 - FIX FINAL DE ESPECIFICIDAD) ===
+# === 4. PÁGINA DE LOGIN (V12.1 - FIX FINAL DE ESTÉTICA) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -424,8 +424,7 @@ def login_page():
         }
         
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        /* ATENCIÓN: Solo aplicamos BLANCO a H1, H2, H3 y a los PARRAFOS fuera de la tarjeta
-           que NO sean botones, para evitar conflictos con los botones y labels */
+        /* ATENCIÓN: Solo aplicamos BLANCO a H1, H2, H3 y a los PARRAFOS fuera de la tarjeta */
         h1, h2, h3 {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -436,15 +435,16 @@ def login_page():
              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        /* 10. FIX: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        /* Eliminamos el fondo de los contenedores que envuelven el logo y el texto libre.
-           Usamos un selector más fuerte que incluye el stVerticalBlock */
-        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child {
+        /* 10. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        /* Forzamos transparencia en todos los bloques que Streamlit usa para agrupar elementos */
+        div[data-testid="stVerticalBlock"] > div > div:first-child,
+        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child,
+        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child > div {
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
         }
-        
+
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
         .glass-card label p, 
         .glass-card h3, 
@@ -2423,6 +2423,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
