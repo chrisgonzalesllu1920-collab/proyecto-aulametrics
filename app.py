@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.5 - FIX DE SYNTAX ERROR) ===
+# === 4. PÁGINA DE LOGIN (V12.6 - Lila, Botón Azul Registro) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,9 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO */
+        /* 1. FONDO DEGRADADO (CAMBIO: Morado Oscuro a Lila para mejor visibilidad del texto) */
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
+            /* De: #3E0E69 (Morado Oscuro) -> A: #B0A0D0 (Lila Suave) */
+            background: linear-gradient(135deg, #B0A0D0 0%, #E94057 50%, #F27121 100%);
             background-size: cover;
             background-attachment: fixed;
         }
@@ -505,25 +506,28 @@ def login_page():
             background-color: #FFFFFF !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
+        /* El texto de la pestaña seleccionada ('Iniciar Sesión') se mantiene rojo/naranja */
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important;
+            color: #E94057 !important; 
         }
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
+        /* CAMBIO: Color de botón secundario a Azul (#4682B4) para coincidir con Iniciar Sesión */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #ffffff !important;
-            color: #E94057 !important; 
-            border: 2px solid #E94057 !important;
+            background-color: #4682B4 !important; /* Azul */
+            color: white !important; 
+            border: 2px solid #4682B4 !important;
             font-weight: bold !important;
         }
-        /* FIX 2: Forzamos el color del TEXTO a rojo dentro del botón secundario (máxima especificidad) */
+        /* FIX 2: Forzamos el color del TEXTO a blanco (máxima especificidad) */
         div.stForm button[kind="secondary"] p, 
         button[key="btn_cancel_recov"] p {
-             color: #E94057 !important; 
+             color: white !important; 
              text-shadow: none !important;
         }
+        /* Hover: Oscurecer ligeramente el azul */
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
-            background-color: #E94057 !important;
+            background-color: #386A92 !important; /* Azul más oscuro */
             color: white !important; 
         }
         /* En hover, el texto debe ser blanco */
@@ -2436,6 +2440,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
