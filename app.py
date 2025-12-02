@@ -383,9 +383,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.7 - FIX Final de Contraste y Recuadro) ===
+# === 4. PÁGINA DE LOGIN (V11.8 - FIX Contraste y Recuadro AGRESIVO) ===
 # =========================================================================
 def login_page():
+    # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
     
     # Inicializar el estado de la vista de recuperación
     if 'view_recuperar_pass' not in st.session_state:
@@ -521,9 +522,10 @@ def login_page():
         }
 
         /* 10. CORRECCIÓN 1: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        /* Aseguramos que los contenedores de Streamlit que envuelven el logo y el texto de bienvenida NO tengan fondo. */
+        /* Aplicamos estilos agresivos para eliminar el fondo de cualquier elemento fuera de la glass-card */
         div[data-testid="stMarkdownContainer"], 
-        div[data-testid="stSubheader"],
+        div[data-testid="stSubheader"] > div,
+        div[data-testid="stImage"], /* Nuevo y agresivo selector para la imagen */
         div[data-testid*="stVerticalBlock"] > div > div:not(.glass-card) {
             background: none !important;
             border: none !important;
@@ -2412,16 +2414,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
 
 
 
