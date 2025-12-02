@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.9 - Fondo Pastel y Fix Botón Claro) ===
+# === 4. PÁGINA DE LOGIN (V12.10 - Índigo/Azul Sutil y Fix Botón Claro) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (CAMBIO: Pastel Suave - Gris Claro/Amarillo Pálido) */
+        /* 1. FONDO DEGRADADO (CAMBIO: Sutil Índigo/Azul - Retomando el esquema oscuro) */
         [data-testid="stAppViewContainer"] {
-            /* De: #F5F5DC (Beige Claro) -> A: #FFFACD (Limón Pálido) */
-            background: linear-gradient(135deg, #F5F5DC 0%, #FFFACD 100%); 
+            /* De: #2C3E50 (Azul Oscuro/Hielo) -> A: #4A688C (Cian Grisáceo) */
+            background: linear-gradient(135deg, #2C3E50 0%, #4A688C 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -424,17 +424,17 @@ def login_page():
             margin-top: 20px; /* Separación del encabezado */
         }
         
-        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro/pastel) */
+        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro) */
         h1, h2, h3 {
-            color: #1a1a1a !important; /* Oscuro */
-            text-shadow: none !important; 
+            color: #FFFFFF !important; /* Blanco */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
         .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #1a1a1a !important; /* Oscuro */
-             text-shadow: none !important;
+             color: #FFFFFF !important; /* Blanco */
+             text-shadow: 0 2px 4px rgba(0,0,0,0.4);
              margin-top: 0px !important; /* Elimina espacio superior */
              margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
              padding: 0px !important;
@@ -511,19 +511,18 @@ def login_page():
             color: #E94057 !important; 
         }
 
-        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO */
-        /* HACEMOS EL FONDO CLARO PARA QUE EL TEXTO NEGRO CONTRASTE */
+        /* FIX 7.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO para texto negro */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) {
             background-color: #FFFFFF !important; /* Blanco */
             border: 2px solid #E94057 !important; /* Borde Rojo (Color de marca principal) */
         }
-        /* Texto del botón "Registrarme" (no seleccionado) - Debe ser oscuro */
+        /* Texto del botón "Registrarme" (no seleccionado) - Asegura color oscuro */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
             color: #1a1a1a !important; /* Texto Oscuro */
         }
         /* Hover del botón "Registrarme" */
         div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]):hover {
-            background-color: #FAFAD2 !important; /* Amarillo muy pálido en hover */
+            background-color: #F0F0F0 !important; /* Gris muy claro en hover */
         }
         
         /* 8. BOTÓN REGISTRARME / VOLVER (secundario) DENTRO DE FORMS */
@@ -2456,6 +2455,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
