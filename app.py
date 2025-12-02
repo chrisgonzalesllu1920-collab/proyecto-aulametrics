@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.12 - Moderno Tecnológico) ===
+# === 4. PÁGINA DE LOGIN (V12.12 - Clásico Minimalista) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -395,10 +395,10 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Moderno Tecnológico: Azul Eléctrico a Púrpura) */
+        /* 1. FONDO DEGRADADO (Clásico Minimalista: Gris Suave a Blanco) */
         [data-testid="stAppViewContainer"] {
-            /* De: #6E8EFB (Azul Claro) -> A: #A777E3 (Púrpura Eléctrico) */
-            background: linear-gradient(135deg, #6E8EFB 0%, #A777E3 100%); 
+            /* De: #F0F2F6 (Gris Claro) -> A: #FFFFFF (Blanco) */
+            background: linear-gradient(135deg, #F0F2F6 0%, #FFFFFF 100%); 
             background-size: cover;
             background-attachment: fixed;
         }
@@ -413,30 +413,29 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) - Más translúcida */
-        .glass-card {
-            background-color: rgba(255, 255, 255, 0.35); /* Más transparencia */
-            backdrop-filter: blur(15px);
+        /* 3. TARJETA PRINCIPAL (Blanco Sólido y Elevada) */
+        .white-card {
+            background-color: #FFFFFF; 
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.6); /* Borde más brillante */
-            margin-top: 20px; /* Separación del encabezado */
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; 
+            border: 1px solid #E0E0E0; /* Borde sutil */
         }
         
-        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
+        /* 4. TEXTOS GENERALES (Oscuros sobre fondo claro) */
         h1, h2, h3 {
-            color: #FFFFFF !important; /* Blanco */
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para resaltar */
+            color: #333333 !important; /* Gris Oscuro */
+            text-shadow: none !important; 
         }
         
         /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
-        .stMarkdownContainer h3, /* h3 (subheader) en este caso */
+        .stMarkdownContainer h3, 
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #FFFFFF !important; /* Blanco */
-             text-shadow: 0 2px 5px rgba(0,0,0,0.5); 
-             margin-top: 0px !important; /* Elimina espacio superior */
-             margin-bottom: 5px !important; /* Mínimo espacio inferior entre textos */
+             color: #555555 !important; /* Gris Medio */
+             text-shadow: none !important; 
+             margin-top: 0px !important; 
+             margin-bottom: 5px !important; 
              padding: 0px !important;
         }
         /* Elimina el espacio extra al final del logo */
@@ -449,64 +448,46 @@ def login_page():
             margin-bottom: 0px !important; 
         }
 
-
-        /* 10. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
-        div[data-testid="stVerticalBlock"] > div > div:first-child,
-        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child,
-        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child > div {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) - Mantiene alto contraste sobre glass-card */
-        .glass-card label p, 
-        .glass-card h3, 
-        .glass-card h3 span {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
+        .white-card label p {
+            color: #333333 !important;
             font-weight: 600 !important; 
         }
-        /* Párrafos dentro del glass-card (como el de st.info) */
-        .glass-card p {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
-        }
-        /* Color para el texto de info/warning en modo recuperación */
-        div[data-testid="stNotification"] p {
-            color: #1a1a1a !important;
+        .white-card p {
+            color: #555555 !important;
         }
 
-        /* 6. INPUTS - Ya estaban correctos */
+        /* 6. INPUTS - Diseño limpio */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            background-color: #FAFAFA !important; /* Gris muy claro */
+            border: 1px solid #CCCCCC !important; /* Borde sutil */
             border-radius: 8px !important;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
         }
         ::placeholder {
-            color: #555555 !important;
-            opacity: 1 !important;
+            color: #888888 !important;
         }
         
-        /* 7. BOTÓN PRINCIPAL (PRIMARIO) - NARANJA VIBRANTE */
+        /* 7. BOTÓN PRINCIPAL (PRIMARIO) - AZUL INSTITUCIONAL */
         div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #FF6F00 !important; /* Naranja Brillante (Acento Moderno) */
+            background-color: #007bff !important; /* Azul Primario */
             color: white !important; 
-            border: 2px solid #FF6F00 !important;
+            border: none !important;
             font-weight: bold !important;
+            border-radius: 8px !important;
         }
         div.stForm button[kind="primary"]:hover, button[key="btn_login_submit"]:hover {
-            background-color: #E06000 !important; /* Naranja un poco más oscuro */
-            border: 2px solid #E06000 !important;
+            background-color: #0056b3 !important; 
         }
 
-        /* 8. BOTÓN SECUNDARIO (REGISTRARME/VOLVER) - AZUL NEUTRAL */
+        /* 8. BOTÓN SECUNDARIO (REGISTRARME/VOLVER) - GRIS NEUTRAL */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #4682B4 !important; /* Azul Neutral */
+            background-color: #6c757d !important; /* Gris Neutral */
             color: white !important; 
-            border: 2px solid #4682B4 !important;
+            border: none !important;
             font-weight: bold !important;
+            border-radius: 8px !important;
         }
         div.stForm button[kind="secondary"] p, 
         button[key="btn_cancel_recov"] p {
@@ -514,7 +495,7 @@ def login_page():
              text-shadow: none !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
-            background-color: #386A92 !important; /* Azul más oscuro */
+            background-color: #5a6268 !important; 
             color: white !important; 
         }
         div.stForm button[kind="secondary"]:hover p, button[key="btn_cancel_recov"]:hover p {
@@ -525,65 +506,52 @@ def login_page():
         /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Diseño plano y moderno */
         button[data-baseweb="tab"] div p {
             color: #333333 !important;
-            font-weight: bold !important;
+            font-weight: 500 !important;
             text-shadow: none !important;
         }
         button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            border-radius: 8px !important;
-            margin-right: 5px !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
-            transition: all 0.3s;
+            background-color: #E9ECEF !important; /* Gris de fondo de tabs */
+            border-radius: 8px 8px 0 0 !important;
+            margin-right: 2px !important;
+            border: 1px solid #CED4DA !important; 
+            border-bottom: none !important;
+            transition: all 0.2s;
         }
         
-        /* Pestaña Seleccionada: Usamos el naranja vibrante como acento */
+        /* Pestaña Seleccionada: Fondo blanco, borde inferior azul */
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-bottom: 3px solid #007bff !important; /* Azul de acento */
+            margin-bottom: -1px; /* Para ocultar el borde del contenedor */
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #FF6F00 !important; /* Naranja de acento */
+            color: #007bff !important; /* Azul de acento */
+            font-weight: 600 !important;
         }
 
-        /* FIX 9.1: Botón de Pestaña "Registrarme" (El segundo) - Estilo CLARO para texto negro */
-        /* Fondo blanco para contraste + Borde Naranja (color de acento) */
-        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #FFFFFF !important; 
-            border: 2px solid #FF6F00 !important; 
-        }
-        /* Texto del botón "Registrarme" (no seleccionado) - Asegura color oscuro */
-        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: #1a1a1a !important; /* Texto Oscuro */
-        }
-        /* Hover del botón "Registrarme" */
-        div[data-testid="stTabs"] > div > div > div:nth-child(2) button[data-baseweb="tab"]:not([aria-selected="true"]):hover {
-            background-color: #F0F0F0 !important; /* Gris muy claro en hover */
-        }
-        
-        
-        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
+        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #333333 !important; 
+            color: #007bff !important; 
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
-        /* FIX 3: Forzamos el color del TEXTO a oscuro dentro del enlace (máxima especificidad) */
+        /* FIX 3: Forzamos el color del TEXTO a azul */
         button[key="btn_olvide_pass_login"] p {
-            color: #333333 !important; 
+            color: #007bff !important; 
             text-shadow: none !important;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #FF6F00 !important; /* Naranja de acento en hover */
+            color: #0056b3 !important; /* Azul más oscuro en hover */
             text-decoration: none;
         }
-        /* En hover, el texto dentro debe ser naranja */
+        /* En hover, el texto dentro debe ser azul oscuro */
         button[key="btn_olvide_pass_login"]:hover p {
-            color: #FF6F00 !important; 
+            color: #0056b3 !important; 
         }
         
         footer {visibility: hidden;}
@@ -600,8 +568,8 @@ def login_page():
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
-        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        # --- INICIO CONTENEDOR DE LA TARJETA BLANCA ---
+        st.markdown('<div class="white-card">', unsafe_allow_html=True)
         
         # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
         if st.session_state['view_recuperar_pass']:
@@ -705,7 +673,7 @@ def login_page():
                             except Exception as e:
                                 st.error(f"Error en el registro: {e}")
         
-        # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
+        # --- FIN CONTENEDOR DE LA TARJETA BLANCA ---
         st.markdown('</div>', unsafe_allow_html=True) 
         
         # Elementos fuera de la tarjeta (siempre visibles)
@@ -719,14 +687,14 @@ def login_page():
             display: inline-block;
             width: 100%;
             padding: 15px 0;
-            background-color: #00C853;
+            background-color: #28a745; /* Verde */
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
             font-size: 18px;
             font-weight: 800;
-            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
             transition: all 0.3s;
             border: none;
         ">
@@ -2467,6 +2435,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
