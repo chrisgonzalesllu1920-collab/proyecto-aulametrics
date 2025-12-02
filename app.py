@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.2 - FIX DE ESPACIO VERTICAL) ===
+# === 4. PÁGINA DE LOGIN (V12.3 - FIX DE ESPACIO ENTRE SUBTÍTULO Y CARD) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -562,7 +562,6 @@ def login_page():
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        st.write("")
         
         # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
@@ -2430,6 +2429,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
