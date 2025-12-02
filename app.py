@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.2 - VISTA DE RECUPERACIÓN y FIX del FORM) ===
+# === 4. PÁGINA DE LOGIN (V11.3 - ORDEN DE BOTONES Y DISEÑO ARREGLADO) ===
 # =========================================================================
 def login_page():
     
@@ -411,8 +411,7 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (Contenedor que envuelve toda la lógica de login/registro/recuperación) */
-        /* Aplicamos el estilo de la tarjeta directamente a la columna central para envolver todo */
+        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) */
         .glass-card {
              background-color: rgba(255, 255, 255, 0.25);
              backdrop-filter: blur(15px);
@@ -430,11 +429,9 @@ def login_page():
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
-        /* Ajuste para que los textos dentro de la tarjeta glass-card se vean negros */
         .glass-card label p, .glass-card h3, .glass-card h3 span, .glass-card p {
             color: #1a1a1a !important;
             text-shadow: none !important;
-            /* Si es label o h3, hacerlo bold */
             font-weight: 600 !important; 
         }
         /* Color para el texto de info/warning en modo recuperación */
@@ -474,19 +471,20 @@ def login_page():
             color: #E94057 !important;
         }
         
-        /* 8. BOTÓN REGISTRARME (secundario) */
-        div.stForm button[kind="secondary"] {
+        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
+        /* Aplicamos el estilo secundario también al botón de "Volver" */
+        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
             color: #E94057 !important;
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
-        div.stForm button[kind="secondary"]:hover {
+        div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #E94057 !important;
             color: white !important;
         }
         
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (Añadido) */
+        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (Alineación corregida) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
@@ -501,12 +499,10 @@ def login_page():
             color: #3E0E69 !important; 
             text-decoration: none;
         }
-        /* Ajuste para que se vea alineado a la derecha como un enlace */
+        /* Eliminamos el ajuste de alineación manual que causaba desorden */
         [data-testid="stVerticalBlock"] > div:nth-child(3) {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: -10px; /* Subirlo un poco para pegarlo al input */
-            margin-bottom: 10px;
+             /* Estilos anteriores removidos */
+             margin-top: 10px; /* Separación después del input */
         }
         
         footer {visibility: hidden;}
@@ -518,19 +514,18 @@ def login_page():
     
     with col_centro:
         
-        # Elementos fuera de la tarjeta, en la columna central
+        # Elementos fuera de la tarjeta
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
-        # Contenedor de la tarjeta de cristal para todo el contenido interactivo
+        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         
         # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
         if st.session_state['view_recuperar_pass']:
             
-            # Usamos un solo form para el envío del correo
             with st.form("recovery_form", clear_on_submit=True):
                 st.markdown("### 🔄 Restablecer Contraseña")
                 st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
@@ -547,8 +542,8 @@ def login_page():
                     else:
                         st.error("Por favor, ingresa un correo electrónico.")
                         
-            # Botón Secundario: Cancelar y volver (Este botón SÍ puede estar fuera del form de arriba)
-            st.write("")
+            # Botón Secundario: Cancelar y volver (FUERA del formulario para no romper el submit)
+            st.write("") # Espaciador
             if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                 st.session_state['view_recuperar_pass'] = False
                 st.rerun()
@@ -565,7 +560,15 @@ def login_page():
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                     
-                    # El botón de enviar SÍ debe ser st.form_submit_button
+                    # 1. Botón de recuperación posicionado LÓGICAMENTE
+                    # Mantenemos el st.button fuera del form para evitar el error de Streamlit.
+                    # El espacio y alineación se ajustan por el CSS, pero aquí usamos un simple write/spacer.
+                    st.write("") 
+                    if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                        st.session_state['view_recuperar_pass'] = True
+                        st.rerun()
+                        
+                    # 2. Botón de Iniciar Sesión (Form submit)
                     submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
                     
                     if submitted:
@@ -581,17 +584,11 @@ def login_page():
                             if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
                             st.rerun() 
                         except Exception as e:
-                            # Manejo de error de login
                             error_message = str(e)
                             if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
                                 st.error("Credenciales incorrectas o correo no confirmado.")
                             else:
                                 st.error(f"Error al iniciar sesión: {e}")
-
-                # SOLUCIÓN AL ERROR: Botón de recuperación FUERA del st.form("login_form")
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
-                    st.rerun()
 
             # --- PESTAÑA 2: REGISTRO ---
             with tab_register:
@@ -609,7 +606,6 @@ def login_page():
                     email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
                     password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                     
-                    # Botón de Registrarme (Secundario)
                     submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
                     
                     if submitted:
@@ -629,36 +625,36 @@ def login_page():
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error en el registro: {e}")
-
-            st.markdown('</div>', unsafe_allow_html=True) # Cierre de la tarjeta de cristal
-            
-            st.divider()
-            
-            # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
-            url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-            
-            st.markdown(f"""
-            <a href="{url_netlify}" target="_blank" style="
-                display: inline-block;
-                width: 100%;
-                padding: 15px 0;
-                background-color: #00C853;
-                color: white;
-                text-align: center;
-                text-decoration: none;
-                border-radius: 10px;
-                font-size: 18px;
-                font-weight: 800;
-                box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-                transition: all 0.3s;
-                border: none;
-            ">
-                💬 ¿Dudas? Contáctanos
-            </a>
-            """, unsafe_allow_html=True)
-            
-        st.markdown('</div>', unsafe_allow_html=True) # Cierre del glass-card (si es que se dejó abierto, aunque ya lo cerré antes)
         
+        # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
+        st.markdown('</div>', unsafe_allow_html=True) 
+        
+        # Elementos fuera de la tarjeta (siempre visibles)
+        st.divider()
+        
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
+        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
+        
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #00C853;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
+        ">
+            💬 ¿Dudas? Contáctanos
+        </a>
+        """, unsafe_allow_html=True)
+            
     # Fin del with col_centro
         
 # =========================================================================
@@ -2392,6 +2388,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
