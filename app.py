@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.1 - FIX FINAL DE ESTÉTICA) ===
+# === 4. PÁGINA DE LOGIN (V12.2 - FIX DE ESPACIO VERTICAL) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -424,19 +424,26 @@ def login_page():
         }
         
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        /* ATENCIÓN: Solo aplicamos BLANCO a H1, H2, H3 y a los PARRAFOS fuera de la tarjeta */
         h1, h2, h3 {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        /* Solo los párrafos "libres" fuera de contenedores interactivos */
+        
+        /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio */
+        .stMarkdownContainer h3, /* h3 (subheader) en este caso */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
              color: #FFFFFF !important;
              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+             margin-top: 0px !important; /* Elimina espacio superior */
+             margin-bottom: 5px !important; /* Mínimo espacio inferior */
+             padding: 0px !important;
         }
-        
-        /* 10. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        /* Forzamos transparencia en todos los bloques que Streamlit usa para agrupar elementos */
+        /* Elimina el espacio extra al final del logo */
+        div[data-testid="stImage"] {
+            margin-bottom: -15px !important; 
+        }
+
+        /* 10. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
         div[data-testid="stVerticalBlock"] > div > div:first-child,
         div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child,
         div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child > div {
@@ -2423,6 +2430,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
