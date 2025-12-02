@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.9 - FIX DEFINITIVO DE CONTRASTE Y RECUADRO) ===
+# === 4. PÁGINA DE LOGIN (V12.0 - FIX FINAL DE ESPECIFICIDAD) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -424,30 +424,39 @@ def login_page():
         }
         
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        h1, h2, h3, p {
+        /* ATENCIÓN: Solo aplicamos BLANCO a H1, H2, H3 y a los PARRAFOS fuera de la tarjeta
+           que NO sean botones, para evitar conflictos con los botones y labels */
+        h1, h2, h3 {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+        /* Solo los párrafos "libres" fuera de contenedores interactivos */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
+             color: #FFFFFF !important;
+             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
         
-        /* 10. CORRECCIÓN 1: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
-        /* ATACA al contenedor de la imagen y los textos HASTA el glass-card */
-        div[data-testid="stVerticalBlock"] > div > div:first-child,
-        div[data-testid="stImage"] > img,
-        div[data-testid="stMarkdownContainer"] {
+        /* 10. FIX: ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        /* Eliminamos el fondo de los contenedores que envuelven el logo y el texto libre.
+           Usamos un selector más fuerte que incluye el stVerticalBlock */
+        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child {
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
         }
-
+        
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Oscuros) */
-        /* Aseguramos que los labels, títulos y párrafos dentro del formulario sean oscuros */
         .glass-card label p, 
         .glass-card h3, 
-        .glass-card h3 span, 
-        .glass-card p {
+        .glass-card h3 span {
             color: #1a1a1a !important;
             text-shadow: none !important;
             font-weight: 600 !important; 
+        }
+        /* Párrafos dentro del glass-card (como el de st.info) */
+        .glass-card p {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
         }
         /* Color para el texto de info/warning en modo recuperación */
         div[data-testid="stNotification"] p {
@@ -493,10 +502,10 @@ def login_page():
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
-        /* CORRECCIÓN 2: FUERZA el color del TEXTO a rojo dentro del botón secundario */
+        /* FIX 2: Forzamos el color del TEXTO a rojo dentro del botón secundario (máxima especificidad) */
         div.stForm button[kind="secondary"] p, 
         button[key="btn_cancel_recov"] p {
-             color: #E94057 !important; /* <--- Rojo */
+             color: #E94057 !important; 
              text-shadow: none !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
@@ -519,9 +528,9 @@ def login_page():
             cursor: pointer;
             width: fit-content;
         }
-        /* CORRECCIÓN 2: FUERZA el color del TEXTO a oscuro dentro del enlace */
+        /* FIX 3: Forzamos el color del TEXTO a oscuro dentro del enlace (máxima especificidad) */
         button[key="btn_olvide_pass_login"] p {
-            color: #333333 !important; /* <--- Negro oscuro */
+            color: #333333 !important; 
             text-shadow: none !important;
         }
         button[key="btn_olvide_pass_login"]:hover {
@@ -543,7 +552,6 @@ def login_page():
     with col_centro:
         
         # Elementos fuera de la tarjeta
-        # Estos elementos (imagen y markdown) están ahora bajo el selector agresivo de la sección 10.
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
@@ -2415,6 +2423,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
