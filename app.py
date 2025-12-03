@@ -576,20 +576,24 @@ def login_page():
         }
 
         /* Estilos de apariencia aplicados al enlace <a> dentro del contenedor */
-        #floating-wrapper a {
-            display: block; 
-            padding: 25px 0 !important; 
-            background-color: #28a745 !important; /* Nuevo Verde Distinto y muy específico */
+        #floating-wrapper button {
+            display: block !important;
+            padding: 25px 0 !important;
+            background-color: #ff9900 !important;        /* <-- COLOR QUE QUIERES */
             color: white !important;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 20px !important; 
+            text-align: center !important;
+            border-radius: 10px !important;
+            font-size: 20px !important;
             font-weight: 800 !important;
-            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); 
-            transition: all 0.2s;
-            border: none;
-        }
+            width: 100% !important;
+            border: none !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
+#floating-wrapper button:hover {
+    background-color: #cc7a00 !important;         /* <-- COLOR HOVER */
+    transform: translateY(-2px) !important;
+}
+
         #floating-wrapper a:hover {
             background-color: #1e7e34 !important; /* Hover Tono de verde más oscuro */
             box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
@@ -2509,6 +2513,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
