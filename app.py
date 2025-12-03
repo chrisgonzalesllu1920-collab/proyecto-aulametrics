@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.1 - BOTONES DE ACCIÓN PRINCIPALES EN VERDE) ===
+# === 4. PÁGINA DE LOGIN (V12.2 - ALTO CONTRASTE EN PESTAÑAS DE LOGIN) ===
 # =========================================================================
 def login_page():
     
@@ -441,17 +441,20 @@ def login_page():
             opacity: 1 !important;
         }
 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Se mantiene el diseño */
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Alto contraste */
         button[data-baseweb="tab"] div p {
-            color: #333333 !important;
+            color: #333333 !important; /* Texto oscuro para alto contraste */
             font-weight: bold !important;
             text-shadow: none !important;
         }
         button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
+            background-color: #F0F0F0 !important; /* Sólido Gris Muy Claro (Mejor Contraste) */
             border-radius: 8px !important;
             margin-right: 5px !important;
             border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        button[data-baseweb="tab"]:hover:not([aria-selected="true"]) {
+             background-color: #E0E0E0 !important; /* Ligero cambio al pasar el ratón */
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
@@ -2426,6 +2429,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
