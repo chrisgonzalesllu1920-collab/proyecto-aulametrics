@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.8 - ELIMINACIÓN DE ESTRUCTURA 'GLASS-CARD') ===
+# === 4. PÁGINA DE LOGIN (V11.9 - AJUSTE DE PADDING SUPERIOR) ===
 # =========================================================================
 def login_page():
     
@@ -401,9 +401,9 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* 2. LIMPIEZA DE INTERFAZ (Se mantiene) */
+        /* 2. LIMPIEZA DE INTERFAZ (AJUSTE DE PADDING SUPERIOR) */
         .block-container {
-            padding-top: 3rem !important;
+            padding-top: 1.5rem !important; /* REDUCIDO DE 3rem A 1.5rem */
             padding-bottom: 2rem !important;
         }
         header[data-testid="stHeader"] {
@@ -2411,6 +2411,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
