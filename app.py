@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.15 - FIX Espaciado Tabs) ===
+# === 4. PÁGINA DE LOGIN (V12.16 - FIX Espaciado Tabs v2) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -421,7 +421,7 @@ def login_page():
             border-radius: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-            margin-top: 10px; /* Espacio mínimo después de las pestañas (se controla con el FIX 11.1) */
+            margin-top: 10px; 
         }
         
         /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
@@ -454,7 +454,7 @@ def login_page():
         div[data-testid="stTabs"] {
             padding-top: 0px !important;
             margin-top: 0px !important;
-            margin-bottom: 0px; /* Elimina el espacio antes de la Soft Glass Card */
+            margin-bottom: 0px; 
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Marrón Oscuro para contraste sobre Soft Glass Card) */
@@ -560,9 +560,9 @@ def login_page():
             box-shadow: none !important;
         }
         
-        /* 11.1 FIX ESPACIO ENTRE TABS Y CONTENIDO DE LA TARJETA (NUEVA REGLA) */
-        /* Targets the main content block (stVerticalBlock) inside the active tab panel */
-        div[role="tabpanel"] > div > div > div[data-testid="stVerticalBlock"] {
+        /* 11.1 FIX ESPACIO ENTRE TABS Y CONTENIDO DE LA TARJETA (NUEVA REGLA MÁS ESPECÍFICA) */
+        /* Targets the main content div inside the active tab panel and removes the internal padding */
+        div[role="tabpanel"] > div:nth-child(1) {
             padding-top: 0px !important;
             margin-top: 0px !important;
         }
@@ -2470,6 +2470,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
