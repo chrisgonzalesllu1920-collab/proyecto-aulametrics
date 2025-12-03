@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V20.0 - REVERSIÓN A ESTILO POR DEFECTO) ===
+# === 4. PÁGINA DE LOGIN (V21.0 - Degradado Naranja/Amarillo Pastel) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -395,9 +395,42 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. ELIMINACIÓN DE ESTILOS PERSONALIZADOS ---
-    # Se elimina todo el bloque <style> y los contenedores fijos
-    # para retornar al diseño estándar de Streamlit (fondo blanco, centrado automático).
+    # --- A. INYECCIÓN DE ESTILOS PERSONALIZADOS (SOLO FONDO Y BOTÓN FLOTANTE) ---
+    st.markdown("""
+    <style>
+        /* 1. Degradado de Fondo Solicitado: NARANJA con AMARILLO PASTEL */
+        [data-testid="stAppViewContainer"] {
+            /* Degradado Suave y Cálido: Amarillo Pastel (#FFD54F) a Naranja Suave (#FFAB40) */
+            background: linear-gradient(135deg, #FFD54F 0%, #FFAB40 100%); 
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* 2. BOTÓN DE CONTACTO FLOTANTE: AJUSTE DE TAMAÑO Y POSICIÓN */
+        .contact-button-container-default {
+            position: fixed;
+            bottom: 30px; 
+            right: 50px; /* Separación mayor del borde derecho (ajuste de posición) */
+            z-index: 9999; 
+        }
+        .contact-button-container-default a {
+            display: block; 
+            padding: 18px 30px; /* Botón más grande */
+            background-color: #4CAF50; 
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px; /* Texto más grande */
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
+            transition: background-color 0.2s;
+        }
+        .contact-button-container-default a:hover {
+            background-color: #388E3C; 
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
     # El contenido se envuelve en un contenedor central simple de Streamlit
     col_center = st.columns([1, 4, 1])
@@ -509,35 +542,10 @@ def login_page():
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
                             
-    # --- C. BOTÓN DE CONTACTO FLOTANTE (Ahora flotando por encima del contenido Streamlit) ---
+    # --- C. BOTÓN DE CONTACTO FLOTANTE ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
     st.markdown(f"""
-    <style>
-        /* CSS mínimo para flotar el botón sin afectar el resto del layout de Streamlit */
-        .contact-button-container-default {{
-            position: fixed;
-            bottom: 30px; 
-            right: 30px; 
-            z-index: 9999; 
-        }}
-        .contact-button-container-default a {{
-            display: block; 
-            padding: 15px 25px;
-            background-color: #4CAF50; 
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
-            transition: background-color 0.2s;
-        }}
-        .contact-button-container-default a:hover {{
-            background-color: #388E3C; 
-        }}
-    </style>
     <div class="contact-button-container-default">
         <a href="{url_netlify}" target="_blank">
             💬 ¿Dudas? Contáctanos
@@ -2276,6 +2284,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
