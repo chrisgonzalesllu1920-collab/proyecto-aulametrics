@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.9 - TEXTO INTERNO EN NEGRO PURO (#000000)) ===
+# === 4. PÁGINA DE LOGIN (V13.0 - TEXTO EXTERIOR EN NEGRO/OSCURO) ===
 # =========================================================================
 def login_page():
     
@@ -443,10 +443,11 @@ def login_page():
              background-color: transparent !important;
         }
 
-        /* 4. TEXTOS GENERALES (Blancos fuera del contenedor, se mantiene) */
+        /* 4. TEXTOS GENERALES (Oscuro fuera del contenedor, para contraste con el degradado) */
         h1, h2, h3, p {
-            color: #FFFFFF !important;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: #1a1a1a !important; /* CAMBIADO a gris muy oscuro/casi negro */
+            /* Usamos sombra de texto blanca para que el texto oscuro resalte sobre el fondo de color */
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4); 
         }
 
         /* 5. AJUSTE DE COLOR DE TEXTO PARA UN CONTRASTE BÁSICO DENTRO DEL CONTENEDOR */
@@ -456,7 +457,8 @@ def login_page():
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
         div[data-testid="stNotification"] p { /* Texto de notificacion */
-            color: #000000 !important; /* CAMBIADO A NEGRO PURO */
+            color: #000000 !important; /* Mantenido en negro puro */
+            text-shadow: none !important; /* Eliminamos sombra aquí, ya que el fondo es claro */
         }
 
 
@@ -2460,6 +2462,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
