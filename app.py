@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.3 - TARJETA CLARA GLASSMORHISM + NEÓN) ===
+# === 4. PÁGINA DE LOGIN (V13.4 - ESTRUCTURA DE CAJAS SIMPLIFICADA) ===
 # =========================================================================
 def login_page():
     
@@ -411,58 +411,52 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - AHORA CLARA SEMI-TRANSPARENTE (GLASSMORHISM) */
+        /* 3. ESTILO DE LA CAJA PRINCIPAL (LOGIN CARD) - GLASSMORHISM CLARO */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
-            background-color: rgba(255, 255, 255, 0.6) !important; /* CAMBIO: Blanco semi-transparente (0.6) */
-            padding: 2rem !important;
-            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7) !important; /* Blanco semi-transparente (0.7) */
+            padding: 2.5rem !important; /* Más padding para que respire */
+            border-radius: 16px;
             /* Neón Sutil para la tarjeta */
-            border: 2px solid rgba(255, 0, 204, 0.3) !important; /* Borde magenta suave */
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), /* Sombra de profundidad */
+            border: 2px solid rgba(255, 0, 204, 0.2) !important; /* Borde magenta suave */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15), /* Sombra de profundidad */
                         inset 0 0 10px rgba(255, 0, 204, 0.1); /* Sombra interior neón muy sutil */
-            backdrop-filter: blur(5px); /* Efecto Glassmorphism */
+            backdrop-filter: blur(8px); /* Efecto Glassmorphism más fuerte */
         }
         
-        /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS INMEDIATOS */
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) > div:nth-child(2) > div,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[data-testid="stForm"] > div {
+        /* 4. ELIMINACIÓN DE BORDES Y FONDOS INTERNOS */
+        
+        /* Eliminar fondo/padding/margen del bloque de contenido de la pestaña */
+        div[data-testid="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[role="tabpanel"] > div {
+             padding: 0px !important; /* Elimina padding interno */
+             margin: 0px !important; /* Elimina margen interno */
              background-color: transparent !important;
         }
-
-        /* 3c. FIX DE TRANSPARENCIA PARA EL CUADRO DE INFORMACIÓN (st.info) */
+        
+        /* CRÍTICO: Eliminar la caja contenedora del formulario (Caja 4) */
+        div[data-testid="stForm"] > div {
+             background-color: transparent !important;
+             padding: 0px !important;
+             border: none !important;
+             box-shadow: none !important;
+        }
+        
+        /* Fix para cualquier bloque interno anidado que pudiera tener fondo */
+        div[data-testid^="stVerticalBlock"] > div:nth-child(2) > div,
         div[data-testid="stNotification"] {
-            background-color: rgba(255, 255, 255, 0.8) !important; /* Más opaco para mejor lectura */
-            border-left: 5px solid #E94057 !important; 
-        }
-        
-        /* 3d. FIX CRÍTICO: TRANSPARENCIA DEL PANEL DE CONTENIDO DE PESTAÑAS */
-        div[data-testid="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[role="tabpanel"] {
              background-color: transparent !important;
         }
-
-        /* 4. TEXTOS GENERALES (Oscuro fuera del contenedor, para contraste con el degradado) */
-        h1, h2, h3, p {
-            color: #1a1a1a !important; /* Gris muy oscuro/casi negro */
-            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4); 
-        }
-
-        /* 5. AJUSTE DE COLOR DE TEXTO PARA UN CONTRASTE BÁSICO DENTRO DEL CONTENEDOR */
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) h3,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) label p,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
-        div[data-testid="stNotification"] p {
-            color: #000000 !important; /* CAMBIO: Negro puro para el fondo claro */
+        
+        /* 5. TEXTOS Y TIPOGRAFÍA */
+        h1, h2, h3, p, div[data-testid="stMarkdownContainer"] {
+            color: #1a1a1a !important; /* Negro para contraste con el fondo claro */
             text-shadow: none !important; 
         }
 
-
-        /* 6. INPUTS (Estilo Base + Efecto Neón en Foco) - Se mantiene el neón para inputs */
+        /* 6. INPUTS (Mantiene el estilo de foco neón) */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important; /* Casi opaco para mejor escritura */
+            background-color: #FFFFFF !important; /* Inputs blancos sólidos para legibilidad */
             border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 8px !important;
             transition: all 0.3s ease-in-out;
@@ -480,77 +474,78 @@ def login_page():
             opacity: 1 !important;
         }
 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Vuelven a ser claras, pero con transparencia y color de marca */
+        /* 7. PESTAÑAS (Tabs) - Diseño plano y minimalista */
+        button[data-baseweb="tab"] {
+            background-color: transparent !important; /* Eliminamos el fondo de la caja de la pestaña */
+            border-radius: 8px !important;
+            margin-right: 15px !important;
+            border: none !important;
+            border-bottom: 2px solid transparent !important;
+            transition: border-bottom 0.2s ease;
+        }
+        
         button[data-baseweb="tab"] div p {
             color: #333333 !important; 
-            font-weight: bold !important;
-            text-shadow: none !important;
+            font-weight: 500 !important;
         }
-        button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.7) !important; /* Blanco Transparente */
-            border-radius: 8px !important;
-            margin-right: 5px !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
-        }
+        
         button[data-baseweb="tab"]:hover:not([aria-selected="true"]) {
-             background-color: rgba(255, 255, 255, 0.9) !important; 
+             border-bottom: 2px solid rgba(0,0,0,0.1) !important;
         }
+        
         button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important; /* Blanco sólido para la pestaña activa */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-bottom: 3px solid #E94057 !important; /* Línea de color de marca */
+            background-color: transparent !important; 
+            box-shadow: none;
         }
+        
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #E94057 !important; /* Color de marca para texto activo */
+            font-weight: 700 !important;
         }
         
-        /* 8. BOTONES PRINCIPALES Y SECUNDARIOS (RELLENO VERDE) */
+        /* 8. BOTONES Y ENLACES (Se mantienen los colores) */
         
-        /* Primary Buttons: Iniciar Sesión, Enviar Recuperación (type="primary") */
+        /* Primary Buttons */
         div.stForm button[kind="primary"] {
             background-color: #00C853 !important; 
             color: white !important; 
             border: 2px solid #00C853 !important;
-            font-weight: bold !important;
         }
         div.stForm button[kind="primary"]:hover {
             background-color: #00A343 !important; 
-            color: white !important; 
             border: 2px solid #00A343 !important;
         }
 
-        /* Secondary Buttons: Registrarme, Volver al Inicio de Sesión (type="secondary") */
+        /* Secondary Buttons (Ahora con diseño plano) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #00C853 !important; 
             color: white !important; 
             border: 2px solid #00C853 !important;
-            font-weight: bold !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #00A343 !important; 
-            color: white !important; 
             border: 2px solid #00A343 !important;
         }
         
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
+        /* Enlace de Contraseña Olvidada */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
-            padding: 0px !important;
-            color: #333333 !important; /* Vuelve a color oscuro */
+            color: #555555 !important; 
             text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
         }
         button[key="btn_olvide_pass_login"]:hover {
             color: #E94057 !important; 
             text-decoration: none;
         }
 
-        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS */
-        div[data-testid="stMarkdownContainer"] {
-            background: none !important;
+        /* 9. FIX DE INFORMACIÓN (st.info) */
+        div[data-testid="stNotification"] {
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Más opaco para mejor lectura */
+            border-left: 5px solid #E94057 !important; 
         }
+
         
         footer {visibility: hidden;}
     </style>
@@ -567,12 +562,14 @@ def login_page():
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
-        # --- CONTENEDOR PRINCIPAL (AGRUPA LOS FORMULARIOS Y TABS) ---
+        # --- CONTENEDOR PRINCIPAL (Glassmorphism) ---
         with st.container(): 
         
             # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
             if st.session_state['view_recuperar_pass']:
                 
+                # El formulario ahora está directamente en el contenedor principal,
+                # sin una caja de fondo adicional.
                 with st.form("recovery_form", clear_on_submit=True):
                     st.markdown("### 🔄 Restablecer Contraseña")
                     st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
@@ -597,11 +594,14 @@ def login_page():
             # --- VISTA NORMAL: LOGIN Y REGISTRO ---
             else:
                 
+                # El componente de tabs se ajustó para ser más plano
                 tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
                 # --- PESTAÑA 1: LOGIN ---
                 with tab_login:
                     
+                    # El formulario ahora está directamente en el contenedor principal/pestaña,
+                    # sin una caja de fondo adicional.
                     with st.form("login_form"):
                         st.markdown("### 🔐 Acceso Docente")
                         email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
@@ -2466,6 +2466,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
