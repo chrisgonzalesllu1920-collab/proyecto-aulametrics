@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.4 - TARJETA SEMITRANSPARENTE (CARD UI)) ===
+# === 4. PÁGINA DE LOGIN (V12.5 - REFUERZO DE TRANSPARENCIA EN TARJETA) ===
 # =========================================================================
 def login_page():
     
@@ -415,11 +415,24 @@ def login_page():
         /* Target the vertical block that contains the Tabs/Forms to create the card effect (for both login/register and recovery views) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
-            background-color: rgba(255, 255, 255, 0.9) !important; /* BLANCO SEMITRANSPARENTE */
+            background-color: rgba(255, 255, 255, 0.7) !important; /* BLANCO MÁS TRANSPARENTE (0.7) */
             padding: 2rem !important; /* Aumentamos el padding interno */
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra para efecto flotante */
             border: none !important; /* Eliminar el borde nativo de Streamlit */
+        }
+        
+        /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS */
+        /* Fuerza a que los bloques contenedores inmediatos de las pestañas/formularios sean transparentes para ver el fondo de la tarjeta (0.7) */
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) > div:nth-child(2) > div,
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div {
+             background-color: transparent !important;
+        }
+
+        /* 3c. FIX DE TRANSPARENCIA PARA EL CUADRO DE INFORMACIÓN (st.info) en la vista de recuperación */
+        div[data-testid="stNotification"] {
+            background-color: rgba(255, 255, 255, 0.5) !important; /* Semi-transparent info box */
+            border-left: 5px solid #E94057 !important; /* Usamos el color de la marca para el borde */
         }
         
         /* 4. TEXTOS GENERALES (Blancos fuera del contenedor, se mantiene) */
@@ -429,14 +442,12 @@ def login_page():
         }
 
         /* 5. AJUSTE DE COLOR DE TEXTO PARA UN CONTRASTE BÁSICO DENTRO DEL CONTENEDOR */
-        div[data-testid="stNotification"] p {
-             color: #1a1a1a !important; 
-        }
         /* Nos aseguramos que todos los textos dentro del Card sean oscuros */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) h3,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) label p,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p {
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
+        div[data-testid="stNotification"] p { /* Texto de notificacion */
             color: #1a1a1a !important; 
         }
 
@@ -2441,6 +2452,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
