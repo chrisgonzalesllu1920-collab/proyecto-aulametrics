@@ -592,13 +592,6 @@ def login_page():
 #floating-wrapper button:hover {
     background-color: #cc7a00 !important;         /* <-- COLOR HOVER */
     transform: translateY(-2px) !important;
-}
-
-        #floating-wrapper a:hover {
-            background-color: #1e7e34 !important; /* Hover Tono de verde más oscuro */
-            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
-            transform: translateY(-2px); 
-        }
         
     </style>
     """, unsafe_allow_html=True)
@@ -2556,6 +2549,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
