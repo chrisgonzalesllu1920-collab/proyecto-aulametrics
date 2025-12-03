@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V21.0 - Degradado Naranja/Amarillo Pastel) ===
+# === 4. PÁGINA DE LOGIN (V22.0 - Fix: Estructura del Mock de Usuario) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -485,7 +485,15 @@ def login_page():
                             # LOGICA DE AUTENTICACIÓN (Manteniendo la estructura original)
                             # session = supabase.auth.sign_in_with_password(...)
                             st.session_state.logged_in = True
-                            st.session_state.user = {"email": email, "id": "user_123"} # Mock para prueba
+                            
+                            # FIX ERROR: Mock de usuario con la estructura esperada por 'home_page' (Supabase style)
+                            st.session_state.user = {
+                                "email": email, 
+                                "id": "user_123", 
+                                "user_metadata": {
+                                    "full_name": "Usuario Demo" 
+                                }
+                            }
                             st.session_state.show_welcome_message = True
                             if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
                             st.rerun() 
@@ -2284,6 +2292,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
