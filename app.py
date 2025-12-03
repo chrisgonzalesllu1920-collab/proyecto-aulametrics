@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V15.0 - Sin Barra Blanca) =======================
+# === 4. PÁGINA DE LOGIN (V16.0 - Sin Barra Blanca y Botones por Defecto) ===
 # =========================================================================
 def login_page():
     
@@ -391,7 +391,7 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (FIX DE BARRA BLANCA) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (FIX DE BARRA BLANCA Y REVERTIDO DE BOTONES) ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO (Cálido: Púrpura/Lila a Melocotón/Naranja) */
@@ -439,7 +439,6 @@ def login_page():
         .stMarkdown p { 
             color: #000000 !important; 
             text-shadow: none !important;
-            /* Si es necesario, añadir font-weight, pero el color es clave */
         }
         
         /* 5. ELIMINACIÓN DE ESPACIOS NO DESEADOS */
@@ -497,31 +496,29 @@ def login_page():
             color: #555555 !important;
         }
         
-        /* 7. BOTONES PRINCIPALES (AZUL) */
+        /* 7. BOTONES PRINCIPALES (REVERTIDO A DEFAULT) */
         div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #007bff !important; 
-            color: white !important; 
+            /* Se usan los colores predeterminados del tema de Streamlit */
             border: none !important;
             font-weight: bold !important;
             border-radius: 8px !important;
             margin-top: 5px; 
         }
 
-        /* 8. BOTÓN SECUNDARIO (GRIS) */
+        /* 8. BOTÓN SECUNDARIO (REVERTIDO A DEFAULT) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #6c757d !important; 
-            color: white !important; 
+            /* Se usan los colores predeterminados del tema de Streamlit */
             border: none !important;
             font-weight: bold !important;
             border-radius: 8px !important;
         }
         div.stForm button[kind="secondary"] p, 
         button[key="btn_cancel_recov"] p {
-             color: white !important; 
+             /* Dejamos que el color del texto sea el que defina el tema para mejor contraste */
              text-shadow: none !important;
         }
 
-        /* 9. PESTAÑAS (Tabs) */
+        /* 9. PESTAÑAS (Tabs) - Diseño visual (no alterado) */
         button[data-baseweb="tab"] {
             border-radius: 8px !important; 
             margin-right: 15px !important;
@@ -2513,6 +2510,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
