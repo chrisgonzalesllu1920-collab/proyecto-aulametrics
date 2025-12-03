@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.7 - FIX Final de Contraste y Recuadro) ===
+# === 4. PÁGINA DE LOGIN (V11.8 - ELIMINACIÓN DE ESTRUCTURA 'GLASS-CARD') ===
 # =========================================================================
 def login_page():
     
@@ -391,17 +391,17 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    # --- A. INYECCIÓN DE ESTILOS PERSONALIZADOS (SOLO ESTILOS GLOBALES Y DE INPUTS) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO */
+        /* 1. FONDO DEGRADADO (Se mantiene, es global) */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
             background-size: cover;
             background-attachment: fixed;
         }
         
-        /* 2. LIMPIEZA DE INTERFAZ */
+        /* 2. LIMPIEZA DE INTERFAZ (Se mantiene) */
         .block-container {
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
@@ -411,35 +411,25 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) */
-        .glass-card {
-             background-color: rgba(255, 255, 255, 0.25);
-             backdrop-filter: blur(15px);
-             padding: 40px;
-             border-radius: 20px;
-             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-             border: 1px solid rgba(255, 255, 255, 0.4);
-             margin-top: 20px; /* Separación del encabezado */
-        }
-        
-        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        /* 4. TEXTOS GENERALES (Blancos fuera del contenedor, se mantiene) */
         h1, h2, h3, p {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
-        .glass-card label p, .glass-card h3, .glass-card h3 span, .glass-card p {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
-            font-weight: 600 !important; 
-        }
-        /* Color para el texto de info/warning en modo recuperación */
+        /* 5. AJUSTE DE COLOR DE TEXTO PARA UN CONTRASTE BÁSICO DENTRO DEL CONTENEDOR */
         div[data-testid="stNotification"] p {
-             color: #1a1a1a !important;
+             color: #1a1a1a !important; 
+        }
+        div[data-testid^="stBlock"] h3 {
+            color: #1a1a1a !important; 
+        }
+        div[data-testid^="stBlock"] label p {
+            color: #1a1a1a !important; 
         }
 
-        /* 6. INPUTS */
+
+        /* 6. INPUTS (Se mantiene) */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
             background-color: rgba(255, 255, 255, 0.9) !important;
@@ -451,7 +441,7 @@ def login_page():
             opacity: 1 !important;
         }
 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Se mantiene el diseño */
         button[data-baseweb="tab"] div p {
             color: #333333 !important;
             font-weight: bold !important;
@@ -471,25 +461,23 @@ def login_page():
             color: #E94057 !important;
         }
         
-        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
+        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) - Se mantiene */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
             background-color: #ffffff !important;
-            /* FIX 3: Aseguramos texto rojo sobre fondo blanco */
             color: #E94057 !important; 
             border: 2px solid #E94057 !important;
             font-weight: bold !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
             background-color: #E94057 !important;
-            color: white !important; /* Mantenemos blanco en hover, que es el fondo oscuro */
+            color: white !important; 
         }
         
-        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
+        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) - Se mantiene */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            /* FIX 2: Mantenemos negro oscuro para alto contraste */
             color: #333333 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
@@ -497,11 +485,11 @@ def login_page():
             width: fit-content;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #E94057 !important; /* Cambiamos a color primario en hover */
+            color: #E94057 !important; 
             text-decoration: none;
         }
 
-        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS (Se mantiene) */
         div[data-testid="stMarkdownContainer"] {
             background: none !important;
         }
@@ -510,144 +498,139 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA ---
+    # --- B. ESTRUCTURA DE CONTENIDO ---
+    # Centramos el formulario
     col1, col_centro, col3 = st.columns([1, 4, 1])
     
     with col_centro:
         
-        # Elementos fuera de la tarjeta
+        # TÍTULOS Y BRANDING (Fuera del container para usar color blanco)
         st.image("assets/logotipo-aulametrics.png", width=300)
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
-        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        # --- CONTENEDOR PRINCIPAL (AGRUPA LOS FORMULARIOS Y TABS) ---
+        # Usamos un contenedor nativo de Streamlit con borde para el efecto visual,
+        # sin aplicar CSS customizado que cause residuos.
+        with st.container(border=True): 
         
-        # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
-        if st.session_state['view_recuperar_pass']:
-            
-            with st.form("recovery_form", clear_on_submit=True):
-                st.markdown("### 🔄 Restablecer Contraseña")
-                # El texto de info/warning ahora usa el color #1a1a1a gracias al CSS
-                st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
+            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
+            if st.session_state['view_recuperar_pass']:
                 
-                email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
-                
-                submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
-
-                if submitted:
-                    if email_recuperacion:
-                        st.toast("Procesando solicitud...")
-                        st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
-                    else:
-                        st.error("Por favor, ingresa un correo electrónico.")
-                        
-            # Botón Secundario: Cancelar y volver (FUERA del formulario)
-            st.write("") 
-            if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
-                st.session_state['view_recuperar_pass'] = False
-                st.rerun()
-
-        # --- VISTA NORMAL: LOGIN Y REGISTRO ---
-        else:
-            
-            tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-            # --- PESTAÑA 1: LOGIN ---
-            with tab_login:
-                
-                with st.form("login_form"):
-                    st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                with st.form("recovery_form", clear_on_submit=True):
+                    st.markdown("### 🔄 Restablecer Contraseña")
+                    st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
                     
-                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
                     
+                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+
                     if submitted:
-                        try:
-                            # 1. Ejecutar la autenticación con Supabase
-                            session_data = supabase.auth.sign_in_with_password({
-                                "email": email,
-                                "password": password
-                            })
+                        if email_recuperacion:
+                            st.toast("Procesando solicitud...")
+                            st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE")
+                        else:
+                            st.error("Por favor, ingresa un correo electrónico.")
                             
-                            # 2. Normalización del Objeto de Usuario a Diccionario (Garantizando consistencia con la Sección 7)
-                            # Supabase retorna un diccionario o un objeto que contiene 'user'
-                            user_data = session_data.get('user') if isinstance(session_data, dict) else getattr(session_data, 'user', None)
-
-                            if user_data:
-                                # Si es un objeto (o tiene el método), lo convertimos a diccionario
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
-                                # Si no es un diccionario en este punto, asumimos que ya lo es o usamos el valor
-                                
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data # <--- Guardamos el diccionario (normalizado o ya dict)
-                                st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                                st.rerun() 
-                            else:
-                                # Esto captura fallos de credenciales si la excepción no fue lanzada directamente
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
-
-                        except Exception as e:
-                            error_message = str(e)
-                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
-                                st.error("Credenciales incorrectas o correo no confirmado.")
-                            else:
-                                st.error(f"Error al iniciar sesión: {e}")
-                
-                # Botón de recuperación FUERA del st.form("login_form")
+                # Botón Secundario: Cancelar y volver (FUERA del formulario)
                 st.write("") 
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
+                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
+                    st.session_state['view_recuperar_pass'] = False
                     st.rerun()
 
+            # --- VISTA NORMAL: LOGIN Y REGISTRO ---
+            else:
+                
+                tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-            # --- PESTAÑA 2: REGISTRO ---
-            with tab_register:
-                if 'form_reset_id' not in st.session_state:
-                    st.session_state['form_reset_id'] = 0
-                reset_id = st.session_state['form_reset_id']
-
-                if st.session_state.get('registro_exitoso', False):
-                    st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                    st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                # --- PESTAÑA 1: LOGIN ---
+                with tab_login:
                     
-                with st.form("register_form"):
-                    st.markdown("### 📝 Nuevo Usuario")
-                    name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                    email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@emai.com")
-                    password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                    
-                    submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                    
-                    if submitted:
-                        if not name or not email or not password:
-                            st.warning("Por favor, completa todos los campos.")
-                        else:
+                    with st.form("login_form"):
+                        st.markdown("### 🔐 Acceso Docente")
+                        email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                        password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                        
+                        submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                        
+                        if submitted:
                             try:
-                                user = supabase.auth.sign_up({
+                                # Lógica de autenticación
+                                session_data = supabase.auth.sign_in_with_password({
                                     "email": email,
-                                    "password": password,
-                                    "options": {
-                                        "data": { 'full_name': name }
-                                    }
+                                    "password": password
                                 })
-                                st.session_state['form_reset_id'] += 1
-                                st.session_state['registro_exitoso'] = True
-                                st.rerun()
+                                
+                                user_data = session_data.get('user') if isinstance(session_data, dict) else getattr(session_data, 'user', None)
+
+                                if user_data:
+                                    if hasattr(user_data, 'to_dict'):
+                                        user_data = user_data.to_dict()
+                                        
+                                    st.session_state.logged_in = True
+                                    st.session_state.user = user_data 
+                                    st.session_state.show_welcome_message = True
+                                    if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                    st.rerun() 
+                                else:
+                                    st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+
                             except Exception as e:
-                                st.error(f"Error en el registro: {e}")
+                                error_message = str(e)
+                                if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                    st.error("Credenciales incorrectas o correo no confirmado.")
+                                else:
+                                    st.error(f"Error al iniciar sesión: {e}")
+                    
+                    # Botón de recuperación FUERA del st.form("login_form")
+                    st.write("") 
+                    if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                        st.session_state['view_recuperar_pass'] = True
+                        st.rerun()
+
+
+                # --- PESTAÑA 2: REGISTRO ---
+                with tab_register:
+                    if 'form_reset_id' not in st.session_state:
+                        st.session_state['form_reset_id'] = 0
+                    reset_id = st.session_state['form_reset_id']
+
+                    if st.session_state.get('registro_exitoso', False):
+                        st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                        st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                        
+                    with st.form("register_form"):
+                        st.markdown("### 📝 Nuevo Usuario")
+                        name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                        email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@emai.com")
+                        password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                        
+                        submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
+                        
+                        if submitted:
+                            if not name or not email or not password:
+                                st.warning("Por favor, completa todos los campos.")
+                            else:
+                                try:
+                                    # Lógica de registro
+                                    user = supabase.auth.sign_up({
+                                        "email": email,
+                                        "password": password,
+                                        "options": {
+                                            "data": { 'full_name': name }
+                                        }
+                                    })
+                                    st.session_state['form_reset_id'] += 1
+                                    st.session_state['registro_exitoso'] = True
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error en el registro: {e}")
         
-        # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
-        st.markdown('</div>', unsafe_allow_html=True) 
+        # --- FIN CONTENEDOR PRINCIPAL ---
         
-        # Elementos fuera de la tarjeta (siempre visibles)
+        # Separador y botón de contacto
         st.divider()
-        
-        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
         
         st.markdown(f"""
@@ -2428,5 +2411,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
