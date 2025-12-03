@@ -755,18 +755,23 @@ def login_page():
         position: fixed;
         bottom: 25px;
         right: 25px;
-        z-index: 9999;
+        z-index: 99999 !important;
+    }
+    
+    /* estilo seguro del <a> */
+    #floating-wrapper a {
+        background: #ff9900 !important;
+        color: white !important;
+        padding: 12px 18px !important;
+        border-radius: 8px !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        display: inline-block !important;
     }
     </style>
     """, unsafe_allow_html=True)
-    
-    st.markdown(f"""
-    <div id="floating-wrapper">
-        <a href="https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" target="_blank">
-            💬 ¿Dudas? Contáctanos
-        </a>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 
 
@@ -2526,6 +2531,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
