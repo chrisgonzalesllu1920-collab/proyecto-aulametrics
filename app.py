@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V14.0 - Diseño: MODAL FIJO / OCÉANO FRÍO) ===
+# === 4. PÁGINA DE LOGIN (V15.0 - Diseño: SPLIT SCREEN / OCÉANO FRÍO) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -395,101 +395,105 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (OCÉANO FRÍO - MODAL FIJO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (SPLIT SCREEN / OCÉANO FRÍO) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO Y CENTRADO DEL CONTENIDO PRINCIPAL */
-        [data-testid="stAppViewContainer"] {
-            /* De: #1C3F60 (Azul Marino Oscuro) -> A: #7CB9E8 (Azul Cielo Suave) */
-            background: linear-gradient(135deg, #1C3F60 0%, #7CB9E8 100%); 
-            background-size: cover;
-            background-attachment: fixed;
-            
-            /* CENTRADO FLEXBOX EN EL VIEWPORT */
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; /* Ocupa toda la altura de la ventana */
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+        /* 1. CONFIGURACIÓN BASE: PANTALLA COMPLETA Y ELIMINACIÓN DE BARRAS */
+        html, body, [data-testid="stAppViewContainer"], .main {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
         }
-        
-        /* 2. LIMPIEZA DE INTERFAZ Y AJUSTE DE CONTENEDORES */
+        [data-testid="stAppViewContainer"] {
+            overflow: hidden; /* Evita el scroll global */
+        }
         header[data-testid="stHeader"], footer {
-            display: none !important;
+            display: none !important; /* Elimina la barra de Streamlit y el footer inútil */
         }
         .block-container {
-            /* Elimina el padding de Streamlit, solo el wrapper CSS lo controlará */
             padding: 0 !important;
-            margin: auto;
-        }
-        
-        /* 3. WRAPPER DEL MODAL (Define el ancho fijo para la tarjeta) */
-        .login-modal-wrapper {
+            margin: 0 !important;
+            max-width: none !important;
             width: 100%;
-            max-width: 450px; /* El ancho profesional y fijo que querías */
-            margin: auto; 
-        }
-
-        /* 4. TARJETA PRINCIPAL (Soft Glass Brillante) */
-        .soft-glass-card {
-            background-color: rgba(255, 255, 255, 0.2); 
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 16px; /* Más redondeado */
-            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4); /* Sombra más fuerte */
-            border: 1px solid rgba(255, 255, 255, 0.4); 
-            text-align: center; /* Centrar logo y títulos */
         }
         
-        /* 5. ESTILOS DE TEXTO DENTRO DEL MODAL (Azul Marino Oscuro) */
-        .soft-glass-card h3, .soft-glass-card p, .soft-glass-card label p {
-            color: #1C3F60 !important; /* Azul Marino Oscuro para contraste */
-            text-shadow: none !important;
-            font-weight: 600; 
-            margin-bottom: 5px; 
-            text-align: left; /* Volver los labels a la izquierda */
-        }
-        .soft-glass-card .stMarkdownContainer p {
-            text-align: center; /* Centrar el eslogan */
-            font-weight: 500;
-            color: #2D5B80 !important;
-        }
-
-        /* Ajuste de Logo para centrado */
-        div[data-testid="stImage"] {
+        /* 2. CONTENEDOR PRINCIPAL: SPLIT SCREEN (Flexbox para las columnas) */
+        .split-container {
             display: flex;
-            justify-content: center;
-            margin-bottom: 10px !important; 
-        }
-
-        /* 6. INPUTS - Diseño limpio */
-        input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.95) !important; /* Casi opaco */
-            border: 1px solid rgba(0, 0, 0, 0.1) !important; 
-            border-radius: 8px !important;
+            flex-direction: row; /* Desktop: Lado a lado */
+            height: 100vh;
+            width: 100%;
         }
         
-        /* 7. BOTONES PRINCIPALES (AZUL CIBER VIVO) - Igual que el diseño anterior */
-        div.stForm button[kind="primary"], button[key="btn_login_submit"] {
+        /* 3. COLUMNA IZQUIERDA: MARCA Y FONDO GRADIENTE (FRIO) */
+        .column-brand {
+            width: 50%; /* Mitad de la pantalla en desktop */
+            min-height: 100vh;
+            /* Degradado de Océano Frío */
+            background: linear-gradient(135deg, #1C3F60 0%, #7CB9E8 100%); 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        /* 4. COLUMNA DERECHA: FORMULARIO (LOGIN) */
+        .column-form {
+            width: 50%; /* Mitad de la pantalla en desktop */
+            min-height: 100vh;
+            background-color: #f8f9fa; /* Gris muy claro para contraste */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            overflow-y: auto; /* Permite scroll si el contenido es demasiado largo */
+        }
+        
+        /* 5. TARJETA DEL FORMULARIO (Se mantiene el estilo limpio, pero ahora es sólido) */
+        .form-card {
+            width: 100%;
+            max-width: 400px; /* Ancho cómodo para el formulario */
+            background-color: #FFFFFF; /* Blanco sólido para máxima legibilidad */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 6. ESTILOS DE TEXTO E INPUTS */
+        .column-brand h3, .column-brand p {
+            color: #FFFFFF !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+        }
+        
+        /* Textos dentro del Formulario (Negro/Gris Oscuro) */
+        .form-card h3, .form-card p, .form-card label p {
+            color: #343a40 !important; /* Gris oscuro para profesionalismo */
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        /* Ajuste de Logo */
+        .column-brand div[data-testid="stImage"] {
+            margin-bottom: 20px !important; 
+        }
+        
+        /* 7. BOTONES PRINCIPALES (AZUL CIBER VIVO) */
+        div.stForm button[kind="primary"] {
             background-color: #00BFFF !important; 
             color: white !important; 
-            border: none !important;
-            font-weight: bold !important;
             border-radius: 8px !important;
+            font-weight: bold;
             box-shadow: 0 4px 10px rgba(0, 191, 255, 0.4); 
         }
-        div.stForm button[kind="primary"]:hover {
-             background-color: #00A3D9 !important; 
-        }
 
-        /* 8. BOTONES SECUNDARIOS (Gris y Registro) */
+        /* 8. BOTONES SECUNDARIOS (REGISTRO/VOLVER) - Azul Marino Sólido */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #4D6983 !important; /* Azul intermedio más sólido */
+            background-color: #1C3F60 !important; 
             color: white !important; 
-            border: none !important;
-            font-weight: bold !important;
             border-radius: 8px !important;
         }
         div.stForm button[kind="secondary"] p, 
@@ -498,58 +502,46 @@ def login_page():
              text-shadow: none !important;
         }
 
-        /* 9. PESTAÑAS (Ahora dentro del Modal) - Diseño limpio de Switch/Toggle */
+        /* 9. PESTAÑAS (Ahora dentro del Form Card) - Estilo Subrayado Limpio */
         div[data-testid="stTabs"] {
-            padding-top: 0px !important;
             margin-bottom: 20px; 
         }
-        /* Estilo general de los botones de las Pestañas */
         button[data-baseweb="tab"] {
-            border-radius: 8px !important; 
-            padding: 10px 20px !important;
-            border-bottom: none !important; 
-            transition: all 0.3s;
-            background-color: rgba(255, 255, 255, 0.3) !important; /* Fondo suave */
+            border-bottom: 2px solid transparent !important;
+            background-color: transparent !important;
             box-shadow: none;
+            transition: border-bottom 0.3s;
         }
         
-        /* Pestaña SELECCIONADA - Resaltado fuerte con color principal */
+        /* Pestaña SELECCIONADA */
         button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important; /* Fondo Blanco sólido */
-            border: 2px solid #00BFFF !important; /* Borde Azul Ciber */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+            border-bottom: 2px solid #00BFFF !important; /* Línea Azul Ciber */
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #00BFFF !important; /* Texto Azul Ciber */
             font-weight: 700 !important;
         }
-
         /* Pestaña NO SELECCIONADA */
-        button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
-        }
         button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: #1C3F60 !important; /* Texto Azul Marino */
-            font-weight: 700 !important;
+            color: #6c757d !important; /* Gris suave */
+            font-weight: 600 !important;
         }
 
-        /* 10. ENLACE DE CONTRASEÑA OLVIDADA (Mantenido) */
-        button[key="btn_olvide_pass_login"] {
-            background: none !important;
-            border: none !important;
-            padding: 0px !important;
-            color: #1C3F60 !important; 
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
-        }
-        button[key="btn_olvide_pass_login"] p {
-            color: #1C3F60 !important; 
-            text-shadow: none !important;
+        /* 10. RESPONSIVE DESIGN (Pantallas pequeñas) */
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column; /* Apila los elementos */
+            }
+            .column-brand, .column-form {
+                width: 100%;
+                min-height: 40vh; /* Altura de marca reducida en mobile */
+            }
+            .column-form {
+                 min-height: 60vh;
+            }
         }
         
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta FUERTE - Mantenido) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mantenido) */
         .contact-button-container {
             position: fixed !important;
             bottom: 30px !important; 
@@ -559,47 +551,41 @@ def login_page():
             z-index: 9999; 
         }
         .contact-button-container a {
-            display: block; 
-            padding: 15px 0;
+             /* Estilos de contacto */
             background-color: #28a745; 
             color: white;
+            padding: 15px 0;
+            border-radius: 10px;
             text-align: center;
             text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
             font-weight: 800;
             box-shadow: 0 6px 15px rgba(40, 167, 69, 0.6); 
             transition: all 0.2s;
-            border: none;
-        }
-        .contact-button-container a:hover {
-            background-color: #218838; 
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.8);
-            transform: translateY(-2px); 
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA (NUEVO: Modal Fijo Centrado) ---
+    # --- B. ESTRUCTURA (SPLIT SCREEN) ---
     
-    # Eliminamos las columnas de Streamlit ya que el centrado se hace por CSS (Flexbox)
+    # 1. Contenedor Principal Flexbox
+    st.markdown('<div class="split-container">', unsafe_allow_html=True)
     
-    # 1. WRAPPER PRINCIPAL Y TARJETA (soft-glass-card)
-    st.markdown('<div class="login-modal-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
-        
-    # --- BRANDING DENTRO DEL MODAL ---
+    # 2. Columna Izquierda: Marca (Fondo Degradado)
+    st.markdown('<div class="column-brand">', unsafe_allow_html=True)
     st.image("assets/logotipo-aulametrics.png", width=250)
-    st.markdown("### Bienvenido a AulaMetrics")
-    st.markdown("Tu asistente pedagógico y analista de datos.") # Usamos markdown para centrar por CSS
-
+    st.subheader("Bienvenido a AulaMetrics", anchor=False)
+    st.markdown("### Tu asistente pedagógico y analista de datos. Una nueva forma de gestionar tu enseñanza.")
+    st.markdown('</div>', unsafe_allow_html=True) # Cierra column-brand
+    
+    # 3. Columna Derecha: Formulario (Fondo Sólido)
+    st.markdown('<div class="column-form">', unsafe_allow_html=True)
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+    
     # --- TABS (LOGIN / REGISTRO) ---
     tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
     # --- PESTAÑA 1: LOGIN ---
     with tab_login:
-        
-        # Eliminamos el wrapper de margen negativo (tab-content-wrapper) que ya no es necesario
         
         # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
         if st.session_state['view_recuperar_pass']:
@@ -654,16 +640,17 @@ def login_page():
             
             # Botón de recuperación FUERA del st.form("login_form")
             st.write("") 
-            if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                st.session_state['view_recuperar_pass'] = True
-                st.rerun()
+            # Usamos un contenedor vacío para que el botón de "olvidé" esté a la izquierda
+            col_left, col_right = st.columns([1, 1])
+            with col_left:
+                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                    st.session_state['view_recuperar_pass'] = True
+                    st.rerun()
                 
 
     # --- PESTAÑA 2: REGISTRO ---
     with tab_register:
         
-        # Eliminamos el wrapper de margen negativo (tab-content-wrapper) que ya no es necesario
-
         if 'form_reset_id' not in st.session_state:
             st.session_state['form_reset_id'] = 0
         reset_id = st.session_state['form_reset_id']
@@ -696,11 +683,12 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error en el registro: {e}")
                         
-    # --- FIN CONTENEDOR DE LA TARJETA Y WRAPPER ---
-    st.markdown('</div>', unsafe_allow_html=True) # Cierra soft-glass-card
-    st.markdown('</div>', unsafe_allow_html=True) # Cierra login-modal-wrapper
+    # --- Cierres de Contenedores ---
+    st.markdown('</div>', unsafe_allow_html=True) # Cierra form-card
+    st.markdown('</div>', unsafe_allow_html=True) # Cierra column-form
+    st.markdown('</div>', unsafe_allow_html=True) # Cierra split-container
 
-    # --- C. BOTÓN DE CONTACTO FLOTANTE ---
+    # --- D. BOTÓN DE CONTACTO FLOTANTE ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
     st.markdown(f"""
@@ -2442,6 +2430,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
