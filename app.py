@@ -563,6 +563,474 @@ def login_page():
     """, unsafe_allow_html=True)
 
 # =========================================================================
+# === 5. FUNCIONES AUXILIARES ===
+# =========================================================================
+ISOTIPO_PATH = "assets/isotipo.png"
+RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
+
+@st.cache_data(ttl=3600)
+def cargar_datos_pedagogicos():
+    try:
+        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
+        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
+        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
+        
+        df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
+        df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
+        
+        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
+        
+        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
+        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
+        
+        df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
+        df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
+        
+        return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
+    
+    except FileNotFoundError:
+        st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
+        return None, None, None, None
+    except Exception as e:
+        st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
+        return None, None, None, None
+
+# --- FUNCIÓN (UPLOADER) - v3.0 MULTI-HOJA ---
+def configurar_uploader():
+    """
+    Procesa el archivo Excel.
+    AHORA GUARDA TODAS LAS HOJAS EN MEMORIA para el análisis integral.
+    """
+    uploaded_file = st.file_uploader(
+        "Sube tu archivo de Excel aquí", 
+        type=["xlsx", "xls"], 
+        key="file_uploader"
+    )
+
+    if uploaded_file is not None:
+        with st.spinner('Procesando todas las áreas...'):
+            try:
+                # 1. Leer el archivo Excel
+                excel_file = pd.ExcelFile(uploaded_file)
+                sheet_names = excel_file.sheet_names
+                
+                # 2. Filtrar hojas que no son áreas (Generalidades, etc.)
+                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros', 'generalidades']
+                valid_sheets = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
+
+                # 3. Ejecutar análisis de frecuencias (Tab 1)
+                results_dict = analysis_core.analyze_data(excel_file, valid_sheets)
+                st.session_state.info_areas = results_dict
+                st.session_state.df_cargado = True
+                
+                # --- 4. ¡LA CLAVE! LEER Y GUARDAR TODAS LAS HOJAS ---
+                # Creamos un diccionario donde guardaremos: {'Matemática': df_mate, 'Arte': df_arte...}
+                all_dataframes = {}
+                
+                for sheet in valid_sheets:
+                    try:
+                        # Leemos cada hoja individualmente
+                        df_temp = pd.read_excel(uploaded_file, sheet_name=sheet, header=0)
+                        all_dataframes[sheet] = df_temp
+                    except:
+                        pass # Si una hoja falla, la saltamos para no romper todo
+                
+                # Guardamos este "Tesoro" en la memoria de la App
+                st.session_state.all_dataframes = all_dataframes
+
+                # Mantenemos st.session_state.df solo para compatibilidad (usamos la primera hoja)
+                if valid_sheets:
+                    st.session_state.df = all_dataframes[valid_sheets[0]]
+                
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"Error al procesar el archivo: {e}")
+                st.session_state.df_cargado = False
+
+def mostrar_analisis_general(results):
+    st.markdown("---")
+    st.subheader("Resultados Consolidados por Área")
+
+    first_sheet_key = next(iter(results), None)
+    general_data = {}
+    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
+        general_data = results[first_sheet_key]['generalidades']
+        st.info(f"Datos del Grupo: Nivel: **{general_data.get('nivel', 'Desconocido')}** | Grado: **{general_data.get('grado', 'Desconocido')}**")
+    
+    st.sidebar.subheader("⚙️ Configuración del Gráfico")
+    
+    chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
+    st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
+
+    tabs = st.tabs([f"Área: {sheet_name}" for sheet_name in results.keys()])
+
+    for i, (sheet_name, result) in enumerate(results.items()):
+        with tabs[i]:
+            if 'error' in result:
+                st.error(f"Error al procesar la hoja '{sheet_name}': {result['error']}")
+                continue
+            competencias = result['competencias']
+            if not competencias:
+                st.info(f"No se encontraron datos de competencias en la hoja '{sheet_name}'.")
+                continue
+
+            st.markdown("##### 1. Distribución de Logros")
+            
+            data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
+            
+            for col_original_name, comp_data in competencias.items():
+                counts = comp_data['conteo_niveles']
+                total = comp_data['total_evaluados']
+                data['Competencia'].append(comp_data['nombre_limpio']) 
+                for level in ['AD', 'A', 'B', 'C']:
+                    count = counts.get(level, 0)
+                    porcentaje = (count / total * 100) if total > 0 else 0
+                    data[f'{level} (Est.)'].append(count)
+                    data[f'% {level}'].append(f"{porcentaje:.1f}%")
+                data['Total'].append(total)
+            df_table = pd.DataFrame(data).set_index('Competencia')
+            st.dataframe(df_table)
+            
+            excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
+            st.download_button(label=f"⬇️ Exportar Excel ({sheet_name})", data=excel_data, file_name=f'Frecuencias_{sheet_name}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', key=f'download_excel_{sheet_name}')
+
+            st.markdown("---")
+            competencia_nombres_limpios = df_table.index.tolist()
+            selected_comp = None 
+
+            if st.session_state.chart_type == 'Barras (Por Competencia)':
+                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_bar_{sheet_name}')
+                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'})
+                df_bar = df_bar_data.reset_index()
+                df_bar.columns = ['Nivel', 'Estudiantes']
+                fig = px.bar(df_bar, x='Nivel', y='Estudiantes', title=f"Logros: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
+                st.plotly_chart(fig, use_container_width=True)
+            
+            elif st.session_state.chart_type == 'Pastel (Proporción)':
+                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_pie_{sheet_name}')
+                data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
+                data_pie = data_pie_data.reset_index()
+                data_pie.columns = ['Nivel', 'Estudiantes']
+                fig = px.pie(data_pie, values='Estudiantes', names='Nivel', title=f"Proporción: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
+                st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown("---")
+            if selected_comp:
+                st.session_state[f'selected_comp_{sheet_name}'] = selected_comp
+            selected_comp_key = f'selected_comp_{sheet_name}'
+            
+            if st.button(f"🎯 Propuestas de mejora", key=f"asistente_comp_{sheet_name}", type="primary"):
+                if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
+                    comp_name_limpio = st.session_state[selected_comp_key]
+                    with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
+                        ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
+                        st.markdown(ai_report_text, unsafe_allow_html=True)
+                else:
+                    st.warning("Selecciona una competencia en el desplegable de gráficos.")
+
+# =========================================================================
+# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v5.0 FINAL CON WORD ===
+# =========================================================================
+def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
+    """
+    Muestra el perfil INTEGRAL y permite descargar INFORME WORD.
+    """
+    st.markdown("---")
+    st.header("🧑‍🎓 Perfil Integral del Estudiante")
+    
+    if 'all_dataframes' not in st.session_state or not st.session_state.all_dataframes:
+        st.warning("⚠️ No se han cargado datos. Sube un archivo en la Pestaña 1.")
+        return
+
+    all_dfs = st.session_state.all_dataframes
+    
+    # 1. DETECCIÓN DE COLUMNA
+    posibles_nombres = [
+        "Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
+        "ALUMNO", "Alumno", "Nombres y Apellidos", "Nombre Completo", 
+        "Nombres", "NOMBRES"
+    ]
+    
+    first_sheet_name = next(iter(all_dfs))
+    df_base = all_dfs[first_sheet_name]
+    
+    col_nombre = None
+    for col in df_base.columns:
+        if str(col).strip() in posibles_nombres:
+            col_nombre = col
+            break
+    
+    if not col_nombre:
+        st.error(f"❌ No encontramos la columna de nombres en la hoja '{first_sheet_name}'.")
+        return
+
+    # 2. SELECTOR
+    lista_estudiantes = df_base[col_nombre].dropna().unique()
+    estudiante_sel = st.selectbox("🔍 Busca al estudiante:", options=lista_estudiantes, index=None, placeholder="Escribe nombre...")
+
+    if estudiante_sel:
+        st.divider()
+        st.subheader(f"📊 Reporte Global: {estudiante_sel}")
+        
+        # --- 3. BARRIDO CON MEMORIA DE ÁREAS ---
+        total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
+        desglose_areas = {'AD': [], 'A': [], 'B': [], 'C': []}
+        areas_analizadas = 0
+        
+        # Barra de progreso
+        my_bar = st.progress(0, text="Analizando áreas...")
+        total_sheets = len(all_dfs)
+        
+        for i, (area_name, df_area) in enumerate(all_dfs.items()):
+            my_bar.progress((i + 1) / total_sheets, text=f"Revisando: {area_name}")
+            
+            c_name_local = None
+            for c in df_area.columns:
+                if str(c).strip() in posibles_nombres:
+                    c_name_local = c
+                    break
+            
+            if c_name_local:
+                fila = df_area[df_area[c_name_local] == estudiante_sel]
+                if not fila.empty:
+                    areas_analizadas += 1
+                    vals = [str(v).upper().strip() for v in fila.iloc[0].values]
+                    
+                    c_ad = vals.count('AD')
+                    c_a = vals.count('A')
+                    c_b = vals.count('B')
+                    c_c = vals.count('C')
+                    
+                    total_conteo['AD'] += c_ad
+                    total_conteo['A'] += c_a
+                    total_conteo['B'] += c_b
+                    total_conteo['C'] += c_c
+                    
+                    if c_ad > 0: desglose_areas['AD'].append(f"{area_name} ({c_ad})")
+                    if c_a > 0: desglose_areas['A'].append(f"{area_name} ({c_a})")
+                    if c_b > 0: desglose_areas['B'].append(f"{area_name} ({c_b})")
+                    if c_c > 0: desglose_areas['C'].append(f"{area_name} ({c_c})")
+
+        my_bar.empty()
+        
+        # --- 4. MOSTRAR RESULTADOS CON DETALLE ---
+        suma_total = sum(total_conteo.values())
+        
+        col_izq, col_der = st.columns([1, 1.5])
+        
+        with col_izq:
+            st.markdown("#### 📈 Detalle por Nivel")
+            st.caption(f"Se analizaron {areas_analizadas} áreas en total.")
+            
+            # AD
+            if total_conteo['AD'] > 0:
+                with st.expander(f"🏆 Logro Destacado (AD): {total_conteo['AD']}", expanded=False):
+                    for area in desglose_areas['AD']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"🏆 **AD:** 0")
+
+            # A
+            if total_conteo['A'] > 0:
+                with st.expander(f"✅ Logro Esperado (A): {total_conteo['A']}", expanded=False):
+                    for area in desglose_areas['A']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"✅ **A:** 0")
+
+            # B
+            if total_conteo['B'] > 0:
+                with st.expander(f"⚠️ En Proceso (B): {total_conteo['B']}", expanded=True):
+                    st.markdown("**:orange[Áreas a reforzar:]**")
+                    for area in desglose_areas['B']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"⚠️ **B:** 0")
+
+            # C
+            if total_conteo['C'] > 0:
+                with st.expander(f"🛑 En Inicio (C): {total_conteo['C']}", expanded=True):
+                    st.markdown("**:red[Requiere atención urgente en:]**")
+                    for area in desglose_areas['C']: st.markdown(f"- {area}")
+            else:
+                st.markdown(f"🛑 **C:** 0")
+
+        with col_der:
+            if suma_total > 0:
+                df_chart = pd.DataFrame({'Nivel': list(total_conteo.keys()), 'Cantidad': list(total_conteo.values())})
+                df_chart = df_chart[df_chart['Cantidad'] > 0]
+                fig = px.pie(
+                    df_chart, values='Cantidad', names='Nivel', 
+                    title=f"Mapa de Calor Académico",
+                    color='Nivel',
+                    color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'},
+                    hole=0.4
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Sin registros de notas.")
+
+        # --- 5. BOTÓN DE DESCARGA DE INFORME (NUEVO) ---
+        st.write("---")
+        st.write("#### 📥 Opciones de Exportación")
+        
+        if suma_total > 0:
+            # Llamamos a la función que creamos en pedagogical_assistant.py
+            # Asumimos que lo tienes importado como 'pedagogical_assistant'
+            import pedagogical_assistant # Importación local por seguridad
+            
+            with st.spinner("Generando informe en Word..."):
+                doc_buffer = pedagogical_assistant.generar_reporte_estudiante(
+                    estudiante_sel, 
+                    total_conteo, 
+                    desglose_areas
+                )
+            
+# 1. INSERTAMOS EL ESTILO AZUL (CSS)
+            st.markdown("""
+                <style>
+                div.stDownloadButton > button:first-child {
+                    background-color: #0056b3; /* Azul Profesional */
+                    color: white;
+                    border-radius: 8px;
+                    border: 1px solid #004494;
+                }
+                div.stDownloadButton > button:first-child:hover {
+                    background-color: #004494; /* Azul más oscuro al pasar el mouse */
+                    color: white;
+                    border-color: #002a5c;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # 2. EL BOTÓN (Sin type="primary")
+            st.download_button(
+                label="📄 Descargar Informe de Progreso (Word)",
+                data=doc_buffer,
+                file_name=f"Informe_Progreso_{estudiante_sel}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True
+                # Nota: He borrado la línea 'type="primary"' para que el azul funcione
+            )
+
+# --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
+@st.cache_data
+def convert_df_to_excel(df, area_name, general_info):
+    """
+    Convierte DataFrame a formato Excel (xlsx) con formato profesional:
+    - Columna de Competencias ancha.
+    - Encabezados de colores (AD=Verde, B=Naranja, C=Rojo).
+    """
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # 1. Escribir las hojas
+        workbook = writer.book
+        
+        # --- Hoja Generalidades ---
+        info_sheet = workbook.add_worksheet("Generalidades")
+        bold_fmt = workbook.add_format({'bold': True})
+        info_sheet.write('A1', 'Área:', bold_fmt)
+        info_sheet.write('B1', area_name)
+        info_sheet.write('A2', 'Nivel:', bold_fmt)
+        info_sheet.write('B2', general_info.get('nivel', 'N/A'))
+        info_sheet.write('A3', 'Grado:', bold_fmt)
+        info_sheet.write('B3', general_info.get('grado', 'N/A'))
+        
+        # --- Hoja Frecuencias (Aquí está la magia) ---
+        df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
+        worksheet = writer.sheets['Frecuencias']
+
+        # 2. Definir Formatos de Colores (Estilo Pastel Profesional)
+        # AD y A (Verdes)
+        fmt_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # B (Naranja/Amarillo)
+        fmt_orange = workbook.add_format({'bg_color': '#FFEB9C', 'font_color': '#9C5700', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # C (Rojo)
+        fmt_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # Cabecera Genérica (Gris)
+        fmt_header = workbook.add_format({'bg_color': '#D3D3D3', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        # Texto normal (Alineado a la izquierda para competencias)
+        fmt_text = workbook.add_format({'text_wrap': True, 'valign': 'vcenter'})
+
+        # 3. Ajustar Ancho de Columnas
+        # Columna A (Índice/Competencia): Muy ancha (60) para que entre todo el texto
+        worksheet.set_column('A:A', 60, fmt_text)
+
+        # 👇 CAMBIO FINAL: Ancho 9 (Equilibrio perfecto) 👇
+        # Aplica a todas las columnas de datos (AD, A, B, C, Porcentajes...)
+        worksheet.set_column('B:Z', 9)
+
+        # 4. Pintar los Encabezados con Lógica
+        # (Sobrescribimos la fila 0 con los colores correctos)
+        
+        # Primero pintamos la celda A1 (El título "Competencia")
+        worksheet.write(0, 0, "Competencia", fmt_header)
+
+        # Ahora recorremos las columnas de datos (AD, % AD, etc.)
+        # df.columns son los nombres. enumerate nos da (0, 'AD'), (1, '% AD')...
+        for col_num, value in enumerate(df.columns.values):
+            val_str = str(value).upper() # Convertimos a mayúsculas para comparar
+            
+            # Elegimos el color según la letra
+            if "AD" in val_str or ("A" in val_str and "% A" in val_str) or "A (EST.)" in val_str:
+                cell_format = fmt_green
+            elif "B" in val_str:
+                cell_format = fmt_orange
+            elif "C" in val_str:
+                cell_format = fmt_red
+            else:
+                cell_format = fmt_header # Por defecto (ej: Total)
+
+            # Escribimos en la fila 0, columna (col_num + 1 porque la A es el índice)
+            worksheet.write(0, col_num + 1, value, cell_format)
+
+    return output.getvalue()
+
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
+def mostrar_sidebar():
+    """
+    Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
+    """
+    with st.sidebar:
+        # 1. BOTÓN VOLVER (Siempre visible si no estamos en Inicio)
+        if st.session_state.get('pagina_actual') != 'Inicio':
+            st.divider()
+            if st.button("🏠 Volver al Menú Principal", use_container_width=True):
+                navegar_a("Inicio")
+                st.rerun()
+
+        # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
+        if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
+            st.divider()
+            if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
+                # Limpieza total de datos para permitir nueva carga
+                st.session_state.df_cargado = False
+                st.session_state.info_areas = None
+                st.session_state.all_dataframes = None
+                st.session_state.df = None
+                # Truco para limpiar el widget de carga
+                if 'file_uploader' in st.session_state:
+                    del st.session_state['file_uploader']
+                st.rerun()
+
+        # 3. BOTÓN CERRAR SESIÓN (NUEVO)
+        st.write("") # Espacio vertical
+        st.write("") 
+        
+        st.divider()
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+            st.session_state.clear() # Borra toda la memoria
+            st.rerun() # Reinicia la app (te llevará al Login)
+
+        # 4. PIE DE PÁGINA
+        st.divider()
+        if st.session_state.get('pagina_actual') == 'Inicio':
+            st.info("👋 Selecciona una herramienta del panel.")
+        else:
+            st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
+        
+        st.caption("🏫 AulaMetrics v3.0 Beta")
+
+# =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.1 - FIX USER DATA ===
 # =========================================================================
 def home_page():
@@ -2451,3 +2919,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
