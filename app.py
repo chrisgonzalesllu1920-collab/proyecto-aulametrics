@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.17 - FIX Espaciado Tabs v3 Agressivo) ===
+# === 4. PÁGINA DE LOGIN (V12.18 - FIX Espaciado Tabs v4 Margen Negativo) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -560,14 +560,19 @@ def login_page():
             box-shadow: none !important;
         }
         
-        /* 11.1 FIX ESPACIO ENTRE TABS Y CONTENIDO DE LA TARJETA (ATAQUE TOTAL) */
-        /* Targets the main content div inside the active tab panel and removes all padding/margin */
+        /* 11.1 CSS ATAQUE TOTAL (Mantenido, aunque no funciona completamente) */
         div[role="tabpanel"] > div:first-child,
         div[role="tabpanel"] > div > div[data-testid="stVerticalBlock"] {
             padding-top: 0px !important;
             margin-top: 0px !important;
             padding-bottom: 0px !important;
             margin-bottom: 0px !important;
+        }
+        
+        /* 11.2 FIX ATAQUE FINAL: Margen negativo para subir el contenido (NUEVO CAMINO) */
+        .tab-content-wrapper {
+            /* Anula el espacio residual empujando el contenido hacia arriba */
+            margin-top: -20px !important; 
         }
         
         /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta FUERTE) */
@@ -623,6 +628,9 @@ def login_page():
 
         # --- PESTAÑA 1: LOGIN (Contiene la Soft Glass Card) ---
         with tab_login:
+            # === NUEVO HACK: Contenedor con margen negativo para subir el contenido ===
+            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
+            
             # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
             st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
             
@@ -662,6 +670,7 @@ def login_page():
                     if submitted:
                         try:
                             # Asume que 'supabase' está definido en tu código principal
+                            # La lógica de autenticación (ej: supabase.auth.sign_in_with_password) debe ser accesible aquí
                             session = supabase.auth.sign_in_with_password({
                                 "email": email,
                                 "password": password
@@ -686,9 +695,16 @@ def login_page():
                     
             # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
             st.markdown('</div>', unsafe_allow_html=True) 
+            
+            # === Cierre del wrapper de margen negativo ===
+            st.markdown('</div>', unsafe_allow_html=True)
+
 
         # --- PESTAÑA 2: REGISTRO (Contiene la Soft Glass Card) ---
         with tab_register:
+            # === NUEVO HACK: Contenedor con margen negativo para subir el contenido ===
+            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
+            
             # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
             st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
 
@@ -729,6 +745,9 @@ def login_page():
                             
             # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
             st.markdown('</div>', unsafe_allow_html=True) 
+            
+            # === Cierre del wrapper de margen negativo ===
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # --- C. BOTÓN DE CONTACTO FLOTANTE (FUERA DEL LAYOUT DE COLUMNAS) ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
@@ -2473,6 +2492,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
