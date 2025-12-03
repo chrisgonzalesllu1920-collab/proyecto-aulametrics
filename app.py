@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V27.1 - FIX BLANCO RESIDUAL Y BOTÓN FLOTANTE) ===
+# === 4. PÁGINA DE LOGIN (V27.2 - FIX SYNTAX & ESTILOS CONSOLIDADOS) ===
 # =========================================================================
 
 # NOTA: Esta función asume que las librerías 'st' (Streamlit) y 'supabase'
@@ -650,35 +650,41 @@ def login_page():
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
 
                     # Botón de Login (submit)
-                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary", key="btn_login_submit")
 
                     if submitted:
-                        try:
-                            # Asume que 'supabase' está definido en tu código principal
-                            session = supabase.auth.sign_in_with_password({
-                                "email": email,
-                                "password": password
-                            })
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
+                        if st.session_state.get('supabase_initialized', False): # Asegura que Supabase esté conectado
+                            try:
+                                # Intento de inicio de sesión
+                                session = supabase.auth.sign_in_with_password({
+                                    "email": email,
+                                    "password": password
+                                })
+                                
+                                user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
-                            if user_data:
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
+                                if user_data:
+                                    # Convertir a dict si es necesario para compatibilidad (Streamlit 1.x)
+                                    if hasattr(user_data, 'to_dict'):
+                                        user_data = user_data.to_dict()
 
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data
-                                st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                                st.rerun()
-                            else:
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+                                    st.session_state.logged_in = True
+                                    st.session_state.user = user_data
+                                    st.session_state.show_welcome_message = True
+                                    if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                    st.rerun()
+                                else:
+                                    st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
 
-                        except Exception as e:
-                            error_message = str(e)
-                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
-                                st.error("Credenciales incorrectas o correo no confirmado.")
-                            else:
-                                st.error(f"Error al iniciar sesión: {e}")
+                            except Exception as e:
+                                error_message = str(e)
+                                # Manejo específico de errores de Supabase
+                                if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                    st.error("Credenciales incorrectas o correo no confirmado.")
+                                else:
+                                    st.error(f"Error al iniciar sesión: {e}")
+                        else:
+                            st.error("La conexión con Supabase no está configurada correctamente.")
 
                 # Botón de recuperación FUERA del st.form("login_form")
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
@@ -720,20 +726,23 @@ def login_page():
                 if submitted:
                     if not name or not email or not password:
                         st.warning("Por favor, completa todos los campos.")
-                    else:
+                    elif st.session_state.get('supabase_initialized', False): # Asegura que Supabase esté conectado
                         try:
                             user = supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
                                 "options": {
-                                    "data": { 'full_name': name }
+                                    "data": { 'full_name': name } # Guardar el nombre como metadato
                                 }
                             })
+                            # Reiniciar el formulario con un ID diferente para borrar los campos
                             st.session_state['form_reset_id'] += 1
                             st.session_state['registro_exitoso'] = True
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
+                    else:
+                        st.error("La conexión con Supabase no está configurada correctamente.")
 
             # --- FIN CONTENEDOR DE LA TARJETA ---
             st.markdown('</div>', unsafe_allow_html=True)
@@ -2882,6 +2891,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
