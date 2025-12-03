@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V18.0 - Fondo con mifondo.png) ==================
+# === 4. PÁGINA DE LOGIN (V20.0 - Fondo con mifondo.png Verificado Final) =
 # =========================================================================
 def login_page():
     
@@ -396,8 +396,10 @@ def login_page():
     <style>
         /* 1. FONDO DE IMAGEN */
         [data-testid="stAppViewContainer"] {
-            /* Ruta de la imagen proporcionada por el usuario */
+            /* Se carga la imagen de fondo. Confirmado que el archivo existe en assets/mifondo.png */
             background: url('assets/mifondo.png') center center / cover no-repeat fixed;
+            /* El color de fallback (por si la imagen no carga) se mantiene como una referencia oscura. */
+            background-color: #333333; 
         }
         
         /* 2. LIMPIEZA DE INTERFAZ */
@@ -2503,6 +2505,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
