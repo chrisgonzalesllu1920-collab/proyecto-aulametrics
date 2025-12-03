@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V25.1 - Estilos de Contacto Consolidados) =======
+# === 4. PÁGINA DE LOGIN (V26.0 - FIX DE BARRA BLANCA RESIDUAL EN TABS) ===
 # =========================================================================
 
 # NOTA: Esta función asume que las librerías 'st' (Streamlit) y 'supabase'
@@ -458,14 +458,7 @@ def login_page():
             margin-top: 0px !important;
             margin-bottom: 0px;
         }
-
-        /* B. Elemento que suele tener el borde/fondo blanco bajo las pestañas */
-        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
+        
         /* C. La línea divisoria de las pestañas que puede parecer una barra */
         button[data-baseweb="tab"] {
             border-bottom: none !important; /* Elimina la línea divisoria */
@@ -478,6 +471,16 @@ def login_page():
             margin: 0 !important;
         }
 
+        /* *** FIX CLAVE CONTRA EL RECUADRO BLANCO RESIDUAL *** */
+        /* B. Elemento interno que genera el fondo blanco (es un div dentro de 3 capas) */
+        div[role="tabpanel"] > div > div > div:first-child {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        
         /* E. Hack de margen negativo para subir el contenido y eliminar el espacio residual */
         .tab-content-wrapper {
             margin-top: -30px !important; /* Sube la tarjeta para cubrir el espacio */
@@ -2518,4 +2521,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
