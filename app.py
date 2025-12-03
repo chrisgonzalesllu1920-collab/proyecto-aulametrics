@@ -391,17 +391,16 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (FONDO DE IMAGEN + FIX CAJA BLANCA) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (FONDO DE IMAGEN Y FIX BARRA BLANCA) ---
     st.markdown("""
     <style>
-
         /* ------------------------------------------------------ */
         /* 1. FONDO DE LA PÁGINA                                  */
         /* ------------------------------------------------------ */
         [data-testid="stAppViewContainer"] {
             background: url('assets/mifondo.png') center center / cover no-repeat fixed;
         }
-
+    
         /* ------------------------------------------------------ */
         /* 2. LIMPIEZA GENERAL                                    */
         /* ------------------------------------------------------ */
@@ -413,9 +412,9 @@ def login_page():
             display: none !important;
             visibility: hidden !important;
         }
-
+    
         /* ------------------------------------------------------ */
-        /* 3. TARJETA PRINCIPAL                                   */
+        /* 3. TARJETA PRINCIPAL (Soft Glass Card)                 */
         /* ------------------------------------------------------ */
         .soft-glass-card {
             background-color: rgba(255, 255, 255, 0.95);
@@ -425,14 +424,15 @@ def login_page():
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             border: 1px solid rgba(0,0,0,0.1);
         }
-
+    
         /* ------------------------------------------------------ */
-        /* 4. TEXTOS                                              */
+        /* 4. TEXTOS GLOBALES                                     */
         /* ------------------------------------------------------ */
         h1, h2, h3, .stMarkdown p {
             color: #000 !important;
+            text-shadow: none !important;
         }
-
+    
         .soft-glass-card label p,
         .soft-glass-card h3,
         .soft-glass-card p,
@@ -440,25 +440,42 @@ def login_page():
             color: #000 !important;
             font-weight: 600 !important;
         }
-
+    
         /* ------------------------------------------------------ */
-        /*     🔥 FIX REAL — ELIMINA LA CAJA BLANCA BAJO TABS     */
+        /* 5. FIX - ELIMINAR BARRA BLANCA BAJO LAS PESTAÑAS       */
         /* ------------------------------------------------------ */
-
-        /* elimina fondo/padding del contenedor grande bajo tabs */
-        div[data-testid="stVerticalBlock"] > div {
+    
+        /* ELIMINA PADDING INTERNO DEL PANEL */
+        div[data-testid="stTabPanel"] {
+            padding-top: 0 !important;
+            margin-top: -10px !important;
             background: transparent !important;
+        }
+    
+        /* QUITA BORDE Y FONDO BAJO LAS PESTAÑAS */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
+            background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            padding: 0 !important;
         }
-
-        /* elimina el panel interno adicional */
+    
+        /* QUITA LÍNEA DIVISORIA DE LOS TABS */
+        button[data-baseweb="tab"] {
+            border-bottom: none !important;
+            margin-bottom: -10px !important;
+        }
+    
+        /* ELIMINAR ESPACIO FANTASMA */
         div[role="tabpanel"] {
-            background: transparent !important;
-            padding-top: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
-
+    
+        /* CONTENIDO MÁS ARRIBA (ELIMINA HUECO FANTASMA) */
+        .tab-content-wrapper {
+            margin-top: -30px !important;
+        }
+    
         /* ------------------------------------------------------ */
         /* 6. INPUTS                                               */
         /* ------------------------------------------------------ */
@@ -471,9 +488,9 @@ def login_page():
         ::placeholder {
             color: #555 !important;
         }
-
+    
         /* ------------------------------------------------------ */
-        /* 7. BOTONES PRINCIPALES                                 */
+        /* 7. BOTONES PRINCIPALES                                  */
         /* ------------------------------------------------------ */
         div.stForm button[kind="primary"], 
         button[key="btn_login_submit"] {
@@ -482,9 +499,9 @@ def login_page():
             border-radius: 8px !important;
             font-weight: bold !important;
         }
-
+    
         /* ------------------------------------------------------ */
-        /* 8. BOTONES SECUNDARIOS                                 */
+        /* 8. BOTONES SECUNDARIOS                                  */
         /* ------------------------------------------------------ */
         div.stForm button[kind="secondary"], 
         button[key="btn_cancel_recov"] {
@@ -492,26 +509,37 @@ def login_page():
             color: white !important;
             border-radius: 8px !important;
         }
-
+    
         /* ------------------------------------------------------ */
-        /* 9. PESTAÑAS                                            */
+        /* 9. PESTAÑAS                                             */
         /* ------------------------------------------------------ */
         button[data-baseweb="tab"] {
             border-radius: 8px !important;
             margin-right: 15px !important;
             padding: 10px 20px !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+    
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFF !important;
             border: 2px solid #007bff !important;
         }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #007bff !important;
+            font-weight: 700 !important;
+        }
+    
         button[data-baseweb="tab"]:not([aria-selected="true"]) {
             background-color: #4682B4 !important;
             border: 2px solid #4682B4 !important;
         }
-
+        button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
+            color: #FFF !important;
+            font-weight: 700 !important;
+        }
+    
         /* ------------------------------------------------------ */
-        /* 10. OLVIDASTE TU CONTRASEÑA                            */
+        /* 10. ¿OLVIDASTE TU CONTRASEÑA?                          */
         /* ------------------------------------------------------ */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
@@ -519,80 +547,182 @@ def login_page():
             text-decoration: underline !important;
             color: #000 !important;
         }
-
+    
+        /* ------------------------------------------------------ */
+        /* 11. BOTÓN FLOTANTE DE CONTACTO                         */
+        /* ------------------------------------------------------ */
+        #floating-wrapper {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 280px;
+            z-index: 99999 !important;
+        }
+    
+        #floating-wrapper button {
+            background-color: #ff9900 !important;
+            color: white !important;
+            padding: 25px 0 !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            border-radius: 10px !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+            border: none !important;
+        }
+    
+        #floating-wrapper button:hover {
+            background-color: #cc7a00 !important;
+            transform: translateY(-2px) !important;
+        }
+    
     </style>
     """, unsafe_allow_html=True)
-
+    
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
-
+    
     with col_centro:
-
+        
+        # Logo y sub-título 
         st.image("assets/logotipo-aulametrics.png", width=300)
-        st.markdown("<p style='font-size:1.1em;color:black;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
-
+        st.markdown("<p style='font-size: 1.1em; color: black; font-weight: 500;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+        
+        # Tabs 
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # === LOGIN ===
+        # --- PESTAÑA 1: LOGIN ---
         with tab_login:
-
+            # === HACK: Contenedor con margen negativo para subir el contenido ===
+            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
+            
+            # --- INICIO CONTENEDOR DE LA TARJETA ---
             st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
-
+            
+            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
             if st.session_state['view_recuperar_pass']:
-
+                
                 with st.form("recovery_form_tab_login", clear_on_submit=True):
                     st.markdown("### 🔄 Restablecer Contraseña")
-                    st.info("Ingresa el correo asociado a tu cuenta.")
-                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email")
-
+                    st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
+                    
+                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+                    
                     submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
 
                     if submitted:
-                        st.warning("⚠️ Lógica pendiente.")
-
-                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
+                        if email_recuperacion:
+                            st.toast("Procesando solicitud...")
+                            st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
+                        else:
+                            st.error("Por favor, ingresa un correo electrónico.")
+                            
+                # Botón Secundario: Cancelar y volver 
+                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
 
+            # --- VISTA NORMAL: LOGIN ---
             else:
-
                 with st.form("login_form"):
                     st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email")
-                    password = st.text_input("Contraseña", type="password", key="login_password")
-
+                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                    
+                    # Botón de Login (submit)
                     submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-
+                    
                     if submitted:
-                        st.warning("⚠️ Lógica de login aquí.")
+                        try:
+                            # Asume que 'supabase' está definido en tu código principal
+                            session = supabase.auth.sign_in_with_password({
+                                "email": email,
+                                "password": password
+                            })
+                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
+                            if user_data:
+                                if hasattr(user_data, 'to_dict'):
+                                    user_data = user_data.to_dict()
+                                    
+                                st.session_state.logged_in = True
+                                st.session_state.user = user_data 
+                                st.session_state.show_welcome_message = True
+                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                st.rerun() 
+                            else:
+                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+                                
+                        except Exception as e:
+                            error_message = str(e)
+                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                st.error("Credenciales incorrectas o correo no confirmado.")
+                            else:
+                                st.error(f"Error al iniciar sesión: {e}")
+                
+                # Botón de recuperación FUERA del st.form("login_form")
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
-
+                    
+            # --- FIN CONTENEDOR DE LA TARJETA ---
+            st.markdown('</div>', unsafe_allow_html=True) 
+            
+            # === Cierre del wrapper de margen negativo ===
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # === REGISTRO ===
-        with tab_register:
 
+        # --- PESTAÑA 2: REGISTRO ---
+        with tab_register:
+            # === HACK: Contenedor con margen negativo para subir el contenido ===
+            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
+            
+            # --- INICIO CONTENEDOR DE LA TARJETA ---
             st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
 
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            reset_id = st.session_state['form_reset_id']
+
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                
             with st.form("register_form"):
                 st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre")
-                email = st.text_input("Correo Electrónico")
-                password = st.text_input("Contraseña", type="password")
-
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                
+                # El botón de registro usa type="secondary"
                 submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-
+                
                 if submitted:
-                    st.success("Datos registrados (demo).")
-
+                    if not name or not email or not password:
+                        st.warning("Por favor, completa todos los campos.")
+                    else:
+                        try:
+                            user = supabase.auth.sign_up({
+                                "email": email,
+                                "password": password,
+                                "options": {
+                                    "data": { 'full_name': name }
+                                }
+                            })
+                            st.session_state['form_reset_id'] += 1
+                            st.session_state['registro_exitoso'] = True
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error en el registro: {e}")
+                            
+            # --- FIN CONTENEDOR DE LA TARJETA ---
+            st.markdown('</div>', unsafe_allow_html=True) 
+            
+            # === Cierre del wrapper de margen negativo ===
             st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- C. BOTÓN DE CONTACTO ---
+    # --- C. BOTÓN DE CONTACTO FLOTANTE ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-
+    
     st.markdown(f"""
     <style>
     #floating-wrapper {{
@@ -601,6 +731,7 @@ def login_page():
         right: 25px;
         z-index: 99999 !important;
     }}
+    
     #floating-wrapper a {{
         background: #28a745 !important;
         color: white !important;
@@ -613,12 +744,57 @@ def login_page():
         box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         text-align: center;
     }}
+    
+    #floating-wrapper a:hover {{
+        background: #cc7a00 !important;
+        transform: translateY(-2px);
+    }}
     </style>
-
+    
     <div id="floating-wrapper">
-        <a href="{url_netlify}" target="_blank">💬 ¿Dudas? Contáctanos</a>
+        <a href="{url_netlify}" target="_blank">
+            💬 ¿Dudas? Contáctanos
+        </a>
     </div>
     """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <style>
+    /* Elimina cualquier bloque vacío que Streamlit genera */
+    div[data-testid="stVerticalBlock"] > div:empty {
+        display: none !important;
+    }
+    
+    /* Reduce bloques con padding fantasma */
+    section.main > div:nth-child(2) {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* ELIMINA completamente el bloque blanco gigante debajo de los tabs */
+div[data-testid="stVerticalBlock"] > div:nth-child(2) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: -40px 0 0 0 !important;
+}
+
+/* También elimina un contenedor blanco adicional creado por Streamlit */
+div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 
 # =========================================================================
@@ -2377,6 +2553,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
