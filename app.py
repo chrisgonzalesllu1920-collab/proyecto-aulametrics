@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V23.0 - Botón Contacto FIX Z-INDEX) =============
+# === 4. PÁGINA DE LOGIN (V24.0 - Botón Contacto FIX ID) ==================
 # =========================================================================
 def login_page():
     
@@ -563,16 +563,17 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mayor tamaño, color verde y FIX de Z-INDEX) */
-        .contact-button-container {
-            position: fixed !important; /* Forzar posición fija */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (Máxima Especificidad con ID) */
+        #contact-btn-flotante {
+            /* Fija la posición, tamaño y z-index al ANCHOR TAG */
+            position: fixed !important; 
             bottom: 30px !important; 
             right: 30px !important; 
             left: auto !important; 
-            width: 280px !important; /* Incrementado para mayor tamaño */
-            z-index: 99999 !important; /* Valor muy alto para sobrescribir conflictos */
-        }
-        .contact-button-container a {
+            width: 280px !important; /* Mantiene el tamaño incrementado */
+            z-index: 99999 !important; /* Máxima prioridad */
+            
+            /* Estilos de visualización */
             display: block; 
             padding: 25px 0 !important; /* Más padding vertical para mayor altura */
             background-color: #4CAF50 !important; /* Verde más vivo */
@@ -586,7 +587,7 @@ def login_page():
             transition: all 0.2s;
             border: none;
         }
-        .contact-button-container a:hover {
+        #contact-btn-flotante:hover {
             background-color: #45a049 !important; /* Tono de verde al pasar el ratón */
             box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
             transform: translateY(-2px); 
@@ -741,11 +742,10 @@ def login_page():
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
     st.markdown(f"""
-    <div class="contact-button-container">
-        <a href="{url_netlify}" target="_blank">
-            💬 ¿Dudas? Contáctanos
-        </a>
-    </div>
+    <!-- FIX: Aplicamos el ID único y la posición fija directamente al enlace <a> -->
+    <a id="contact-btn-flotante" href="{url_netlify}" target="_blank">
+        💬 ¿Dudas? Contáctanos
+    </a>
     """, unsafe_allow_html=True)
 
 # =========================================================================
@@ -2504,6 +2504,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
