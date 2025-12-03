@@ -788,7 +788,7 @@ def cargar_datos_pedagogicos():
 # from supabase import create_client, Client
 # supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) # Debe estar inicializado
 
-def login_page():
+    def login_page():
 
     # Inicializar el estado de la vista de recuperación de contraseña
     if 'view_recuperar_pass' not in st.session_state:
@@ -2891,6 +2891,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
