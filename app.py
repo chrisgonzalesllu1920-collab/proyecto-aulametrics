@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.2 - TARJETA OSCURA SEMI-TRANSPARENTE) ===
+# === 4. PÁGINA DE LOGIN (V13.3 - TARJETA CLARA GLASSMORHISM + NEÓN) ===
 # =========================================================================
 def login_page():
     
@@ -411,14 +411,17 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo oscuro semi-transparente y sombra */
+        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - AHORA CLARA SEMI-TRANSPARENTE (GLASSMORHISM) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
-            background-color: rgba(62, 14, 105, 0.7) !important; /* CAMBIADO: Morado oscuro semi-transparente (0.7) */
+            background-color: rgba(255, 255, 255, 0.6) !important; /* CAMBIO: Blanco semi-transparente (0.6) */
             padding: 2rem !important;
             border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra oscura para profundidad */
-            border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Borde sutil claro */
+            /* Neón Sutil para la tarjeta */
+            border: 2px solid rgba(255, 0, 204, 0.3) !important; /* Borde magenta suave */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), /* Sombra de profundidad */
+                        inset 0 0 10px rgba(255, 0, 204, 0.1); /* Sombra interior neón muy sutil */
+            backdrop-filter: blur(5px); /* Efecto Glassmorphism */
         }
         
         /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS INMEDIATOS */
@@ -430,7 +433,7 @@ def login_page():
 
         /* 3c. FIX DE TRANSPARENCIA PARA EL CUADRO DE INFORMACIÓN (st.info) */
         div[data-testid="stNotification"] {
-            background-color: rgba(62, 14, 105, 0.4) !important; /* Morado más transparente */
+            background-color: rgba(255, 255, 255, 0.8) !important; /* Más opaco para mejor lectura */
             border-left: 5px solid #E94057 !important; 
         }
         
@@ -451,15 +454,15 @@ def login_page():
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
         div[data-testid="stNotification"] p {
-            color: #FFFFFF !important; /* CAMBIADO a blanco puro para el fondo oscuro */
+            color: #000000 !important; /* CAMBIO: Negro puro para el fondo claro */
             text-shadow: none !important; 
         }
 
 
-        /* 6. INPUTS (Estilo Base + Efecto Neón en Foco) */
+        /* 6. INPUTS (Estilo Base + Efecto Neón en Foco) - Se mantiene el neón para inputs */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.7) !important; /* Blanco semi-transparente (se ve claro sobre el card oscuro) */
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Casi opaco para mejor escritura */
             border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 8px !important;
             transition: all 0.3s ease-in-out;
@@ -467,8 +470,8 @@ def login_page():
         
         /* Efecto Neón al hacer foco (Focus) */
         input[type="text"]:focus, input[type="password"]:focus {
-            background-color: #FFFFFF !important; /* Fondo blanco sólido */
-            border: 2px solid #FF00CC !important;
+            background-color: #FFFFFF !important; 
+            border: 2px solid #FF00CC !important; /* Neón Magenta */
             box-shadow: 0 0 8px #FF00CC, 0 0 15px rgba(255, 0, 204, 0.5) !important; 
         }
         
@@ -477,30 +480,30 @@ def login_page():
             opacity: 1 !important;
         }
 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Oscuro para coincidir con la tarjeta */
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) - Vuelven a ser claras, pero con transparencia y color de marca */
         button[data-baseweb="tab"] div p {
-            color: #CCCCCC !important; /* Texto gris claro */
+            color: #333333 !important; 
             font-weight: bold !important;
             text-shadow: none !important;
         }
         button[data-baseweb="tab"] {
-            background-color: rgba(0, 0, 0, 0.2) !important; /* Oscuro transparente */
+            background-color: rgba(255, 255, 255, 0.7) !important; /* Blanco Transparente */
             border-radius: 8px !important;
             margin-right: 5px !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
         }
         button[data-baseweb="tab"]:hover:not([aria-selected="true"]) {
-             background-color: rgba(0, 0, 0, 0.4) !important; /* Más oscuro al pasar el ratón */
+             background-color: rgba(255, 255, 255, 0.9) !important; 
         }
         button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: rgba(62, 14, 105, 0.8) !important; /* Pestaña activa es morado oscuro */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background-color: #FFFFFF !important; /* Blanco sólido para la pestaña activa */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #FFFFFF !important; /* Texto de la pestaña activa en blanco */
+            color: #E94057 !important; /* Color de marca para texto activo */
         }
         
-        /* 8. BOTONES PRINCIPALES Y SECUNDARIOS (RELLENO VERDE) - Se mantienen, excelente contraste */
+        /* 8. BOTONES PRINCIPALES Y SECUNDARIOS (RELLENO VERDE) */
         
         /* Primary Buttons: Iniciar Sesión, Enviar Recuperación (type="primary") */
         div.stForm button[kind="primary"] {
@@ -533,14 +536,14 @@ def login_page():
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #FFFFFF !important; /* CAMBIADO a blanco */
+            color: #333333 !important; /* Vuelve a color oscuro */
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
         button[key="btn_olvide_pass_login"]:hover {
-            color: #F27121 !important; /* Color naranja de la marca al hacer hover */
+            color: #E94057 !important; 
             text-decoration: none;
         }
 
@@ -2463,6 +2466,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
