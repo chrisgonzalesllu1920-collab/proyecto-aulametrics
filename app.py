@@ -773,6 +773,21 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
+/* ELIMINA completamente el bloque blanco gigante debajo de los tabs */
+div[data-testid="stVerticalBlock"] > div:nth-child(2) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: -40px 0 0 0 !important;
+}
+
+/* También elimina un contenedor blanco adicional creado por Streamlit */
+div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
 
 # =========================================================================
@@ -2531,6 +2546,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
