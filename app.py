@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.3 - ESTILO DE TARJETA FLOTANTE (CARD UI)) ===
+# === 4. PÁGINA DE LOGIN (V12.4 - TARJETA SEMITRANSPARENTE (CARD UI)) ===
 # =========================================================================
 def login_page():
     
@@ -411,11 +411,11 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo blanco, padding y sombra al bloque principal */
+        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo blanco semi-transparente, padding y sombra al bloque principal */
         /* Target the vertical block that contains the Tabs/Forms to create the card effect (for both login/register and recovery views) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
-            background-color: white !important;
+            background-color: rgba(255, 255, 255, 0.9) !important; /* BLANCO SEMITRANSPARENTE */
             padding: 2rem !important; /* Aumentamos el padding interno */
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra para efecto flotante */
@@ -2441,6 +2441,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
