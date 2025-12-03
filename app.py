@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.13 - Diseño Flotante Cálido - FIX) ===
+# === 4. PÁGINA DE LOGIN (V12.14 - Contacto Flotante FIX) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -560,14 +560,37 @@ def login_page():
             box-shadow: none !important;
         }
         
-        /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta) */
+        /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta FUERTE) */
         .contact-button-container {
-            position: fixed;
-            bottom: 30px; /* Distancia desde abajo */
-            right: 30px; /* Distancia desde la derecha */
-            width: 200px; /* Ancho fijo */
-            z-index: 1000;
+            position: fixed !important;
+            bottom: 30px !important; 
+            right: 30px !important; 
+            left: auto !important; /* Asegurar que no hay conflicto con left */
+            width: 200px;
+            z-index: 9999; /* Máxima prioridad de capa */
         }
+        
+        /* 13. ESTILO ESPECÍFICO DEL BOTÓN DE CONTACTO (Verde VIBRANTE) */
+        .contact-button-container a {
+            display: block; /* Debe ser block para llenar el ancho 200px */
+            padding: 15px 0;
+            background-color: #28a745; /* Verde estándar */
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.6); /* Sombra más fuerte y prominente */
+            transition: all 0.2s;
+            border: none;
+        }
+        .contact-button-container a:hover {
+            background-color: #218838; /* Verde ligeramente más oscuro al pasar el ratón */
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.8);
+            transform: translateY(-2px); /* Efecto de "levantamiento" */
+        }
+
         /* Ocultar el footer que crea Streamlit */
         footer {visibility: hidden;}
     </style>
@@ -700,6 +723,7 @@ def login_page():
     # --- C. BOTÓN DE CONTACTO FLOTANTE (FUERA DEL LAYOUT DE COLUMNAS) ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
+    # Se utiliza un contenedor de Markdown para renderizar el botón fuera del flujo normal y aplicar la posición fixed.
     st.markdown(f"""
     <div class="contact-button-container">
         <a href="{url_netlify}" target="_blank">
@@ -2439,6 +2463,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
