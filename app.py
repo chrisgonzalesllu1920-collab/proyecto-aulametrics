@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V20.0 - Fondo con mifondo.png Verificado Final) =
+# === 4. PÁGINA DE LOGIN (V21.0 - Botón Contacto Mejorado) ================
 # =========================================================================
 def login_page():
     
@@ -396,10 +396,9 @@ def login_page():
     <style>
         /* 1. FONDO DE IMAGEN */
         [data-testid="stAppViewContainer"] {
-            /* Se carga la imagen de fondo. Confirmado que el archivo existe en assets/mifondo.png */
+            /* Ruta confirmada: assets/mifondo.png */
             background: url('assets/mifondo.png') center center / cover no-repeat fixed;
-            /* El color de fallback (por si la imagen no carga) se mantiene como una referencia oscura. */
-            background-color: #333333; 
+            /* Se ha eliminado el color de fallback oscuro. */
         }
         
         /* 2. LIMPIEZA DE INTERFAZ */
@@ -564,32 +563,32 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mejorado: Más grande y color verde vibrante) */
         .contact-button-container {
             position: fixed !important;
             bottom: 30px !important; 
             right: 30px !important; 
             left: auto !important; 
-            width: 200px;
+            width: 250px; /* Más ancho */
             z-index: 9999; 
         }
         .contact-button-container a {
             display: block; 
-            padding: 15px 0;
-            background-color: #28a745; 
+            padding: 20px 0; /* Más padding vertical */
+            background-color: #4CAF50; /* Verde más vivo */
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
             font-size: 18px;
             font-weight: 800;
-            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.6); 
+            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); /* Sombra verde */
             transition: all 0.2s;
             border: none;
         }
         .contact-button-container a:hover {
-            background-color: #218838; 
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.8);
+            background-color: #45a049; /* Tono de verde al pasar el ratón */
+            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
             transform: translateY(-2px); 
         }
         
@@ -2505,6 +2504,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
