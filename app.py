@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.5 - REFUERZO DE TRANSPARENCIA EN TARJETA) ===
+# === 4. PÁGINA DE LOGIN (V12.6 - MAYOR TRANSPARENCIA EN TARJETA (0.5)) ===
 # =========================================================================
 def login_page():
     
@@ -415,7 +415,7 @@ def login_page():
         /* Target the vertical block that contains the Tabs/Forms to create the card effect (for both login/register and recovery views) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
-            background-color: rgba(255, 255, 255, 0.7) !important; /* BLANCO MÁS TRANSPARENTE (0.7) */
+            background-color: rgba(255, 255, 255, 0.5) !important; /* MÁS TRANSPARENTE (0.5) */
             padding: 2rem !important; /* Aumentamos el padding interno */
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra para efecto flotante */
@@ -423,7 +423,7 @@ def login_page():
         }
         
         /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS */
-        /* Fuerza a que los bloques contenedores inmediatos de las pestañas/formularios sean transparentes para ver el fondo de la tarjeta (0.7) */
+        /* Fuerza a que los bloques contenedores inmediatos de las pestañas/formularios sean transparentes para ver el fondo de la tarjeta (0.5) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) > div:nth-child(2) > div,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div {
              background-color: transparent !important;
@@ -431,7 +431,7 @@ def login_page():
 
         /* 3c. FIX DE TRANSPARENCIA PARA EL CUADRO DE INFORMACIÓN (st.info) en la vista de recuperación */
         div[data-testid="stNotification"] {
-            background-color: rgba(255, 255, 255, 0.5) !important; /* Semi-transparent info box */
+            background-color: rgba(255, 255, 255, 0.3) !important; /* Ajuste para que sea más transparente que la tarjeta */
             border-left: 5px solid #E94057 !important; /* Usamos el color de la marca para el borde */
         }
         
@@ -2452,6 +2452,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
