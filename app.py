@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V15.0 - Diseño: SPLIT SCREEN / OCÉANO FRÍO) ===
+# === 4. PÁGINA DE LOGIN (V16.0 - Diseño: SPLIT SCREEN / CORRECCIÓN DE ALTURA) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -395,40 +395,39 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (SPLIT SCREEN / OCÉANO FRÍO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (SPLIT SCREEN / CORRECCIÓN DE ALTURA) ---
     st.markdown("""
     <style>
-        /* 1. CONFIGURACIÓN BASE: PANTALLA COMPLETA Y ELIMINACIÓN DE BARRAS */
-        html, body, [data-testid="stAppViewContainer"], .main {
-            height: 100vh;
-            margin: 0;
-            padding: 0;
+        /* 1. CONFIGURACIÓN BASE: FORZAR PANTALLA COMPLETA Y ELIMINACIÓN DE BARRAS */
+        /* CORRECCIÓN CRÍTICA: Forzar 100vh a todos los contenedores principales de Streamlit */
+        html, body, 
+        [data-testid="stAppViewContainer"], 
+        [data-testid="stAppViewContainer"] > .main, 
+        [data-testid="stAppViewContainer"] > .main > div:first-child,
+        .block-container {
+            height: 100vh !important; /* Altura total forzada */
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: none !important;
+            overflow: hidden !important; /* Evita el scroll global innecesario */
         }
-        [data-testid="stAppViewContainer"] {
-            overflow: hidden; /* Evita el scroll global */
-        }
+
         header[data-testid="stHeader"], footer {
             display: none !important; /* Elimina la barra de Streamlit y el footer inútil */
-        }
-        .block-container {
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: none !important;
-            width: 100%;
         }
         
         /* 2. CONTENEDOR PRINCIPAL: SPLIT SCREEN (Flexbox para las columnas) */
         .split-container {
             display: flex;
             flex-direction: row; /* Desktop: Lado a lado */
-            height: 100vh;
+            height: 100%; /* Ahora toma el 100% de la altura forzada por el padre */
             width: 100%;
         }
         
         /* 3. COLUMNA IZQUIERDA: MARCA Y FONDO GRADIENTE (FRIO) */
         .column-brand {
             width: 50%; /* Mitad de la pantalla en desktop */
-            min-height: 100vh;
+            min-height: 100%; /* Toma la altura del split-container */
             /* Degradado de Océano Frío */
             background: linear-gradient(135deg, #1C3F60 0%, #7CB9E8 100%); 
             display: flex;
@@ -443,7 +442,7 @@ def login_page():
         /* 4. COLUMNA DERECHA: FORMULARIO (LOGIN) */
         .column-form {
             width: 50%; /* Mitad de la pantalla en desktop */
-            min-height: 100vh;
+            min-height: 100%; /* Toma la altura del split-container */
             background-color: #f8f9fa; /* Gris muy claro para contraste */
             display: flex;
             flex-direction: column;
@@ -2430,6 +2429,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
