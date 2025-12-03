@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V21.0 - Botón Contacto Mejorado) ================
+# === 4. PÁGINA DE LOGIN (V22.0 - Botón Contacto Ajuste de Tamaño) ========
 # =========================================================================
 def login_page():
     
@@ -563,24 +563,24 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mejorado: Más grande y color verde vibrante) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mayor tamaño y color verde vibrante) */
         .contact-button-container {
             position: fixed !important;
             bottom: 30px !important; 
             right: 30px !important; 
             left: auto !important; 
-            width: 250px; /* Más ancho */
+            width: 280px; /* Incrementado para mayor tamaño */
             z-index: 9999; 
         }
         .contact-button-container a {
             display: block; 
-            padding: 20px 0; /* Más padding vertical */
+            padding: 25px 0; /* Más padding vertical para mayor altura */
             background-color: #4CAF50; /* Verde más vivo */
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 20px; /* Fuente más grande */
             font-weight: 800;
             box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); /* Sombra verde */
             transition: all 0.2s;
@@ -2504,6 +2504,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
