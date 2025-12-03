@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.5 - DISEÑO FLOTANTE/MINIMALISTA) ===
+# === 4. PÁGINA DE LOGIN (V13.6 - FIX: LOGO PLACEHOLDER POR ERROR DE RUTA) ===
 # =========================================================================
 def login_page():
     
@@ -561,7 +561,8 @@ def login_page():
     with col_centro:
         
         # TÍTULOS Y BRANDING (Flotando sobre el fondo degradado)
-        st.image("assets/logotipo-aulametrics-blanco.png", width=300) # Se asume una versión blanca del logo
+        # FIX: Reemplazado el archivo local por un placeholder URL para evitar el error de ruta.
+        st.image("https://placehold.co/300x60/3E0E69/ffffff?text=AULAMETRICS", width=300) 
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
@@ -2467,6 +2468,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
