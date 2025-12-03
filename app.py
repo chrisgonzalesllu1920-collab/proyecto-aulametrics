@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.14 - Contacto Flotante FIX) ===
+# === 4. PÁGINA DE LOGIN (V12.15 - FIX Espaciado Tabs) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -421,7 +421,7 @@ def login_page():
             border-radius: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-            margin-top: 10px; /* Espacio mínimo después de las pestañas */
+            margin-top: 10px; /* Espacio mínimo después de las pestañas (se controla con el FIX 11.1) */
         }
         
         /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
@@ -558,6 +558,13 @@ def login_page():
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
+        }
+        
+        /* 11.1 FIX ESPACIO ENTRE TABS Y CONTENIDO DE LA TARJETA (NUEVA REGLA) */
+        /* Targets the main content block (stVerticalBlock) inside the active tab panel */
+        div[role="tabpanel"] > div > div > div[data-testid="stVerticalBlock"] {
+            padding-top: 0px !important;
+            margin-top: 0px !important;
         }
         
         /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta FUERTE) */
@@ -2463,6 +2470,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
