@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.0 - TEXTO EXTERIOR EN NEGRO/OSCURO) ===
+# === 4. PÁGINA DE LOGIN (V13.1 - EFECTO NEÓN EN INPUTS AL HACER FOCO) ===
 # =========================================================================
 def login_page():
     
@@ -445,8 +445,7 @@ def login_page():
 
         /* 4. TEXTOS GENERALES (Oscuro fuera del contenedor, para contraste con el degradado) */
         h1, h2, h3, p {
-            color: #1a1a1a !important; /* CAMBIADO a gris muy oscuro/casi negro */
-            /* Usamos sombra de texto blanca para que el texto oscuro resalte sobre el fondo de color */
+            color: #1a1a1a !important; /* Gris muy oscuro/casi negro */
             text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4); 
         }
 
@@ -457,18 +456,28 @@ def login_page():
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
         div[data-testid="stNotification"] p { /* Texto de notificacion */
-            color: #000000 !important; /* Mantenido en negro puro */
-            text-shadow: none !important; /* Eliminamos sombra aquí, ya que el fondo es claro */
+            color: #000000 !important; /* Negro puro */
+            text-shadow: none !important; 
         }
 
 
-        /* 6. INPUTS (Se mantiene) */
+        /* 6. INPUTS (Estilo Base + Efecto Neón en Foco) */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
             background-color: rgba(255, 255, 255, 0.9) !important;
             border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 8px !important;
+            transition: all 0.3s ease-in-out; /* Transición suave para el efecto */
         }
+        
+        /* NEW: Efecto Neón al hacer foco (Focus) */
+        input[type="text"]:focus, input[type="password"]:focus {
+            background-color: #FFFFFF !important; /* Fondo blanco sólido */
+            border: 2px solid #FF00CC !important; /* Borde magenta brillante */
+            /* Doble sombra para el efecto de resplandor neón */
+            box-shadow: 0 0 8px #FF00CC, 0 0 15px rgba(255, 0, 204, 0.5) !important; 
+        }
+        
         ::placeholder {
             color: #555555 !important;
             opacity: 1 !important;
@@ -2462,6 +2471,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
