@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.19 - FIX Espaciado Tabs v5 Ataque Final) ===
+# === 4. PÁGINA DE LOGIN (V13.0 - Diseño Compacto) ========================
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -421,7 +421,6 @@ def login_page():
             border-radius: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-            /* IMPORTANTE: Eliminamos el margin-top interno para que el wrapper negativo funcione */
         }
         
         /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
@@ -430,26 +429,11 @@ def login_page():
             text-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para resaltar */
         }
         
-        /* FIX DE ESPACIO VERTICAL: Elimina el margen por defecto y añade un pequeño espacio entre textos */
-        .stMarkdownContainer h3, 
-        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] p {
-             color: #FFFFFF !important; 
-             text-shadow: 0 1px 3px rgba(0,0,0,0.5); 
-             margin-top: 0px !important; 
-             margin-bottom: 5px !important; 
-             padding: 0px !important;
-        }
         /* Elimina el espacio extra al final del logo */
         div[data-testid="stImage"] {
             margin-bottom: -15px !important; 
         }
         
-        /* FIX CLAVE: Elimina el espacio entre la descripción y las pestañas */
-        /* Aseguramos que el contenedor de la descripción no tenga margen inferior */
-        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"]:last-of-type p {
-            margin-bottom: 0px !important; 
-            padding-bottom: 0px !important;
-        }
         /* Aseguramos que el contenedor de las pestañas no tenga padding superior */
         div[data-testid="stTabs"] {
             padding-top: 0px !important;
@@ -504,7 +488,7 @@ def login_page():
              text-shadow: none !important;
         }
 
-        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Estilo Botón Flotante (Según imagen) */
+        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Estilo Botón Flotante */
         /* Estilo general de las Pestañas (los botones en sí) */
         button[data-baseweb="tab"] {
             border-radius: 8px !important; 
@@ -569,7 +553,7 @@ def login_page():
             margin-bottom: 0px !important;
         }
         
-        /* 11.2 FIX ATAQUE FINAL: Margen negativo fuerte para subir el contenido (NUEVO VALOR) */
+        /* 11.2 FIX ATAQUE FINAL: Margen negativo fuerte para subir el contenido (Mantenido) */
         .tab-content-wrapper {
             /* Aumentado a -40px para garantizar que el contenido suba por encima del padding residual */
             margin-top: -40px !important; 
@@ -606,6 +590,11 @@ def login_page():
             transform: translateY(-2px); /* Efecto de "levantamiento" */
         }
 
+        /* 14. FIX ESPACIO ENTRE BOTÓN DE SUBMIT Y BOTÓN DE OLVIDÉ CONTRASEÑA */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] + div > div > button[key="btn_olvide_pass_login"] {
+            margin-top: -15px !important; 
+        }
+
         /* Ocultar el footer que crea Streamlit */
         footer {visibility: hidden;}
     </style>
@@ -617,13 +606,12 @@ def login_page():
     
     with col_centro:
         
-        # Elementos fuera de la tarjeta: Logo, Título, Descripción
+        # Elementos fuera de la tarjeta: Logo (MANTENIDO)
         st.image("assets/logotipo-aulametrics.png", width=300)
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        # st.subheader("Bienvenido a AulaMetrics", anchor=False) <-- ELIMINADO
+        # st.markdown("**Tu asistente pedagógico y analista de datos.**") <-- ELIMINADO
         
         # Tabs (Botones flotantes sobre el fondo)
-        # Los tabs aparecen inmediatamente después de la descripción gracias al FIX 4.
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
         # --- PESTAÑA 1: LOGIN (Contiene la Soft Glass Card) ---
@@ -653,7 +641,7 @@ def login_page():
                             st.error("Por favor, ingresa un correo electrónico.")
                             
                 # Botón Secundario: Cancelar y volver (FUERA del formulario)
-                st.write("") 
+                # st.write("") <-- ELIMINADO
                 if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
@@ -688,7 +676,7 @@ def login_page():
                                 st.error(f"Error al iniciar sesión: {e}")
                 
                 # Botón de recuperación FUERA del st.form("login_form")
-                st.write("") 
+                # st.write("") <-- ELIMINADO
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
@@ -2517,6 +2505,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
