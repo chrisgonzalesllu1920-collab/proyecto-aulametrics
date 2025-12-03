@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V24.0 - Botón Contacto FIX ID) ==================
+# === 4. PÁGINA DE LOGIN (V25.0 - Botón Contacto FIX ESTRUCTURA) ==========
 # =========================================================================
 def login_page():
     
@@ -563,32 +563,35 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (Máxima Especificidad con ID) */
-        #contact-btn-flotante {
-            /* Fija la posición, tamaño y z-index al ANCHOR TAG */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (FIX: Reintroducing wrapper for fixed position) */
+        /* Contenedor que maneja la posición fija en el viewport */
+        #floating-wrapper {
             position: fixed !important; 
             bottom: 30px !important; 
             right: 30px !important; 
             left: auto !important; 
-            width: 280px !important; /* Mantiene el tamaño incrementado */
-            z-index: 99999 !important; /* Máxima prioridad */
-            
-            /* Estilos de visualización */
+            width: 280px !important; 
+            z-index: 99999 !important; 
+            border: none; /* Asegurar que el contenedor no tenga borde */
+        }
+
+        /* Estilos de apariencia aplicados al enlace <a> dentro del contenedor */
+        #floating-wrapper a {
             display: block; 
-            padding: 25px 0 !important; /* Más padding vertical para mayor altura */
-            background-color: #4CAF50 !important; /* Verde más vivo */
+            padding: 25px 0 !important; 
+            background-color: #28a745 !important; /* Nuevo Verde Distinto y muy específico */
             color: white !important;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
-            font-size: 20px !important; /* Fuente más grande */
+            font-size: 20px !important; 
             font-weight: 800 !important;
-            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); /* Sombra verde */
+            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); 
             transition: all 0.2s;
             border: none;
         }
-        #contact-btn-flotante:hover {
-            background-color: #45a049 !important; /* Tono de verde al pasar el ratón */
+        #floating-wrapper a:hover {
+            background-color: #1e7e34 !important; /* Hover Tono de verde más oscuro */
             box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
             transform: translateY(-2px); 
         }
@@ -741,11 +744,13 @@ def login_page():
     # --- C. BOTÓN DE CONTACTO FLOTANTE ---
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
+    # Usamos un <div> como contenedor de posición fija y el <a> interno para el estilo de botón.
     st.markdown(f"""
-    <!-- FIX: Aplicamos el ID único y la posición fija directamente al enlace <a> -->
-    <a id="contact-btn-flotante" href="{url_netlify}" target="_blank">
-        💬 ¿Dudas? Contáctanos
-    </a>
+    <div id="floating-wrapper">
+        <a href="{url_netlify}" target="_blank">
+            💬 ¿Dudas? Contáctanos
+        </a>
+    </div>
     """, unsafe_allow_html=True)
 
 # =========================================================================
@@ -2504,6 +2509,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
