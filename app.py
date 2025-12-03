@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V14.0 - Diseño Compacto + Texto Negro) ==========
+# === 4. PÁGINA DE LOGIN (V15.0 - Sin Barra Blanca) =======================
 # =========================================================================
 def login_page():
     
@@ -391,7 +391,7 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (CORREGIDO Y OPTIMIZADO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (FIX DE BARRA BLANCA) ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO (Cálido: Púrpura/Lila a Melocotón/Naranja) */
@@ -402,7 +402,7 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* 2. LIMPIEZA DE INTERFAZ */
+        /* 2. LIMPIEZA DE INTERFAZ Y ESPACIOS */
         .block-container {
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
@@ -414,7 +414,7 @@ def login_page():
         
         /* 3. TARJETA PRINCIPAL (Soft Glass Card - Blanco Opaco) */
         .soft-glass-card {
-            /* Cambiado a blanco casi opaco para mejor contraste con texto negro */
+            /* Blanco casi opaco para contraste */
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px);
             padding: 40px;
@@ -423,7 +423,7 @@ def login_page():
             border: 1px solid rgba(0, 0, 0, 0.1); 
         }
         
-        /* 4. TEXTOS GLOBALES - Asegura que los textos fuera del card (si existieran) sean visibles */
+        /* 4. TEXTOS GLOBALES (NEGROS) */
         h1, h2, h3 {
             color: #000000 !important; /* Negro */
             text-shadow: none !important; 
@@ -434,34 +434,62 @@ def login_page():
         .soft-glass-card h3,
         .soft-glass-card h3 span,
         .soft-glass-card p,
-        .stForm label p { /* Incluye etiquetas de formularios */
-            color: #000000 !important; /* NEGRO */
+        .stForm label p,
+        /* FIX: Asegurar que el subtitulo principal sea negro */
+        .stMarkdown p { 
+            color: #000000 !important; 
             text-shadow: none !important;
-            font-weight: 600 !important; 
+            /* Si es necesario, añadir font-weight, pero el color es clave */
         }
-
+        
         /* 5. ELIMINACIÓN DE ESPACIOS NO DESEADOS */
         /* Elimina el espacio extra al final del logo */
         div[data-testid="stImage"] {
             margin-bottom: -15px !important; 
         }
         
-        /* Aseguramos que el contenedor de las pestañas no tenga padding superior */
-        div[data-testid="stTabs"] {
+        /* FIX CLAVE DE BARRAS BLANCAS Y ESPACIADO EN TABS */
+        /* A. Contenedor de las pestañas (la barra horizontal) */
+        div[data-testid="stTabs] {
             padding-top: 0px !important;
             margin-top: 0px !important;
             margin-bottom: 0px; 
         }
         
-        /* FIX CLAVE: Subir el contenido del tab para eliminar el espacio superior */
-        .tab-content-wrapper {
-            margin-top: -30px !important; /* Ajuste para subir la tarjeta */
+        /* B. Elemento que suele tener el borde/fondo blanco bajo las pestañas */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
+            /* Esta es una capa profunda que a veces retiene un fondo o borde */
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* C. La línea divisoria de las pestañas que puede parecer una barra */
+        button[data-baseweb="tab"] {
+            border-bottom: none !important; /* Asegurar que la línea de abajo no exista */
+            /* Ajustar para que las pestañas queden pegadas al contenido (la tarjeta) */
+            margin-bottom: -10px !important; 
         }
         
-        /* 6. INPUTS - Diseño limpio y claro dentro del card */
+        /* D. Contenedor del contenido del tab */
+        div[role="tabpanel"] {
+            /* Eliminar todo el padding y margen por defecto del contenedor de contenido */
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* E. Hack de margen negativo para subir el contenido y eliminar el espacio residual */
+        .tab-content-wrapper {
+            margin-top: -30px !important; /* Sube la tarjeta para cubrir el espacio */
+            padding-top: 0px !important;
+        }
+        /* FIN FIX CLAVE DE BARRAS BLANCAS Y ESPACIADO EN TABS */
+
+        
+        /* 6. INPUTS - Diseño limpio y claro */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: #FFFFFF !important; /* Blanco sólido */
+            background-color: #FFFFFF !important; 
             border: 1px solid rgba(0, 0, 0, 0.2) !important; 
             border-radius: 8px !important;
         }
@@ -469,19 +497,19 @@ def login_page():
             color: #555555 !important;
         }
         
-        /* 7. BOTONES PRINCIPALES (AZUL INSTITUCIONAL) */
+        /* 7. BOTONES PRINCIPALES (AZUL) */
         div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #007bff !important; /* Azul Primario */
+            background-color: #007bff !important; 
             color: white !important; 
             border: none !important;
             font-weight: bold !important;
             border-radius: 8px !important;
-            margin-top: 5px; /* Pequeño margen superior para separar de los inputs */
+            margin-top: 5px; 
         }
 
-        /* 8. BOTÓN SECUNDARIO (GRIS NEUTRAL) */
+        /* 8. BOTÓN SECUNDARIO (GRIS) */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #6c757d !important; /* Gris Neutral */
+            background-color: #6c757d !important; 
             color: white !important; 
             border: none !important;
             font-weight: bold !important;
@@ -493,7 +521,7 @@ def login_page():
              text-shadow: none !important;
         }
 
-        /* 9. PESTAÑAS (Tabs) - Estilo Botón Flotante */
+        /* 9. PESTAÑAS (Tabs) */
         button[data-baseweb="tab"] {
             border-radius: 8px !important; 
             margin-right: 15px !important;
@@ -522,26 +550,25 @@ def login_page():
             font-weight: 700 !important;
         }
 
-        /* 10. ENLACE DE CONTRASEÑA OLVIDADA (Asegurando color negro) */
+        /* 10. ENLACE DE CONTRASEÑA OLVIDADA (NEGRO) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #000000 !important; /* NEGRO */
+            color: #000000 !important; 
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
         button[key="btn_olvide_pass_login"] p {
-            color: #000000 !important; /* NEGRO */
+            color: #000000 !important; 
             text-shadow: none !important;
         }
         
-        /* 10.1 FIX CLAVE: ELIMINAR ESPACIO ENTRE BOTÓN DE SUBMIT Y BOTÓN DE OLVIDÉ CONTRASEÑA */
-        /* Busca el botón de olvidar contraseña inmediatamente después de su contenedor padre */
+        /* 10.1 FIX: ELIMINAR ESPACIO ENTRE BOTÓN DE SUBMIT Y BOTÓN DE OLVIDÉ CONTRASEÑA */
         .soft-glass-card > div[data-testid="stVerticalBlock"] > div > div > button[key="btn_olvide_pass_login"] {
-            margin-top: 15px !important; /* Mantenemos una separación pequeña, no cero */
+            margin-top: 10px !important; /* Espacio mínimo */
         }
 
 
@@ -577,18 +604,14 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
     
-    # st.markdown("""... ESTILOS DE CONFLICTO ANTERIORES ELIMINADOS AQUÍ ...""", unsafe_allow_html=True)
-
-
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
     
     with col_centro:
         
-        # Logo y sub-título (ELIMINADO el título grande en el paso anterior)
+        # Logo y sub-título
         st.image("assets/logotipo-aulametrics.png", width=300)
-        # Aseguramos que este texto también es visible (debería ser negro por el FIX 4.1)
-        st.markdown("<p style='font-size: 1.1em; color: black; font-weight: 500;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+        st.markdown("Tu asistente pedagógico y analista de datos.")
         
         # Tabs 
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -619,7 +642,7 @@ def login_page():
                         else:
                             st.error("Por favor, ingresa un correo electrónico.")
                             
-                # Botón Secundario: Cancelar y volver (FUERA del formulario, sin st.write)
+                # Botón Secundario: Cancelar y volver
                 if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
@@ -636,7 +659,7 @@ def login_page():
                     
                     if submitted:
                         try:
-                            # Asume que 'supabase' está definido en tu código principal
+                            # La lógica de autenticación debe ser accesible aquí
                             session = supabase.auth.sign_in_with_password({
                                 "email": email,
                                 "password": password
@@ -663,7 +686,6 @@ def login_page():
                                 st.error(f"Error al iniciar sesión: {e}")
                 
                 # Botón de recuperación FUERA del st.form("login_form")
-                # El CSS (10.1) asegura que este botón esté pegado al formulario sin espaciado extra.
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
@@ -2491,6 +2513,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
