@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V17.0 - Diseño: MODAL FIJO / MAÑANA CÁLIDA) ===
+# === 4. PÁGINA DE LOGIN (V18.0 - Diseño: NEON LUMINOSO / CORRECCIONES) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -395,7 +395,7 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL (MAÑANA CÁLIDA - MODAL FIJO) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL (NEON LUMINOSO Y AJUSTES) ---
     st.markdown("""
     <style>
         /* 1. CORRECCIÓN CRÍTICA: FORZAR 100vh Y ELIMINAR BARRAS INÚTILES */
@@ -425,37 +425,47 @@ def login_page():
             align-items: center; 
         }
         
-        /* 3. MODAL DE LOGIN (Tarjeta central, limpio y definido) */
+        /* 3. MODAL DE LOGIN (Semi-transparente, luminoso y con brillo) */
         .login-card-wrapper {
             width: 90%;
-            max-width: 400px; /* Ancho profesional y controlado */
+            max-width: 400px; 
             margin: auto; 
-            background-color: #FFFFFF; /* Fondo blanco sólido y legible */
+            /* AJUSTE 01: Caja Semi-transparente y LUMINOSA */
+            background-color: rgba(255, 255, 255, 0.95); 
             padding: 40px 30px;
             border-radius: 12px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Sombra elegante */
+            /* Brillo sutil constante */
+            box-shadow: 0 0 25px rgba(0, 188, 212, 0.2), 0 15px 40px rgba(0, 0, 0, 0.15); 
             text-align: center;
+            transition: all 0.3s ease-in-out;
         }
 
-        /* 4. AJUSTE DE INPUTS (Solución para inputs 'enormes' y sin estructura) */
-        /* Seleccionamos el elemento INPUT real dentro del contenedor de Streamlit */
+        /* 4. AJUSTE DE INPUTS y Efecto NEÓN al enfocar (Ajuste 01) */
         div[data-testid="stTextInput"] > div > div > input {
             height: 48px; /* Altura controlada, profesional */
-            border-radius: 8px; /* Bordes suaves */
-            border: 1px solid #B0BEC5; /* Borde sutil */
+            border-radius: 8px; 
+            border: 1px solid #B0BEC5; 
             padding: 10px 15px;
             font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        /* Efecto NEÓN al enfocar */
+        div[data-testid="stTextInput"] > div > div > input:focus {
+            border-color: #00BCD4 !important; /* Borde primario */
+            box-shadow: 0 0 12px rgba(0, 188, 212, 0.7); /* NEON GLOW VIBRANTE */
+            outline: none; 
         }
         
-        /* 5. BOTONES Y ACCENTS (CIAN EDUCATIVO - Invitación a la acción) */
+        /* 5. BOTONES Y ACCENTS (CIAN EDUCATIVO) */
         /* Botón de Iniciar Sesión (Primario) */
         div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #00BCD4 !important; /* Cian Brillante y atractivo */
+            background-color: #00BCD4 !important; 
             color: white !important; 
             border: none !important;
             font-weight: 700 !important;
             border-radius: 8px !important;
-            height: 50px; /* Altura proporcional al input */
+            height: 50px; 
             box-shadow: 0 4px 10px rgba(0, 188, 212, 0.4); 
             transition: background-color 0.2s;
         }
@@ -463,12 +473,13 @@ def login_page():
              background-color: #0097A7 !important; 
         }
 
-        /* Botones Secundarios (Registro/Volver) - Gris Cálido */
+        /* AJUSTE 03: Botones Secundarios (Registro/Volver) AHORA AZULES */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #78909C !important; /* Gris cálido y profesional */
+            background-color: #0097A7 !important; /* Azul más oscuro que el primario */
             color: white !important; 
             border-radius: 8px !important;
             height: 50px;
+            box-shadow: 0 4px 8px rgba(0, 151, 167, 0.4); 
         }
         div.stForm button[kind="secondary"] p, 
         button[key="btn_cancel_recov"] p {
@@ -478,85 +489,74 @@ def login_page():
         
         /* Estilo de Texto General */
         .login-card-wrapper h3, .login-card-wrapper p, .login-card-wrapper label p {
-            color: #333333 !important; /* Gris oscuro para profesionalismo */
+            color: #333333 !important; 
             text-align: left;
             font-weight: 500;
         }
-        .login-card-wrapper h3 { text-align: center; } /* Títulos centrados */
+        .login-card-wrapper h3 { text-align: center; } 
         
-        /* 6. PESTAÑAS (Estilo limpio, conector claro) */
+        /* 6. PESTAÑAS */
         div[data-testid="stTabs"] {
-            border-bottom: 2px solid #CFD8DC; /* Separador sutil */
+            border-bottom: 2px solid #CFD8DC; 
             margin-bottom: 20px; 
-        }
-        button[data-baseweb="tab"] {
-            background-color: transparent !important;
-            border-bottom: 2px solid transparent !important;
-            box-shadow: none;
-            transition: border-bottom 0.3s;
         }
         /* Pestaña SELECCIONADA */
         button[data-baseweb="tab"][aria-selected="true"] {
-            border-bottom: 3px solid #00BCD4 !important; /* Resaltado con color primario */
+            border-bottom: 3px solid #00BCD4 !important; 
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #00BCD4 !important;
             font-weight: 700 !important;
         }
-        button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: #78909C !important; 
-            font-weight: 600 !important;
-        }
         
-        /* 7. BOTÓN DE CONTRASEÑA OLVIDADA */
+        /* AJUSTE 03: BOTÓN DE CONTRASEÑA OLVIDADA (Ahora Azul) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #78909C !important; 
+            color: #0097A7 !important; /* Azul Secundario */
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
         }
         button[key="btn_olvide_pass_login"] p {
-            color: #78909C !important; 
+            color: #0097A7 !important; 
             text-shadow: none !important;
         }
         
-        /* 8. BOTÓN DE CONTACTO FLOTANTE (Mantenido) */
+        /* 7. AJUSTE 02: BOTÓN DE CONTACTO FLOTANTE (Centrado y Más Grande) */
         .contact-button-container {
             position: fixed !important;
             bottom: 30px !important; 
-            right: 30px !important; 
+            left: 50% !important; /* Centrado Horizontal */
+            transform: translateX(-50%); /* Ajuste de centrado */
+            width: auto !important; 
             z-index: 9999; 
         }
         .contact-button-container a {
             display: block; 
-            padding: 15px 25px;
-            background-color: #4CAF50; /* Verde más cálido */
+            padding: 18px 30px; /* Más grande */
+            background-color: #4CAF50; 
             color: white;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 18px; /* Texto más grande */
             font-weight: 800;
             box-shadow: 0 6px 15px rgba(76, 175, 80, 0.5); 
             transition: all 0.2s;
-        }
-        .contact-button-container a:hover {
-            background-color: #388E3C; 
+            min-width: 220px;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA (MODAL FIJO MAÑANA CÁLIDA) ---
+    # --- B. ESTRUCTURA (MODAL FIJO) ---
     
-    # 1. WRAPPER PRINCIPAL Y TARJETA (Controlando el ancho con CSS)
     st.markdown('<div class="login-card-wrapper">', unsafe_allow_html=True)
         
     # --- BRANDING DENTRO DEL MODAL ---
-    st.image("assets/logotipo-aulametrics.png", width=200) # Tamaño ajustado
+    st.image("assets/logotipo-aulametrics.png", width=200) 
     st.markdown("### Accede a tu plataforma")
     
     # --- TABS (LOGIN / REGISTRO) ---
@@ -618,7 +618,6 @@ def login_page():
             
             # Botón de recuperación FUERA del st.form("login_form")
             st.write("") 
-            # Alineamos el botón de 'olvidé' a la izquierda
             col_left, col_right = st.columns([1, 2])
             with col_left:
                  if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
@@ -643,7 +642,6 @@ def login_page():
             email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
             password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
             
-            # El botón de registro usa type="secondary"
             submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
             
             if submitted:
@@ -2406,6 +2404,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
