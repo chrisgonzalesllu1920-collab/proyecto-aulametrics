@@ -2897,21 +2897,46 @@ def home_page():
     
     
 # =========================================================================
-# === 7. EJECUCIÓN PRINCIPAL ===
+# === 7. CONTROLADOR PRINCIPAL - FIX: Normalización de Objeto a Diccionario ===
 # =========================================================================
+
+# Bloque de control de autenticación de Streamlit/Supabase.
 query_params = st.query_params
 auth_code = query_params.get("code")
 
 if auth_code and not st.session_state.logged_in:
     try:
-        session_data = supabase.auth.exchange_code_for_session(auth_code)
+        # 1. Intercambia el código por la sesión (Esto devuelve un OBJETO en el entorno real)
+        session_data = supabase.auth.exchange_code_for_session(auth_code) 
         if session_data.session:
             st.session_state.logged_in = True
-            st.session_state.user = session_data.session.user
+            
+            # --- FIX CRÍTICO: Normalizar a DICT ---
+            # Para garantizar la consistencia, convertimos el objeto del usuario a un diccionario
+            # antes de guardarlo en la sesión, ya que el login de contraseña (Sección 4) 
+            # devuelve y guarda un diccionario directamente.
+            user_obj = session_data.session.user
+            user_dict = {}
+            
+            # Intenta convertir el objeto Supabase a dict (usando .to_dict() o similar)
+            if hasattr(user_obj, 'to_dict'):
+                user_dict = user_obj.to_dict()
+            elif hasattr(user_obj, 'model_dump'):
+                user_dict = user_obj.model_dump()
+            else:
+                 # Fallback para el mock o si el objeto no tiene métodos de serialización
+                 user_dict = {
+                     "id": getattr(user_obj, 'id', None),
+                     "email": getattr(user_obj, 'email', None),
+                     "user_metadata": getattr(user_obj, 'user_metadata', {})
+                 }
+
+            st.session_state.user = user_dict # <--- AHORA SIEMPRE ES UN DICT (Normalizado)
             st.session_state.show_welcome_message = True
             st.query_params.clear() 
             st.rerun()
     except Exception:
+        # Manejo de errores durante el intercambio de código (por ejemplo, código expirado)
         st.query_params.clear() 
         pass 
     
