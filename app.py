@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.7 - TRANSPARENCIA FORZADA EN FORMULARIOS Y TABS) ===
+# === 4. PÁGINA DE LOGIN (V12.8 - TRANSPARENCIA FORZADA EN PANEL DE PESTAÑAS) ===
 # =========================================================================
 def login_page():
     
@@ -426,7 +426,7 @@ def login_page():
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) > div:nth-child(2) > div,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div,
         
-        /* **NUEVO FIX**: Para los contenedores de formularios dentro de las pestañas */
+        /* FIX: Para los contenedores de formularios dentro de las pestañas */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[data-testid="stForm"] > div {
              background-color: transparent !important;
         }
@@ -437,6 +437,12 @@ def login_page():
             border-left: 5px solid #E94057 !important; /* Usamos el color de la marca para el borde */
         }
         
+        /* 3d. **NUEVO FIX CRÍTICO**: TRANSPARENCIA DEL PANEL DE CONTENIDO DE PESTAÑAS (la caja que envuelve el contenido) */
+        /* Target the div that holds the actual content below the tab buttons */
+        div[data-testid="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[role="tabpanel"] {
+             background-color: transparent !important;
+        }
+
         /* 4. TEXTOS GENERALES (Blancos fuera del contenedor, se mantiene) */
         h1, h2, h3, p {
             color: #FFFFFF !important;
@@ -2454,6 +2460,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
