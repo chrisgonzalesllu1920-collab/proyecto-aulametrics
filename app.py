@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V22.0 - Botón Contacto Ajuste de Tamaño) ========
+# === 4. PÁGINA DE LOGIN (V23.0 - Botón Contacto FIX Z-INDEX) =============
 # =========================================================================
 def login_page():
     
@@ -563,31 +563,31 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mayor tamaño y color verde vibrante) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (Mayor tamaño, color verde y FIX de Z-INDEX) */
         .contact-button-container {
-            position: fixed !important;
+            position: fixed !important; /* Forzar posición fija */
             bottom: 30px !important; 
             right: 30px !important; 
             left: auto !important; 
-            width: 280px; /* Incrementado para mayor tamaño */
-            z-index: 9999; 
+            width: 280px !important; /* Incrementado para mayor tamaño */
+            z-index: 99999 !important; /* Valor muy alto para sobrescribir conflictos */
         }
         .contact-button-container a {
             display: block; 
-            padding: 25px 0; /* Más padding vertical para mayor altura */
-            background-color: #4CAF50; /* Verde más vivo */
-            color: white;
+            padding: 25px 0 !important; /* Más padding vertical para mayor altura */
+            background-color: #4CAF50 !important; /* Verde más vivo */
+            color: white !important;
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
-            font-size: 20px; /* Fuente más grande */
-            font-weight: 800;
+            font-size: 20px !important; /* Fuente más grande */
+            font-weight: 800 !important;
             box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4); /* Sombra verde */
             transition: all 0.2s;
             border: none;
         }
         .contact-button-container a:hover {
-            background-color: #45a049; /* Tono de verde al pasar el ratón */
+            background-color: #45a049 !important; /* Tono de verde al pasar el ratón */
             box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
             transform: translateY(-2px); 
         }
@@ -2504,6 +2504,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
