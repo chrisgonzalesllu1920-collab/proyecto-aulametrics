@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.2 - ALTO CONTRASTE EN PESTAÑAS DE LOGIN) ===
+# === 4. PÁGINA DE LOGIN (V12.3 - ESTILO DE TARJETA FLOTANTE (CARD UI)) ===
 # =========================================================================
 def login_page():
     
@@ -411,6 +411,17 @@ def login_page():
             display: none !important;
         }
         
+        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo blanco, padding y sombra al bloque principal */
+        /* Target the vertical block that contains the Tabs/Forms to create the card effect (for both login/register and recovery views) */
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
+            background-color: white !important;
+            padding: 2rem !important; /* Aumentamos el padding interno */
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra para efecto flotante */
+            border: none !important; /* Eliminar el borde nativo de Streamlit */
+        }
+        
         /* 4. TEXTOS GENERALES (Blancos fuera del contenedor, se mantiene) */
         h1, h2, h3, p {
             color: #FFFFFF !important;
@@ -421,10 +432,11 @@ def login_page():
         div[data-testid="stNotification"] p {
              color: #1a1a1a !important; 
         }
-        div[data-testid^="stBlock"] h3 {
-            color: #1a1a1a !important; 
-        }
-        div[data-testid^="stBlock"] label p {
+        /* Nos aseguramos que todos los textos dentro del Card sean oscuros */
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) h3,
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) label p,
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p {
             color: #1a1a1a !important; 
         }
 
@@ -529,9 +541,9 @@ def login_page():
         st.write("")
         
         # --- CONTENEDOR PRINCIPAL (AGRUPA LOS FORMULARIOS Y TABS) ---
-        # Usamos un contenedor nativo de Streamlit con borde para el efecto visual,
-        # sin aplicar CSS customizado que cause residuos.
-        with st.container(border=True): 
+        # Usamos un contenedor nativo de Streamlit para agrupar el contenido que será la "Tarjeta de Login".
+        # (El estilo de tarjeta se aplica via CSS)
+        with st.container(): 
         
             # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
             if st.session_state['view_recuperar_pass']:
@@ -2429,6 +2441,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
