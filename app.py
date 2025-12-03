@@ -749,13 +749,37 @@ def login_page():
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     
     # Usamos un <div> como contenedor de posición fija y el <a> interno para el estilo de botón.
-    st.markdown(f"""
-    <div id="floating-wrapper">
-        <a href="{url_netlify}" target="_blank">
-            💬 ¿Dudas? Contáctanos
-        </a>
-    </div>
+    st.markdown("""
+    <style>
+    #floating-wrapper a {
+        display: block !important;
+        background-color: #ff9900 !important;    /* 👉 color que quieres */
+        color: white !important;
+        padding: 20px 25px !important;
+        border-radius: 12px !important;
+        font-size: 20px !important;
+        font-weight: 800 !important;
+        text-decoration: none !important;
+        text-align: center !important;
+        width: 100% !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25) !important;
+    }
+    
+    #floating-wrapper a:hover {
+        background-color: #cc7a00 !important;    /* 👉 color hover */
+        transform: translateY(-2px) !important;
+    }
+    
+    #floating-wrapper {
+        position: fixed !important;
+        bottom: 25px !important;
+        right: 25px !important;
+        width: 250px !important;
+        z-index: 9999 !important;
+    }
+    </style>
     """, unsafe_allow_html=True)
+
 
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2513,6 +2537,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
