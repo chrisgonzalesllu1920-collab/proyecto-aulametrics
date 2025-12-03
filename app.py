@@ -394,205 +394,187 @@ def login_page():
     # --- A. INYECCIÓN DE ESTILO VISUAL (FONDO DE IMAGEN Y FIX BARRA BLANCA) ---
     st.markdown("""
     <style>
-        /* 1. FONDO DE IMAGEN */
+        /* ------------------------------------------------------ */
+        /* 1. FONDO DE LA PÁGINA                                  */
+        /* ------------------------------------------------------ */
         [data-testid="stAppViewContainer"] {
-            /* Ruta confirmada: assets/mifondo.png */
             background: url('assets/mifondo.png') center center / cover no-repeat fixed;
-            /* Se ha eliminado el color de fallback oscuro. */
         }
-        
-        /* 2. LIMPIEZA DE INTERFAZ */
+    
+        /* ------------------------------------------------------ */
+        /* 2. LIMPIEZA GENERAL                                    */
+        /* ------------------------------------------------------ */
         .block-container {
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
         }
         header[data-testid="stHeader"], footer {
             display: none !important;
-            visibility: hidden;
+            visibility: hidden !important;
         }
-        
-        /* 3. TARJETA PRINCIPAL (Soft Glass Card - Blanco Opaco) */
+    
+        /* ------------------------------------------------------ */
+        /* 3. TARJETA PRINCIPAL (Soft Glass Card)                 */
+        /* ------------------------------------------------------ */
         .soft-glass-card {
-            background-color: rgba(255, 255, 255, 0.95); 
+            background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.1);
         }
-        
-        /* 4. TEXTOS GLOBALES - Asegura que todos los textos sean negros para contraste */
+    
+        /* ------------------------------------------------------ */
+        /* 4. TEXTOS GLOBALES                                     */
+        /* ------------------------------------------------------ */
         h1, h2, h3, .stMarkdown p {
-            color: #000000 !important; /* Negro */
-            text-shadow: none !important; 
+            color: #000 !important;
+            text-shadow: none !important;
         }
-        
-        /* 4.1 FIX: TODOS LOS TEXTOS DENTRO DEL CARD DEBEN SER NEGROS */
+    
         .soft-glass-card label p,
         .soft-glass-card h3,
-        .soft-glass-card h3 span,
         .soft-glass-card p,
-        .stForm label p { 
-            color: #000000 !important; /* NEGRO */
-            text-shadow: none !important;
-            font-weight: 600 !important; 
+        .stForm label p {
+            color: #000 !important;
+            font-weight: 600 !important;
         }
-
-        /* 5. ELIMINACIÓN DE ESPACIOS NO DESEADOS Y BARRA BLANCA (FIX) */
-        /* Elimina el espacio extra al final del logo */
-        div[data-testid="stImage"] {
-            margin-bottom: -15px !important; 
+    
+        /* ------------------------------------------------------ */
+        /* 5. FIX - ELIMINAR BARRA BLANCA BAJO LAS PESTAÑAS       */
+        /* ------------------------------------------------------ */
+    
+        /* ELIMINA PADDING INTERNO DEL PANEL */
+        div[data-testid="stTabPanel"] {
+            padding-top: 0 !important;
+            margin-top: -10px !important;
+            background: transparent !important;
         }
-        
-        /* A. Contenedor de las pestañas (la barra horizontal) */
-        div[data-testid="stTabs"] {
-            padding-top: 0px !important;
-            margin-top: 0px !important;
-            margin-bottom: 0px; 
-        }
-
-        /* B. Elemento que suele tener el borde/fondo blanco bajo las pestañas */
+    
+        /* QUITA BORDE Y FONDO BAJO LAS PESTAÑAS */
         div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
         }
-
-        /* C. La línea divisoria de las pestañas que puede parecer una barra */
+    
+        /* QUITA LÍNEA DIVISORIA DE LOS TABS */
         button[data-baseweb="tab"] {
-            border-bottom: none !important; /* Elimina la línea divisoria */
-            margin-bottom: -10px !important; /* Ajuste fino */
+            border-bottom: none !important;
+            margin-bottom: -10px !important;
         }
-        
-        /* D. Contenedor del contenido del tab (elimina padding interno) */
+    
+        /* ELIMINAR ESPACIO FANTASMA */
         div[role="tabpanel"] {
             padding: 0 !important;
             margin: 0 !important;
         }
-
-        /* E. Hack de margen negativo para subir el contenido y eliminar el espacio residual */
+    
+        /* CONTENIDO MÁS ARRIBA (ELIMINA HUECO FANTASMA) */
         .tab-content-wrapper {
-            margin-top: -30px !important; /* Sube la tarjeta para cubrir el espacio */
-            padding-top: 0px !important;
+            margin-top: -30px !important;
         }
-        /* FIN FIX CLAVE DE BARRAS BLANCAS Y ESPACIADO EN TABS */
-        
-        /* 6. INPUTS - Diseño limpio y claro dentro del card */
+    
+        /* ------------------------------------------------------ */
+        /* 6. INPUTS                                               */
+        /* ------------------------------------------------------ */
         input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: #FFFFFF !important; 
-            border: 1px solid rgba(0, 0, 0, 0.2) !important; 
+            color: #000 !important;
+            background-color: #FFF !important;
+            border: 1px solid rgba(0,0,0,0.2) !important;
             border-radius: 8px !important;
         }
         ::placeholder {
-            color: #555555 !important;
+            color: #555 !important;
         }
-        
-        /* 7. BOTONES PRINCIPALES (AZUL INSTITUCIONAL) */
-        div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #007bff !important; 
-            color: white !important; 
-            border: none !important;
-            font-weight: bold !important;
+    
+        /* ------------------------------------------------------ */
+        /* 7. BOTONES PRINCIPALES                                  */
+        /* ------------------------------------------------------ */
+        div.stForm button[kind="primary"], 
+        button[key="btn_login_submit"] {
+            background-color: #007bff !important;
+            color: white !important;
             border-radius: 8px !important;
-            margin-top: 5px; 
-        }
-
-        /* 8. BOTÓN SECUNDARIO (GRIS NEUTRAL) */
-        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #6c757d !important; 
-            color: white !important; 
-            border: none !important;
             font-weight: bold !important;
+        }
+    
+        /* ------------------------------------------------------ */
+        /* 8. BOTONES SECUNDARIOS                                  */
+        /* ------------------------------------------------------ */
+        div.stForm button[kind="secondary"], 
+        button[key="btn_cancel_recov"] {
+            background-color: #6c757d !important;
+            color: white !important;
             border-radius: 8px !important;
         }
-        div.stForm button[kind="secondary"] p, 
-        button[key="btn_cancel_recov"] p {
-             color: white !important; 
-             text-shadow: none !important;
-        }
-
-        /* 9. PESTAÑAS (Tabs) - Estilo Botón Flotante */
+    
+        /* ------------------------------------------------------ */
+        /* 9. PESTAÑAS                                             */
+        /* ------------------------------------------------------ */
         button[data-baseweb="tab"] {
-            border-radius: 8px !important; 
+            border-radius: 8px !important;
             margin-right: 15px !important;
             padding: 10px 20px !important;
-            border-bottom: none !important; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
-        /* Pestaña SELECCIONADA */
+    
         button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            border: 2px solid #007bff !important; 
+            background-color: #FFF !important;
+            border: 2px solid #007bff !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #007bff !important; 
+            color: #007bff !important;
             font-weight: 700 !important;
         }
-
-        /* Pestaña NO SELECCIONADA */
+    
         button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #4682B4 !important; 
+            background-color: #4682B4 !important;
             border: 2px solid #4682B4 !important;
         }
         button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: #FFFFFF !important; 
+            color: #FFF !important;
             font-weight: 700 !important;
         }
-
-        /* 10. ENLACE DE CONTRASEÑA OLVIDADA */
+    
+        /* ------------------------------------------------------ */
+        /* 10. ¿OLVIDASTE TU CONTRASEÑA?                          */
+        /* ------------------------------------------------------ */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
-            padding: 0px !important;
-            color: #000000 !important; 
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
+            text-decoration: underline !important;
+            color: #000 !important;
         }
-        button[key="btn_olvide_pass_login"] p {
-            color: #000000 !important; 
-            text-shadow: none !important;
-        }
-        
-        /* 10.1 FIX: ELIMINAR ESPACIO ENTRE BOTÓN DE SUBMIT Y BOTÓN DE OLVIDÉ CONTRASEÑA */
-        .soft-glass-card > div[data-testid="stVerticalBlock"] > div > div > button[key="btn_olvide_pass_login"] {
-            margin-top: 15px !important; 
-        }
-
-
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (FIX: Reintroducing wrapper for fixed position) */
-        /* Contenedor que maneja la posición fija en el viewport */
+    
+        /* ------------------------------------------------------ */
+        /* 11. BOTÓN FLOTANTE DE CONTACTO                         */
+        /* ------------------------------------------------------ */
         #floating-wrapper {
-            position: fixed !important; 
-            bottom: 30px !important; 
-            right: 30px !important; 
-            left: auto !important; 
-            width: 280px !important; 
-            z-index: 99999 !important; 
-            border: none; /* Asegurar que el contenedor no tenga borde */
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 280px;
+            z-index: 99999 !important;
         }
-
-        /* Estilos de apariencia aplicados al enlace <a> dentro del contenedor */
+    
         #floating-wrapper button {
-            display: block !important;
-            padding: 25px 0 !important;
-            background-color: #ff9900 !important;        /* <-- COLOR QUE QUIERES */
+            background-color: #ff9900 !important;
             color: white !important;
-            text-align: center !important;
-            border-radius: 10px !important;
+            padding: 25px 0 !important;
             font-size: 20px !important;
             font-weight: 800 !important;
-            width: 100% !important;
+            border-radius: 10px !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
             border: none !important;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
-}
-#floating-wrapper button:hover {
-    background-color: #cc7a00 !important;         /* <-- COLOR HOVER */
-    transform: translateY(-2px) !important;
-        
+        }
+    
+        #floating-wrapper button:hover {
+            background-color: #cc7a00 !important;
+            transform: translateY(-2px) !important;
+        }
+    
     </style>
     """, unsafe_allow_html=True)
     
@@ -2549,6 +2531,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
