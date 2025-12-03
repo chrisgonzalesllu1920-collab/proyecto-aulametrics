@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.9 - AJUSTE DE PADDING SUPERIOR) ===
+# === 4. PÁGINA DE LOGIN (V12.0 - ELIMINACIÓN DE BIENVENIDA REDUNDANTE) ===
 # =========================================================================
 def login_page():
     
@@ -506,7 +506,7 @@ def login_page():
         
         # TÍTULOS Y BRANDING (Fuera del container para usar color blanco)
         st.image("assets/logotipo-aulametrics.png", width=300)
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        # ELIMINADO: st.subheader("Bienvenido a AulaMetrics", anchor=False) 
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
@@ -2411,6 +2411,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
