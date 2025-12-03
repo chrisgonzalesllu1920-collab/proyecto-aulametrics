@@ -748,7 +748,7 @@ def login_page():
     st.markdown(f"""
     <div id="floating-wrapper">
         <a href="{url_netlify}" target="_blank">
-            💬 ¿Dudas? Contáctanos
+            💬 ¿Dudas? Contáctanos/TikTok
         </a>
     </div>
     """, unsafe_allow_html=True)
@@ -2509,6 +2509,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
