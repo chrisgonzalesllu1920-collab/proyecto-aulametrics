@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V27.0 - FIX BLANCO RESIDUAL Y BOTÓN FLOTANTE) ===
+# === 4. PÁGINA DE LOGIN (V25.1 - Estilos de Contacto Consolidados) =======
 # =========================================================================
 
 # NOTA: Esta función asume que las librerías 'st' (Streamlit) y 'supabase'
@@ -458,7 +458,14 @@ def login_page():
             margin-top: 0px !important;
             margin-bottom: 0px;
         }
-        
+
+        /* B. Elemento que suele tener el borde/fondo blanco bajo las pestañas */
+        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
         /* C. La línea divisoria de las pestañas que puede parecer una barra */
         button[data-baseweb="tab"] {
             border-bottom: none !important; /* Elimina la línea divisoria */
@@ -469,20 +476,8 @@ def login_page():
         div[role="tabpanel"] {
             padding: 0 !important;
             margin: 0 !important;
-            /* Asegura que el contenedor de la pestaña no tenga fondo */
-            background-color: transparent !important; 
         }
 
-        /* *** FIX CLAVE CONTRA EL RECUADRO BLANCO RESIDUAL (ESTRATEGIA 2) *** */
-        /* B. Target el bloque vertical interno que genera el fondo y padding por defecto */
-        div[role="tabpanel"] [data-testid="stVerticalBlock"] {
-            background-color: transparent !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-        }
-        
         /* E. Hack de margen negativo para subir el contenido y eliminar el espacio residual */
         .tab-content-wrapper {
             margin-top: -30px !important; /* Sube la tarjeta para cubrir el espacio */
@@ -578,35 +573,36 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS Y REFORZADOS) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS) */
         /* Contenedor que maneja la posición fija en el viewport */
         #floating-wrapper {
             position: fixed !important;
-            bottom: 25px !important; 
-            right: 25px !important; 
+            bottom: 25px !important; /* Ajuste para el estilo limpio */
+            right: 25px !important; /* Ajuste para el estilo limpio */
             left: auto !important;
             z-index: 99999 !important;
+            border: none; /* Asegurar que el contenedor no tenga borde */
         }
 
         /* Estilos de apariencia aplicados al enlace <a> dentro del contenedor */
         #floating-wrapper a {
-            display: block !important;
+            display: block;
             background: #00b33c !important; /* Verde Institucional/Contacto */
             color: white !important;
             padding: 14px 20px !important;
-            text-align: center !important;
-            text-decoration: none !important;
-            border-radius: 10px !important;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
             font-size: 18px !important;
             font-weight: 800 !important;
-            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4) !important;
-            transition: all 0.2s !important;
-            border: none !important;
+            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4);
+            transition: all 0.2s;
+            border: none;
         }
         #floating-wrapper a:hover {
             background: #cc7a00 !important; /* Naranja/Ámbar en Hover */
-            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6) !important;
-            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
+            transform: translateY(-2px);
         }
 
     </style>
@@ -765,6 +761,7 @@ def login_page():
         </a>
     </div>
     """, unsafe_allow_html=True)
+
 
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2522,6 +2519,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
