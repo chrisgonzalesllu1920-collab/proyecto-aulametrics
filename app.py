@@ -383,98 +383,182 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V24.0 - Intento de Corrección Bivalente en Mock) ===
+# === 4. PÁGINA DE LOGIN (V11.7 - FIX Final de Contraste y Recuadro) ===
 # =========================================================================
-import streamlit as st
-# Nota: La importación de streamlit es necesaria si esta función se llama directamente.
-
 def login_page():
-    # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
     
     # Inicializar el estado de la vista de recuperación
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILOS PERSONALIZADOS (SOLO FONDO Y BOTÓN FLOTANTE) ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
-        /* 1. Degradado de Fondo Solicitado: NARANJA con AMARILLO PASTEL */
+        /* 1. FONDO DEGRADADO */
         [data-testid="stAppViewContainer"] {
-            /* Degradado Suave y Cálido: Amarillo Pastel (#FFD54F) a Naranja Suave (#FFAB40) */
-            background: linear-gradient(135deg, #FFD54F 0%, #FFAB40 100%); 
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
             background-size: cover;
             background-attachment: fixed;
         }
+        
+        /* 2. LIMPIEZA DE INTERFAZ */
+        .block-container {
+            padding-top: 3rem !important;
+            padding-bottom: 2rem !important;
+        }
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: none !important;
+        }
+        
+        /* 3. TARJETA DE CRISTAL (Contenedor principal en col_centro) */
+        .glass-card {
+             background-color: rgba(255, 255, 255, 0.25);
+             backdrop-filter: blur(15px);
+             padding: 40px;
+             border-radius: 20px;
+             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+             border: 1px solid rgba(255, 255, 255, 0.4);
+             margin-top: 20px; /* Separación del encabezado */
+        }
+        
+        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        h1, h2, h3, p {
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
 
-        /* 2. BOTÓN DE CONTACTO FLOTANTE: AJUSTE DE TAMAÑO Y POSICIÓN */
-        .contact-button-container-default {
-            position: fixed;
-            bottom: 30px; 
-            right: 50px; /* Separación mayor del borde derecho (ajuste de posición) */
-            z-index: 9999; 
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
+        .glass-card label p, .glass-card h3, .glass-card h3 span, .glass-card p {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+            font-weight: 600 !important; 
         }
-        .contact-button-container-default a {
-            display: block; 
-            padding: 18px 30px; /* Botón más grande */
-            background-color: #4CAF50; 
-            color: white;
-            text-align: center;
+        /* Color para el texto de info/warning en modo recuperación */
+        div[data-testid="stNotification"] p {
+             color: #1a1a1a !important;
+        }
+
+        /* 6. INPUTS */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important;
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        ::placeholder {
+            color: #555555 !important;
+            opacity: 1 !important;
+        }
+
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        button[data-baseweb="tab"] div p {
+            color: #333333 !important;
+            font-weight: bold !important;
+            text-shadow: none !important;
+        }
+        button[data-baseweb="tab"] {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            margin-right: 5px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #E94057 !important;
+        }
+        
+        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) */
+        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
+            background-color: #ffffff !important;
+            /* FIX 3: Aseguramos texto rojo sobre fondo blanco */
+            color: #E94057 !important; 
+            border: 2px solid #E94057 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
+            background-color: #E94057 !important;
+            color: white !important; /* Mantenemos blanco en hover, que es el fondo oscuro */
+        }
+        
+        /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) */
+        button[key="btn_olvide_pass_login"] {
+            background: none !important;
+            border: none !important;
+            padding: 0px !important;
+            /* FIX 2: Mantenemos negro oscuro para alto contraste */
+            color: #333333 !important; 
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: fit-content;
+        }
+        button[key="btn_olvide_pass_login"]:hover {
+            color: #E94057 !important; /* Cambiamos a color primario en hover */
             text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px; /* Texto más grande */
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
-            transition: background-color 0.2s;
         }
-        .contact-button-container-default a:hover {
-            background-color: #388E3C; 
+
+        /* 10. ELIMINAR RECUADRO DE FONDOS HEREDADOS (Captura 01) */
+        div[data-testid="stMarkdownContainer"] {
+            background: none !important;
         }
+        
+        footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-    # El contenido se envuelve en un contenedor central simple de Streamlit
-    col_center = st.columns([1, 4, 1])
+    # --- B. ESTRUCTURA ---
+    col1, col_centro, col3 = st.columns([1, 4, 1])
     
-    with col_center[1]: # El contenido se centra en la columna del medio
+    with col_centro:
         
-        # --- BRANDING DENTRO DEL MODAL ---
-        st.image("assets/logotipo-aulametrics.png", width=200) 
-        st.markdown("### Accede a tu plataforma")
+        # Elementos fuera de la tarjeta
+        st.image("assets/logotipo-aulametrics.png", width=300)
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        st.write("")
         
-        # --- TABS (LOGIN / REGISTRO) ---
-        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-        # --- PESTAÑA 1: LOGIN ---
-        with tab_login:
+        # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        
+        # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
+        if st.session_state['view_recuperar_pass']:
             
-            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
-            if st.session_state['view_recuperar_pass']:
+            with st.form("recovery_form", clear_on_submit=True):
+                st.markdown("### 🔄 Restablecer Contraseña")
+                # El texto de info/warning ahora usa el color #1a1a1a gracias al CSS
+                st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
                 
-                with st.form("recovery_form_tab_login", clear_on_submit=True):
-                    st.markdown("### 🔄 Restablecer Contraseña", unsafe_allow_html=True)
-                    st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
-                    
-                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
-                    
-                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+                email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+                
+                submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
 
-                    if submitted:
-                        if email_recuperacion:
-                            st.toast("Procesando solicitud...")
-                            st.warning("⚠️ LÓGICA DE ENVÍO PENDIENTE (Paso 2)")
-                        else:
-                            st.error("Por favor, ingresa un correo electrónico.")
-                            
-                # Botón Secundario: Cancelar y volver (FUERA del formulario)
-                st.write("") 
-                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
-                    st.session_state['view_recuperar_pass'] = False
-                    st.rerun()
+                if submitted:
+                    if email_recuperacion:
+                        st.toast("Procesando solicitud...")
+                        st.warning("⚠️ LOGICA DE ENVÍO PENDIENTE (Paso 2)")
+                    else:
+                        st.error("Por favor, ingresa un correo electrónico.")
+                        
+            # Botón Secundario: Cancelar y volver (FUERA del formulario)
+            st.write("") 
+            if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
+                st.session_state['view_recuperar_pass'] = False
+                st.rerun()
 
-            # --- VISTA NORMAL: LOGIN ---
-            else:
+        # --- VISTA NORMAL: LOGIN Y REGISTRO ---
+        else:
+            
+            tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
+
+            # --- PESTAÑA 1: LOGIN ---
+            with tab_login:
+                
                 with st.form("login_form"):
-                    st.markdown("### 🔐 Inicio de Sesión", unsafe_allow_html=True)
+                    st.markdown("### 🔐 Acceso Docente")
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                     
@@ -482,24 +566,31 @@ def login_page():
                     
                     if submitted:
                         try:
-                            # LOGICA DE AUTENTICACIÓN (Manteniendo la estructura original)
-                            # session = supabase.auth.sign_in_with_password(...)
-                            st.session_state.logged_in = True
+                            # 1. Ejecutar la autenticación con Supabase
+                            session_data = supabase.auth.sign_in_with_password({
+                                "email": email,
+                                "password": password
+                            })
                             
-                            # MOCK DE USUARIO (Diccionario)
-                            # Este diccionario debe ser manejado con CORCHETES en home_page().
-                            st.session_state.user = {
-                                "email": email, 
-                                "id": "user_123", 
-                                "user_metadata": {
-                                    "full_name": "Usuario Demo" 
-                                }
-                            }
-                            st.session_state.show_welcome_message = True
-                            if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                            st.rerun() 
-                        except NameError:
-                             st.error("Error: 'supabase' no está definido. Revisa la configuración de tu cliente.")
+                            # 2. Normalización del Objeto de Usuario a Diccionario (Garantizando consistencia con la Sección 7)
+                            # Supabase retorna un diccionario o un objeto que contiene 'user'
+                            user_data = session_data.get('user') if isinstance(session_data, dict) else getattr(session_data, 'user', None)
+
+                            if user_data:
+                                # Si es un objeto (o tiene el método), lo convertimos a diccionario
+                                if hasattr(user_data, 'to_dict'):
+                                    user_data = user_data.to_dict()
+                                # Si no es un diccionario en este punto, asumimos que ya lo es o usamos el valor
+                                
+                                st.session_state.logged_in = True
+                                st.session_state.user = user_data # <--- Guardamos el diccionario (normalizado o ya dict)
+                                st.session_state.show_welcome_message = True
+                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                st.rerun() 
+                            else:
+                                # Esto captura fallos de credenciales si la excepción no fue lanzada directamente
+                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+
                         except Exception as e:
                             error_message = str(e)
                             if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
@@ -509,685 +600,78 @@ def login_page():
                 
                 # Botón de recuperación FUERA del st.form("login_form")
                 st.write("") 
-                col_left, col_right = st.columns([1, 2])
-                with col_left:
-                     if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                        st.session_state['view_recuperar_pass'] = True
-                        st.rerun()
+                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                    st.session_state['view_recuperar_pass'] = True
+                    st.rerun()
+
+
+            # --- PESTAÑA 2: REGISTRO ---
+            with tab_register:
+                if 'form_reset_id' not in st.session_state:
+                    st.session_state['form_reset_id'] = 0
+                reset_id = st.session_state['form_reset_id']
+
+                if st.session_state.get('registro_exitoso', False):
+                    st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                    st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
                     
-
-        # --- PESTAÑA 2: REGISTRO ---
-        with tab_register:
-            
-            if 'form_reset_id' not in st.session_state:
-                st.session_state['form_reset_id'] = 0
-            reset_id = st.session_state['form_reset_id']
-
-            if st.session_state.get('registro_exitoso', False):
-                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                
-            with st.form("register_form"):
-                st.markdown("### 📝 Nuevo Usuario", unsafe_allow_html=True)
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                
-                # El botón de registro usa type="secondary"
-                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                
-                if submitted:
-                    if not name or not email or not password:
-                        st.warning("Por favor, completa todos los campos.")
-                    else:
-                        try:
-                            # LOGICA DE REGISTRO (Manteniendo la estructura original)
-                            # user = supabase.auth.sign_up({...})
-                            st.session_state['form_reset_id'] += 1
-                            st.session_state['registro_exitoso'] = True
-                            st.rerun()
-                        except NameError:
-                            st.error("Error: 'supabase' no está definido. Revisa la configuración de tu cliente.")
-                        except Exception as e:
-                            st.error(f"Error en el registro: {e}")
-                            
-    # --- C. BOTÓN DE CONTACTO FLOTANTE ---
-    url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-    
-    st.markdown(f"""
-    <div class="contact-button-container-default">
-        <a href="{url_netlify}" target="_blank">
+                with st.form("register_form"):
+                    st.markdown("### 📝 Nuevo Usuario")
+                    name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                    email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@emai.com")
+                    password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                    
+                    submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
+                    
+                    if submitted:
+                        if not name or not email or not password:
+                            st.warning("Por favor, completa todos los campos.")
+                        else:
+                            try:
+                                user = supabase.auth.sign_up({
+                                    "email": email,
+                                    "password": password,
+                                    "options": {
+                                        "data": { 'full_name': name }
+                                    }
+                                })
+                                st.session_state['form_reset_id'] += 1
+                                st.session_state['registro_exitoso'] = True
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error en el registro: {e}")
+        
+        # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
+        st.markdown('</div>', unsafe_allow_html=True) 
+        
+        # Elementos fuera de la tarjeta (siempre visibles)
+        st.divider()
+        
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
+        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
+        
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #00C853;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
+        ">
             💬 ¿Dudas? Contáctanos
         </a>
-    </div>
-    """, unsafe_allow_html=True)
-
-# =========================================================================
-# === 5. FUNCIONES AUXILIARES ===
-# =========================================================================
-ISOTIPO_PATH = "assets/isotipo.png"
-RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
-
-@st.cache_data(ttl=3600)
-def cargar_datos_pedagogicos():
-    try:
-        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
-        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
-        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
-        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
-        
-        df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
-        df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
-        
-        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
-        
-        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
-        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
-        
-        df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
-        df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
-        
-        return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
-    
-    except FileNotFoundError:
-        st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
-        return None, None, None, None
-    except Exception as e:
-        st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
-        return None, None, None, None
-
-# --- FUNCIÓN (UPLOADER) - v3.0 MULTI-HOJA ---
-def configurar_uploader():
-    """
-    Procesa el archivo Excel.
-    AHORA GUARDA TODAS LAS HOJAS EN MEMORIA para el análisis integral.
-    """
-    uploaded_file = st.file_uploader(
-        "Sube tu archivo de Excel aquí", 
-        type=["xlsx", "xls"], 
-        key="file_uploader"
-    )
-
-    if uploaded_file is not None:
-        with st.spinner('Procesando todas las áreas...'):
-            try:
-                # 1. Leer el archivo Excel
-                excel_file = pd.ExcelFile(uploaded_file)
-                sheet_names = excel_file.sheet_names
-                
-                # 2. Filtrar hojas que no son áreas (Generalidades, etc.)
-                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros', 'generalidades']
-                valid_sheets = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
-
-                # 3. Ejecutar análisis de frecuencias (Tab 1)
-                results_dict = analysis_core.analyze_data(excel_file, valid_sheets)
-                st.session_state.info_areas = results_dict
-                st.session_state.df_cargado = True
-                
-                # --- 4. ¡LA CLAVE! LEER Y GUARDAR TODAS LAS HOJAS ---
-                # Creamos un diccionario donde guardaremos: {'Matemática': df_mate, 'Arte': df_arte...}
-                all_dataframes = {}
-                
-                for sheet in valid_sheets:
-                    try:
-                        # Leemos cada hoja individualmente
-                        df_temp = pd.read_excel(uploaded_file, sheet_name=sheet, header=0)
-                        all_dataframes[sheet] = df_temp
-                    except:
-                        pass # Si una hoja falla, la saltamos para no romper todo
-                
-                # Guardamos este "Tesoro" en la memoria de la App
-                st.session_state.all_dataframes = all_dataframes
-
-                # Mantenemos st.session_state.df solo para compatibilidad (usamos la primera hoja)
-                if valid_sheets:
-                    st.session_state.df = all_dataframes[valid_sheets[0]]
-                
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"Error al procesar el archivo: {e}")
-                st.session_state.df_cargado = False
-
-def mostrar_analisis_general(results):
-    st.markdown("---")
-    st.subheader("Resultados Consolidados por Área")
-
-    first_sheet_key = next(iter(results), None)
-    general_data = {}
-    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
-        general_data = results[first_sheet_key]['generalidades']
-        st.info(f"Datos del Grupo: Nivel: **{general_data.get('nivel', 'Desconocido')}** | Grado: **{general_data.get('grado', 'Desconocido')}**")
-    
-    st.sidebar.subheader("⚙️ Configuración del Gráfico")
-    
-    chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
-    st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
-
-    tabs = st.tabs([f"Área: {sheet_name}" for sheet_name in results.keys()])
-
-    for i, (sheet_name, result) in enumerate(results.items()):
-        with tabs[i]:
-            if 'error' in result:
-                st.error(f"Error al procesar la hoja '{sheet_name}': {result['error']}")
-                continue
-            competencias = result['competencias']
-            if not competencias:
-                st.info(f"No se encontraron datos de competencias en la hoja '{sheet_name}'.")
-                continue
-
-            st.markdown("##### 1. Distribución de Logros")
+        """, unsafe_allow_html=True)
             
-            data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
-            
-            for col_original_name, comp_data in competencias.items():
-                counts = comp_data['conteo_niveles']
-                total = comp_data['total_evaluados']
-                data['Competencia'].append(comp_data['nombre_limpio']) 
-                for level in ['AD', 'A', 'B', 'C']:
-                    count = counts.get(level, 0)
-                    porcentaje = (count / total * 100) if total > 0 else 0
-                    data[f'{level} (Est.)'].append(count)
-                    data[f'% {level}'].append(f"{porcentaje:.1f}%")
-                data['Total'].append(total)
-            df_table = pd.DataFrame(data).set_index('Competencia')
-            st.dataframe(df_table)
-            
-            excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
-            st.download_button(label=f"⬇️ Exportar Excel ({sheet_name})", data=excel_data, file_name=f'Frecuencias_{sheet_name}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', key=f'download_excel_{sheet_name}')
+    # Fin del with col_centro
 
-            st.markdown("---")
-            competencia_nombres_limpios = df_table.index.tolist()
-            selected_comp = None 
-
-            if st.session_state.chart_type == 'Barras (Por Competencia)':
-                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_bar_{sheet_name}')
-                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'})
-                df_bar = df_bar_data.reset_index()
-                df_bar.columns = ['Nivel', 'Estudiantes']
-                fig = px.bar(df_bar, x='Nivel', y='Estudiantes', title=f"Logros: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
-                st.plotly_chart(fig, use_container_width=True)
-            
-            elif st.session_state.chart_type == 'Pastel (Proporción)':
-                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_pie_{sheet_name}')
-                data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
-                data_pie = data_pie_data.reset_index()
-                data_pie.columns = ['Nivel', 'Estudiantes']
-                fig = px.pie(data_pie, values='Estudiantes', names='Nivel', title=f"Proporción: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
-                st.plotly_chart(fig, use_container_width=True)
-
-            st.markdown("---")
-            if selected_comp:
-                st.session_state[f'selected_comp_{sheet_name}'] = selected_comp
-            selected_comp_key = f'selected_comp_{sheet_name}'
-            
-            if st.button(f"🎯 Propuestas de mejora", key=f"asistente_comp_{sheet_name}", type="primary"):
-                if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
-                    comp_name_limpio = st.session_state[selected_comp_key]
-                    with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
-                        st.markdown(ai_report_text, unsafe_allow_html=True)
-                else:
-                    st.warning("Selecciona una competencia en el desplegable de gráficos.")
-
-# =========================================================================
-# === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) - v5.0 FINAL CON WORD ===
-# =========================================================================
-def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
-    """
-    Muestra el perfil INTEGRAL y permite descargar INFORME WORD.
-    """
-    st.markdown("---")
-    st.header("🧑‍🎓 Perfil Integral del Estudiante")
-    
-    if 'all_dataframes' not in st.session_state or not st.session_state.all_dataframes:
-        st.warning("⚠️ No se han cargado datos. Sube un archivo en la Pestaña 1.")
-        return
-
-    all_dfs = st.session_state.all_dataframes
-    
-    # 1. DETECCIÓN DE COLUMNA
-    posibles_nombres = [
-        "Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", 
-        "ALUMNO", "Alumno", "Nombres y Apellidos", "Nombre Completo", 
-        "Nombres", "NOMBRES"
-    ]
-    
-    first_sheet_name = next(iter(all_dfs))
-    df_base = all_dfs[first_sheet_name]
-    
-    col_nombre = None
-    for col in df_base.columns:
-        if str(col).strip() in posibles_nombres:
-            col_nombre = col
-            break
-    
-    if not col_nombre:
-        st.error(f"❌ No encontramos la columna de nombres en la hoja '{first_sheet_name}'.")
-        return
-
-    # 2. SELECTOR
-    lista_estudiantes = df_base[col_nombre].dropna().unique()
-    estudiante_sel = st.selectbox("🔍 Busca al estudiante:", options=lista_estudiantes, index=None, placeholder="Escribe nombre...")
-
-    if estudiante_sel:
-        st.divider()
-        st.subheader(f"📊 Reporte Global: {estudiante_sel}")
-        
-        # --- 3. BARRIDO CON MEMORIA DE ÁREAS ---
-        total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
-        desglose_areas = {'AD': [], 'A': [], 'B': [], 'C': []}
-        areas_analizadas = 0
-        
-        # Barra de progreso
-        my_bar = st.progress(0, text="Analizando áreas...")
-        total_sheets = len(all_dfs)
-        
-        for i, (area_name, df_area) in enumerate(all_dfs.items()):
-            my_bar.progress((i + 1) / total_sheets, text=f"Revisando: {area_name}")
-            
-            c_name_local = None
-            for c in df_area.columns:
-                if str(c).strip() in posibles_nombres:
-                    c_name_local = c
-                    break
-            
-            if c_name_local:
-                fila = df_area[df_area[c_name_local] == estudiante_sel]
-                if not fila.empty:
-                    areas_analizadas += 1
-                    vals = [str(v).upper().strip() for v in fila.iloc[0].values]
-                    
-                    c_ad = vals.count('AD')
-                    c_a = vals.count('A')
-                    c_b = vals.count('B')
-                    c_c = vals.count('C')
-                    
-                    total_conteo['AD'] += c_ad
-                    total_conteo['A'] += c_a
-                    total_conteo['B'] += c_b
-                    total_conteo['C'] += c_c
-                    
-                    if c_ad > 0: desglose_areas['AD'].append(f"{area_name} ({c_ad})")
-                    if c_a > 0: desglose_areas['A'].append(f"{area_name} ({c_a})")
-                    if c_b > 0: desglose_areas['B'].append(f"{area_name} ({c_b})")
-                    if c_c > 0: desglose_areas['C'].append(f"{area_name} ({c_c})")
-
-        my_bar.empty()
-        
-        # --- 4. MOSTRAR RESULTADOS CON DETALLE ---
-        suma_total = sum(total_conteo.values())
-        
-        col_izq, col_der = st.columns([1, 1.5])
-        
-        with col_izq:
-            st.markdown("#### 📈 Detalle por Nivel")
-            st.caption(f"Se analizaron {areas_analizadas} áreas en total.")
-            
-            # AD
-            if total_conteo['AD'] > 0:
-                with st.expander(f"🏆 Logro Destacado (AD): {total_conteo['AD']}", expanded=False):
-                    for area in desglose_areas['AD']: st.markdown(f"- {area}")
-            else:
-                st.markdown(f"🏆 **AD:** 0")
-
-            # A
-            if total_conteo['A'] > 0:
-                with st.expander(f"✅ Logro Esperado (A): {total_conteo['A']}", expanded=False):
-                    for area in desglose_areas['A']: st.markdown(f"- {area}")
-            else:
-                st.markdown(f"✅ **A:** 0")
-
-            # B
-            if total_conteo['B'] > 0:
-                with st.expander(f"⚠️ En Proceso (B): {total_conteo['B']}", expanded=True):
-                    st.markdown("**:orange[Áreas a reforzar:]**")
-                    for area in desglose_areas['B']: st.markdown(f"- {area}")
-            else:
-                st.markdown(f"⚠️ **B:** 0")
-
-            # C
-            if total_conteo['C'] > 0:
-                with st.expander(f"🛑 En Inicio (C): {total_conteo['C']}", expanded=True):
-                    st.markdown("**:red[Requiere atención urgente en:]**")
-                    for area in desglose_areas['C']: st.markdown(f"- {area}")
-            else:
-                st.markdown(f"🛑 **C:** 0")
-
-        with col_der:
-            if suma_total > 0:
-                df_chart = pd.DataFrame({'Nivel': list(total_conteo.keys()), 'Cantidad': list(total_conteo.values())})
-                df_chart = df_chart[df_chart['Cantidad'] > 0]
-                fig = px.pie(
-                    df_chart, values='Cantidad', names='Nivel', 
-                    title=f"Mapa de Calor Académico",
-                    color='Nivel',
-                    color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'},
-                    hole=0.4
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Sin registros de notas.")
-
-        # --- 5. BOTÓN DE DESCARGA DE INFORME (NUEVO) ---
-        st.write("---")
-        st.write("#### 📥 Opciones de Exportación")
-        
-        if suma_total > 0:
-            # Llamamos a la función que creamos en pedagogical_assistant.py
-            # Asumimos que lo tienes importado como 'pedagogical_assistant'
-            import pedagogical_assistant # Importación local por seguridad
-            
-            with st.spinner("Generando informe en Word..."):
-                doc_buffer = pedagogical_assistant.generar_reporte_estudiante(
-                    estudiante_sel, 
-                    total_conteo, 
-                    desglose_areas
-                )
-            
-# 1. INSERTAMOS EL ESTILO AZUL (CSS)
-            st.markdown("""
-                <style>
-                div.stDownloadButton > button:first-child {
-                    background-color: #0056b3; /* Azul Profesional */
-                    color: white;
-                    border-radius: 8px;
-                    border: 1px solid #004494;
-                }
-                div.stDownloadButton > button:first-child:hover {
-                    background-color: #004494; /* Azul más oscuro al pasar el mouse */
-                    color: white;
-                    border-color: #002a5c;
-                }
-                </style>
-            """, unsafe_allow_html=True)
-
-            # 2. EL BOTÓN (Sin type="primary")
-            st.download_button(
-                label="📄 Descargar Informe de Progreso (Word)",
-                data=doc_buffer,
-                file_name=f"Informe_Progreso_{estudiante_sel}.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
-                # Nota: He borrado la línea 'type="primary"' para que el azul funcione
-            )
-
-# --- FUNCIÓN (Conversión a Excel) - MEJORADA (Colores y Anchos) ---
-@st.cache_data
-def convert_df_to_excel(df, area_name, general_info):
-    """
-    Convierte DataFrame a formato Excel (xlsx) con formato profesional:
-    - Columna de Competencias ancha.
-    - Encabezados de colores (AD=Verde, B=Naranja, C=Rojo).
-    """
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        # 1. Escribir las hojas
-        workbook = writer.book
-        
-        # --- Hoja Generalidades ---
-        info_sheet = workbook.add_worksheet("Generalidades")
-        bold_fmt = workbook.add_format({'bold': True})
-        info_sheet.write('A1', 'Área:', bold_fmt)
-        info_sheet.write('B1', area_name)
-        info_sheet.write('A2', 'Nivel:', bold_fmt)
-        info_sheet.write('B2', general_info.get('nivel', 'N/A'))
-        info_sheet.write('A3', 'Grado:', bold_fmt)
-        info_sheet.write('B3', general_info.get('grado', 'N/A'))
-        
-        # --- Hoja Frecuencias (Aquí está la magia) ---
-        df.to_excel(writer, sheet_name='Frecuencias', startrow=0, startcol=0, index=True)
-        worksheet = writer.sheets['Frecuencias']
-
-        # 2. Definir Formatos de Colores (Estilo Pastel Profesional)
-        # AD y A (Verdes)
-        fmt_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
-        # B (Naranja/Amarillo)
-        fmt_orange = workbook.add_format({'bg_color': '#FFEB9C', 'font_color': '#9C5700', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
-        # C (Rojo)
-        fmt_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
-        # Cabecera Genérica (Gris)
-        fmt_header = workbook.add_format({'bg_color': '#D3D3D3', 'bold': True, 'border': 1, 'align': 'center', 'valign': 'vcenter'})
-        # Texto normal (Alineado a la izquierda para competencias)
-        fmt_text = workbook.add_format({'text_wrap': True, 'valign': 'vcenter'})
-
-        # 3. Ajustar Ancho de Columnas
-        # Columna A (Índice/Competencia): Muy ancha (60) para que entre todo el texto
-        worksheet.set_column('A:A', 60, fmt_text)
-
-        # 👇 CAMBIO FINAL: Ancho 9 (Equilibrio perfecto) 👇
-        # Aplica a todas las columnas de datos (AD, A, B, C, Porcentajes...)
-        worksheet.set_column('B:Z', 9)
-
-        # 4. Pintar los Encabezados con Lógica
-        # (Sobrescribimos la fila 0 con los colores correctos)
-        
-        # Primero pintamos la celda A1 (El título "Competencia")
-        worksheet.write(0, 0, "Competencia", fmt_header)
-
-        # Ahora recorremos las columnas de datos (AD, % AD, etc.)
-        # df.columns son los nombres. enumerate nos da (0, 'AD'), (1, '% AD')...
-        for col_num, value in enumerate(df.columns.values):
-            val_str = str(value).upper() # Convertimos a mayúsculas para comparar
-            
-            # Elegimos el color según la letra
-            if "AD" in val_str or ("A" in val_str and "% A" in val_str) or "A (EST.)" in val_str:
-                cell_format = fmt_green
-            elif "B" in val_str:
-                cell_format = fmt_orange
-            elif "C" in val_str:
-                cell_format = fmt_red
-            else:
-                cell_format = fmt_header # Por defecto (ej: Total)
-
-            # Escribimos en la fila 0, columna (col_num + 1 porque la A es el índice)
-            worksheet.write(0, col_num + 1, value, cell_format)
-
-    return output.getvalue()
-
-# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
-def mostrar_sidebar():
-    """
-    Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
-    """
-    with st.sidebar:
-        # 1. BOTÓN VOLVER (Siempre visible si no estamos en Inicio)
-        if st.session_state.get('pagina_actual') != 'Inicio':
-            st.divider()
-            if st.button("🏠 Volver al Menú Principal", use_container_width=True):
-                navegar_a("Inicio")
-                st.rerun()
-
-        # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
-        if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
-            st.divider()
-            if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
-                # Limpieza total de datos para permitir nueva carga
-                st.session_state.df_cargado = False
-                st.session_state.info_areas = None
-                st.session_state.all_dataframes = None
-                st.session_state.df = None
-                # Truco para limpiar el widget de carga
-                if 'file_uploader' in st.session_state:
-                    del st.session_state['file_uploader']
-                st.rerun()
-
-        # 3. BOTÓN CERRAR SESIÓN (NUEVO)
-        st.write("") # Espacio vertical
-        st.write("") 
-        
-        st.divider()
-        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
-            st.session_state.clear() # Borra toda la memoria
-            st.rerun() # Reinicia la app (te llevará al Login)
-
-        # 4. PIE DE PÁGINA
-        st.divider()
-        if st.session_state.get('pagina_actual') == 'Inicio':
-            st.info("👋 Selecciona una herramienta del panel.")
-        else:
-            st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
-        
-        st.caption("🏫 AulaMetrics v3.0 Beta")
-
-# =========================================================================
-# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.1 - FIX USER DATA ===
-# =========================================================================
-def home_page():
-    
-    # 1. Mensaje de Bienvenida (Mantenemos tu lógica)
-    if st.session_state.show_welcome_message:
-        user_name = "Profe"
-        if hasattr(st.session_state, 'user') and st.session_state.user:
-            # FIX CRÍTICO: Cambiar la notación de punto (.user_metadata) a corchetes
-            # (['user_metadata']) para que funcione con el diccionario simulado del login.
-            if isinstance(st.session_state.user, dict):
-                user_name = st.session_state.user.get('user_metadata', {}).get('full_name', 'Profe')
-            else:
-                # Se mantiene la notación de punto para el objeto User real de Supabase.
-                user_name = st.session_state.user.user_metadata.get('full_name', 'Profe')
-                
-        st.toast(f"¡Hola, {user_name}!", icon="👋")
-        st.session_state.show_welcome_message = False
-
-    # 2. Inicialización de Variables
-    if 'sesion_generada' not in st.session_state: st.session_state.sesion_generada = None
-    if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
-    if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
-
-    # 3. ACTIVAR BARRA LATERAL (La función de la Sección 5)
-    # NOTA: Asumiendo que 'mostrar_sidebar' y otras funciones están definidas en otra parte.
-    # mostrar_sidebar() 
-
-    # 4. CONTROLADOR DE PÁGINAS (GPS)
-    pagina = st.session_state['pagina_actual']
-
-# --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
-    if pagina == 'Inicio':
-            
-        # DIBUJAMOS LAS TARJETAS DEL MENÚ
-        # mostrar_home()
-
-        # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
-        # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
-        pass # Placeholder para mostrar_home()
-
-# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
-
-    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
-    if pagina == "Sistema de Evaluación":
-        
-        # A) Si NO hay datos cargados, mostramos el cargador
-        if not st.session_state.df_cargado:
-            st.header("📊 Sistema de Evaluación")
-            st.info("Para comenzar, sube tu registro de notas (Excel).")
-            # Llamamos a tu función de carga existente
-            # configurar_uploader()
-            pass # Placeholder para configurar_uploader()
-            
-        # B) Si YA hay datos, mostramos el panel con pestañas internas
-        else:
-            # Creamos pestañas internas solo para esta herramienta
-            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
-            
-            with tab_global:
-                st.subheader("Panorama General del Aula")
-                info_areas = st.session_state.info_areas
-                # mostrar_analisis_general(info_areas)
-                pass # Placeholder para mostrar_analisis_general
-                
-            with tab_individual:
-                st.subheader("Libreta Individual")
-                df = st.session_state.df
-                df_config = st.session_state.df_config
-                info_areas = st.session_state.info_areas
-                # mostrar_analisis_por_estudiante(df, df_config, info_areas)
-                pass # Placeholder para mostrar_analisis_por_estudiante
-
-    # 3. ASISTENTE PEDAGÓGICO
-    elif pagina == "Asistente Pedagógico":
-        st.header("🧠 Asistente Pedagógico")
-
-        # Función de limpieza local
-        def limpiar_resultados():
-            keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
-            for key in keys_to_clear:
-                if key in st.session_state:
-                    del st.session_state[key]
-
-        tipo_herramienta = st.radio(
-            "01. Selecciona la herramienta que deseas usar:",
-            options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
-            index=0, 
-            horizontal=True, 
-            key="asistente_tipo_herramienta",
-            on_change=limpiar_resultados
-        )
-        st.markdown("---")
-
-        if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
-            st.subheader("Generador de Sesión de Aprendizaje")
-            # df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
-            df_gen, df_cic, df_desc_sec, df_desc_prim = None, None, None, None # Mock de carga
-            
-            if df_gen is None:
-                st.error("Error crítico: No se pudieron cargar los estándares.")
-            else:
-                st.subheader("Paso 1: Selecciona el Nivel")
-                niveles = df_gen['NIVEL'].dropna().unique()
-                
-                nivel_sel = st.selectbox(
-                    "Nivel", 
-                    options=niveles, 
-                    index=None, 
-                    placeholder="Elige una opción...", 
-                    key="asistente_nivel_sel", 
-                    label_visibility="collapsed",
-                    on_change=limpiar_resultados
-                )
-                
-                st.subheader("Paso 2: Selecciona el Grado")
-                grados_options = []
-                if st.session_state.asistente_nivel_sel:
-                    grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
-                
-                grado_sel = st.selectbox(
-                    "Grado", 
-                    options=grados_options, 
-                    index=None, 
-                    placeholder="Elige un Nivel primero...", 
-                    disabled=(not st.session_state.asistente_nivel_sel), 
-                    key="asistente_grado_sel", 
-                    label_visibility="collapsed",
-                    on_change=limpiar_resultados
-                )
-                
-                st.subheader("Paso 3: Selecciona el Área")
-                areas_options = []
-                df_hoja_descriptor = None 
-                if st.session_state.asistente_grado_sel:
-                    if st.session_state.asistente_nivel_sel == "SECUNDARIA":
-                        df_hoja_descriptor = df_desc_sec
-                    elif st.session_state.asistente_nivel_sel == "PRIMARIA":
-                        df_hoja_descriptor = df_desc_prim
-                    if df_hoja_descriptor is not None:
-                        areas_options = df_hoja_descriptor['Área'].dropna().unique()
-                area_sel = st.selectbox("Área", options=areas_options, index=None, placeholder="Elige un Grado primero...", disabled=(not st.session_state.asistente_grado_sel), key="asistente_area_sel", label_visibility="collapsed")
-
-                st.subheader("Paso 4: Selecciona la(s) Competencia(s)")
-                competencias_options = []
-                if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
-                    competencias_options = df_hoja_descriptor[
-                        df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
-                    ]['Competencia'].dropna().unique()
-                competencias_sel = st.multiselect("Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel", label_visibility="collapsed")
-                
-                form_disabled = not st.session_state.asistente_competencias_sel
-
-                st.markdown("---")
-                st.subheader("Paso 5: Contextualización (Opcional)")
-                contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
-        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
 # =========================================================================
@@ -2944,4 +2428,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
