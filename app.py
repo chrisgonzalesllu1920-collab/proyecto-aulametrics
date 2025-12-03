@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.6 - MAYOR TRANSPARENCIA EN TARJETA (0.5)) ===
+# === 4. PÁGINA DE LOGIN (V12.7 - TRANSPARENCIA FORZADA EN FORMULARIOS Y TABS) ===
 # =========================================================================
 def login_page():
     
@@ -411,7 +411,7 @@ def login_page():
             display: none !important;
         }
         
-        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo blanco semi-transparente, padding y sombra al bloque principal */
+        /* 3. ESTILO DE LA TARJETA (LOGIN CARD) - Aplica fondo blanco semi-transparente (0.5), padding y sombra al bloque principal */
         /* Target the vertical block that contains the Tabs/Forms to create the card effect (for both login/register and recovery views) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]),
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) {
@@ -422,10 +422,12 @@ def login_page():
             border: none !important; /* Eliminar el borde nativo de Streamlit */
         }
         
-        /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS */
-        /* Fuerza a que los bloques contenedores inmediatos de las pestañas/formularios sean transparentes para ver el fondo de la tarjeta (0.5) */
+        /* 3b. FIX DE TRANSPARENCIA PARA BLOQUES INTERNOS INMEDIATOS (Contenedores de pestañas y formularios de recuperación) */
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) > div:nth-child(2) > div,
-        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div {
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) > div:nth-child(2) > div,
+        
+        /* **NUEVO FIX**: Para los contenedores de formularios dentro de las pestañas */
+        div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[data-testid="stForm"] > div {
              background-color: transparent !important;
         }
 
@@ -2452,6 +2454,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
