@@ -773,6 +773,9 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+
 /* ELIMINA completamente el bloque blanco gigante debajo de los tabs */
 div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     background: transparent !important;
@@ -788,6 +791,9 @@ div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] {
     border: none !important;
     box-shadow: none !important;
 }
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # =========================================================================
@@ -2546,6 +2552,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
