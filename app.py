@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V26.0 - FIX DE BARRA BLANCA RESIDUAL EN TABS) ===
+# === 4. PÁGINA DE LOGIN (V27.0 - FIX BLANCO RESIDUAL Y BOTÓN FLOTANTE) ===
 # =========================================================================
 
 # NOTA: Esta función asume que las librerías 'st' (Streamlit) y 'supabase'
@@ -469,16 +469,18 @@ def login_page():
         div[role="tabpanel"] {
             padding: 0 !important;
             margin: 0 !important;
+            /* Asegura que el contenedor de la pestaña no tenga fondo */
+            background-color: transparent !important; 
         }
 
-        /* *** FIX CLAVE CONTRA EL RECUADRO BLANCO RESIDUAL *** */
-        /* B. Elemento interno que genera el fondo blanco (es un div dentro de 3 capas) */
-        div[role="tabpanel"] > div > div > div:first-child {
+        /* *** FIX CLAVE CONTRA EL RECUADRO BLANCO RESIDUAL (ESTRATEGIA 2) *** */
+        /* B. Target el bloque vertical interno que genera el fondo y padding por defecto */
+        div[role="tabpanel"] [data-testid="stVerticalBlock"] {
             background-color: transparent !important;
-            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
             box-shadow: none !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+            border: none !important;
         }
         
         /* E. Hack de margen negativo para subir el contenido y eliminar el espacio residual */
@@ -576,36 +578,35 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS Y REFORZADOS) */
         /* Contenedor que maneja la posición fija en el viewport */
         #floating-wrapper {
             position: fixed !important;
-            bottom: 25px !important; /* Ajuste para el estilo limpio */
-            right: 25px !important; /* Ajuste para el estilo limpio */
+            bottom: 25px !important; 
+            right: 25px !important; 
             left: auto !important;
             z-index: 99999 !important;
-            border: none; /* Asegurar que el contenedor no tenga borde */
         }
 
         /* Estilos de apariencia aplicados al enlace <a> dentro del contenedor */
         #floating-wrapper a {
-            display: block;
+            display: block !important;
             background: #00b33c !important; /* Verde Institucional/Contacto */
             color: white !important;
             padding: 14px 20px !important;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
+            text-align: center !important;
+            text-decoration: none !important;
+            border-radius: 10px !important;
             font-size: 18px !important;
             font-weight: 800 !important;
-            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4);
-            transition: all 0.2s;
-            border: none;
+            box-shadow: 0 8px 20px rgba(0, 128, 0, 0.4) !important;
+            transition: all 0.2s !important;
+            border: none !important;
         }
         #floating-wrapper a:hover {
             background: #cc7a00 !important; /* Naranja/Ámbar en Hover */
-            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6);
-            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 128, 0, 0.6) !important;
+            transform: translateY(-2px) !important;
         }
 
     </style>
@@ -2521,5 +2522,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
