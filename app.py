@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.0 - ELIMINACIÓN DE BIENVENIDA REDUNDANTE) ===
+# === 4. PÁGINA DE LOGIN (V12.1 - BOTONES DE ACCIÓN PRINCIPALES EN VERDE) ===
 # =========================================================================
 def login_page():
     
@@ -461,16 +461,32 @@ def login_page():
             color: #E94057 !important;
         }
         
-        /* 8. BOTÓN REGISTRARME / VOLVER (secundario) - Se mantiene */
+        /* 8. BOTONES PRINCIPALES Y SECUNDARIOS (RELLENO VERDE) */
+        
+        /* Primary Buttons: Iniciar Sesión, Enviar Recuperación (type="primary") */
+        div.stForm button[kind="primary"] {
+            background-color: #00C853 !important; /* Solid Green */
+            color: white !important; 
+            border: 2px solid #00C853 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="primary"]:hover {
+            background-color: #00A343 !important; /* Darker Green on Hover */
+            color: white !important; 
+            border: 2px solid #00A343 !important;
+        }
+
+        /* Secondary Buttons: Registrarme, Volver al Inicio de Sesión (type="secondary") */
         div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #ffffff !important;
-            color: #E94057 !important; 
-            border: 2px solid #E94057 !important;
+            background-color: #00C853 !important; /* Solid Green */
+            color: white !important; 
+            border: 2px solid #00C853 !important;
             font-weight: bold !important;
         }
         div.stForm button[kind="secondary"]:hover, button[key="btn_cancel_recov"]:hover {
-            background-color: #E94057 !important;
+            background-color: #00A343 !important; /* Darker Green on Hover */
             color: white !important; 
+            border: 2px solid #00A343 !important;
         }
         
         /* 9. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (ALTO CONTRASTE) - Se mantiene */
@@ -506,7 +522,6 @@ def login_page():
         
         # TÍTULOS Y BRANDING (Fuera del container para usar color blanco)
         st.image("assets/logotipo-aulametrics.png", width=300)
-        # ELIMINADO: st.subheader("Bienvenido a AulaMetrics", anchor=False) 
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         st.write("")
         
@@ -2411,6 +2426,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
