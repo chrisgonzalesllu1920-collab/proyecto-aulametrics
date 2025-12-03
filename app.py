@@ -445,7 +445,7 @@ def login_page():
         }
         
         /* A. Contenedor de las pestañas (la barra horizontal) */
-        div[data-testid="stTabs] {
+        div[data-testid="stTabs"] {
             padding-top: 0px !important;
             margin-top: 0px !important;
             margin-bottom: 0px; 
@@ -2556,6 +2556,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
