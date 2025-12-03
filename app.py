@@ -758,7 +758,7 @@ def login_page():
     }}
     
     #floating-wrapper a {{
-        background: #ff9900 !important;
+        background: #28a745 !important;
         color: white !important;
         padding: 14px 20px !important;
         border-radius: 10px !important;
@@ -2540,6 +2540,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
