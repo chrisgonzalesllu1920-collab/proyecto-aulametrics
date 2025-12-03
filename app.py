@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V22.0 - Fix: Estructura del Mock de Usuario) ===
+# === 4. PÁGINA DE LOGIN (V24.0 - Intento de Corrección Bivalente en Mock) ===
 # =========================================================================
 import streamlit as st
 # Nota: La importación de streamlit es necesaria si esta función se llama directamente.
@@ -486,7 +486,8 @@ def login_page():
                             # session = supabase.auth.sign_in_with_password(...)
                             st.session_state.logged_in = True
                             
-                            # FIX ERROR: Mock de usuario con la estructura esperada por 'home_page' (Supabase style)
+                            # MOCK DE USUARIO (Diccionario)
+                            # Este diccionario debe ser manejado con CORCHETES en home_page().
                             st.session_state.user = {
                                 "email": email, 
                                 "id": "user_123", 
@@ -560,6 +561,164 @@ def login_page():
         </a>
     </div>
     """, unsafe_allow_html=True)
+
+# =========================================================================
+# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.1 - FIX USER DATA ===
+# =========================================================================
+def home_page():
+    
+    # 1. Mensaje de Bienvenida (Mantenemos tu lógica)
+    if st.session_state.show_welcome_message:
+        user_name = "Profe"
+        if hasattr(st.session_state, 'user') and st.session_state.user:
+            # FIX CRÍTICO: Cambiar la notación de punto (.user_metadata) a corchetes
+            # (['user_metadata']) para que funcione con el diccionario simulado del login.
+            if isinstance(st.session_state.user, dict):
+                user_name = st.session_state.user.get('user_metadata', {}).get('full_name', 'Profe')
+            else:
+                # Se mantiene la notación de punto para el objeto User real de Supabase.
+                user_name = st.session_state.user.user_metadata.get('full_name', 'Profe')
+                
+        st.toast(f"¡Hola, {user_name}!", icon="👋")
+        st.session_state.show_welcome_message = False
+
+    # 2. Inicialización de Variables
+    if 'sesion_generada' not in st.session_state: st.session_state.sesion_generada = None
+    if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
+    if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
+
+    # 3. ACTIVAR BARRA LATERAL (La función de la Sección 5)
+    # NOTA: Asumiendo que 'mostrar_sidebar' y otras funciones están definidas en otra parte.
+    # mostrar_sidebar() 
+
+    # 4. CONTROLADOR DE PÁGINAS (GPS)
+    pagina = st.session_state['pagina_actual']
+
+# --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
+    if pagina == 'Inicio':
+            
+        # DIBUJAMOS LAS TARJETAS DEL MENÚ
+        # mostrar_home()
+
+        # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
+        # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
+        pass # Placeholder para mostrar_home()
+
+# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
+
+    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
+    if pagina == "Sistema de Evaluación":
+        
+        # A) Si NO hay datos cargados, mostramos el cargador
+        if not st.session_state.df_cargado:
+            st.header("📊 Sistema de Evaluación")
+            st.info("Para comenzar, sube tu registro de notas (Excel).")
+            # Llamamos a tu función de carga existente
+            # configurar_uploader()
+            pass # Placeholder para configurar_uploader()
+            
+        # B) Si YA hay datos, mostramos el panel con pestañas internas
+        else:
+            # Creamos pestañas internas solo para esta herramienta
+            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            
+            with tab_global:
+                st.subheader("Panorama General del Aula")
+                info_areas = st.session_state.info_areas
+                # mostrar_analisis_general(info_areas)
+                pass # Placeholder para mostrar_analisis_general
+                
+            with tab_individual:
+                st.subheader("Libreta Individual")
+                df = st.session_state.df
+                df_config = st.session_state.df_config
+                info_areas = st.session_state.info_areas
+                # mostrar_analisis_por_estudiante(df, df_config, info_areas)
+                pass # Placeholder para mostrar_analisis_por_estudiante
+
+    # 3. ASISTENTE PEDAGÓGICO
+    elif pagina == "Asistente Pedagógico":
+        st.header("🧠 Asistente Pedagógico")
+
+        # Función de limpieza local
+        def limpiar_resultados():
+            keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+        tipo_herramienta = st.radio(
+            "01. Selecciona la herramienta que deseas usar:",
+            options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
+            index=0, 
+            horizontal=True, 
+            key="asistente_tipo_herramienta",
+            on_change=limpiar_resultados
+        )
+        st.markdown("---")
+
+        if st.session_state.asistente_tipo_herramienta == "Sesión de aprendizaje":
+            st.subheader("Generador de Sesión de Aprendizaje")
+            # df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
+            df_gen, df_cic, df_desc_sec, df_desc_prim = None, None, None, None # Mock de carga
+            
+            if df_gen is None:
+                st.error("Error crítico: No se pudieron cargar los estándares.")
+            else:
+                st.subheader("Paso 1: Selecciona el Nivel")
+                niveles = df_gen['NIVEL'].dropna().unique()
+                
+                nivel_sel = st.selectbox(
+                    "Nivel", 
+                    options=niveles, 
+                    index=None, 
+                    placeholder="Elige una opción...", 
+                    key="asistente_nivel_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados
+                )
+                
+                st.subheader("Paso 2: Selecciona el Grado")
+                grados_options = []
+                if st.session_state.asistente_nivel_sel:
+                    grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
+                
+                grado_sel = st.selectbox(
+                    "Grado", 
+                    options=grados_options, 
+                    index=None, 
+                    placeholder="Elige un Nivel primero...", 
+                    disabled=(not st.session_state.asistente_nivel_sel), 
+                    key="asistente_grado_sel", 
+                    label_visibility="collapsed",
+                    on_change=limpiar_resultados
+                )
+                
+                st.subheader("Paso 3: Selecciona el Área")
+                areas_options = []
+                df_hoja_descriptor = None 
+                if st.session_state.asistente_grado_sel:
+                    if st.session_state.asistente_nivel_sel == "SECUNDARIA":
+                        df_hoja_descriptor = df_desc_sec
+                    elif st.session_state.asistente_nivel_sel == "PRIMARIA":
+                        df_hoja_descriptor = df_desc_prim
+                    if df_hoja_descriptor is not None:
+                        areas_options = df_hoja_descriptor['Área'].dropna().unique()
+                area_sel = st.selectbox("Área", options=areas_options, index=None, placeholder="Elige un Grado primero...", disabled=(not st.session_state.asistente_grado_sel), key="asistente_area_sel", label_visibility="collapsed")
+
+                st.subheader("Paso 4: Selecciona la(s) Competencia(s)")
+                competencias_options = []
+                if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
+                    competencias_options = df_hoja_descriptor[
+                        df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
+                    ]['Competencia'].dropna().unique()
+                competencias_sel = st.multiselect("Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel", label_visibility="collapsed")
+                
+                form_disabled = not st.session_state.asistente_competencias_sel
+
+                st.markdown("---")
+                st.subheader("Paso 5: Contextualización (Opcional)")
+                contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2292,6 +2451,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
