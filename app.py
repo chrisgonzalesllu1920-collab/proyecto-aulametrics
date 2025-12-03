@@ -397,7 +397,9 @@ def cargar_datos_pedagogicos():
         df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
         df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
         df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
-        # =========================================================================
+        
+
+# =========================================================================
 # === 4. PÁGINA DE LOGIN (V26.0 - FIX DE BARRA BLANCA RESIDUAL EN TABS) ===
 # =========================================================================
 
@@ -2511,6 +2513,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
