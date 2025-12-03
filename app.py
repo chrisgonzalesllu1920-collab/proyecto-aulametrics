@@ -382,8 +382,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
+
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V25.1 - Estilos de Contacto Consolidados) =======
+# === 5. FUNCIONES AUXILIARES ===
+# =========================================================================
+ISOTIPO_PATH = "assets/isotipo.png"
+RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
+
+@st.cache_data(ttl=3600)
+def cargar_datos_pedagogicos():
+    try:
+        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
+        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
+        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
+        # =========================================================================
+# === 4. PÁGINA DE LOGIN (V26.0 - FIX DE BARRA BLANCA RESIDUAL EN TABS) ===
 # =========================================================================
 
 # NOTA: Esta función asume que las librerías 'st' (Streamlit) y 'supabase'
@@ -446,7 +461,7 @@ def login_page():
             font-weight: 600 !important;
         }
 
-        /* 5. ELIMINACIÓN DE ESPACIOS NO DESEADOS Y BARRA BLANCA (FIX) */
+        /* 5. ELIMINACIÓN DE ESPACIOS NO DESEADOS Y BARRA BLANCA (PENDIENTE DE ARREGLO FINAL) */
         /* Elimina el espacio extra al final del logo */
         div[data-testid="stImage"] {
             margin-bottom: -15px !important;
@@ -458,14 +473,7 @@ def login_page():
             margin-top: 0px !important;
             margin-bottom: 0px;
         }
-
-        /* B. Elemento que suele tener el borde/fondo blanco bajo las pestañas */
-        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
+        
         /* C. La línea divisoria de las pestañas que puede parecer una barra */
         button[data-baseweb="tab"] {
             border-bottom: none !important; /* Elimina la línea divisoria */
@@ -483,7 +491,7 @@ def login_page():
             margin-top: -30px !important; /* Sube la tarjeta para cubrir el espacio */
             padding-top: 0px !important;
         }
-        /* FIN FIX CLAVE DE BARRAS BLANCAS Y ESPACIADO EN TABS */
+        /* FIN SECCIÓN DE ARREGLOS DE ESPACIADO */
 
         /* 6. INPUTS - Diseño limpio y claro dentro del card */
         input[type="text"], input[type="password"] {
@@ -573,7 +581,7 @@ def login_page():
         }
 
 
-        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS) */
+        /* 11. BOTÓN DE CONTACTO FLOTANTE (ESTILOS CONSOLIDADOS Y CORRECTOS) */
         /* Contenedor que maneja la posición fija en el viewport */
         #floating-wrapper {
             position: fixed !important;
@@ -761,22 +769,6 @@ def login_page():
         </a>
     </div>
     """, unsafe_allow_html=True)
-
-
-# =========================================================================
-# === 5. FUNCIONES AUXILIARES ===
-# =========================================================================
-ISOTIPO_PATH = "assets/isotipo.png"
-RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
-
-@st.cache_data(ttl=3600)
-def cargar_datos_pedagogicos():
-    try:
-        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
-        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
-        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
-        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
-        
         df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
         df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
         
@@ -2519,6 +2511,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
