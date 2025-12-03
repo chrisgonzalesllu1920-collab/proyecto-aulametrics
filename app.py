@@ -746,6 +746,33 @@ def login_page():
     
     # Usamos un <div> como contenedor de posición fija y el <a> interno para el estilo de botón.
     st.markdown(f"""
+    <style>
+    #floating-wrapper {{
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 99999 !important;
+    }}
+    
+    #floating-wrapper a {{
+        background: #ff9900 !important;
+        color: white !important;
+        padding: 14px 20px !important;
+        border-radius: 10px !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        text-decoration: none !important;
+        display: block !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        text-align: center;
+    }}
+    
+    #floating-wrapper a:hover {{
+        background: #cc7a00 !important;
+        transform: translateY(-2px);
+    }}
+    </style>
+    
     <div id="floating-wrapper">
         <a href="{url_netlify}" target="_blank">
             💬 ¿Dudas? Contáctanos/TikTok
@@ -2509,6 +2536,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
