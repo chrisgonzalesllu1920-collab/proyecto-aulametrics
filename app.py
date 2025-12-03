@@ -383,9 +383,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.4 - Última versión con Tarjeta Glass Card) ===
+# === 4. PÁGINA DE LOGIN (V12.19 - FIX Espaciado Tabs v5 Ataque Final) ===
 # =========================================================================
 def login_page():
+    # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
     
     # Inicializar el estado de la vista de recuperación
     if 'view_recuperar_pass' not in st.session_state:
@@ -674,22 +675,11 @@ def login_page():
                                 "email": email,
                                 "password": password
                             })
-                            # NOTA: En versiones anteriores la estructura de la respuesta de Supabase podría variar.
-                            # Si esto causa problemas, revisa la versión de tu librería Supabase.
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
-
-                            if user_data:
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
-                                    
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data 
-                                st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                                st.rerun() 
-                            else:
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
-                                
+                            st.session_state.logged_in = True
+                            st.session_state.user = session.user
+                            st.session_state.show_welcome_message = True
+                            if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                            st.rerun() 
                         except Exception as e:
                             error_message = str(e)
                             if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
@@ -2527,6 +2517,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
