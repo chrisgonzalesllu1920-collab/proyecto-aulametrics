@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.8 - TRANSPARENCIA FORZADA EN PANEL DE PESTAÑAS) ===
+# === 4. PÁGINA DE LOGIN (V12.9 - TEXTO INTERNO EN NEGRO PURO (#000000)) ===
 # =========================================================================
 def login_page():
     
@@ -437,7 +437,7 @@ def login_page():
             border-left: 5px solid #E94057 !important; /* Usamos el color de la marca para el borde */
         }
         
-        /* 3d. **NUEVO FIX CRÍTICO**: TRANSPARENCIA DEL PANEL DE CONTENIDO DE PESTAÑAS (la caja que envuelve el contenido) */
+        /* 3d. FIX CRÍTICO: TRANSPARENCIA DEL PANEL DE CONTENIDO DE PESTAÑAS (la caja que envuelve el contenido) */
         /* Target the div that holds the actual content below the tab buttons */
         div[data-testid="stVerticalBlock"]:has(div[data-testid^="stTabs"]) div[role="tabpanel"] {
              background-color: transparent !important;
@@ -456,7 +456,7 @@ def login_page():
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) h3,
         div[data-testid^="stVerticalBlock"]:has(div[data-testid^="stForm"]):not(:has(div[data-testid^="stTabs"])) label p,
         div[data-testid="stNotification"] p { /* Texto de notificacion */
-            color: #1a1a1a !important; 
+            color: #000000 !important; /* CAMBIADO A NEGRO PURO */
         }
 
 
@@ -2460,6 +2460,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
