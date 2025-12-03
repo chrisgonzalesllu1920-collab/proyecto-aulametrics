@@ -783,6 +783,22 @@ def login_page():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+    /* Elimina cualquier bloque vacío que Streamlit genera */
+    div[data-testid="stVerticalBlock"] > div:empty {
+        display: none !important;
+    }
+    
+    /* Reduce bloques con padding fantasma */
+    section.main > div:nth-child(2) {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2540,6 +2556,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
