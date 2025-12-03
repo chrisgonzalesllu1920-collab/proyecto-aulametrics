@@ -383,7 +383,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V12.18 - FIX Espaciado Tabs v4 Margen Negativo) ===
+# === 4. PÁGINA DE LOGIN (V12.19 - FIX Espaciado Tabs v5 Ataque Final) ===
 # =========================================================================
 def login_page():
     # NOTA: Asegúrate de que esta es la ÚNICA definición de login_page() en tu código.
@@ -421,7 +421,7 @@ def login_page():
             border-radius: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-            margin-top: 10px; 
+            /* IMPORTANTE: Eliminamos el margin-top interno para que el wrapper negativo funcione */
         }
         
         /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
@@ -560,7 +560,7 @@ def login_page():
             box-shadow: none !important;
         }
         
-        /* 11.1 CSS ATAQUE TOTAL (Mantenido, aunque no funciona completamente) */
+        /* 11.1 CSS ATAQUE TOTAL (Mantenido) */
         div[role="tabpanel"] > div:first-child,
         div[role="tabpanel"] > div > div[data-testid="stVerticalBlock"] {
             padding-top: 0px !important;
@@ -569,10 +569,10 @@ def login_page():
             margin-bottom: 0px !important;
         }
         
-        /* 11.2 FIX ATAQUE FINAL: Margen negativo para subir el contenido (NUEVO CAMINO) */
+        /* 11.2 FIX ATAQUE FINAL: Margen negativo fuerte para subir el contenido (NUEVO VALOR) */
         .tab-content-wrapper {
-            /* Anula el espacio residual empujando el contenido hacia arriba */
-            margin-top: -20px !important; 
+            /* Aumentado a -40px para garantizar que el contenido suba por encima del padding residual */
+            margin-top: -40px !important; 
         }
         
         /* 12. BOTÓN DE CONTACTO FLOTANTE (Posición Absoluta FUERTE) */
@@ -2492,6 +2492,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
