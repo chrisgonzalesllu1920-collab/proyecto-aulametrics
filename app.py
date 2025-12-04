@@ -2328,33 +2328,41 @@ def home_page():
     
     
 # =========================================================================
-# === 7. EJECUCIÓN PRINCIPAL ===
+# === 7. EJECUCIÓN PRINCIPAL (VERSIÓN CORREGIDA) ==========================
 # =========================================================================
-query_params = st.query_params
-auth_code = query_params.get("code")
+
+# 1. Inicializar estados mínimos
+st.session_state.setdefault("logged_in", False)
+st.session_state.setdefault("user", None)
+
+qp = st.query_params  # query params modernos
+
+# 2. Manejar login por OAuth (si llega un "code" desde Google/Apple/etc.)
+auth_code = qp.get("code", [None])[0]
 
 if auth_code and not st.session_state.logged_in:
     try:
         session_data = supabase.auth.exchange_code_for_session(auth_code)
-        if session_data.session:
+
+        # Si se pudo intercambiar el código, iniciar sesión
+        if session_data and session_data.session:
             st.session_state.logged_in = True
             st.session_state.user = session_data.session.user
             st.session_state.show_welcome_message = True
 
-            # 🔥 LIMPIAR PARÁMETROS DE LA URL CORRECTAMENTE
-            st.query_params = {}
-
+            # Limpiar parámetros
+            st.query_params.clear()
             st.rerun()
 
-    except Exception:
-        # 🔥 TAMBIÉN AQUÍ DEBE USARSE LA FORMA NUEVA
-        st.query_params = {}
-        pass 
+    except Exception as e:
+        # Falló el OAuth: limpiar y continuar normalmente
+        st.query_params.clear()
 
+
+# 3. Si NO está logueado → ir al login
 if not st.session_state.logged_in:
     login_page()
+
+# 4. Si SÍ está logueado → ir al home
 else:
     home_page()
-
-
-
