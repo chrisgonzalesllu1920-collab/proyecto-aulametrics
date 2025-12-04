@@ -400,201 +400,223 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# === 4.A DEFINICIÓN DE LA VISTA DE RESTABLECIMIENTO DE CONTRASEÑA ===
-# ---------------------------
-def reset_password_view(access_token: str, refresh_token: str):
-    global supabase
-
-    st.subheader("🔑 Define tu Nueva Contraseña", anchor=False)
-    with st.form("set_new_password_form", clear_on_submit=True):
-        st.info("Ingresa y confirma tu nueva contraseña. El enlace de recuperación es sensible al tiempo.")
-
-        new_password = st.text_input("Nueva Contraseña", type="password", key="new_pass_input", placeholder="Mínimo 6 caracteres")
-        confirm_password = st.text_input("Confirmar Contraseña", type="password", key="confirm_pass_input", placeholder="Repite la nueva contraseña")
-
-        submitted = st.form_submit_button("Guardar Nueva Contraseña", use_container_width=True, type="primary")
-
-        if submitted:
-            if len(new_password) < 6:
-                st.error("La contraseña debe tener al menos 6 caracteres.")
-                return
-
-            if new_password != confirm_password:
-                st.error("Las contraseñas no coinciden. Intenta de nuevo.")
-                return
-
-            try:
-                # Establecemos la sesión temporalmente con los tokens (forma que usa tu modo manual)
-                supabase.auth.set_session({
-                    'access_token': access_token,
-                    'refresh_token': refresh_token
-                })
-
-                # Actualizamos la contraseña del usuario autenticado
-                resp = supabase.auth.update_user({'password': new_password})
-
-                # opcional: valida la respuesta según la versión del cliente supabase
-                # if not resp or (hasattr(resp, 'user') and not resp.user):
-                #     st.error("No se pudo actualizar la contraseña.")
-                #     return
-
-                # Cerrar la sesión temporal por seguridad
-                try:
-                    supabase.auth.sign_out()
-                except Exception:
-                    pass
-
-                st.success("✅ ¡Contraseña actualizada con éxito! Por favor, inicia sesión con tu nueva contraseña.")
-
-                # Limpiar query params para que no quede el token en la URL
-                st.experimental_set_query_params()  # limpia todos los params
-                # limpiar vistas guardadas
-                st.session_state['force_password_update'] = False
-                if 'view_recuperar_pass' in st.session_state:
-                    st.session_state['view_recuperar_pass'] = False
-
-                st.rerun()
-
-            except Exception as e:
-                st.error(f"Error al actualizar la contraseña: es posible que el enlace haya expirado o sea inválido. ({e})")
-                # Opción para permitir modo manual si la extracción automática falló
-                if st.button("Usar modo manual (pegar fragmento del URL)", key="retry_manual_from_reset"):
-                    st.session_state['manual_token_entry'] = True
-                    st.rerun()
-
-
-# ---------------------------
-# === 4. PÁGINA DE LOGIN (SECCIÓN CORREGIDA) ===
-# ---------------------------
-def login_page():
-    global supabase
-
-    # 1. Inicializar estados
-    if 'view_recuperar_pass' not in st.session_state:
-        st.session_state['view_recuperar_pass'] = False
-    if 'force_password_update' not in st.session_state:
-        st.session_state['force_password_update'] = False
-    if 'manual_token_entry' not in st.session_state:
-        st.session_state['manual_token_entry'] = False
-
-    # --------------------
-    # UN SOLO SCRIPT JS: mover fragment (#...) a query params preservando tokens
-    # --------------------
+# =========================================================================
+# === 4.A SCRIPT JS PARA CAPTURAR FRAGMENTOS (#...) DE SUPABASE ============
+# =========================================================================
+def inject_reset_password_js():
     st.markdown("""
     <script>
     (function() {
         try {
-            const fragment = window.location.hash;
-            if (fragment && (fragment.includes('access_token') || fragment.includes('type=recovery'))) {
-                // convertimos el hash a query params (sin el '#')
-                const q = fragment.substring(1);
-                const newUrl = window.location.origin + window.location.pathname + '?' + q;
-                // Reemplazamos el history (sin reload inmediato) y forzamos reload
+            const hash = window.location.hash;
+            if (hash && (hash.includes("type=recovery") || hash.includes("access_token"))) {
+                const q = hash.substring(1);  
+                const newUrl = window.location.origin + window.location.pathname + "?" + q;
                 window.history.replaceState(null, null, newUrl);
                 window.location.reload();
             }
-        } catch(e) {
-            // no hacer nada si hay error en el script
-            console.log("JS fragment -> query failed", e);
+        } catch (error) {
+            console.log("Error JS reset:", error);
         }
     })();
     </script>
     """, unsafe_allow_html=True)
 
-    # (Aquí va tu CSS existente: lo dejamos igual, no lo copio por brevedad)
 
-    # --- ESTRUCTURA --- (logo, tabs, etc.) ...
-    col1, col_centro, col3 = st.columns([1,4,1])
-    with col_centro:
-        st.image("assets/logotipo-aulametrics.png", width=300)
-        st.subheader("Bienvenido a AulaMetrics")
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
 
-        # --------------------
-        # DETECCIÓN DE TOKENS EN query_params (Streamlit devuelve listas)
-        # --------------------
-        st.query_params = {}  # uso experimental_get_query_params para claridad
-        access_token = None
-        refresh_token = None
+# =========================================================================
+# === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA =============================
+# =========================================================================
+def reset_password_view(access_token: str, refresh_token: str):
+    global supabase
 
-        if 'access_token' in qp:
-            access_token = qp.get('access_token')
-            if isinstance(access_token, list):
-                access_token = access_token[0]
-        if 'refresh_token' in qp:
-            refresh_token = qp.get('refresh_token')
-            if isinstance(refresh_token, list):
-                refresh_token = refresh_token[0]
+    st.subheader("🔑 Crear Nueva Contraseña", anchor=False)
+    st.info("Define tu nueva contraseña y confírmala. El enlace es válido por poco tiempo.")
 
-        # Si detectamos tokens válidos, mostramos la vista para crear nueva contraseña
-        if access_token and refresh_token:
-            # opcional: activar un flag por compatibilidad
-            st.session_state['force_password_update'] = True
-            reset_password_view(access_token, refresh_token)
-            return
+    with st.form("form_reset_password"):
+        new_pass = st.text_input("Nueva Contraseña", type="password", placeholder="Mínimo 6 caracteres")
+        confirm_pass = st.text_input("Confirmar Contraseña", type="password")
+        submitted = st.form_submit_button("Guardar Nueva Contraseña", type="primary", use_container_width=True)
 
-        # --- continua tu flujo normal (tabs: login / register / recovery) ---
+        if submitted:
+
+            if not new_pass or len(new_pass) < 6:
+                st.error("La contraseña debe tener al menos 6 caracteres.")
+                return
+
+            if new_pass != confirm_pass:
+                st.error("Las contraseñas no coinciden.")
+                return
+
+            try:
+                # Establecer sesión temporal usando los tokens del enlace
+                supabase.auth.set_session({
+                    "access_token": access_token,
+                    "refresh_token": refresh_token
+                })
+
+                # Actualizar contraseña
+                supabase.auth.update_user({"password": new_pass})
+
+                # Cerrar sesión temporal
+                try:
+                    supabase.auth.sign_out()
+                except:
+                    pass
+
+                st.success("Contraseña actualizada con éxito. Inicia sesión con tu nueva contraseña.")
+
+                # Limpiar parámetros
+                st.query_params.clear()
+
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"No se pudo actualizar la contraseña. El enlace podría haber expirado. ({e})")
+
+                if st.button("Ingresar tokens manualmente"):
+                    st.session_state["manual_token_entry"] = True
+                    st.rerun()
+
+
+
+# =========================================================================
+# === 4.C MODO MANUAL PARA PEGAR EL FRAGMENTO DEL LINK ====================
+# =========================================================================
+def manual_token_view():
+    st.subheader("🔧 Modo Manual")
+    st.warning("Pega aquí el fragmento completo de la URL que te llegó al correo.")
+
+    example = "#access_token=xxxx&refresh_token=yyyy&type=recovery"
+    st.code(example, language="none")
+
+    raw = st.text_area("Pega aquí el texto completo", height=120)
+
+    if st.button("Procesar"):
+        if "access_token=" in raw and "refresh_token=" in raw:
+            params = dict(pair.split("=") for pair in raw.replace("#", "").split("&"))
+
+            st.session_state["manual_access_token"] = params.get("access_token")
+            st.session_state["manual_refresh_token"] = params.get("refresh_token")
+
+            st.session_state["manual_token_entry"] = False
+            st.session_state["force_password_update"] = True
+
+            st.rerun()
+        else:
+            st.error("Formato inválido. Asegúrate de pegar el fragmento completo.")
+
+
+
+# =========================================================================
+# === 4.D FUNCIÓN PRINCIPAL DEL LOGIN =====================================
+# =========================================================================
+def login_page():
+    global supabase
+
+    inject_reset_password_js()  # <-- ACTIVAR LÓGICA DE RESET AUTOMÁTICO
+
+    # inicialización de estados
+    ss = st.session_state
+    ss.setdefault("view_recuperar_pass", False)
+    ss.setdefault("force_password_update", False)
+    ss.setdefault("manual_token_entry", False)
+
+    # =============================
+    # 1. Detectar tokens en URL
+    # =============================
+    params = st.query_params
+
+    access_token = params.get("access_token", [None])[0]
+    refresh_token = params.get("refresh_token", [None])[0]
+    tipo = params.get("type", [None])[0]
+
+    # Si Supabase envió el enlace de recuperación
+    if tipo == "recovery" and access_token and refresh_token:
+        ss["force_password_update"] = True
+        reset_password_view(access_token, refresh_token)
+        return
+    
+    # Si el usuario activó modo manual
+    if ss["manual_token_entry"] and ss.get("manual_access_token"):
+        reset_password_view(ss["manual_access_token"], ss["manual_refresh_token"])
+        return
+
+    # =============================
+    # 2. UI normal: Logo + Tabs
+    # =============================
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        st.image("assets/logotipo-aulametrics.png", width=280)
+        st.markdown("<h3 style='text-align:center;'>Bienvenido a AulaMetrics</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # (resto de tu lógica de tabs ... conserva exactamente tu código original
-        # para mostrar login / register / recovery_form / manual token view)
-        # Por ejemplo:
+        # ============================================================
+        # TAB LOGIN
+        # ============================================================
         with tab_login:
-            if st.session_state['manual_token_entry']:
-                manual_token_view()
-            elif st.session_state['force_password_update']:
-                # Si por alguna razón el flag está activo pero no hay tokens: mostrar aviso
-                st.warning("No se detectaron los tokens automáticamente. Si recibiste el enlace y te regresó aquí sin formulario, usa 'modo manual' o solicita otro enlace.")
-                if st.button("Usar modo manual (pegar fragmento)", key="btn_manual_from_flag"):
-                    st.session_state['manual_token_entry'] = True
-                    st.session_state['force_password_update'] = False
-                    st.rerun()
-            elif st.session_state['view_recuperar_pass']:
-                # tu formulario para solicitar enlace (igual que ya tienes)
-                with st.form("recovery_form_tab_login", clear_on_submit=True):
-                    st.markdown("### 🔄 Restablecer Contraseña")
-                    st.info("Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace de restablecimiento.")
-                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
-                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
-                    if submitted:
-                        if email_recuperacion:
-                            try:
-                                supabase.auth.reset_password_for_email(email_recuperacion)
-                                st.success(f"Enlace enviado a {email_recuperacion}. Revisa tu correo.")
-                                st.session_state['view_recuperar_pass'] = False
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Error al enviar el enlace: {e}")
-                        else:
-                            st.error("Ingresa un correo válido.")
-                if st.button("← Volver al Inicio de Sesión", key="btn_cancel_recov"):
-                    st.session_state['view_recuperar_pass'] = False
-                    st.rerun()
-            else:
-                # tu formulario de login normal (igual que ya tienes)
-                with st.form("login_form"):
-                    st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
-                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-                    if submitted:
-                        try:
-                            session = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
-                            if user_data:
-                                if hasattr(user_data, 'to_dict'): user_data = user_data.to_dict()
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data
-                                st.rerun()
-                            else:
-                                st.error("Credenciales incorrectas.")
-                        except Exception as e:
-                            st.error(f"Error al iniciar sesión: {e}")
 
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
+            # Modo manual
+            if ss["manual_token_entry"]:
+                manual_token_view()
+                return
+
+            # Formulario de recuperación
+            if ss["view_recuperar_pass"]:
+                st.subheader("🔄 Restablecer contraseña")
+                with st.form("form_recovery"):
+                    email = st.text_input("Correo electrónico", placeholder="tucorreo@ejemplo.com")
+                    submit = st.form_submit_button("Enviar enlace", type="primary")
+                    if submit:
+                        try:
+                            supabase.auth.reset_password_for_email(email)
+                            st.success(f"Se envió un enlace a {email}.")
+                            ss["view_recuperar_pass"] = False
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"No se pudo enviar enlace ({e})")
+
+                if st.button("← Volver"):
+                    ss["view_recuperar_pass"] = False
                     st.rerun()
+
+                return
+
+            # Formulario normal de login
+            with st.form("form_login"):
+                email = st.text_input("Correo electrónico")
+                password = st.text_input("Contraseña", type="password")
+                login = st.form_submit_button("Iniciar Sesión", type="primary")
+
+                if login:
+                    try:
+                        session = supabase.auth.sign_in_with_password({
+                            "email": email,
+                            "password": password
+                        })
+                        user = session.get("user") if isinstance(session, dict) else session.user
+
+                        if user:
+                            ss.logged_in = True
+                            ss.user = user
+                            st.rerun()
+                        else:
+                            st.error("Credenciales incorrectas.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+            if st.button("¿Olvidaste tu contraseña?"):
+                ss["view_recuperar_pass"] = True
+                st.rerun()
+
+        # ============================================================
+        # TAB REGISTRO (tu código actual va aquí sin cambios)
+        # ============================================================
+        with tab_register:
+            st.info("Aquí va tu formulario de registro tal como ya lo tienes.")
+
 
         
 # =========================================================================
@@ -2333,5 +2355,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
