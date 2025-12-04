@@ -422,8 +422,6 @@ def inject_reset_password_js():
     </script>
     """, unsafe_allow_html=True)
 
-
-
 # =========================================================================
 # === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA =============================
 # =========================================================================
@@ -568,24 +566,31 @@ def login_page():
     ss.setdefault("manual_token_entry", False)
 
     # =============================
-    # 1. Detectar tokens en URL
+    # 1. DETECTAR TOKENS EN LA URL
     # =============================
     params = st.query_params
-
+    
     access_token = params.get("access_token", [None])[0]
     refresh_token = params.get("refresh_token", [None])[0]
     tipo = params.get("type", [None])[0]
-
-    # Si Supabase envió el enlace de recuperación
+    
+    # 🔥 Si Supabase envió el enlace de recuperación
     if tipo == "recovery" and access_token and refresh_token:
         ss["force_password_update"] = True
+    
+        # Mostrar inmediatamente el formulario de nueva contraseña
         reset_password_view(access_token, refresh_token)
         return
     
-    # Si el usuario activó modo manual
+    
+    # 🔧 Si activó modo manual
     if ss["manual_token_entry"] and ss.get("manual_access_token"):
-        reset_password_view(ss["manual_access_token"], ss["manual_refresh_token"])
+        reset_password_view(
+            ss["manual_access_token"],
+            ss["manual_refresh_token"]
+        )
         return
+
 
     # =============================
     # 2. UI normal: Logo + Tabs
@@ -614,32 +619,51 @@ def login_page():
             # 2. FORMULARIO PARA SOLICITAR ENLACE DE RECUPERACIÓN
             # ------------------------------------------------------------
             if ss["view_recuperar_pass"]:
+            
+                # 🔥 Si el mensaje ya se envió, mostrarlo y no mostrar el formulario
+                if ss.get("password_recovery_sent"):
+                    st.subheader("🔄 Restablecer contraseña")
+                    st.success("📨 Ya enviamos el enlace de recuperación a tu correo.")
+                    st.info("Revisa tu bandeja de entrada y spam. Cuando abras el enlace, "
+                            "aparecerá aquí el formulario para definir tu nueva contraseña.")
+                    
+                    if st.button("← Volver"):
+                        ss["view_recuperar_pass"] = False
+                        ss["password_recovery_sent"] = False  # reset para nuevo intento
+                        st.rerun()
+                    
+                    return
+            
+                # 🧩 Mostrar formulario original
                 st.subheader("🔄 Restablecer contraseña")
-
+            
                 with st.form("form_recovery"):
                     email = st.text_input("Correo electrónico", placeholder="tucorreo@ejemplo.com")
                     submit = st.form_submit_button("Enviar enlace", type="primary")
-
+            
                     if submit:
                         try:
                             supabase.auth.reset_password_for_email(email)
-
-                            # 🔥 MENSAJE CLARO PARA EL USUARIO
+            
+                            # Mostrar mensajes
                             st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
-                            st.info("Revisa tu bandeja de entrada y spam. Cuando abras el enlace, verás el formulario para crear tu nueva contraseña.")
-
-                            ss["view_recuperar_pass"] = False
-                            st.rerun()
-
+                            st.info("Revisa tu bandeja de entrada y la carpeta spam. "
+                                    "Cuando abras el enlace, aparecerá el formulario para definir tu nueva contraseña.")
+            
+                            # Guardar estado para que el mensaje persista
+                            st.session_state["password_recovery_sent"] = True
+            
                         except Exception as e:
                             st.error(f"No se pudo enviar enlace ({e})")
-
+            
                 # Botón volver
                 if st.button("← Volver"):
                     ss["view_recuperar_pass"] = False
+                    ss["password_recovery_sent"] = False
                     st.rerun()
+            
+                return
 
-                return  # ← queda correctamente dentro de login_page()
 
             # ------------------------------------------------------------
             # 3. FORMULARIO NORMAL DE LOGIN
@@ -2404,7 +2428,12 @@ qp = st.query_params  # query params modernos
 # 2. Manejar login por OAuth (si llega un "code" desde Google/Apple/etc.)
 auth_code = qp.get("code", [None])[0]
 
-if auth_code and not st.session_state.logged_in:
+# Detectar si es un enlace de recuperación (NO debe entrar al flujo OAuth)
+is_recovery_link = qp.get("type", [None])[0] == "recovery"
+
+# Solo ejecutar OAUTH si NO es un enlace de recuperación
+if auth_code and not is_recovery_link and not st.session_state.logged_in:
+
     try:
         session_data = supabase.auth.exchange_code_for_session(auth_code)
 
@@ -2430,6 +2459,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
