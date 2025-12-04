@@ -514,7 +514,7 @@ def login_page():
         # --------------------
         # DETECCIÓN DE TOKENS EN query_params (Streamlit devuelve listas)
         # --------------------
-        qp = st.experimental_get_query_params()  # uso experimental_get_query_params para claridad
+        st.query_params = {}  # uso experimental_get_query_params para claridad
         access_token = None
         refresh_token = None
 
@@ -2318,14 +2318,20 @@ if auth_code and not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.user = session_data.session.user
             st.session_state.show_welcome_message = True
-            st.query_params.clear() 
+
+            # 🔥 LIMPIAR PARÁMETROS DE LA URL CORRECTAMENTE
+            st.query_params = {}
+
             st.rerun()
+
     except Exception:
-        st.query_params.clear() 
+        # 🔥 TAMBIÉN AQUÍ DEBE USARSE LA FORMA NUEVA
+        st.query_params = {}
         pass 
-    
+
 if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
