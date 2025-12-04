@@ -401,239 +401,174 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V13.5 - Compacta + Soft Glass Card) =============
+# === 4. PÁGINA DE LOGIN (V35.1 - FIX INTEGRACIÓN + RECUPERACIÓN URL) =====
 # =========================================================================
 def login_page():
-    # NOTA: La variable global 'supabase' debe estar definida por el bloque de inicialización.
+    # NOTA: La variable global 'supabase' debe estar definida.
     global supabase 
     
-    # Inicializar el estado de la vista de recuperación si no existe
+    # ---------------------------------------------------------------------
+    # --- A. FUNCIÓN DE UTILIDAD: Manejo de tokens de Supabase por URL ----
+    # ---------------------------------------------------------------------
+    def handle_auth_token():
+        """
+        Busca tokens de Supabase (access_token, refresh_token) en la URL
+        después de un evento de redirección (ej: clic en enlace de reset).
+        Si encuentra tokens válidos, los usa para autenticar al usuario
+        y forzar la página de inicio (home_page).
+        """
+        # Obtenemos la URL actual de Streamlit
+        url_params = st.query_params
+        
+        # 1. Chequeamos si hay un token de Supabase en la URL
+        if 'access_token' in url_params and 'refresh_token' in url_params:
+            
+            access_token = url_params['access_token']
+            refresh_token = url_params['refresh_token']
+            
+            try:
+                # Usamos el token para establecer la sesión
+                session_response = supabase.auth.set_session(
+                    access_token=access_token, 
+                    refresh_token=refresh_token
+                )
+                
+                # Acceso a los datos del usuario autenticado
+                # Nota: En este punto, 'session_response.user' es un objeto User
+                user_data = session_response.user.model_dump() # Convertir a dict
+                
+                # Establecemos el estado de sesión para Streamlit
+                st.session_state.logged_in = True
+                st.session_state.user = user_data 
+                st.session_state.show_welcome_message = True
+                
+                # Limpiamos los tokens de la URL para evitar errores al refrescar
+                # Esto es CRÍTICO para que el link de recuperación funcione una sola vez
+                st.query_params.clear() 
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"Error al procesar el token de autenticación: {e}")
+                
+    # ---------------------------------------------------------------------
+    # --- B. INICIALIZACIÓN DE ESTADO Y CHEQUEO DE URL --------------------
+    # ---------------------------------------------------------------------
+
+    # Inicializar el estado de la vista de recuperación
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
         
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    # Inicializar el contador para el formulario de registro
+    if 'form_reset_id' not in st.session_state:
+        st.session_state['form_reset_id'] = 0
+
+    # Esto debe ejecutarse antes de cualquier renderizado, pero después del estado.
+    handle_auth_token()
+    
+    # ---------------------------------------------------------------------
+    # --- C. VISTA PARA DETECCIÓN DE HASH DE SUPABASE (JAVASCRIPT) --------
+    # ---------------------------------------------------------------------
+    # Este bloque inyecta JS para capturar el hash de la URL (si existe) y 
+    # reescribirlo como parámetros de consulta (query params) para que Python
+    # pueda leerlo y lo redirija a la función handle_auth_token().
+    
+    # Se utiliza urllib.parse.quote para asegurar que la URL se encodee correctamente.
+    
+    # URL de redirección (la URL base de la aplicación Streamlit)
+    streamlit_url = urllib.parse.quote(st.get_option("server.baseUrlPath") or "")
+
+    components.html(
+        f"""
+        <script>
+            // Solo se ejecuta si hay un fragmento de hash después del # (Supabase)
+            if (window.location.hash) {{
+                const hash = window.location.hash.substring(1);
+                
+                // Parsear el hash para encontrar los tokens
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+
+                if (accessToken && refreshToken) {{
+                    // Si encontramos los tokens, reescribimos la URL sin el hash
+                    const newUrl = window.location.origin + 
+                                   "{streamlit_url}" +
+                                   "?access_token=" + accessToken + 
+                                   "&refresh_token=" + refreshToken +
+                                   "&redirect_to_reset=true"; // Bandera para la lógica
+
+                    // Reemplazamos el historial para evitar el hash persistente
+                    window.history.replaceState(null, null, newUrl);
+                    // Forzamos un refresh para que Streamlit detecte los nuevos query params
+                    window.location.reload(); 
+                }}
+            }}
+        </script>
+        """,
+        height=0, width=0,
+    )
+    
+    # ---------------------------------------------------------------------
+    # --- D. ESTRUCTURA VISUAL (TU DISEÑO ORIGINAL) -----------------------
+    # ---------------------------------------------------------------------
+
+    # Inyección de estilo CSS (El estilo limpio de tu versión original)
     st.markdown("""
     <style>
-        /* 1. FONDO DEGRADADO (Cálido: Púrpura/Lila a Melocotón/Naranja) */
-        [data-testid="stAppViewContainer"] {
-            /* De: #7A5787 (Púrpura Suave) -> A: #D48E75 (Melocotón/Naranja Suave) */
-            background: linear-gradient(135deg, #7A5787 0%, #D48E75 100%); 
-            background-size: cover;
-            background-attachment: fixed;
-        }
-        
-        /* 2. LIMPIEZA DE INTERFAZ */
+        /* 1. Limpieza de interfaz */
         .block-container {
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
         }
         header[data-testid="stHeader"] {
             background-color: transparent !important;
-            display: none !important;
         }
         
-        /* 3. TARJETA PRINCIPAL (Soft Glass Card - Marrón/Rosa Translúcido) */
-        .soft-glass-card {
-            background-color: rgba(200, 160, 160, 0.4); /* Base Marrón/Rosa suave y translúcido */
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-        }
-        
-        /* 4. TEXTOS GENERALES (Blancos sobre fondo oscuro/vibrante) */
-        h1, h2, h3 {
-            color: #FFFFFF !important; /* Blanco */
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para resaltar */
-        }
-        
-        /* Elimina el espacio extra al final del logo */
-        div[data-testid="stImage"] {
-            margin-bottom: -15px !important; 
-        }
-        
-        /* APLICAR PADDING INFERIOR A LAS PESTAÑAS para compensar la eliminación del texto */
-        div[data-testid="stTabs"] {
-            padding-top: 0px !important;
-            margin-top: 0px !important;
-            margin-bottom: 20px; /* Añade espacio entre tabs y la tarjeta */
-        }
-
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Marrón Oscuro para contraste sobre Soft Glass Card) */
-        .soft-glass-card label p,
-        .soft-glass-card h3,
-        .soft-glass-card h3 span {
-            color: #4A2E33 !important; /* Marrón Oscuro */
-            text-shadow: none !important;
-            font-weight: 600 !important; 
-        }
-        .soft-glass-card p {
-            color: #5C4045 !important;
-            text-shadow: none !important;
-        }
-
-        /* 6. INPUTS - Diseño limpio y claro dentro del card */
-        input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.8) !important; /* Blanco translúcido */
-            border: 1px solid rgba(0, 0, 0, 0.2) !important; 
-            border-radius: 8px !important;
-        }
-        ::placeholder {
-            color: #555555 !important;
-        }
-        
-        /* 7. BOTONES PRINCIPALES (AZUL INSTITUCIONAL) */
-        div.stForm button[kind="primary"], button[key="btn_login_submit"] {
-            background-color: #007bff !important; /* Azul Primario */
-            color: white !important; 
-            border: none !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-        }
-
-        /* 8. BOTÓN SECUNDARIO (GRIS NEUTRAL) */
-        div.stForm button[kind="secondary"], button[key="btn_cancel_recov"] {
-            background-color: #6c757d !important; /* Gris Neutral */
-            color: white !important; 
-            border: none !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-        }
-        div.stForm button[kind="secondary"] p, 
-        button[key="btn_cancel_recov"] p {
-             color: white !important; 
-             text-shadow: none !important;
-        }
-
-        /* 9. CORRECCIÓN PESTAÑAS (Tabs) - Estilo Botón Flotante */
-        button[data-baseweb="tab"] {
-            border-radius: 8px !important; 
-            margin-right: 15px !important;
-            padding: 10px 20px !important;
-            border-bottom: none !important; 
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        /* Pestaña SELECCIONADA */
-        button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            border: 2px solid #007bff !important; 
-        }
-        button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #007bff !important; 
-            font-weight: 700 !important;
-        }
-
-        /* Pestaña NO SELECCIONADA */
-        button[data-baseweb="tab"]:not([aria-selected="true"]) {
-            background-color: #4682B4 !important; /* Azul Sólido */
-            border: 2px solid #4682B4 !important;
-        }
-        button[data-baseweb="tab"]:not([aria-selected="true"]) div p {
-            color: #FFFFFF !important; 
-            font-weight: 700 !important;
-        }
-
-        /* 10. ESTILO PARA EL ENLACE DE CONTRASEÑA OLVIDADA (Marrón Oscuro) */
-        button[key="btn_olvide_pass_login"] {
-            background: none !important;
-            border: none !important;
-            padding: 0px !important;
-            color: #5C4045 !important; 
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
-            margin-top: 0px !important; /* AHORA SIN ESPACIO ADICIONAL */
-        }
-        button[key="btn_olvide_pass_login"] p {
-            color: #5C4045 !important; 
-            text-shadow: none !important;
-        }
-        
-        /* FIX CLAVE: Eliminar el espacio vertical (st.write("")) entre el formulario y el botón de 'Olvidé mi contraseña' */
-        div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stMarkdownContainer"] + div > div > button[key="btn_olvide_pass_login"] {
-            margin-top: -15px !important; 
-        }
-
-
-        /* 11. FIX DEFINITIVO: ELIMINAR RECUADRO DE FONDOS HEREDADOS */
-        div[data-testid="stVerticalBlock"] > div > div:first-child,
-        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child,
-        div[data-testid="stVerticalBlock"] > div > div:first-child > div:first-child > div {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        
-        /* 11.2 FIX ATAQUE FINAL: Margen negativo fuerte para subir el contenido */
-        .tab-content-wrapper {
-            margin-top: -40px !important; 
-        }
-        
-        /* 12. BOTÓN DE CONTACTO FLOTANTE */
-        .contact-button-container {
-            position: fixed !important;
-            bottom: 30px !important; 
-            right: 30px !important; 
-            left: auto !important; 
-            width: 200px;
-            z-index: 9999; 
-        }
-        .contact-button-container a {
-            display: block; 
-            padding: 15px 0;
-            background-color: #28a745; 
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.6); 
-            transition: all 0.2s;
-            border: none;
-        }
-        .contact-button-container a:hover {
-            background-color: #218838; 
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.8);
-            transform: translateY(-2px); 
-        }
-
-        /* Ocultar el footer que crea Streamlit */
+        /* 2. Ocultar el footer que crea Streamlit */
         footer {visibility: hidden;}
+
+        /* 3. Estilo de los tabs (pestañas) */
+        .stTabs [data-testid="stDataStore"][role="tablist"] button[aria-selected="true"] {
+            background-color: #f0f2f6;
+            border-bottom: 2px solid #007bff;
+        }
+        
+        /* 4. Estilo de la caja central (Glass Card Blanco/Gris) */
+        [data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:nth-child(2) {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 5. Asegurar contraste del texto dentro de la caja */
+        [data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:nth-child(2) h3 {
+            color: #333333;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA ---
+    # --- ESTRUCTURA ---
     # Usamos la columna central para centrar el contenido principal
-    col1, col_centro, col3 = st.columns([1, 4, 1])
+    col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
         
-        # Elementos fuera de la tarjeta: Logo (MANTENIDO), Título y Descripción (ELIMINADOS)
-        st.image("https://placehold.co/300x80/7A5787/FFFFFF?text=AulaMetrics+Logo", width=300)
+        st.image("https://placehold.co/300x80/AAAAAA/333333?text=AulaMetrics+Logo", width=300)
+        st.markdown("## Tu asistente pedagógico y analista de datos.")
         
-        # Tabs (Botones flotantes sobre el fondo)
+        # Tabs (Pestañas para Login y Registro)
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # --- PESTAÑA 1: LOGIN (Contiene la Soft Glass Card) ---
+        # --- PESTAÑA 1: LOGIN ---
         with tab_login:
-            # Contenedor con margen negativo para subir el contenido (mantener)
-            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
             
-            # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
-            st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
-            
-            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN (Dentro del card) ---
-            if st.session_state.get('view_recuperar_pass'): # Usamos .get() para seguridad
+            # --- VISTA ALTERNATIVA: FORMULARIO DE RECUPERACIÓN ---
+            if st.session_state.get('view_recuperar_pass'):
                 
                 with st.form("recovery_form_tab_login", clear_on_submit=True):
                     st.markdown("### 🔄 Restablecer Contraseña")
-                    st.info("Ingresa la dirección de correo electrónico asociada a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
+                    st.info("Ingresa el correo. Te enviaremos un enlace para que puedas restablecer tu contraseña.")
                     
                     email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
                     
@@ -643,20 +578,19 @@ def login_page():
                         if email_recuperacion:
                             try:
                                 # LÓGICA DE SUPABASE PARA RECUPERACIÓN (Paso 2)
-                                # Esta función envía el correo con el link de reset
                                 supabase.auth.reset_password_for_email(email_recuperacion)
                                 st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
                             except Exception as e:
-                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
+                                st.error(f"Error al enviar el enlace: {e}")
                         else:
                             st.error("Por favor, ingresa un correo electrónico.")
                             
-                # Botón Secundario: Cancelar y volver (FUERA del formulario)
+                # Botón Secundario: Cancelar y volver
                 if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov", type="secondary"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
 
-            # --- VISTA NORMAL: LOGIN (Dentro del card) ---
+            # --- VISTA NORMAL: LOGIN ---
             else:
                 with st.form("login_form"):
                     st.markdown("### 🔐 Acceso Docente")
@@ -672,11 +606,11 @@ def login_page():
                                 "password": password
                             })
                             
-                            # Obtener el objeto de usuario de la sesión de forma segura
+                            # Obtenemos la data del usuario de forma segura
                             user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
                             if user_data:
-                                # Convertir a diccionario si es un objeto para compatibilidad (FIX de la V35)
+                                # Aseguramos que sea un diccionario para compatibilidad futura
                                 if hasattr(user_data, 'to_dict'):
                                     user_data = user_data.to_dict()
                                 
@@ -686,7 +620,7 @@ def login_page():
                                 if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
                                 st.rerun() 
                             else:
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió.")
                                 
                         except Exception as e:
                             error_message = str(e)
@@ -695,28 +629,16 @@ def login_page():
                             else:
                                 st.error(f"Error al iniciar sesión: {e}")
                 
-                # Botón de recuperación FUERA del st.form("login_form")
+                # Botón de recuperación FUERA del st.form
+                # Este botón cambia el estado para mostrar el formulario de recuperación
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
-                    
-            # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
-            st.markdown('</div>', unsafe_allow_html=True) 
-            
-            # Cierre del wrapper de margen negativo
-            st.markdown('</div>', unsafe_allow_html=True)
 
 
-        # --- PESTAÑA 2: REGISTRO (Contiene la Soft Glass Card) ---
+        # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
-            # Contenedor con margen negativo para subir el contenido (mantener)
-            st.markdown('<div class="tab-content-wrapper">', unsafe_allow_html=True)
             
-            # --- INICIO CONTENEDOR DE LA TARJETA DE CRISTAL ---
-            st.markdown('<div class="soft-glass-card">', unsafe_allow_html=True)
-
-            if 'form_reset_id' not in st.session_state:
-                st.session_state['form_reset_id'] = 0
             reset_id = st.session_state['form_reset_id']
 
             if st.session_state.get('registro_exitoso', False):
@@ -729,7 +651,6 @@ def login_page():
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
                 password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                 
-                # El botón de registro usa type="secondary"
                 submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
                 
                 if submitted:
@@ -738,7 +659,7 @@ def login_page():
                     else:
                         try:
                             # LÓGICA DE SUPABASE PARA REGISTRO
-                            user = supabase.auth.sign_up({
+                            supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
                                 "options": {
@@ -750,27 +671,6 @@ def login_page():
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
-                            
-            # --- FIN CONTENEDOR DE LA TARJETA DE CRISTAL ---
-            st.markdown('</div>', unsafe_allow_html=True) 
-            
-            # Cierre del wrapper de margen negativo
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # --- C. BOTÓN DE CONTACTO FLOTANTE (FUERA DEL LAYOUT DE COLUMNAS) ---
-    url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-    
-    # Se utiliza un contenedor de Markdown para renderizar el botón fuera del flujo normal y aplicar la posición fixed.
-    st.markdown(f"""
-    <div class="contact-button-container">
-        <a href="{url_netlify}" target="_blank">
-            💬 ¿Dudas? Contáctanos
-        </a>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Ocultar el footer que crea Streamlit
-    st.markdown("<footer></footer>", unsafe_allow_html=True)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2503,6 +2403,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
