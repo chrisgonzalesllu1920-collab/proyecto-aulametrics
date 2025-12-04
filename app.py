@@ -512,6 +512,29 @@ def manual_token_view():
 # === 4.D FUNCIÓN PRINCIPAL DEL LOGIN =====================================
 # =========================================================================
 def login_page():
+
+    # --- FORZAR STREAMLIT A PROCESAR EL FRAGMENTO #access_token ---
+    st.markdown("""
+    <script>
+    (function() {
+        try {
+            const hash = window.location.hash;
+            if (!hash) return;
+
+            if (hash.includes("access_token") || hash.includes("type=recovery")) {
+                const query = hash.substring(1);
+                const newUrl = window.location.origin + window.location.pathname + "?" + query;
+                window.history.replaceState(null, null, newUrl);
+                window.location.reload();
+            }
+        } catch (err) {
+            console.log("Error moviendo fragmento:", err);
+        }
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+
+
     global supabase
 
     inject_reset_password_js()  # <-- ACTIVAR LÓGICA DE RESET AUTOMÁTICO
@@ -2366,3 +2389,4 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
