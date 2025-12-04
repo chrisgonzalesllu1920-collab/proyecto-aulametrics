@@ -399,7 +399,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V29.0 - CORRECCIÓN COLOR BOTÓN OLVIDADO) ===
+# === 4. PÁGINA DE LOGIN (V30.0 - UNIFICACIÓN TEXTO TARJETA A NEGRO) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -432,6 +432,7 @@ def login_page():
         
         /* 3. TARJETA DE CRISTAL */
         /* Aplicamos el estilo de tarjeta a los bloques verticales que contienen los formularios */
+        /* Este es el contenedor padre que hace el efecto de cristal */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(15px);
@@ -442,20 +443,21 @@ def login_page():
         }
 
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        /* Mantiene el título principal y el subtítulo fuera de la tarjeta en blanco */
         h1, h2, h3, p {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
-        div.stForm label p, div.stForm h3, div.stForm h3 span, .stAlert p {
-            color: #1a1a1a !important;
+        /* 5. TEXTOS DENTRO DEL FORMULARIO Y LA TARJETA (Negros UNIFICADOS) */
+        /* SOBREESCRIBE la regla de blanco (punto 4) para todo el texto dentro de la tarjeta */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) p,
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) h3, 
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) span,
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) .stAlert p {
+            color: #1a1a1a !important; /* Texto negro */
             text-shadow: none !important;
             font-weight: 600 !important;
-        }
-        div.stForm p {
-             color: #1a1a1a !important;
-             text-shadow: none !important;
         }
 
         /* 6. INPUTS */
@@ -506,23 +508,19 @@ def login_page():
             color: white !important;
         }
 
-        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (CORRECCIÓN COLOR DE TEXTO) */
+        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Asegurando estilo de enlace) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #1a1a1a !important; /* Color del borde/fondo (no afecta el texto directamente) */
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
             margin-top: 15px; /* Separación del botón de submit */
         }
-        /* Selector más específico para el párrafo de texto */
-        button[key="btn_olvide_pass_login"] p {
-            color: #1a1a1a !important; /* ¡Negro forzado para el texto! */
-            text-shadow: none !important;
-        }
+        /* La regla de color para este párrafo está garantizada en el punto 5. */
+
 
         /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo Secundario) */
         button[key="btn_cancel_recov"] {
@@ -573,9 +571,6 @@ def login_page():
                     if submitted:
                         if email_recuperacion:
                             try:
-                                # Lógica para enviar el enlace de restablecimiento
-                                # NOTA: Supabase gestiona la plantilla de correo y el envío.
-                                # La URL de redirección debe estar configurada en el proyecto Supabase.
                                 supabase.auth.reset_password_for_email(email_recuperacion)
                                 st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
                             except Exception as e:
@@ -584,7 +579,6 @@ def login_page():
                             st.error("Por favor, ingresa un correo electrónico válido.")
 
                 # Botón Secundario: Cancelar y volver
-                # Se utiliza un botón estándar fuera del form y se le asigna un KEY para darle estilo específico si fuera necesario.
                 if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
@@ -609,11 +603,9 @@ def login_page():
                                 "password": password
                             })
                             
-                            # Asegurar que el objeto se guarde correctamente para ser leído por home_page
                             user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
                             if user_data:
-                                # Normalizar a diccionario si es necesario (para compatibilidad con home_page)
                                 if hasattr(user_data, 'to_dict'):
                                     user_data = user_data.to_dict()
 
@@ -626,7 +618,6 @@ def login_page():
                                 st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
 
                         except Exception as e:
-                            # Manejo específico de errores de Supabase
                             error_message = str(e)
                             if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
                                 st.error("Credenciales incorrectas o correo no confirmado.")
@@ -635,7 +626,6 @@ def login_page():
 
 
                 # Botón de recuperación FUERA del st.form("login_form")
-                # Se utiliza un botón estándar y se le asigna un KEY para el estilo underline/enlace
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
@@ -2434,6 +2424,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
