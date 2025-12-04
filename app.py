@@ -521,10 +521,19 @@ def login_page():
             const hash = window.location.hash;
             if (!hash) return;
 
+            // Si el hash contiene tokens de recuperación o sesión
             if (hash.includes("access_token") || hash.includes("type=recovery")) {
+
+                // Quitamos el "#"
                 const query = hash.substring(1);
+
+                // Construimos la nueva URL con ?
                 const newUrl = window.location.origin + window.location.pathname + "?" + query;
+
+                // Reemplaza la URL en el navegador sin recargar
                 window.history.replaceState(null, null, newUrl);
+
+                // 🔥 Fuerza recargar para que Streamlit lea los query params
                 window.location.reload();
             }
         } catch (err) {
@@ -533,7 +542,6 @@ def login_page():
     })();
     </script>
     """, unsafe_allow_html=True)
-
 
     global supabase
 
@@ -2389,4 +2397,5 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
