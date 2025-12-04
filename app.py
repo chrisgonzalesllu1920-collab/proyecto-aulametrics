@@ -402,7 +402,59 @@ st.markdown("""
 
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V30.1 - Simplificación Recuperación) ===
+# === 4.A DEFINICIÓN DE LA VISTA DE RESTABLECIMIENTO DE CONTRASEÑA ===
+# =========================================================================
+
+# Esta función se define fuera de login_page pero debe tener acceso a 'supabase' (global)
+def reset_password_view(access_token, refresh_token):
+    # Asegúrate de que 'supabase' esté disponible en el ámbito global.
+    global supabase
+
+    st.subheader("🔑 Define tu Nueva Contraseña", anchor=False)
+    # Utilizamos un bloque de la UI que ya tiene tu estilo (el bloque de formulario)
+    with st.form("set_new_password_form", clear_on_submit=True):
+        st.info("Ingresa y confirma tu nueva contraseña. El enlace de recuperación es sensible al tiempo.")
+
+        new_password = st.text_input("Nueva Contraseña", type="password", key="new_pass_input", placeholder="Mínimo 6 caracteres")
+        confirm_password = st.text_input("Confirmar Contraseña", type="password", key="confirm_pass_input", placeholder="Repite la nueva contraseña")
+        
+        submitted = st.form_submit_button("Guardar Nueva Contraseña", use_container_width=True, type="primary")
+
+        if submitted:
+            if len(new_password) < 6:
+                st.error("La contraseña debe tener al menos 6 caracteres.")
+                return
+
+            if new_password != confirm_password:
+                st.error("Las contraseñas no coinciden. Intenta de nuevo.")
+                return
+
+            try:
+                # 1. Establecer la sesión temporalmente con los tokens de la URL
+                # Esto autentica al usuario sin necesidad de login.
+                supabase.auth.set_session(access_token, refresh_token)
+                
+                # 2. Actualizar la contraseña del usuario autenticado (por el token)
+                supabase.auth.update_user({'password': new_password})
+                
+                # 3. Limpieza y Redirección
+                supabase.auth.sign_out() # Cierra la sesión temporal por seguridad
+                
+                st.success("✅ ¡Contraseña actualizada con éxito! Por favor, inicia sesión con tu nueva contraseña.")
+                
+                # Limpiar los parámetros de la URL para que no vuelva a cargar esta vista
+                st.query_params.clear() 
+                if 'view_recuperar_pass' in st.session_state:
+                    del st.session_state['view_recuperar_pass']
+                
+                st.rerun() # Recargar para volver a la vista de login normal
+
+            except Exception as e:
+                # El error más común es que el token haya expirado.
+                st.error(f"Error al actualizar la contraseña: Es posible que el enlace haya expirado o sea inválido. Por favor, solicita uno nuevo. ({e})")
+
+# =========================================================================
+# === 4. PÁGINA DE LOGIN (V31.0 - Implementación Completa Restablecer Contraseña) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -412,7 +464,24 @@ def login_page():
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
 
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    # --- INYECCIÓN DE JAVASCRIPT PARA MANEJAR EL FRAGMENTO DE URL (HASH) ---
+    # Este script lee los tokens de Supabase del fragmento (#) de la URL y los mueve 
+    # a los parámetros de consulta (?) para que Streamlit (Python) pueda leerlos.
+    st.markdown("""
+    <script>
+        const fragment = window.location.hash;
+        // La condición verifica si estamos en un flujo de autenticación de Supabase (ej. password reset)
+        if (fragment.includes('access_token') && fragment.includes('refresh_token')) {
+            // Mover el fragmento a query params y recargar
+            const newUrl = window.location.origin + window.location.pathname + '?' + fragment.substring(1);
+            // Reemplazar el estado del historial para limpiar el fragmento
+            window.history.replaceState(null, null, newUrl);
+            window.location.reload(); 
+        }
+    </script>
+    """, unsafe_allow_html=True)
+
+    # --- A. INYECCIÓN DE ESTILO VISUAL (NO MODIFICADO) ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO */
@@ -543,7 +612,7 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA ---
+    # --- B. ESTRUCTURA Y LÓGICA CONDICIONAL ---
     col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
@@ -553,130 +622,143 @@ def login_page():
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
         st.write("") 
-        
-        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # --- PESTAÑA 1: LOGIN ---
-        with tab_login:
+        # === DETECCIÓN DEL TOKEN DE RECUPERACIÓN (PASO CRÍTICO) ===
+        # Revisamos si los tokens de Supabase están ahora en los query parameters,
+        # gracias al script de JavaScript inyectado.
+        access_token = st.query_params.get('access_token')
+        refresh_token = st.query_params.get('refresh_token')
+
+        if access_token and refresh_token:
+            # Si se detectan tokens, mostramos la vista de nueva contraseña
+            reset_password_view(access_token, refresh_token)
             
-            # === ESTRUCTURA CONDICIONAL DE VISTAS ===
-            if st.session_state['view_recuperar_pass']:
+            # Nota: Si el usuario presiona F5, los tokens aún estarán en la URL
+            # y se seguirá mostrando esta vista hasta que la contraseña se cambie
+            # con éxito o se cierre la ventana.
+
+        else:
+            # Si NO hay tokens de recuperación, mostramos la vista normal de login/register
+            tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
+
+            # --- PESTAÑA 1: LOGIN ---
+            with tab_login:
                 
-                # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
-                with st.form("recovery_form_tab_login", clear_on_submit=True):
-                    st.markdown("### 🔄 Restablecer Contraseña")
-                    # Mensaje simplificado. Se espera que el usuario cambie la contraseña
-                    # fuera de la aplicación Streamlit, usando el enlace del email.
-                    st.info("Ingresa el correo electrónico asociado a tu cuenta. **El cambio de contraseña se realizará a través del enlace que recibirás por email.**")
+                # === ESTRUCTURA CONDICIONAL DE VISTAS DENTRO DEL TAB ===
+                if st.session_state['view_recuperar_pass']:
+                    
+                    # --- VISTA: FORMULARIO DE RECUPERACIÓN (Paso 1 del flow) ---
+                    with st.form("recovery_form_tab_login", clear_on_submit=True):
+                        st.markdown("### 🔄 Restablecer Contraseña")
+                        st.info("Ingresa el correo electrónico asociado a tu cuenta. **Al hacer clic en el enlace del email, serás redirigido a esta página para ingresar tu nueva contraseña.**")
 
-                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+                        email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
 
-                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+                        submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
 
-                    if submitted:
-                        if email_recuperacion:
+                        if submitted:
+                            if email_recuperacion:
+                                try:
+                                    supabase.auth.reset_password_for_email(email_recuperacion)
+                                    st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
+                                    
+                                    # Después de enviar el enlace, volvemos a la vista de login para limpiar el estado.
+                                    st.session_state['view_recuperar_pass'] = False
+                                    st.rerun()
+
+                                except Exception as e:
+                                    st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
+                            else:
+                                st.error("Por favor, ingresa un correo electrónico válido.")
+                    
+                    # Botón Secundario: Cancelar y volver
+                    if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
+                        st.session_state['view_recuperar_pass'] = False
+                        st.rerun()
+
+                else:
+                    
+                    # --- VISTA NORMAL: LOGIN ---
+                    with st.form("login_form"):
+                        st.markdown("### 🔐 Acceso Docente")
+                        email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                        password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                        
+                        # Botón de Login (submit)
+                        submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                        
+                        if submitted:
                             try:
-                                supabase.auth.reset_password_for_email(email_recuperacion)
-                                # Mensaje modificado para ser más claro sobre el proceso.
-                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada y **sigue las instrucciones en el enlace**.")
-                                # Después de enviar el enlace, volvemos a la vista de login para limpiar el estado.
-                                st.session_state['view_recuperar_pass'] = False
-                                st.rerun()
+                                # Intento de inicio de sesión
+                                session = supabase.auth.sign_in_with_password({
+                                    "email": email,
+                                    "password": password
+                                })
+                                
+                                user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
+
+                                if user_data:
+                                    if hasattr(user_data, 'to_dict'):
+                                        user_data = user_data.to_dict()
+
+                                    st.session_state.logged_in = True
+                                    st.session_state.user = user_data
+                                    st.session_state.show_welcome_message = True
+                                    if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                    st.rerun()
+                                else:
+                                    st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
 
                             except Exception as e:
-                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
-                        else:
-                            st.error("Por favor, ingresa un correo electrónico válido.")
-                
-                # Botón Secundario: Cancelar y volver
-                # Este botón es ahora el único punto para salir del formulario ANTES de enviar.
-                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
-                    st.session_state['view_recuperar_pass'] = False
-                    st.rerun()
+                                error_message = str(e)
+                                if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                    st.error("Credenciales incorrectas o correo no confirmado.")
+                                else:
+                                    st.error(f"Error al iniciar sesión: {e}")
 
-            else:
-                
-                # --- VISTA NORMAL: LOGIN ---
-                with st.form("login_form"):
-                    st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+
+                    # Botón de recuperación FUERA del st.form("login_form")
+                    if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                        st.session_state['view_recuperar_pass'] = True
+                        st.rerun()
+
+
+            # --- PESTAÑA 2: REGISTRO ---
+            with tab_register:
+                if 'form_reset_id' not in st.session_state:
+                    st.session_state['form_reset_id'] = 0
+                reset_id = st.session_state['form_reset_id']
+
+                if st.session_state.get('registro_exitoso', False):
+                    st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                    st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
                     
-                    # Botón de Login (submit)
-                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                with st.form("register_form"):
+                    st.markdown("### 📝 Nuevo Usuario")
+                    name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                    email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                    password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                    
+                    # Botón de Registrarme (Usa tipo secundario para el estilo)
+                    submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
                     
                     if submitted:
-                        try:
-                            # Intento de inicio de sesión
-                            session = supabase.auth.sign_in_with_password({
-                                "email": email,
-                                "password": password
-                            })
-                            
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
-
-                            if user_data:
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
-
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data
-                                st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                        if not name or not email or not password:
+                            st.warning("Por favor, completa todos los campos.")
+                        else:
+                            try:
+                                supabase.auth.sign_up({
+                                    "email": email,
+                                    "password": password,
+                                    "options": {
+                                        "data": { 'full_name': name }
+                                    }
+                                })
+                                st.session_state['form_reset_id'] += 1
+                                st.session_state['registro_exitoso'] = True
                                 st.rerun()
-                            else:
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
-
-                        except Exception as e:
-                            error_message = str(e)
-                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
-                                st.error("Credenciales incorrectas o correo no confirmado.")
-                            else:
-                                st.error(f"Error al iniciar sesión: {e}")
-
-
-                # Botón de recuperación FUERA del st.form("login_form")
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
-                    st.rerun()
-
-
-        # --- PESTAÑA 2: REGISTRO ---
-        with tab_register:
-            if 'form_reset_id' not in st.session_state:
-                st.session_state['form_reset_id'] = 0
-            reset_id = st.session_state['form_reset_id']
-
-            if st.session_state.get('registro_exitoso', False):
-                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                
-            with st.form("register_form"):
-                st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                
-                # Botón de Registrarme (Usa tipo secundario para el estilo)
-                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                
-                if submitted:
-                    if not name or not email or not password:
-                        st.warning("Por favor, completa todos los campos.")
-                    else:
-                        try:
-                            supabase.auth.sign_up({
-                                "email": email,
-                                "password": password,
-                                "options": {
-                                    "data": { 'full_name': name }
-                                }
-                            })
-                            st.session_state['form_reset_id'] += 1
-                            st.session_state['registro_exitoso'] = True
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Error en el registro: {e}")
+                            except Exception as e:
+                                st.error(f"Error en el registro: {e}")
 
         st.divider()
         
@@ -2435,6 +2517,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
