@@ -400,9 +400,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # =========================================================================
 # === 4.A DEFINICIÓN DE LA VISTA DE RESTABLECIMIENTO DE CONTRASEÑA ===
+# (Aquí van todas las funciones auxiliares de la interfaz)
 # =========================================================================
 
 # Esta función se define fuera de login_page pero debe tener acceso a 'supabase' (global)
@@ -455,6 +455,7 @@ def reset_password_view(access_token, refresh_token):
 
 # =========================================================================
 # === 4. PÁGINA DE LOGIN (V31.0 - Implementación Completa Restablecer Contraseña) ===
+# (Esta es la función principal que llamas para mostrar la UI)
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -631,6 +632,7 @@ def login_page():
 
         if access_token and refresh_token:
             # Si se detectan tokens, mostramos la vista de nueva contraseña
+            # Esta llama a la función auxiliar definida arriba.
             reset_password_view(access_token, refresh_token)
             
             # Nota: Si el usuario presiona F5, los tokens aún estarán en la URL
@@ -2517,6 +2519,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
