@@ -401,313 +401,308 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-#=========================================================================
+# =========================================================================
 # === 4. PÁGINA DE LOGIN (V30.1 - Simplificación Recuperación) ===
-#=========================================================================
+# =========================================================================
 def login_page():
-    # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
-    global supabase
- 
-    # 1. Inicializar el estado de la vista de recuperación de contraseña
-    if 'view_recuperar_pass' not in st.session_state:
-       st.session_state['view_recuperar_pass'] = False
- 
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
-   st.markdown("""
-    <style>
-        /* 1. FONDO DEGRADADO */
-       [data-testid="stAppViewContainer"] {
-           background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
-           background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
-            background-size: cover;
-           background-attachment: fixed;
-        }
-        
-        /* 2. LIMPIEZA DE INTERFAZ */
-       .block-container {
-           padding-top: 3rem !important;
-           padding-bottom: 2rem !important;
-        }
-       header[data-testid="stHeader"] {
-           background-color: transparent !important;
-            display: none !important;
-        }
-        
-        /* 3. TARJETA DE CRISTAL */
-        /* Aplicamos el estilo de tarjeta a los bloques verticales que contienen los formularios */
-        /* Este es el contenedor padre que hace el efecto de cristal */
-       div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: rgba(255, 255, 255, 0.25);
-           backdrop-filter: blur(15px);
-            padding: 40px;
-           border-radius: 20px;
-           box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
- 
-        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        /* Mantiene el título principal y el subtítulo fuera de la tarjeta en blanco */
-        h1, h2, h3, p {
-            color: #FFFFFF !important;
-           text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
- 
-        /* 5. TEXTOS DENTRO DEL FORMULARIO Y LA TARJETA (Negros UNIFICADOS) */
-        /* SOBREESCRIBE la regla de blanco (punto 4) para todo el texto dentro de la tarjeta */
-       div[data-testid="stVerticalBlock"] > div:has(div.stForm) p,
-       div[data-testid="stVerticalBlock"] > div:has(div.stForm) h3, 
-       div[data-testid="stVerticalBlock"] > div:has(div.stForm) span,
-       div[data-testid="stVerticalBlock"] > div:has(div.stForm) .stAlert p {
-            color: #1a1a1a !important; /* Texto negro */
-           text-shadow: none !important;
-           font-weight: 600 !important;
-        }
- 
-        /* 6. INPUTS */
-       input[type="text"], input[type="password"] {
-            color: #000000 !important;
-           background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
-            border: 1px solid rgba(0, 0, 0, 0.2) !important;
-           border-radius: 8px !important;
-        }
-        ::placeholder {
-            color: #555555 !important;
-            opacity: 1 !important;
-        }
- 
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
-        /* Texto Negro en las pestañas inactivas para que se lea */
-       button[data-baseweb="tab"] div p {
-            color: #333333 !important; 
-           font-weight: bold !important;
-           text-shadow: none !important;
-        }
-        /* Fondo blanco semitransparente para pestañas inactivas */
-       button[data-baseweb="tab"] {
-           background-color: rgba(255, 255, 255, 0.6) !important;
-           border-radius: 8px !important;
-           margin-right: 5px !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
-        }
-        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
-       button[data-baseweb="tab"][aria-selected="true"] {
-           background-color: #FFFFFF !important;
-           box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-       button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important; /* Rosa intenso */
-        }
-        
-        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
-        /* Afecta a los botones secundarios dentro del form */
-        div.stForm button[kind="secondary"] {
-           background-color: #ffffff !important;
-            color: #E94057 !important;
-            border: 2px solid #E94057 !important;
-           font-weight: bold !important;
-        }
-        div.stForm button[kind="secondary"]:hover {
-           background-color: #E94057 !important;
-            color: white !important;
-        }
- 
-        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Asegurando estilo de enlace) */
-       button[key="btn_olvide_pass_login"] {
-           background: none !important;
-            border: none !important;
-            padding: 0px !important;
-           text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
-           margin-top: 15px; /* Separación del botón de submit */
-        }
-        /* La regla de color para este párrafo está garantizada en el punto 5. */
- 
- 
-        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo Secundario) */
-       button[key="btn_cancel_recov"] {
-           background-color: #6c757d !important; /* Gris Neutral */
-            color: white !important;
-            border: none !important;
-           font-weight: bold !important;
-           border-radius: 8px !important;
-            margin-top: 10px;
-        }
-       button[key="btn_cancel_recov"] p {
-            color: white !important;
-        }
- 
- 
-        footer {visibility: hidden;}
-    </style>
-   """, unsafe_allow_html=True)
- 
-    # --- B. ESTRUCTURA ---
-    col1, col_centro, col3 = st.columns([1, 4, 1]) 
-    
-    with col_centro:
-       st.image("assets/logotipo-aulametrics.png", width=300)
-        
-       st.subheader("Bienvenido a AulaMetrics", anchor=False)
-       st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        
-       st.write("") 
-        
-        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
- 
-        # --- PESTAÑA 1: LOGIN ---
-        with tab_login:
-            
-            # === ESTRUCTURA CONDICIONAL DE VISTAS ===
-            if st.session_state['view_recuperar_pass']:
-                
-                # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
-                with st.form("recovery_form_tab_login", clear_on_submit=True):
-                   st.markdown("### 🔄 Restablecer Contraseña")
-                    # Mensaje simplificado. Se espera que el usuario cambie la contraseña
-                    # fuera de la aplicación Streamlit, usando el enlace del email.
-                   st.info("Ingresa el correo electrónico asociado a tu cuenta. **El cambio de contraseña se realizará a través del enlace que recibirás por email.**")
- 
-                   email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email",
-placeholder="tucorreo@ejemplo.com")
- 
-                   submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
- 
-                    if submitted:
-                       if email_recuperacion:
-                           try:
-                               supabase.auth.reset_password_for_email(email_recuperacion)
-                                # Mensaje modificado para ser más claro sobre el proceso.
-                               st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada y **sigue las instrucciones en el enlace**.")
-                                # Después de enviar el enlace, volvemos a la vista de login para limpiar el estado.
-                               st.session_state['view_recuperar_pass'] = False
-                                st.rerun()
- 
-                           except Exception as e:
-                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
-                       else:
-                           st.error("Por favor, ingresa un correo electrónico válido.")
-                
-                # Botón Secundario: Cancelar y volver
-                # Este botón es ahora el único punto para salir del formulario ANTES de enviar.
-                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
-                   st.session_state['view_recuperar_pass'] = False
-                   st.rerun()
- 
-            else:
-                
-                # --- VISTA NORMAL: LOGIN ---
-                with st.form("login_form"):
-                   st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email",
-placeholder="ejemplo@escuela.edu.pe")
-                   password = st.text_input("Contraseña", type="password", key="login_password",
-placeholder="Ingresa tu contraseña")
-                    
-                    # Botón de Login (submit)
-                   submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-                    
-                    if submitted:
-                       try:
-                           # Intento de inicio de sesión
-                           session = supabase.auth.sign_in_with_password({
-                               "email": email,
-                               "password": password
-                           })
-                           
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
- 
-                           if user_data:
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
- 
-                               st.session_state.logged_in = True
-                               st.session_state.user = user_data
-                               st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                                st.rerun()
-                           else:
-                               st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
- 
-                       except Exception as e:
-                           error_message = str(e)
-                           if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
-                               st.error("Credenciales incorrectas o correo no confirmado.")
-                           else:
-                               st.error(f"Error al iniciar sesión: {e}")
- 
- 
-                # Botón de recuperación FUERA del st.form("login_form")
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
-                   st.rerun()
- 
- 
-        # --- PESTAÑA 2: REGISTRO ---
-        with tab_register:
-            if 'form_reset_id' not in st.session_state:
-               st.session_state['form_reset_id'] = 0
-            reset_id = st.session_state['form_reset_id']
- 
-            if st.session_state.get('registro_exitoso', False):
-               st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-               st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                
-            with st.form("register_form"):
-               st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}",
-placeholder="Tu nombre completo")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}",
-placeholder="tucorreo@email.com")
-               password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}",
-placeholder="Crea una contraseña")
-                
-                # Botón de Registrarme (Usa tipo secundario para el estilo)
-               submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                
-                if submitted:
-                    if not name or not email or not password:
-                       st.warning("Por favor, completa todos los campos.")
-                   else:
-                       try:
-                           supabase.auth.sign_up({
-                                "email": email,
-                               "password": password,
-                               "options": {
-                                   "data": { 'full_name': name }
-                                }
-                            })
-                           st.session_state['form_reset_id'] += 1
-                           st.session_state['registro_exitoso'] = True
-                           st.rerun()
-                       except Exception as e:
-                            st.error(f"Error en el registro: {e}")
- 
-        st.divider()
-        
-        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
-        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
-        
-       st.markdown(f"""
-        <a href="{url_netlify}" target="_blank" style="
-            display: inline-block;
-            width: 100%;
-            padding: 15px 0;
-           background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
-            color: white;
-           text-align: center;
-           text-decoration: none;
-           border-radius: 10px;
-            font-size: 18px;
-           font-weight: 800;
-           box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-           transition: all 0.3s;
-            border: none;
-        ">
-            💬 ¿Dudas? Contáctanos/TikTok
-        </a>
-       """, unsafe_allow_html=True)
+    # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
+    global supabase
+
+    # 1. Inicializar el estado de la vista de recuperación de contraseña
+    if 'view_recuperar_pass' not in st.session_state:
+        st.session_state['view_recuperar_pass'] = False
+
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    st.markdown("""
+    <style>
+        /* 1. FONDO DEGRADADO */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        
+        /* 2. LIMPIEZA DE INTERFAZ */
+        .block-container {
+            padding-top: 3rem !important;
+            padding-bottom: 2rem !important;
+        }
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: none !important;
+        }
+        
+        /* 3. TARJETA DE CRISTAL */
+        /* Aplicamos el estilo de tarjeta a los bloques verticales que contienen los formularios */
+        /* Este es el contenedor padre que hace el efecto de cristal */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        /* Mantiene el título principal y el subtítulo fuera de la tarjeta en blanco */
+        h1, h2, h3, p {
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 5. TEXTOS DENTRO DEL FORMULARIO Y LA TARJETA (Negros UNIFICADOS) */
+        /* SOBREESCRIBE la regla de blanco (punto 4) para todo el texto dentro de la tarjeta */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) p,
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) h3, 
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) span,
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) .stAlert p {
+            color: #1a1a1a !important; /* Texto negro */
+            text-shadow: none !important;
+            font-weight: 600 !important;
+        }
+
+        /* 6. INPUTS */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important;
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        ::placeholder {
+            color: #555555 !important;
+            opacity: 1 !important;
+        }
+
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* Texto Negro en las pestañas inactivas para que se lea */
+        button[data-baseweb="tab"] div p {
+            color: #333333 !important; 
+            font-weight: bold !important;
+            text-shadow: none !important;
+        }
+        /* Fondo blanco semitransparente para pestañas inactivas */
+        button[data-baseweb="tab"] {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            margin-right: 5px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #E94057 !important; /* Rosa intenso */
+        }
+        
+        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
+        /* Afecta a los botones secundarios dentro del form */
+        div.stForm button[kind="secondary"] {
+            background-color: #ffffff !important;
+            color: #E94057 !important;
+            border: 2px solid #E94057 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"]:hover {
+            background-color: #E94057 !important;
+            color: white !important;
+        }
+
+        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Asegurando estilo de enlace) */
+        button[key="btn_olvide_pass_login"] {
+            background: none !important;
+            border: none !important;
+            padding: 0px !important;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: fit-content;
+            margin-top: 15px; /* Separación del botón de submit */
+        }
+        /* La regla de color para este párrafo está garantizada en el punto 5. */
+
+
+        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo Secundario) */
+        button[key="btn_cancel_recov"] {
+            background-color: #6c757d !important; /* Gris Neutral */
+            color: white !important;
+            border: none !important;
+            font-weight: bold !important;
+            border-radius: 8px !important;
+            margin-top: 10px;
+        }
+        button[key="btn_cancel_recov"] p {
+            color: white !important;
+        }
+
+
+        footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- B. ESTRUCTURA ---
+    col1, col_centro, col3 = st.columns([1, 4, 1]) 
+    
+    with col_centro:
+        st.image("assets/logotipo-aulametrics.png", width=300)
+        
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        
+        st.write("") 
+        
+        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
+
+        # --- PESTAÑA 1: LOGIN ---
+        with tab_login:
+            
+            # === ESTRUCTURA CONDICIONAL DE VISTAS ===
+            if st.session_state['view_recuperar_pass']:
+                
+                # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
+                with st.form("recovery_form_tab_login", clear_on_submit=True):
+                    st.markdown("### 🔄 Restablecer Contraseña")
+                    # Mensaje simplificado. Se espera que el usuario cambie la contraseña
+                    # fuera de la aplicación Streamlit, usando el enlace del email.
+                    st.info("Ingresa el correo electrónico asociado a tu cuenta. **El cambio de contraseña se realizará a través del enlace que recibirás por email.**")
+
+                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+
+                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+
+                    if submitted:
+                        if email_recuperacion:
+                            try:
+                                supabase.auth.reset_password_for_email(email_recuperacion)
+                                # Mensaje modificado para ser más claro sobre el proceso.
+                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada y **sigue las instrucciones en el enlace**.")
+                                # Después de enviar el enlace, volvemos a la vista de login para limpiar el estado.
+                                st.session_state['view_recuperar_pass'] = False
+                                st.rerun()
+
+                            except Exception as e:
+                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
+                        else:
+                            st.error("Por favor, ingresa un correo electrónico válido.")
+                
+                # Botón Secundario: Cancelar y volver
+                # Este botón es ahora el único punto para salir del formulario ANTES de enviar.
+                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
+                    st.session_state['view_recuperar_pass'] = False
+                    st.rerun()
+
+            else:
+                
+                # --- VISTA NORMAL: LOGIN ---
+                with st.form("login_form"):
+                    st.markdown("### 🔐 Acceso Docente")
+                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                    
+                    # Botón de Login (submit)
+                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                    
+                    if submitted:
+                        try:
+                            # Intento de inicio de sesión
+                            session = supabase.auth.sign_in_with_password({
+                                "email": email,
+                                "password": password
+                            })
+                            
+                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
+
+                            if user_data:
+                                if hasattr(user_data, 'to_dict'):
+                                    user_data = user_data.to_dict()
+
+                                st.session_state.logged_in = True
+                                st.session_state.user = user_data
+                                st.session_state.show_welcome_message = True
+                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                st.rerun()
+                            else:
+                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+
+                        except Exception as e:
+                            error_message = str(e)
+                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                st.error("Credenciales incorrectas o correo no confirmado.")
+                            else:
+                                st.error(f"Error al iniciar sesión: {e}")
+
+
+                # Botón de recuperación FUERA del st.form("login_form")
+                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                    st.session_state['view_recuperar_pass'] = True
+                    st.rerun()
+
+
+        # --- PESTAÑA 2: REGISTRO ---
+        with tab_register:
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            reset_id = st.session_state['form_reset_id']
+
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                
+            with st.form("register_form"):
+                st.markdown("### 📝 Nuevo Usuario")
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                
+                # Botón de Registrarme (Usa tipo secundario para el estilo)
+                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
+                
+                if submitted:
+                    if not name or not email or not password:
+                        st.warning("Por favor, completa todos los campos.")
+                    else:
+                        try:
+                            supabase.auth.sign_up({
+                                "email": email,
+                                "password": password,
+                                "options": {
+                                    "data": { 'full_name': name }
+                                }
+                            })
+                            st.session_state['form_reset_id'] += 1
+                            st.session_state['registro_exitoso'] = True
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error en el registro: {e}")
+
+        st.divider()
+        
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
+        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
+        
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
+        ">
+            💬 ¿Dudas? Contáctanos/TikTok
+        </a>
+        """, unsafe_allow_html=True)
+
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2440,6 +2435,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
