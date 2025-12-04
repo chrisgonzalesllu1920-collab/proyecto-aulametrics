@@ -399,7 +399,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V28.0 - INTEGRACIÓN RESTABLECER CONTRASEÑA) ===
+# === 4. PÁGINA DE LOGIN (V29.0 - CORRECCIÓN COLOR BOTÓN OLVIDADO) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -506,20 +506,21 @@ def login_page():
             color: white !important;
         }
 
-        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Añadido) */
+        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (CORRECCIÓN COLOR DE TEXTO) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
             padding: 0px !important;
-            color: #1a1a1a !important; /* Negro para que se vea sobre el cristal */
+            color: #1a1a1a !important; /* Color del borde/fondo (no afecta el texto directamente) */
             text-decoration: underline;
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
             margin-top: 15px; /* Separación del botón de submit */
         }
+        /* Selector más específico para el párrafo de texto */
         button[key="btn_olvide_pass_login"] p {
-            color: #1a1a1a !important;
+            color: #1a1a1a !important; /* ¡Negro forzado para el texto! */
             text-shadow: none !important;
         }
 
@@ -2433,5 +2434,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
