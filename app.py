@@ -401,7 +401,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V30.0 - UNIFICACIÓN TEXTO TARJETA A NEGRO) ===
+# === 4. PÁGINA DE LOGIN (V30.1 - Simplificación Recuperación) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -564,7 +564,9 @@ def login_page():
                 # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
                 with st.form("recovery_form_tab_login", clear_on_submit=True):
                     st.markdown("### 🔄 Restablecer Contraseña")
-                    st.info("Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace de restablecimiento.")
+                    # Mensaje simplificado. Se espera que el usuario cambie la contraseña
+                    # fuera de la aplicación Streamlit, usando el enlace del email.
+                    st.info("Ingresa el correo electrónico asociado a tu cuenta. **El cambio de contraseña se realizará a través del enlace que recibirás por email.**")
 
                     email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
 
@@ -574,17 +576,22 @@ def login_page():
                         if email_recuperacion:
                             try:
                                 supabase.auth.reset_password_for_email(email_recuperacion)
-                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
+                                # Mensaje modificado para ser más claro sobre el proceso.
+                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada y **sigue las instrucciones en el enlace**.")
+                                # Después de enviar el enlace, volvemos a la vista de login para limpiar el estado.
+                                st.session_state['view_recuperar_pass'] = False
+                                st.rerun()
+
                             except Exception as e:
                                 st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
                         else:
                             st.error("Por favor, ingresa un correo electrónico válido.")
-
+                
                 # Botón Secundario: Cancelar y volver
+                # Este botón es ahora el único punto para salir del formulario ANTES de enviar.
                 if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
-
 
             else:
                 
@@ -694,8 +701,6 @@ def login_page():
             💬 ¿Dudas? Contáctanos/TikTok
         </a>
         """, unsafe_allow_html=True)
-
-
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2428,6 +2433,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
