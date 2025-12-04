@@ -399,9 +399,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V11.0 - COLORES CORREGIDOS Y BOTONES SÓLIDOS) ===
+# === 4. PÁGINA DE LOGIN (V28.0 - INTEGRACIÓN RESTABLECER CONTRASEÑA) ===
 # =========================================================================
 def login_page():
+    # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
+    global supabase
+
+    # 1. Inicializar el estado de la vista de recuperación de contraseña
+    if 'view_recuperar_pass' not in st.session_state:
+        st.session_state['view_recuperar_pass'] = False
+
     # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
@@ -424,6 +431,7 @@ def login_page():
         }
         
         /* 3. TARJETA DE CRISTAL */
+        /* Aplicamos el estilo de tarjeta a los bloques verticales que contienen los formularios */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(15px);
@@ -440,7 +448,7 @@ def login_page():
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
-        div.stForm label p, div.stForm h3, div.stForm h3 span {
+        div.stForm label p, div.stForm h3, div.stForm h3 span, .stAlert p {
             color: #1a1a1a !important;
             text-shadow: none !important;
             font-weight: 600 !important;
@@ -498,6 +506,37 @@ def login_page():
             color: white !important;
         }
 
+        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Añadido) */
+        button[key="btn_olvide_pass_login"] {
+            background: none !important;
+            border: none !important;
+            padding: 0px !important;
+            color: #1a1a1a !important; /* Negro para que se vea sobre el cristal */
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: fit-content;
+            margin-top: 15px; /* Separación del botón de submit */
+        }
+        button[key="btn_olvide_pass_login"] p {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+        }
+
+        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo Secundario) */
+        button[key="btn_cancel_recov"] {
+            background-color: #6c757d !important; /* Gris Neutral */
+            color: white !important;
+            border: none !important;
+            font-weight: bold !important;
+            border-radius: 8px !important;
+            margin-top: 10px;
+        }
+        button[key="btn_cancel_recov"] p {
+            color: white !important;
+        }
+
+
         footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -517,25 +556,89 @@ def login_page():
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
-            with st.form("login_form"):
-                st.markdown("### 🔐 Acceso Docente")
-                email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
-                submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+            
+            # === ESTRUCTURA CONDICIONAL DE VISTAS ===
+            if st.session_state['view_recuperar_pass']:
                 
-                if submitted:
-                    try:
-                        session = supabase.auth.sign_in_with_password({
-                            "email": email,
-                            "password": password
-                        })
-                        st.session_state.logged_in = True
-                        st.session_state.user = session.user
-                        st.session_state.show_welcome_message = True
-                        if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                        st.rerun() 
-                    except Exception as e:
-                        st.error(f"Error al iniciar sesión: {e}")
+                # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
+                with st.form("recovery_form_tab_login", clear_on_submit=True):
+                    st.markdown("### 🔄 Restablecer Contraseña")
+                    st.info("Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace de restablecimiento.")
+
+                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
+
+                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
+
+                    if submitted:
+                        if email_recuperacion:
+                            try:
+                                # Lógica para enviar el enlace de restablecimiento
+                                # NOTA: Supabase gestiona la plantilla de correo y el envío.
+                                # La URL de redirección debe estar configurada en el proyecto Supabase.
+                                supabase.auth.reset_password_for_email(email_recuperacion)
+                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
+                            except Exception as e:
+                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
+                        else:
+                            st.error("Por favor, ingresa un correo electrónico válido.")
+
+                # Botón Secundario: Cancelar y volver
+                # Se utiliza un botón estándar fuera del form y se le asigna un KEY para darle estilo específico si fuera necesario.
+                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
+                    st.session_state['view_recuperar_pass'] = False
+                    st.rerun()
+
+
+            else:
+                
+                # --- VISTA NORMAL: LOGIN ---
+                with st.form("login_form"):
+                    st.markdown("### 🔐 Acceso Docente")
+                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                    
+                    # Botón de Login (submit)
+                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                    
+                    if submitted:
+                        try:
+                            # Intento de inicio de sesión
+                            session = supabase.auth.sign_in_with_password({
+                                "email": email,
+                                "password": password
+                            })
+                            
+                            # Asegurar que el objeto se guarde correctamente para ser leído por home_page
+                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
+
+                            if user_data:
+                                # Normalizar a diccionario si es necesario (para compatibilidad con home_page)
+                                if hasattr(user_data, 'to_dict'):
+                                    user_data = user_data.to_dict()
+
+                                st.session_state.logged_in = True
+                                st.session_state.user = user_data
+                                st.session_state.show_welcome_message = True
+                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                                st.rerun()
+                            else:
+                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
+
+                        except Exception as e:
+                            # Manejo específico de errores de Supabase
+                            error_message = str(e)
+                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
+                                st.error("Credenciales incorrectas o correo no confirmado.")
+                            else:
+                                st.error(f"Error al iniciar sesión: {e}")
+
+
+                # Botón de recuperación FUERA del st.form("login_form")
+                # Se utiliza un botón estándar y se le asigna un KEY para el estilo underline/enlace
+                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
+                    st.session_state['view_recuperar_pass'] = True
+                    st.rerun()
+
 
         # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
@@ -553,15 +656,15 @@ def login_page():
                 email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
                 password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
                 
-                # Botón de Registrarme (Ahora se verá con borde rojo gracias al CSS)
-                submitted = st.form_submit_button("Registrarme", use_container_width=True)
+                # Botón de Registrarme (Usa tipo secundario para el estilo)
+                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
                 
                 if submitted:
                     if not name or not email or not password:
                         st.warning("Por favor, completa todos los campos.")
                     else:
                         try:
-                            user = supabase.auth.sign_up({
+                            supabase.auth.sign_up({
                                 "email": email,
                                 "password": password,
                                 "options": {
@@ -2330,4 +2433,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
