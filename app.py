@@ -399,8 +399,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V33.0 - SOLUCIÓN A BUCLE DE REDIRECCIÓN JS) ===
+# === 4. PÁGINA DE LOGIN (V34.0 - SOLUCIÓN DEFINITIVA JS/COMPONENTES) ===
 # =========================================================================
+import streamlit.components.v1 as components # Necesitamos importar components
+# La biblioteca 'supabase' y otras deben estar importadas arriba en el script principal
+
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
     global supabase
@@ -413,8 +416,31 @@ def login_page():
     if 'force_password_update' not in st.session_state:
         st.session_state['force_password_update'] = False
 
+    # --- A. COMPONENTE JS DE REDIRECCIÓN FORZADA (SOLUCIÓN CRÍTICA) ---
+    # Este componente se ejecuta siempre y con alta prioridad para leer el fragmento #
+    # y convertirlo en un parámetro ? que Python pueda ver.
+    js_redirect_component = """
+    <script>
+        // Si hay un fragmento (#) en la URL
+        if (window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            // Y ese fragmento es un token de recuperación de Supabase
+            if (hash.includes('access_token') && hash.includes('type=recovery')) {
+                // Preparamos la nueva URL sin el fragmento, pero con la bandera de recuperación
+                const newUrl = window.location.origin + window.location.pathname + '?recovery_mode=true';
+                
+                // Usamos location.replace() para una limpieza completa de la URL, 
+                // asegurando que el Streamlit server reciba la señal.
+                window.location.replace(newUrl);
+            }
+        }
+    </script>
+    """
+    # Inyectamos el script como un componente HTML, que es más fiable que st.markdown
+    components.html(js_redirect_component, height=0, width=0)
 
-    # --- A. INYECCIÓN DE ESTILO VISUAL Y SCRIPT DE REDIRECCIÓN ---
+
+    # --- B. INYECCIÓN DE ESTILO VISUAL (Solo CSS, el JS crítico ya está arriba) ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO */
@@ -425,7 +451,6 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* [ ... RESTO DEL CSS SE MANTIENE IGUAL AL V32.0 ... ] */
         /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
@@ -437,8 +462,6 @@ def login_page():
         }
         
         /* 3. TARJETA DE CRISTAL */
-        /* Aplicamos el estilo de tarjeta a los bloques verticales que contienen los formularios */
-        /* Este es el contenedor padre que hace el efecto de cristal */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(15px);
@@ -462,11 +485,6 @@ def login_page():
             color: #1a1a1a !important; 
             text-shadow: none !important;
             font-weight: 600 !important;
-        }
-
-        /* Excepción: Botón de Contacto. Debe ser blanco para verse sobre el verde. */
-        .aulametrics-contacto {
-            color: white !important;
         }
 
         /* 6. INPUTS */
@@ -525,7 +543,7 @@ def login_page():
             margin-top: 15px;
         }
 
-        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (MEJORA: Estilo de Enlace Sutil) */
+        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo de Enlace Sutil) */
         button[key="btn_cancel_recov"] {
             background: none !important;
             border: none !important;
@@ -542,27 +560,17 @@ def login_page():
             text-shadow: none !important;
         }
 
+        /* 11. BOTÓN DE CONTACTO */
+        .aulametrics-contacto {
+            color: white !important; /* Para que se vea sobre el fondo verde */
+        }
+        
         footer {visibility: hidden;}
     </style>
-    
-    <script>
-        // Función para leer el fragmento (#...) y convertirlo en parámetro de consulta (?)
-        if (window.location.hash) {
-            const hash = window.location.hash.substring(1);
-            if (hash.includes('access_token') && hash.includes('type=recovery')) {
-                // Supabase ha redirigido con el token de recuperación.
-                // Redirigimos a la página sin el hash, pero con la bandera.
-                // Usamos location.href para una redirección más agresiva y forzar el reload.
-                const newUrl = window.location.origin + window.location.pathname + '?recovery_mode=true';
-                window.location.href = newUrl;
-            }
-        }
-    </script>
     """, unsafe_allow_html=True)
 
 
-    # --- DETECCIÓN DEL MODO DE RECUPERACIÓN ---
-    # Python solo puede leer los query params. Si el JS funcionó, debe aparecer 'recovery_mode'.
+    # --- C. LÓGICA DE DETECCIÓN DEL MODO DE RECUPERACIÓN (PYTHON) ---
     query_params = st.query_params
     
     # 1. Detectar si la URL contiene la bandera de recuperación Y NO estamos logueados
@@ -571,17 +579,16 @@ def login_page():
     if is_recovery_mode:
         st.session_state['force_password_update'] = True
 
-        # Limpiamos el query param SOLO si no estamos mostrando el formulario
-        # Esto previene el bucle de detección.
+        # Limpiamos el query param SOLO si lo detectamos para evitar bucles.
         if 'recovery_mode' in query_params:
             del query_params['recovery_mode'] 
             st.query_params = query_params # Esto limpia la URL visible
 
-        # FORZAMOS LA RECARGA PARA QUE EL CLIENTE SUPABASE DE PYTHON ACTIVE EL TOKEN
+        # Forzamos la recarga para que el cliente Supabase de Python active el token
         st.rerun()
 
 
-    # --- B. ESTRUCTURA ---
+    # --- D. ESTRUCTURA DE LA PÁGINA ---
     col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
     with col_centro:
@@ -598,14 +605,13 @@ def login_page():
         with tab_login:
             
             # === VISTA 1: RESTABLECIMIENTO FORZADO DE CONTRASEÑA ===
-            # Muestra el formulario si el JS/Python detectó la señal de recuperación
             if st.session_state['force_password_update']:
                 with st.form("new_password_form", clear_on_submit=True):
                     st.markdown("### 🔑 ¡Último paso! Crea tu nueva contraseña")
                     
-                    # Verificación CRÍTICA: ¿El token de Supabase activó la sesión temporalmente?
                     session_status = None
                     try:
+                        # Verificación CRÍTICA: ¿El token de Supabase activó la sesión temporalmente?
                         session_status = supabase.auth.get_session()
                     except Exception as e:
                         # Error de Supabase al intentar obtener la sesión (e.g., token inválido)
@@ -652,7 +658,6 @@ def login_page():
 
                             except Exception as e:
                                 st.error(f"Error en la actualización: {e}")
-                                # Si falla, es posible que la sesión haya expirado. Forzamos un reintento.
                                 st.session_state['force_password_update'] = False
                                 
                         else:
@@ -709,10 +714,8 @@ def login_page():
                             user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
                             if user_data:
-                                # Convertir el objeto de usuario (si es necesario) a un diccionario estándar
                                 if hasattr(user_data, 'to_dict'):
                                     user_data = user_data.to_dict()
-                                # Si el cliente python es más nuevo, el objeto 'user' es una clase, no un dict.
                                 elif hasattr(user_data, 'dict'): 
                                     user_data = user_data.dict()
                                 
@@ -2532,6 +2535,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
