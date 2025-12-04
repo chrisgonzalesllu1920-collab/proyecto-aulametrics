@@ -430,54 +430,50 @@ def inject_reset_password_js():
 def reset_password_view(access_token: str, refresh_token: str):
     global supabase
 
-    st.subheader("🔑 Crear Nueva Contraseña", anchor=False)
-    st.info("Define tu nueva contraseña y confírmala. El enlace es válido por poco tiempo.")
+    st.subheader("🔑 Restablecer tu contraseña")
 
-    with st.form("form_reset_password"):
-        new_pass = st.text_input("Nueva Contraseña", type="password", placeholder="Mínimo 6 caracteres")
-        confirm_pass = st.text_input("Confirmar Contraseña", type="password")
-        submitted = st.form_submit_button("Guardar Nueva Contraseña", type="primary", use_container_width=True)
+    with st.form("form_set_new_password"):
+        new_password = st.text_input("Nueva contraseña", type="password")
+        confirm_password = st.text_input("Confirmar contraseña", type="password")
+        submit = st.form_submit_button("Actualizar contraseña", type="primary")
 
-        if submitted:
+        if submit:
 
-            if not new_pass or len(new_pass) < 6:
-                st.error("La contraseña debe tener al menos 6 caracteres.")
+            if not new_password or not confirm_password:
+                st.error("Todos los campos son obligatorios.")
                 return
-
-            if new_pass != confirm_pass:
+            
+            if new_password != confirm_password:
                 st.error("Las contraseñas no coinciden.")
                 return
 
             try:
-                # Establecer sesión temporal usando los tokens del enlace
+                # Activar la sesión temporal usando los tokens del correo
                 supabase.auth.set_session({
                     "access_token": access_token,
                     "refresh_token": refresh_token
                 })
 
-                # Actualizar contraseña
-                supabase.auth.update_user({"password": new_pass})
+                # Actualizar la contraseña
+                supabase.auth.update_user({"password": new_password})
 
-                # Cerrar sesión temporal
-                try:
-                    supabase.auth.sign_out()
-                except:
-                    pass
+                # Cerrar sesión temporal por seguridad
+                supabase.auth.sign_out()
 
-                st.success("Contraseña actualizada con éxito. Inicia sesión con tu nueva contraseña.")
+                st.success("🎉 Tu contraseña fue actualizada con éxito.")
 
-                # Limpiar parámetros
-                st.query_params.clear()
+                # Limpiar la URL para borrar tokens
+                st.query_params = {}
 
-                st.rerun()
+                # Desactivar modo recovery
+                st.session_state["force_password_update"] = False
+                
+                st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
+                return
 
             except Exception as e:
-                st.error(f"No se pudo actualizar la contraseña. El enlace podría haber expirado. ({e})")
-
-                if st.button("Ingresar tokens manualmente"):
-                    st.session_state["manual_token_entry"] = True
-                    st.rerun()
-
+                st.error("El enlace expiró o ya fue usado. Solicita uno nuevo.")
+                st.caption(str(e))
 
 
 # =========================================================================
@@ -513,6 +509,24 @@ def manual_token_view():
 # =========================================================================
 def login_page():
 
+    # ----------------------------
+    # DETECTAR TOKENS EN LA URL
+    # ----------------------------
+    params = st.query_params
+    
+    access_token = params.get("access_token", [None])[0]
+    refresh_token = params.get("refresh_token", [None])[0]
+    mode = params.get("type", [None])[0]
+    
+    # Si Supabase envió credenciales de recuperación
+    if mode == "recovery" and access_token and refresh_token:
+        st.session_state["force_password_update"] = True
+    
+        # Mostrar formulario especial
+        reset_password_view(access_token, refresh_token)
+        return
+
+    
     # --- FORZAR STREAMLIT A PROCESAR EL FRAGMENTO #access_token ---
     st.markdown("""
     <script>
@@ -2416,6 +2430,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
