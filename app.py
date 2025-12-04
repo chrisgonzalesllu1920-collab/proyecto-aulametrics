@@ -399,7 +399,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V32.0 - MANEJO DE RECUPERACIÓN) ===
+# === 4. PÁGINA DE LOGIN (V33.0 - SOLUCIÓN A BUCLE DE REDIRECCIÓN JS) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
@@ -425,7 +425,7 @@ def login_page():
             background-attachment: fixed;
         }
         
-        /* [ ... RESTO DEL CSS SE MANTIENE IGUAL AL V31.0 ... ] */
+        /* [ ... RESTO DEL CSS SE MANTIENE IGUAL AL V32.0 ... ] */
         /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
@@ -551,11 +551,10 @@ def login_page():
             const hash = window.location.hash.substring(1);
             if (hash.includes('access_token') && hash.includes('type=recovery')) {
                 // Supabase ha redirigido con el token de recuperación.
-                // Reemplazamos la URL para que Python pueda ver 'recovery_mode=true'.
-                // No podemos pasar todo el hash por seguridad y complejidad. Solo pasamos una bandera.
+                // Redirigimos a la página sin el hash, pero con la bandera.
+                // Usamos location.href para una redirección más agresiva y forzar el reload.
                 const newUrl = window.location.origin + window.location.pathname + '?recovery_mode=true';
-                // Usamos replace para evitar que la acción se añada al historial del navegador
-                window.location.replace(newUrl);
+                window.location.href = newUrl;
             }
         }
     </script>
@@ -563,17 +562,22 @@ def login_page():
 
 
     # --- DETECCIÓN DEL MODO DE RECUPERACIÓN ---
-    # Python solo puede leer los query params, que son modificados por el script de arriba.
+    # Python solo puede leer los query params. Si el JS funcionó, debe aparecer 'recovery_mode'.
     query_params = st.query_params
-    if 'recovery_mode' in query_params and not st.session_state.logged_in:
-        # Esto significa que el JS detectó el token y nos redirigió aquí.
+    
+    # 1. Detectar si la URL contiene la bandera de recuperación Y NO estamos logueados
+    is_recovery_mode = 'recovery_mode' in query_params and not st.session_state.logged_in
+
+    if is_recovery_mode:
         st.session_state['force_password_update'] = True
-        # Limpiamos el query param para evitar bucles infinitos en recargas
-        del query_params['recovery_mode'] 
-        st.query_params = query_params
-        
-        # El token de sesión ya debería estar activo, pero Streamlit no lo sabe
-        # Forzamos la recarga para que el cliente Supabase de Python pueda leer la sesión.
+
+        # Limpiamos el query param SOLO si no estamos mostrando el formulario
+        # Esto previene el bucle de detección.
+        if 'recovery_mode' in query_params:
+            del query_params['recovery_mode'] 
+            st.query_params = query_params # Esto limpia la URL visible
+
+        # FORZAMOS LA RECARGA PARA QUE EL CLIENTE SUPABASE DE PYTHON ACTIVE EL TOKEN
         st.rerun()
 
 
@@ -594,11 +598,33 @@ def login_page():
         with tab_login:
             
             # === VISTA 1: RESTABLECIMIENTO FORZADO DE CONTRASEÑA ===
+            # Muestra el formulario si el JS/Python detectó la señal de recuperación
             if st.session_state['force_password_update']:
                 with st.form("new_password_form", clear_on_submit=True):
                     st.markdown("### 🔑 ¡Último paso! Crea tu nueva contraseña")
-                    st.success("Tu identidad ha sido verificada. Por favor, ingresa tu nueva contraseña.")
+                    
+                    # Verificación CRÍTICA: ¿El token de Supabase activó la sesión temporalmente?
+                    session_status = None
+                    try:
+                        session_status = supabase.auth.get_session()
+                    except Exception as e:
+                        # Error de Supabase al intentar obtener la sesión (e.g., token inválido)
+                        st.error(f"Error en la verificación de sesión. Por favor, cancela y vuelve a intentarlo. Detalles: {e}")
+                        if st.button("Cancelar", key="cancel_recovery_fail"):
+                            st.session_state['force_password_update'] = False
+                            st.rerun()
+                        return
 
+                    if session_status and session_status.user:
+                         st.success("Tu identidad ha sido verificada. Ingresa tu nueva contraseña para completar el proceso.")
+                    else:
+                         st.warning("Parece que el token de recuperación expiró o no se activó correctamente. Por favor, intenta el proceso de recuperación de nuevo.")
+                         if st.button("Volver a intentar", key="retry_recovery_fail"):
+                            st.session_state['force_password_update'] = False
+                            st.rerun()
+                         return # Detenemos la ejecución del formulario si no hay sesión
+                             
+                    # --- CAMPOS DEL FORMULARIO ---
                     new_password = st.text_input("Nueva Contraseña", type="password", placeholder="Contraseña segura")
                     confirm_password = st.text_input("Confirma Contraseña", type="password", placeholder="Repite la contraseña")
 
@@ -608,7 +634,6 @@ def login_page():
                         if new_password and (new_password == confirm_password):
                             try:
                                 # Usamos update_user para establecer la nueva contraseña en la sesión activa temporalmente.
-                                # La sesión temporal es manejada por el cliente Supabase al detectar el token en la URL (a través del JS fix).
                                 response = supabase.auth.update_user({'password': new_password})
                                 
                                 # Comprobamos si la respuesta contiene un usuario actualizado (éxito)
@@ -616,13 +641,20 @@ def login_page():
                                     st.success("🎉 ¡Contraseña actualizada con éxito! Accediendo...")
                                     st.session_state['force_password_update'] = False
                                     st.session_state.logged_in = True
-                                    # Se asume que la sesión ya está en st.session_state.user (o se actualizará en el controlador principal)
+                                    
+                                    # Configuramos la sesión del usuario con los datos actualizados
+                                    user_data = response.user.dict() if hasattr(response.user, 'dict') else response.user
+                                    st.session_state.user = user_data
+                                    
                                     st.rerun()
                                 else:
                                     st.error("Error al actualizar la contraseña. Por favor, intenta de nuevo.")
 
                             except Exception as e:
                                 st.error(f"Error en la actualización: {e}")
+                                # Si falla, es posible que la sesión haya expirado. Forzamos un reintento.
+                                st.session_state['force_password_update'] = False
+                                
                         else:
                             st.error("Las contraseñas no coinciden o están vacías.")
 
@@ -677,8 +709,13 @@ def login_page():
                             user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
                             if user_data:
+                                # Convertir el objeto de usuario (si es necesario) a un diccionario estándar
                                 if hasattr(user_data, 'to_dict'):
                                     user_data = user_data.to_dict()
+                                # Si el cliente python es más nuevo, el objeto 'user' es una clase, no un dict.
+                                elif hasattr(user_data, 'dict'): 
+                                    user_data = user_data.dict()
+                                
 
                                 st.session_state.logged_in = True
                                 st.session_state.user = user_data
@@ -2495,6 +2532,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
