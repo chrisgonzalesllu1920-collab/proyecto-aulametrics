@@ -399,17 +399,22 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V30.0 - UNIFICACIÓN TEXTO TARJETA A NEGRO) ===
+# === 4. PÁGINA DE LOGIN (V32.0 - MANEJO DE RECUPERACIÓN) ===
 # =========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
     global supabase
 
-    # 1. Inicializar el estado de la vista de recuperación de contraseña
+    # 1. Inicializar el estado de la vista de recuperación de contraseña y actualización forzada
     if 'view_recuperar_pass' not in st.session_state:
         st.session_state['view_recuperar_pass'] = False
+    
+    # Este flag se activará si se detecta un token de recuperación en la URL
+    if 'force_password_update' not in st.session_state:
+        st.session_state['force_password_update'] = False
 
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+
+    # --- A. INYECCIÓN DE ESTILO VISUAL Y SCRIPT DE REDIRECCIÓN ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO */
@@ -420,6 +425,7 @@ def login_page():
             background-attachment: fixed;
         }
         
+        /* [ ... RESTO DEL CSS SE MANTIENE IGUAL AL V31.0 ... ] */
         /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
@@ -443,27 +449,30 @@ def login_page():
         }
 
         /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        /* Mantiene el título principal y el subtítulo fuera de la tarjeta en blanco */
         h1, h2, h3, p {
             color: #FFFFFF !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* 5. TEXTOS DENTRO DEL FORMULARIO Y LA TARJETA (Negros UNIFICADOS) */
-        /* SOBREESCRIBE la regla de blanco (punto 4) para todo el texto dentro de la tarjeta */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) p,
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) h3, 
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) span,
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) .stAlert p {
-            color: #1a1a1a !important; /* Texto negro */
+            color: #1a1a1a !important; 
             text-shadow: none !important;
             font-weight: 600 !important;
+        }
+
+        /* Excepción: Botón de Contacto. Debe ser blanco para verse sobre el verde. */
+        .aulametrics-contacto {
+            color: white !important;
         }
 
         /* 6. INPUTS */
         input[type="text"], input[type="password"] {
             color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
+            background-color: rgba(255, 255, 255, 0.9) !important; 
             border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 8px !important;
         }
@@ -473,30 +482,26 @@ def login_page():
         }
 
         /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
-        /* Texto Negro en las pestañas inactivas para que se lea */
         button[data-baseweb="tab"] div p {
             color: #333333 !important; 
             font-weight: bold !important;
             text-shadow: none !important;
         }
-        /* Fondo blanco semitransparente para pestañas inactivas */
         button[data-baseweb="tab"] {
             background-color: rgba(255, 255, 255, 0.6) !important;
             border-radius: 8px !important;
             margin-right: 5px !important;
             border: 1px solid rgba(0,0,0,0.1) !important;
         }
-        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
         button[data-baseweb="tab"][aria-selected="true"] {
             background-color: #FFFFFF !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important; /* Rosa intenso */
+            color: #E94057 !important; 
         }
         
         /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
-        /* Afecta a los botones secundarios dentro del form */
         div.stForm button[kind="secondary"] {
             background-color: #ffffff !important;
             color: #E94057 !important;
@@ -508,7 +513,7 @@ def login_page():
             color: white !important;
         }
 
-        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Asegurando estilo de enlace) */
+        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Estilo de Enlace Sutil) */
         button[key="btn_olvide_pass_login"] {
             background: none !important;
             border: none !important;
@@ -517,28 +522,60 @@ def login_page():
             font-size: 0.9rem;
             cursor: pointer;
             width: fit-content;
-            margin-top: 15px; /* Separación del botón de submit */
+            margin-top: 15px;
         }
-        /* La regla de color para este párrafo está garantizada en el punto 5. */
 
-
-        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo Secundario) */
+        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (MEJORA: Estilo de Enlace Sutil) */
         button[key="btn_cancel_recov"] {
-            background-color: #6c757d !important; /* Gris Neutral */
-            color: white !important;
+            background: none !important;
             border: none !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-            margin-top: 10px;
+            padding: 0px !important;
+            color: #1a1a1a !important; 
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: fit-content;
+            margin-top: 5px;
         }
         button[key="btn_cancel_recov"] p {
-            color: white !important;
+            color: #1a1a1a !important;
+            text-shadow: none !important;
         }
-
 
         footer {visibility: hidden;}
     </style>
+    
+    <script>
+        // Función para leer el fragmento (#...) y convertirlo en parámetro de consulta (?)
+        if (window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            if (hash.includes('access_token') && hash.includes('type=recovery')) {
+                // Supabase ha redirigido con el token de recuperación.
+                // Reemplazamos la URL para que Python pueda ver 'recovery_mode=true'.
+                // No podemos pasar todo el hash por seguridad y complejidad. Solo pasamos una bandera.
+                const newUrl = window.location.origin + window.location.pathname + '?recovery_mode=true';
+                // Usamos replace para evitar que la acción se añada al historial del navegador
+                window.location.replace(newUrl);
+            }
+        }
+    </script>
     """, unsafe_allow_html=True)
+
+
+    # --- DETECCIÓN DEL MODO DE RECUPERACIÓN ---
+    # Python solo puede leer los query params, que son modificados por el script de arriba.
+    query_params = st.query_params
+    if 'recovery_mode' in query_params and not st.session_state.logged_in:
+        # Esto significa que el JS detectó el token y nos redirigió aquí.
+        st.session_state['force_password_update'] = True
+        # Limpiamos el query param para evitar bucles infinitos en recargas
+        del query_params['recovery_mode'] 
+        st.query_params = query_params
+        
+        # El token de sesión ya debería estar activo, pero Streamlit no lo sabe
+        # Forzamos la recarga para que el cliente Supabase de Python pueda leer la sesión.
+        st.rerun()
+
 
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1]) 
@@ -556,8 +593,41 @@ def login_page():
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
             
-            # === ESTRUCTURA CONDICIONAL DE VISTAS ===
-            if st.session_state['view_recuperar_pass']:
+            # === VISTA 1: RESTABLECIMIENTO FORZADO DE CONTRASEÑA ===
+            if st.session_state['force_password_update']:
+                with st.form("new_password_form", clear_on_submit=True):
+                    st.markdown("### 🔑 ¡Último paso! Crea tu nueva contraseña")
+                    st.success("Tu identidad ha sido verificada. Por favor, ingresa tu nueva contraseña.")
+
+                    new_password = st.text_input("Nueva Contraseña", type="password", placeholder="Contraseña segura")
+                    confirm_password = st.text_input("Confirma Contraseña", type="password", placeholder="Repite la contraseña")
+
+                    submitted = st.form_submit_button("Actualizar Contraseña", use_container_width=True, type="primary")
+
+                    if submitted:
+                        if new_password and (new_password == confirm_password):
+                            try:
+                                # Usamos update_user para establecer la nueva contraseña en la sesión activa temporalmente.
+                                # La sesión temporal es manejada por el cliente Supabase al detectar el token en la URL (a través del JS fix).
+                                response = supabase.auth.update_user({'password': new_password})
+                                
+                                # Comprobamos si la respuesta contiene un usuario actualizado (éxito)
+                                if response.user: 
+                                    st.success("🎉 ¡Contraseña actualizada con éxito! Accediendo...")
+                                    st.session_state['force_password_update'] = False
+                                    st.session_state.logged_in = True
+                                    # Se asume que la sesión ya está en st.session_state.user (o se actualizará en el controlador principal)
+                                    st.rerun()
+                                else:
+                                    st.error("Error al actualizar la contraseña. Por favor, intenta de nuevo.")
+
+                            except Exception as e:
+                                st.error(f"Error en la actualización: {e}")
+                        else:
+                            st.error("Las contraseñas no coinciden o están vacías.")
+
+            # === VISTA 2: SOLICITAR RECUPERACIÓN DE CORREO ===
+            elif st.session_state['view_recuperar_pass']:
                 
                 # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
                 with st.form("recovery_form_tab_login", clear_on_submit=True):
@@ -571,6 +641,7 @@ def login_page():
                     if submitted:
                         if email_recuperacion:
                             try:
+                                # Esta llamada envía el correo con el enlace que inicia todo el flujo
                                 supabase.auth.reset_password_for_email(email_recuperacion)
                                 st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
                             except Exception as e:
@@ -579,11 +650,11 @@ def login_page():
                             st.error("Por favor, ingresa un correo electrónico válido.")
 
                 # Botón Secundario: Cancelar y volver
-                if st.button("← Volver al Inicio de Sesión", use_container_width=True, key="btn_cancel_recov"):
+                if st.button("← Volver al Inicio de Sesión", key="btn_cancel_recov"):
                     st.session_state['view_recuperar_pass'] = False
                     st.rerun()
 
-
+            # === VISTA 3: LOGIN NORMAL ===
             else:
                 
                 # --- VISTA NORMAL: LOGIN ---
@@ -674,12 +745,12 @@ def login_page():
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
         
         st.markdown(f"""
-        <a href="{url_netlify}" target="_blank" style="
+        <a href="{url_netlify}" target="_blank" class="aulametrics-contacto" style="
             display: inline-block;
             width: 100%;
             padding: 15px 0;
-            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
-            color: white;
+            background-color: #00C853; 
+            color: white; 
             text-align: center;
             text-decoration: none;
             border-radius: 10px;
@@ -2424,6 +2495,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
