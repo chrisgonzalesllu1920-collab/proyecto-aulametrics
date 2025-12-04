@@ -401,11 +401,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-#
-=========================================================================
+#=========================================================================
 # === 4. PÁGINA DE LOGIN (V30.1 - Simplificación Recuperación) ===
-#
-=========================================================================
+#=========================================================================
 def login_page():
     # Es crucial que 'supabase' esté accesible globalmente o pasado como argumento.
     global supabase
@@ -2442,6 +2440,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
