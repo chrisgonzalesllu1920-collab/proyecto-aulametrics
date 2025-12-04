@@ -584,81 +584,81 @@ def login_page():
 
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-# ============================================================
-# TAB LOGIN
-# ============================================================
-with tab_login:
+        # ============================================================
+        # TAB LOGIN
+        # ============================================================
+        with tab_login:
 
-    # ------------------------------------------------------------
-    # 1. MODO MANUAL (si el usuario pega el fragmento del URL)
-    # ------------------------------------------------------------
-    if ss["manual_token_entry"]:
-        manual_token_view()
-        return
+            # ------------------------------------------------------------
+            # 1. MODO MANUAL (si el usuario pega el fragmento del URL)
+            # ------------------------------------------------------------
+            if ss["manual_token_entry"]:
+                manual_token_view()
+                return
 
-    # ------------------------------------------------------------
-    # 2. FORMULARIO PARA SOLICITAR ENLACE DE RECUPERACIÓN
-    # ------------------------------------------------------------
-    if ss["view_recuperar_pass"]:
-        st.subheader("🔄 Restablecer contraseña")
+            # ------------------------------------------------------------
+            # 2. FORMULARIO PARA SOLICITAR ENLACE DE RECUPERACIÓN
+            # ------------------------------------------------------------
+            if ss["view_recuperar_pass"]:
+                st.subheader("🔄 Restablecer contraseña")
 
-        with st.form("form_recovery"):
-            email = st.text_input("Correo electrónico", placeholder="tucorreo@ejemplo.com")
-            submit = st.form_submit_button("Enviar enlace", type="primary")
+                with st.form("form_recovery"):
+                    email = st.text_input("Correo electrónico", placeholder="tucorreo@ejemplo.com")
+                    submit = st.form_submit_button("Enviar enlace", type="primary")
 
-            if submit:
-                try:
-                    supabase.auth.reset_password_for_email(email)
+                    if submit:
+                        try:
+                            supabase.auth.reset_password_for_email(email)
 
-                    # 🔥 MENSAJE CLARO PARA EL USUARIO
-                    st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
-                    st.info("Revisa tu bandeja de entrada y spam. Cuando abras el enlace, verás el formulario para crear tu nueva contraseña.")
+                            # 🔥 MENSAJE CLARO PARA EL USUARIO
+                            st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
+                            st.info("Revisa tu bandeja de entrada y spam. Cuando abras el enlace, verás el formulario para crear tu nueva contraseña.")
 
+                            ss["view_recuperar_pass"] = False
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"No se pudo enviar enlace ({e})")
+
+                # Botón volver
+                if st.button("← Volver"):
                     ss["view_recuperar_pass"] = False
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"No se pudo enviar enlace ({e})")
+                return  # ← queda correctamente dentro de login_page()
 
-        # Botón volver
-        if st.button("← Volver"):
-            ss["view_recuperar_pass"] = False
-            st.rerun()
+            # ------------------------------------------------------------
+            # 3. FORMULARIO NORMAL DE LOGIN
+            # ------------------------------------------------------------
+            with st.form("form_login"):
+                email = st.text_input("Correo electrónico")
+                password = st.text_input("Contraseña", type="password")
+                login = st.form_submit_button("Iniciar Sesión", type="primary")
 
-        return  # Evita mostrar el login debajo
+                if login:
+                    try:
+                        session = supabase.auth.sign_in_with_password({
+                            "email": email,
+                            "password": password
+                        })
+                        user = session.get("user") if isinstance(session, dict) else session.user
 
-    # ------------------------------------------------------------
-    # 3. FORMULARIO NORMAL DE LOGIN
-    # ------------------------------------------------------------
-    with st.form("form_login"):
-        email = st.text_input("Correo electrónico")
-        password = st.text_input("Contraseña", type="password")
-        login = st.form_submit_button("Iniciar Sesión", type="primary")
+                        if user:
+                            ss.logged_in = True
+                            ss.user = user
+                            st.rerun()
+                        else:
+                            st.error("Credenciales incorrectas.")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
-        if login:
-            try:
-                session = supabase.auth.sign_in_with_password({
-                    "email": email,
-                    "password": password
-                })
-                user = session.get("user") if isinstance(session, dict) else session.user
+            # ------------------------------------------------------------
+            # 4. BOTÓN ¿Olvidaste tu contraseña?
+            # ------------------------------------------------------------
+            if st.button("¿Olvidaste tu contraseña?"):
+                ss["view_recuperar_pass"] = True
+                st.rerun()
 
-                if user:
-                    ss.logged_in = True
-                    ss.user = user
-                    st.rerun()
-                else:
-                    st.error("Credenciales incorrectas.")
-
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    # ------------------------------------------------------------
-    # 4. BOTÓN: ¿Olvidaste tu contraseña?
-    # ------------------------------------------------------------
-    if st.button("¿Olvidaste tu contraseña?"):
-        ss["view_recuperar_pass"] = True
-        st.rerun()
 
 
         # ============================================================
@@ -2416,6 +2416,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
