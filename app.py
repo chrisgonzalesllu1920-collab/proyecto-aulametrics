@@ -399,16 +399,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V35.0 - FALLBACK MANUAL TOKEN) ===
+# === 4. PÁGINA DE LOGIN (V35.1 - CORRECCIÓN DE TOKEN MANUAL) ===
 # =========================================================================
-# NOTA: Asegúrate de que las bibliotecas necesarias (streamlit, components, etc.)
-# estén importadas en tu script principal.
+# NOTA: Solo se incluye el código modificado de la vista manual y la cabecera.
+# El resto de tu archivo app.py (login_page, etc.) debe usar esta versión.
 import streamlit as st
 import streamlit.components.v1 as components 
-import urllib.parse # Necesario para la vista de token manual
+import urllib.parse 
 
 # -------------------------------------------------------------------------
-# FUNCIÓN AUXILIAR: VISTA DE ENTRADA MANUAL DEL TOKEN
+# FUNCIÓN AUXILIAR: VISTA DE ENTRADA MANUAL DEL TOKEN (Corregida V35.1)
 # -------------------------------------------------------------------------
 def manual_token_view():
     global supabase # Aseguramos que el cliente supabase esté disponible
@@ -417,10 +417,11 @@ def manual_token_view():
         st.markdown("### 🧩 Activación Manual de Token")
         st.error("El proceso automático falló. Para continuar, vamos a activar el token manualmente.")
         st.markdown("""
-        **Instrucción:**
+        **Instrucción CRÍTICA:**
         1.  Vuelve a la URL larga que te aparece en el navegador (ej: `.../#access_token=...`).
-        2.  Copia **TODO** el texto que está **después del símbolo `#`** (debes copiar el `access_token=...`).
-        3.  Pégalo en la caja de abajo.
+        2.  Copia **TODO** el texto que está **después del símbolo `#`**.
+        3.  Asegúrate de copiar el `access_token` y el `refresh_token` que vienen en ese fragmento.
+        4.  Pégalo en la caja de abajo.
         """)
         
         token_fragment = st.text_area("Pega el fragmento de URL aquí (Ejemplo: access_token=...)", height=150)
@@ -433,28 +434,32 @@ def manual_token_view():
                     # Usamos urllib.parse.parse_qs para tratar el fragmento como una cadena de consulta
                     parsed_fragment = urllib.parse.parse_qs(token_fragment)
                     
+                    # Extraemos los tokens de las listas resultantes.
                     access_token = parsed_fragment.get('access_token', [None])[0]
                     refresh_token = parsed_fragment.get('refresh_token', [None])[0]
+                    token_type = parsed_fragment.get('type', [None])[0] 
                     
-                    if access_token and refresh_token:
-                        # 2. Usamos set_session para establecer manualmente la sesión de recuperación
-                        supabase.auth.set_session({
-                            'access_token': access_token, 
-                            'refresh_token': refresh_token
-                        })
+                    # Validamos la presencia de ambos tokens
+                    if not access_token:
+                        st.error("Error: No se pudo encontrar el 'access_token'. Asegúrate de copiar correctamente.")
+                    elif not refresh_token:
+                        st.error("Error: No se pudo encontrar el 'refresh_token'. **Debes copiar TODO el texto después del #**.")
+                    elif token_type != 'recovery':
+                        st.error("Error: El token no parece ser de tipo 'recovery'.")
+                    else: 
+                        # 2. Usamos set_session. Hacemos el llamado posicional para evitar 
+                        # el error reportado: 'missing positional argument: refresh_token'
+                        supabase.auth.set_session(access_token, refresh_token)
                         
                         st.session_state['manual_token_entry'] = False
                         st.session_state['force_password_update'] = True
                         st.success("Token de recuperación aplicado. Mostrando formulario de nueva contraseña...")
                         st.rerun()
                         
-                    elif not access_token:
-                        st.error("No se pudo extraer el 'access_token'. Verifica que copiaste todo correctamente después del `#`.")
-                    else: # Si falta el refresh_token
-                        st.error("El fragmento del token está incompleto. Asegúrate de copiar TODO el texto después del '#'.")
 
                 except Exception as e:
-                    st.error(f"Error inesperado al procesar el token: {e}. Intenta volver a Olvidé Contraseña.")
+                    # En caso de un error de parsing inesperado.
+                    st.error(f"Error inesperado al procesar el token: {e}. Por favor, verifica el formato.")
             else:
                 st.warning("Por favor, pega el fragmento de la URL.")
 
@@ -463,414 +468,6 @@ def manual_token_view():
         st.session_state['manual_token_entry'] = False
         st.session_state['view_recuperar_pass'] = True
         st.rerun()
-
-
-# -------------------------------------------------------------------------
-# FUNCIÓN PRINCIPAL DE LA PÁGINA DE LOGIN
-# -------------------------------------------------------------------------
-def login_page():
-    global supabase
-
-    # 1. Inicializar estados
-    if 'view_recuperar_pass' not in st.session_state:
-        st.session_state['view_recuperar_pass'] = False
-    
-    if 'force_password_update' not in st.session_state:
-        st.session_state['force_password_update'] = False
-        
-    # Nuevo estado para la entrada manual
-    if 'manual_token_entry' not in st.session_state:
-        st.session_state['manual_token_entry'] = False
-
-
-    # --- A. COMPONENTE JS DE REDIRECCIÓN FORZADA ---
-    # Este componente intenta convertir el #fragmento en un ?query para que Python lo lea.
-    js_redirect_component = """
-    <script>
-        if (window.location.hash) {
-            const hash = window.location.hash.substring(1);
-            if (hash.includes('access_token') && hash.includes('type=recovery')) {
-                // Redireccionamos a la URL con un query param para que Python lo detecte.
-                const newUrl = window.location.origin + window.location.pathname + '?recovery_mode=true';
-                window.location.replace(newUrl);
-            }
-        }
-    </script>
-    """
-    components.html(js_redirect_component, height=0, width=0)
-
-
-    # --- B. INYECCIÓN DE ESTILO VISUAL (CSS) ---
-    st.markdown("""
-    <style>
-        /* 1. FONDO DEGRADADO */
-        [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
-            background-size: cover;
-            background-attachment: fixed;
-        }
-        
-        /* [ ... RESTO DEL CSS SE MANTIENE ... ] */
-        /* 2. LIMPIEZA DE INTERFAZ */
-        .block-container {
-            padding-top: 3rem !important;
-            padding-bottom: 2rem !important;
-        }
-        header[data-testid="stHeader"] {
-            background-color: transparent !important;
-            display: none !important;
-        }
-        
-        /* 3. TARJETA DE CRISTAL */
-        div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-            background-color: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(15px);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
-        h1, h2, h3, p {
-            color: #FFFFFF !important;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        /* 5. TEXTOS DENTRO DEL FORMULARIO Y LA TARJETA (Negros UNIFICADOS) */
-        div[data-testid="stVerticalBlock"] > div:has(div.stForm) p,
-        div[data-testid="stVerticalBlock"] > div:has(div.stForm) h3, 
-        div[data-testid="stVerticalBlock"] > div:has(div.stForm) span,
-        div[data-testid="stVerticalBlock"] > div:has(div.stForm) .stAlert p {
-            color: #1a1a1a !important; 
-            text-shadow: none !important;
-            font-weight: 600 !important;
-        }
-
-        /* 6. INPUTS */
-        input[type="text"], input[type="password"], textarea {
-            color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important; 
-            border: 1px solid rgba(0, 0, 0, 0.2) !important;
-            border-radius: 8px !important;
-        }
-        ::placeholder {
-            color: #555555 !important;
-            opacity: 1 !important;
-        }
-
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
-        button[data-baseweb="tab"] div p {
-            color: #333333 !important; 
-            font-weight: bold !important;
-            text-shadow: none !important;
-        }
-        button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            border-radius: 8px !important;
-            margin-right: 5px !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
-        }
-        button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important; 
-        }
-        
-        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
-        div.stForm button[kind="secondary"] {
-            background-color: #ffffff !important;
-            color: #E94057 !important;
-            border: 2px solid #E94057 !important;
-            font-weight: bold !important;
-        }
-        div.stForm button[kind="secondary"]:hover {
-            background-color: #E94057 !important;
-            color: white !important;
-        }
-
-        /* 9. BOTÓN DE CONTRASEÑA OLVIDADA (Estilo de Enlace Sutil) */
-        button[key="btn_olvide_pass_login"] {
-            background: none !important;
-            border: none !important;
-            padding: 0px !important;
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
-            margin-top: 15px;
-        }
-
-        /* 10. BOTÓN DE CANCELAR RECUPERACIÓN (Estilo de Enlace Sutil) */
-        button[key="btn_cancel_recov"], button[key="btn_cancel_manual"], button[key="retry_recovery_fail"] {
-            background: none !important;
-            border: none !important;
-            padding: 0px !important;
-            color: #1a1a1a !important; 
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: fit-content;
-            margin-top: 5px;
-        }
-        button[key="btn_cancel_recov"] p, button[key="btn_cancel_manual"] p, button[key="retry_recovery_fail"] p {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
-        }
-        
-        /* 11. BOTÓN DE CONTACTO */
-        .aulametrics-contacto {
-            color: white !important; /* Para que se vea sobre el fondo verde */
-        }
-        
-        footer {visibility: hidden;}
-    </style>
-    """, unsafe_allow_html=True)
-
-
-    # --- C. LÓGICA DE DETECCIÓN DEL MODO DE RECUPERACIÓN (PYTHON) ---
-    query_params = st.query_params
-    
-    # 1. Detectar si la URL contiene la bandera de recuperación Y NO estamos logueados
-    is_recovery_mode = 'recovery_mode' in query_params and not st.session_state.logged_in
-
-    if is_recovery_mode:
-        st.session_state['force_password_update'] = True
-        st.session_state['manual_token_entry'] = False # Aseguramos que el modo manual esté apagado
-        
-        if 'recovery_mode' in query_params:
-            del query_params['recovery_mode'] 
-            st.query_params = query_params 
-
-        st.rerun()
-
-
-    # --- D. ESTRUCTURA DE LA PÁGINA ---
-    col1, col_centro, col3 = st.columns([1, 4, 1]) 
-    
-    with col_centro:
-        st.image("assets/logotipo-aulametrics.png", width=300)
-        
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        
-        st.write("") 
-        
-        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-        # --- PESTAÑA 1: LOGIN ---
-        with tab_login:
-            
-            # === VISTA A: ENTRADA MANUAL DEL TOKEN (NUEVO) ===
-            if st.session_state['manual_token_entry']:
-                 manual_token_view()
-            
-            # === VISTA 1: RESTABLECIMIENTO FORZADO DE CONTRASEÑA ===
-            elif st.session_state['force_password_update']:
-                with st.form("new_password_form", clear_on_submit=True):
-                    st.markdown("### 🔑 ¡Último paso! Crea tu nueva contraseña")
-                    
-                    session_status = None
-                    try:
-                        # Verificación CRÍTICA: ¿El token de Supabase activó la sesión temporalmente?
-                        session_status = supabase.auth.get_session()
-                    except Exception as e:
-                        st.error(f"Error en la verificación de sesión. Por favor, cancela y vuelve a intentarlo. Detalles: {e}")
-                        if st.button("Cancelar", key="cancel_recovery_fail"):
-                            st.session_state['force_password_update'] = False
-                            st.rerun()
-                        return
-
-                    if session_status and session_status.user:
-                         st.success("Tu identidad ha sido verificada. Ingresa tu nueva contraseña para completar el proceso.")
-                    else:
-                         # Si falla aquí, la sesión temporal expiró o no se activó. Ofrecemos reintentar.
-                         st.warning("Parece que el token de recuperación expiró o no se activó correctamente. Por favor, intenta el proceso de recuperación de nuevo.")
-                         if st.button("Volver a la solicitud de recuperación", key="retry_recovery_fail"):
-                            st.session_state['force_password_update'] = False
-                            st.session_state['view_recuperar_pass'] = True
-                            st.rerun()
-                         return
-                             
-                    # --- CAMPOS DEL FORMULARIO ---
-                    new_password = st.text_input("Nueva Contraseña", type="password", placeholder="Contraseña segura")
-                    confirm_password = st.text_input("Confirma Contraseña", type="password", placeholder="Repite la contraseña")
-
-                    submitted = st.form_submit_button("Actualizar Contraseña", use_container_width=True, type="primary")
-
-                    if submitted:
-                        if new_password and (new_password == confirm_password):
-                            try:
-                                # Usamos update_user para crear la nueva contraseña, ya que la sesión temporal está activa
-                                response = supabase.auth.update_user({'password': new_password})
-                                
-                                if response.user: 
-                                    st.success("🎉 ¡Contraseña actualizada con éxito! Accediendo...")
-                                    st.session_state['force_password_update'] = False
-                                    st.session_state.logged_in = True
-                                    
-                                    # Aseguramos el formato del objeto de usuario
-                                    user_data = response.user.dict() if hasattr(response.user, 'dict') else response.user
-                                    st.session_state.user = user_data
-                                    
-                                    st.rerun()
-                                else:
-                                    st.error("Error al actualizar la contraseña. Por favor, intenta de nuevo.")
-
-                            except Exception as e:
-                                st.error(f"Error en la actualización: {e}")
-                                st.session_state['force_password_update'] = False
-                                
-                        else:
-                            st.error("Las contraseñas no coinciden o están vacías.")
-
-            # === VISTA 2: SOLICITAR RECUPERACIÓN DE CORREO ===
-            elif st.session_state['view_recuperar_pass']:
-                
-                # --- VISTA: FORMULARIO DE RECUPERACIÓN ---
-                with st.form("recovery_form_tab_login", clear_on_submit=True):
-                    st.markdown("### 🔄 Restablecer Contraseña")
-                    st.info("Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace de restablecimiento.")
-
-                    email_recuperacion = st.text_input("Correo Electrónico", key="input_recov_email", placeholder="tucorreo@ejemplo.com")
-
-                    submitted = st.form_submit_button("Enviar enlace de recuperación", use_container_width=True, type="primary")
-
-                    if submitted:
-                        if email_recuperacion:
-                            try:
-                                supabase.auth.reset_password_for_email(email_recuperacion)
-                                st.success(f"Enlace de restablecimiento enviado a **{email_recuperacion}**. Por favor, revisa tu bandeja de entrada.")
-                            except Exception as e:
-                                st.error(f"Error al enviar el enlace. Verifica el correo: {e}")
-                        else:
-                            st.error("Por favor, ingresa un correo electrónico válido.")
-
-                # Botón Secundario: Cancelar y volver
-                if st.button("← Volver al Inicio de Sesión", key="btn_cancel_recov"):
-                    st.session_state['view_recuperar_pass'] = False
-                    st.rerun()
-                    
-                st.markdown("---")
-                st.markdown("⚠️ **¿El enlace del correo no funciona?**")
-                # Botón para activar la vista manual de token
-                if st.button("Usar modo manual (Si te regresó a esta página sin el formulario)", key="btn_manual_help", type="secondary"):
-                    st.session_state['view_recuperar_pass'] = False
-                    st.session_state['manual_token_entry'] = True
-                    st.rerun()
-
-
-            # === VISTA 3: LOGIN NORMAL ===
-            else:
-                
-                # --- VISTA NORMAL: LOGIN ---
-                with st.form("login_form"):
-                    st.markdown("### 🔐 Acceso Docente")
-                    email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
-                    
-                    submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-                    
-                    if submitted:
-                        try:
-                            session = supabase.auth.sign_in_with_password({
-                                "email": email,
-                                "password": password
-                            })
-                            
-                            user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
-
-                            if user_data:
-                                if hasattr(user_data, 'to_dict'):
-                                    user_data = user_data.to_dict()
-                                elif hasattr(user_data, 'dict'): 
-                                    user_data = user_data.dict()
-                                
-
-                                st.session_state.logged_in = True
-                                st.session_state.user = user_data
-                                st.session_state.show_welcome_message = True
-                                if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                                st.rerun()
-                            else:
-                                st.error("Credenciales incorrectas o el servidor de autenticación no respondió correctamente.")
-
-                        except Exception as e:
-                            error_message = str(e)
-                            if "Invalid login credentials" in error_message or "Email not confirmed" in error_message:
-                                st.error("Credenciales incorrectas o correo no confirmado.")
-                            else:
-                                st.error(f"Error al iniciar sesión: {e}")
-
-
-                # Botón de recuperación FUERA del st.form("login_form")
-                if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
-                    st.session_state['view_recuperar_pass'] = True
-                    st.rerun()
-
-
-        # --- PESTAÑA 2: REGISTRO ---
-        with tab_register:
-            if 'form_reset_id' not in st.session_state:
-                st.session_state['form_reset_id'] = 0
-            reset_id = st.session_state['form_reset_id']
-
-            if st.session_state.get('registro_exitoso', False):
-                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                
-            with st.form("register_form"):
-                st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                
-                submitted = st.form_submit_button("Registrarme", use_container_width=True, type="secondary")
-                
-                if submitted:
-                    if not name or not email or not password:
-                        st.warning("Por favor, completa todos los campos.")
-                    else:
-                        try:
-                            supabase.auth.sign_up({
-                                "email": email,
-                                "password": password,
-                                "options": {
-                                    "data": { 'full_name': name }
-                                }
-                            })
-                            st.session_state['form_reset_id'] += 1
-                            st.session_state['registro_exitoso'] = True
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Error en el registro: {e}")
-
-        st.divider()
-        
-        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
-        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
-        
-        st.markdown(f"""
-        <a href="{url_netlify}" target="_blank" class="aulametrics-contacto" style="
-            display: inline-block;
-            width: 100%;
-            padding: 15px 0;
-            background-color: #00C853; 
-            color: white; 
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-            transition: all 0.3s;
-            border: none;
-        ">
-            💬 ¿Dudas? Contáctanos
-        </a>
-        """, unsafe_allow_html=True)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2603,6 +2200,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
