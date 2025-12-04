@@ -401,7 +401,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (V35.1 - FIX INTEGRACIÓN + RECUPERACIÓN URL) =====
+# === 4. PÁGINA DE LOGIN (V35.2 - DISEÑO ORIGINAL + FIX FUNCIONALIDAD) ====
 # =========================================================================
 def login_page():
     # NOTA: La variable global 'supabase' debe estar definida.
@@ -443,7 +443,6 @@ def login_page():
                 st.session_state.show_welcome_message = True
                 
                 # Limpiamos los tokens de la URL para evitar errores al refrescar
-                # Esto es CRÍTICO para que el link de recuperación funcione una sola vez
                 st.query_params.clear() 
                 st.rerun()
                 
@@ -462,44 +461,36 @@ def login_page():
     if 'form_reset_id' not in st.session_state:
         st.session_state['form_reset_id'] = 0
 
-    # Esto debe ejecutarse antes de cualquier renderizado, pero después del estado.
+    # Esto debe ejecutarse antes de cualquier renderizado.
     handle_auth_token()
     
     # ---------------------------------------------------------------------
     # --- C. VISTA PARA DETECCIÓN DE HASH DE SUPABASE (JAVASCRIPT) --------
     # ---------------------------------------------------------------------
-    # Este bloque inyecta JS para capturar el hash de la URL (si existe) y 
-    # reescribirlo como parámetros de consulta (query params) para que Python
-    # pueda leerlo y lo redirija a la función handle_auth_token().
+    # Este bloque inyecta JS para capturar el hash de la URL (#...) y 
+    # reescribirlo para que Streamlit (Python) pueda leerlo.
     
     # Se utiliza urllib.parse.quote para asegurar que la URL se encodee correctamente.
-    
-    # URL de redirección (la URL base de la aplicación Streamlit)
     streamlit_url = urllib.parse.quote(st.get_option("server.baseUrlPath") or "")
 
     components.html(
         f"""
         <script>
-            // Solo se ejecuta si hay un fragmento de hash después del # (Supabase)
             if (window.location.hash) {{
                 const hash = window.location.hash.substring(1);
                 
-                // Parsear el hash para encontrar los tokens
                 const params = new URLSearchParams(hash);
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
 
                 if (accessToken && refreshToken) {{
-                    // Si encontramos los tokens, reescribimos la URL sin el hash
                     const newUrl = window.location.origin + 
                                    "{streamlit_url}" +
                                    "?access_token=" + accessToken + 
                                    "&refresh_token=" + refreshToken +
-                                   "&redirect_to_reset=true"; // Bandera para la lógica
+                                   "&redirect_to_reset=true"; 
 
-                    // Reemplazamos el historial para evitar el hash persistente
                     window.history.replaceState(null, null, newUrl);
-                    // Forzamos un refresh para que Streamlit detecte los nuevos query params
                     window.location.reload(); 
                 }}
             }}
@@ -509,7 +500,7 @@ def login_page():
     )
     
     # ---------------------------------------------------------------------
-    # --- D. ESTRUCTURA VISUAL (TU DISEÑO ORIGINAL) -----------------------
+    # --- D. ESTRUCTURA VISUAL (TU DISEÑO ORIGINAL RESTAURADO) ------------
     # ---------------------------------------------------------------------
 
     # Inyección de estilo CSS (El estilo limpio de tu versión original)
@@ -533,7 +524,7 @@ def login_page():
             border-bottom: 2px solid #007bff;
         }
         
-        /* 4. Estilo de la caja central (Glass Card Blanco/Gris) */
+        /* 4. Estilo de la caja central (Glass Card Blanco/Gris) - Restaurado al diseño original */
         [data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:nth-child(2) {
             background-color: rgba(255, 255, 255, 0.7);
             border-radius: 10px;
@@ -549,15 +540,14 @@ def login_page():
     """, unsafe_allow_html=True)
 
     # --- ESTRUCTURA ---
-    # Usamos la columna central para centrar el contenido principal
     col1, col_centro, col3 = st.columns([1, 2, 1])
     
     with col_centro:
         
+        # Mantenemos el placeholder de imagen simple para evitar errores de ruta
         st.image("https://placehold.co/300x80/AAAAAA/333333?text=AulaMetrics+Logo", width=300)
         st.markdown("## Tu asistente pedagógico y analista de datos.")
         
-        # Tabs (Pestañas para Login y Registro)
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
         # --- PESTAÑA 1: LOGIN ---
@@ -606,11 +596,9 @@ def login_page():
                                 "password": password
                             })
                             
-                            # Obtenemos la data del usuario de forma segura
                             user_data = session.get('user') if isinstance(session, dict) else getattr(session, 'user', None)
 
                             if user_data:
-                                # Aseguramos que sea un diccionario para compatibilidad futura
                                 if hasattr(user_data, 'to_dict'):
                                     user_data = user_data.to_dict()
                                 
@@ -630,7 +618,6 @@ def login_page():
                                 st.error(f"Error al iniciar sesión: {e}")
                 
                 # Botón de recuperación FUERA del st.form
-                # Este botón cambia el estado para mostrar el formulario de recuperación
                 if st.button("¿Olvidaste tu contraseña?", key="btn_olvide_pass_login"):
                     st.session_state['view_recuperar_pass'] = True
                     st.rerun()
@@ -2403,6 +2390,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
