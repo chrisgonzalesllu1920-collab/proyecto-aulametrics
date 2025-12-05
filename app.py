@@ -478,13 +478,27 @@ def manual_token_view():
         else:
             st.error("Formato inválido. Asegúrate de pegar el fragmento completo.")
 
-
-
 # =========================================================================
 # === 4.D FUNCIÓN PRINCIPAL DEL LOGIN =====================================
 # =========================================================================
 def login_page():
     inject_reset_password_js()   # ← SOLO AQUÍ, UNA VEZ
+
+    # --- PEGAS ESTO JUSTO DEBAJO ---
+    st.markdown("""
+    <script>
+    (function() {
+        const hash = window.location.hash;
+        if (hash && hash.includes("access_token")) {
+            const query = hash.substring(1);
+            const newUrl = window.location.origin + window.location.pathname + "?" + query;
+            window.history.replaceState(null, null, newUrl);
+            window.location.reload();
+        }
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+    # ---------------------------------
 
     global supabase
     ss = st.session_state
@@ -601,8 +615,6 @@ def login_page():
             if st.button("¿Olvidaste tu contraseña?"):
                 ss["view_recuperar_pass"] = True
                 st.rerun()
-
-
 
         
 # =========================================================================
@@ -2357,6 +2369,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
