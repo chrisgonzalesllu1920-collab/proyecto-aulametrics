@@ -3,8 +3,6 @@ import time
 import random
 from streamlit_lottie import st_lottie
 import streamlit as st
-import streamlit.components.v1 as components
-import urllib.parse
 import pandas as pd
 import analysis_core
 import pedagogical_assistant
@@ -401,176 +399,205 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4.A VISTA DE CONTACTO PARA RECUPERACIÓN (NUEVA FUNCIÓN) =============
-# =========================================================================
-def forgot_password_view():
-    """
-    Muestra una vista simplificada para que el usuario contacte al administrador
-    en caso de olvidar la contraseña.
-    """
-    st.subheader("🔄 Restablecer contraseña")
-    
-    st.warning("⚠️ **Restablecimiento Manual Requerido**")
-    st.markdown("""
-        Actualmente, la recuperación de contraseña por correo electrónico está deshabilitada 
-        para garantizar la estabilidad.
-        
-        Si has olvidado tu contraseña, por favor **contacta al administrador de la plataforma** para que te la restablezca:
-        
-        📧 **Correo de Soporte:** `soporte@aulametrics.com`
-        
-        Una vez restablecida, recibirás un correo de Supabase para establecer la nueva.
-    """)
-
-    if st.button("← Volver al Login", key="back_to_login_button", type="primary"):
-        st.session_state.view_recuperar_pass = False
-        st.session_state.password_recovery_sent = None
-        st.rerun()
-
-# =========================================================================
-# === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA (ELIMINADA) =================
-# =========================================================================
-# Esta sección ha sido eliminada por completo ya que el flujo de tokens fue removido.
-# =========================================================================
-
-# =========================================================================
-# === 4.C MODO MANUAL PARA PEGAR EL FRAGMENTO DEL LINK ====================
-# =========================================================================
-# (Omitida o con placeholder si no la usas)
-def manual_token_view():
-     st.info("Función de modo manual no implementada.")
-     # Puedes eliminar esta línea si no necesitas el placeholder.
-     
-# =========================================================================
-# === 4.D.1 DEFINICIÓN DE JS PARA LIMPIAR URL (ELIMINADA) =================
-# =========================================================================
-def inject_reset_password_js():
-    # La función se deja vacía ya que no necesitamos manipular la URL.
-    pass 
-    
-# =========================================================================
-# === 4.D.2 FUNCIÓN PRINCIPAL DEL LOGIN (CON LA NUEVA LÓGICA) =============
+# === 4. PÁGINA DE LOGIN (V11.0 - COLORES CORREGIDOS Y BOTONES SÓLIDOS) ===
 # =========================================================================
 def login_page():
-    
-    # inject_reset_password_js() # No se llama, ya que la función está vacía.
-
-    # --- Estilos (Mantenemos) ---
-    st.markdown(
-        """
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        html, body, [class*="st-emotion-"] {
-            font-family: 'Inter', sans-serif !important;
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    st.markdown("""
+    <style>
+        /* 1. FONDO DEGRADADO */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #2e1437 0%, #948E99 100%);
+            background: linear-gradient(135deg, #3E0E69 0%, #E94057 50%, #F27121 100%);
+            background-size: cover;
+            background-attachment: fixed;
         }
-        </style>
-        """, unsafe_allow_html=True
-    )
+        
+        /* 2. LIMPIEZA DE INTERFAZ */
+        .block-container {
+            padding-top: 3rem !important;
+            padding-bottom: 2rem !important;
+        }
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            display: none !important;
+        }
+        
+        /* 3. TARJETA DE CRISTAL */
+        div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* 4. TEXTOS GENERALES (Blancos fuera de la tarjeta) */
+        h1, h2, h3, p {
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 5. TEXTOS DENTRO DEL FORMULARIO (Negros) */
+        div.stForm label p, div.stForm h3, div.stForm h3 span {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+            font-weight: 600 !important;
+        }
+        div.stForm p {
+             color: #1a1a1a !important;
+             text-shadow: none !important;
+        }
+
+        /* 6. INPUTS */
+        input[type="text"], input[type="password"] {
+            color: #000000 !important;
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        ::placeholder {
+            color: #555555 !important;
+            opacity: 1 !important;
+        }
+
+        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
+        /* Texto Negro en las pestañas inactivas para que se lea */
+        button[data-baseweb="tab"] div p {
+            color: #333333 !important; 
+            font-weight: bold !important;
+            text-shadow: none !important;
+        }
+        /* Fondo blanco semitransparente para pestañas inactivas */
+        button[data-baseweb="tab"] {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            margin-right: 5px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
+        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #E94057 !important; /* Rosa intenso */
+        }
+        
+        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
+        /* Afecta a los botones secundarios dentro del form */
+        div.stForm button[kind="secondary"] {
+            background-color: #ffffff !important;
+            color: #E94057 !important;
+            border: 2px solid #E94057 !important;
+            font-weight: bold !important;
+        }
+        div.stForm button[kind="secondary"]:hover {
+            background-color: #E94057 !important;
+            color: white !important;
+        }
+
+        footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- B. ESTRUCTURA ---
+    col1, col_centro, col3 = st.columns([1, 4, 1]) 
     
-    global supabase
-    ss = st.session_state
-    
-    # ----------------------------
-    # 2️⃣ — Detección de Tokens y Flujo de Recuperación (ELIMINADO)
-    # ----------------------------
-    # Se elimina toda la lógica de manejo de st.query_params
-
-    # ----------------------------
-    # 3️⃣ — UI Principal (Login/Registro/Solicitud de Recuperación)
-    # ----------------------------
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col2:
-        # LOGOTIPO Y BIENVENIDA
-        st.image("https://placehold.co/200x50/1C6E6D/FFFFFF?text=PROYECTO+LOGO", use_column_width=False)
-        st.markdown(
-            """
-            <h1 style='text-align: center; color: #1E4D4D;'>
-                Bienvenido a <span style='font-weight: 700;'>Aulametrics</span>
-            </h1>
-            """, unsafe_allow_html=True
-        )
-
-        # Si el usuario activó la vista de recuperación de contraseña (AHORA ES LA VISTA DE CONTACTO)
-        if ss["view_recuperar_pass"]:
-            forgot_password_view()
-            return # Evita renderizar el resto del login
-            
-        # Mensaje de éxito (Mantenido si aplica)
-        if ss["password_recovery_sent"]:
-            st.success(f"📧 Se ha enviado un enlace de recuperación a **{ss['password_recovery_sent']}**.")
-            st.info("Revisa tu bandeja de entrada y sigue las instrucciones.")
-
+    with col_centro:
+        st.image("assets/logotipo-aulametrics.png", width=300)
+        
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        
+        st.write("") 
+        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
+        # --- PESTAÑA 1: LOGIN ---
         with tab_login:
-
-            # FORMULARIO NORMAL DE LOGIN
-            with st.form("form_login"):
-                email = st.text_input("Correo electrónico")
-                password = st.text_input("Contraseña", type="password")
-                login = st.form_submit_button("Iniciar Sesión", type="primary")
-        
-                if login:
+            with st.form("login_form"):
+                st.markdown("### 🔐 Acceso Docente")
+                email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
+                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
+                submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
+                
+                if submitted:
                     try:
                         session = supabase.auth.sign_in_with_password({
                             "email": email,
                             "password": password
                         })
-                        user = session.get("user") if isinstance(session, dict) else session.user
-        
-                        if user:
-                            ss.logged_in = True
-                            ss.user = user
-                            st.rerun()
-                        else:
-                            st.error("Credenciales incorrectas.")
-        
+                        st.session_state.logged_in = True
+                        st.session_state.user = session.user
+                        st.session_state.show_welcome_message = True
+                        if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                        st.rerun() 
                     except Exception as e:
-                        error_str = str(e)
-                        if "Invalid login credentials" in error_str:
-                             st.error("Credenciales incorrectas.")
-                        else:
-                             st.error(f"Error: {e}")
-            
-            # Botón de Olvidé Contraseña (Activa la vista de contacto)
-            if st.button("¿Olvidaste tu contraseña?"):
-                ss["view_recuperar_pass"] = True
-                st.rerun()
+                        st.error(f"Error al iniciar sesión: {e}")
 
+        # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
-            st.info("El formulario de registro no está implementado en este borrador.")
-            # Tu código de Registro va aquí
+            if 'form_reset_id' not in st.session_state:
+                st.session_state['form_reset_id'] = 0
+            reset_id = st.session_state['form_reset_id']
 
+            if st.session_state.get('registro_exitoso', False):
+                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+                
+            with st.form("register_form"):
+                st.markdown("### 📝 Nuevo Usuario")
+                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+                
+                # Botón de Registrarme (Ahora se verá con borde rojo gracias al CSS)
+                submitted = st.form_submit_button("Registrarme", use_container_width=True)
+                
+                if submitted:
+                    if not name or not email or not password:
+                        st.warning("Por favor, completa todos los campos.")
+                    else:
+                        try:
+                            user = supabase.auth.sign_up({
+                                "email": email,
+                                "password": password,
+                                "options": {
+                                    "data": { 'full_name': name }
+                                }
+                            })
+                            st.session_state['form_reset_id'] += 1
+                            st.session_state['registro_exitoso'] = True
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error en el registro: {e}")
 
-# =========================================================================
-# === 5. FUNCIÓN DE PÁGINA PRINCIPAL ======================================
-# =========================================================================
-def main_app():
-    """
-    La vista principal de la aplicación.
-    """
-    st.header(f"¡Bienvenido, {st.session_state.user_role.capitalize()}!")
-    st.success("Estás dentro de la plataforma AulaMetrics.")
-    
-    if st.button("Cerrar Sesión", key="logout_button"):
-        try:
-            supabase.auth.sign_out()
-            st.session_state.logged_in = False
-            st.session_state.user = None
-            st.session_state.user_role = "estudiante"
-            st.session_state.view_recuperar_pass = False 
-            st.rerun()
-        except Exception as e:
-            st.error(f"Error al cerrar sesión: {e}")
-
-
-# =========================================================================
-# === FIN: LÓGICA DE EJECUCIÓN DEL PROGRAMA ===============================
-# =========================================================================
-if ss.logged_in:
-    main_app()
-else:
-    login_page()
+        st.divider()
+        
+        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
+        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
+        
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
+        ">
+            💬 ¿Dudas? Contáctanos
+        </a>
+        """, unsafe_allow_html=True)
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2281,52 +2308,28 @@ def home_page():
     
     
 # =========================================================================
-# === 7. EJECUCIÓN PRINCIPAL (VERSIÓN CORREGIDA) ==========================
+# === 7. EJECUCIÓN PRINCIPAL ===
 # =========================================================================
+query_params = st.query_params
+auth_code = query_params.get("code")
 
-# 1. Inicializar estados mínimos
-st.session_state.setdefault("logged_in", False)
-st.session_state.setdefault("user", None)
-
-qp = st.query_params  # query params modernos
-
-# 2. Manejar login por OAuth (si llega un "code" desde Google/Apple/etc.)
-auth_code = qp.get("code", [None])[0]
-
-# Detectar si es un enlace de recuperación (NO debe entrar al flujo OAuth)
-is_recovery_link = qp.get("type", [None])[0] == "recovery"
-
-# Solo ejecutar OAUTH si NO es un enlace de recuperación
-if auth_code and not is_recovery_link and not st.session_state.logged_in:
-
+if auth_code and not st.session_state.logged_in:
     try:
         session_data = supabase.auth.exchange_code_for_session(auth_code)
-
-        # Si se pudo intercambiar el código, iniciar sesión
-        if session_data and session_data.session:
+        if session_data.session:
             st.session_state.logged_in = True
             st.session_state.user = session_data.session.user
             st.session_state.show_welcome_message = True
-
-            # Limpiar parámetros
-            st.query_params.clear()
+            st.query_params.clear() 
             st.rerun()
-
-    except Exception as e:
-        # Falló el OAuth: limpiar y continuar normalmente
-        st.query_params.clear()
-
-
-# 3. Si NO está logueado → ir al login
+    except Exception:
+        st.query_params.clear() 
+        pass 
+    
 if not st.session_state.logged_in:
     login_page()
-
-# 4. Si SÍ está logueado → ir al home
 else:
     home_page()
-
-
-
 
 
 
