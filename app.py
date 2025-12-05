@@ -401,28 +401,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4.A SCRIPT JS PARA CAPTURAR FRAGMENTOS (#...) DE SUPABASE ============
-# =========================================================================
-def inject_reset_password_js():
-    st.markdown("""
-    <script>
-    (function() {
-        try {
-            const hash = window.location.hash;
-            if (hash && (hash.includes("type=recovery") || hash.includes("access_token"))) {
-                const q = hash.substring(1);  
-                const newUrl = window.location.origin + window.location.pathname + "?" + q;
-                window.history.replaceState(null, null, newUrl);
-                window.location.reload();
-            }
-        } catch (error) {
-            console.log("Error JS reset:", error);
-        }
-    })();
-    </script>
-    """, unsafe_allow_html=True)
-
-# =========================================================================
 # === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA =============================
 # =========================================================================
 def reset_password_view(access_token: str, refresh_token: str):
@@ -506,9 +484,7 @@ def manual_token_view():
 # === 4.D FUNCIÓN PRINCIPAL DEL LOGIN =====================================
 # =========================================================================
 def login_page():
-
-    # 1️⃣ — Este JS DEBE ser lo primero
-    inject_reset_password_js()
+    inject_reset_password_js()   # ← SOLO AQUÍ, UNA VEZ
 
     global supabase
     ss = st.session_state
@@ -555,72 +531,76 @@ def login_page():
         # TAB LOGIN
         # ============================================================
         with tab_login:
-
+        
             # MODO MANUAL
             if ss["manual_token_entry"]:
                 manual_token_view()
                 return
-
+        
+            # ⬇⬇⬇ INSERTAMOS AQUÍ EL MENSAJE PERSISTENTE
+            if ss.get("password_recovery_sent"):
+                email = ss["password_recovery_sent"]
+                st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
+                st.info("Revisa tu bandeja de entrada y la carpeta SPAM.")
+                ss["password_recovery_sent"] = None
+            # ⬆⬆⬆ FIN DEL BLOQUE INSERTADO
+        
             # FORMULARIO DE RECUPERACIÓN
             if ss["view_recuperar_pass"]:
-
+            
                 st.subheader("🔄 Restablecer contraseña")
-
+            
                 with st.form("form_recovery"):
                     email = st.text_input("Correo electrónico", placeholder="tucorreo@ejemplo.com")
                     submit = st.form_submit_button("Enviar enlace", type="primary")
-
+            
                     if submit:
                         try:
                             supabase.auth.reset_password_for_email(email)
-
-                            st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
-                            st.info("Revisa tu bandeja de entrada y spam.")
-
+            
+                            # Guardar el mensaje para mostrarlo luego del refresh
+                            st.session_state["password_recovery_sent"] = email
+            
                             ss["view_recuperar_pass"] = False
+                            st.rerun()
+            
                         except Exception as e:
                             st.error(f"No se pudo enviar enlace ({e})")
-
+            
                 if st.button("← Volver"):
                     ss["view_recuperar_pass"] = False
-                st.rerun()
-
+                    st.rerun()
+            
                 return
-
+        
             # FORMULARIO NORMAL
             with st.form("form_login"):
                 email = st.text_input("Correo electrónico")
                 password = st.text_input("Contraseña", type="password")
                 login = st.form_submit_button("Iniciar Sesión", type="primary")
-
+        
                 if login:
                     try:
                         session = supabase.auth.sign_in_with_password({
                             "email": email,
                             "password": password
                         })
-
+        
                         user = session.get("user") if isinstance(session, dict) else session.user
-
+        
                         if user:
                             ss.logged_in = True
                             ss.user = user
                             st.rerun()
                         else:
                             st.error("Credenciales incorrectas.")
-
+        
                     except Exception as e:
                         st.error(f"Error: {e}")
-
+        
             if st.button("¿Olvidaste tu contraseña?"):
                 ss["view_recuperar_pass"] = True
                 st.rerun()
-
-        # ============================================================
-        # TAB REGISTRO
-        # ============================================================
-        with tab_register:
-            st.info("Aquí va tu formulario de registro tal como ya lo tienes.")
 
 
 
@@ -2377,6 +2357,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
