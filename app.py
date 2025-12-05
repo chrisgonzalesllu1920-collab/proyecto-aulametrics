@@ -401,7 +401,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA =============================
+# === 4.B VISTA PARA DEFINIR NUEVA CONTRASEÑA (Confirmado) =================
 # =========================================================================
 def reset_password_view(access_token: str, refresh_token: str):
     global supabase
@@ -431,6 +431,8 @@ def reset_password_view(access_token: str, refresh_token: str):
                 })
 
                 # Actualizar la contraseña
+                # NOTA: En la versión actual de Supabase Python, 'update_user' puede requerir un usuario autenticado.
+                # Si el 'set_session' funciona, la actualización debería proceder.
                 supabase.auth.update_user({"password": new_password})
 
                 # Cerrar sesión temporal por seguridad
@@ -438,7 +440,7 @@ def reset_password_view(access_token: str, refresh_token: str):
 
                 st.success("🎉 Tu contraseña fue actualizada con éxito.")
 
-                # Limpiar la URL para borrar tokens
+                # Limpiar la URL para borrar tokens (removerá ?query=...)
                 st.query_params = {}
 
                 # Desactivar modo recovery
@@ -448,12 +450,13 @@ def reset_password_view(access_token: str, refresh_token: str):
                 return
 
             except Exception as e:
+                # El error más común aquí es que el token expiró (1 hora por defecto)
                 st.error("El enlace expiró o ya fue usado. Solicita uno nuevo.")
                 st.caption(str(e))
 
 
 # =========================================================================
-# === 4.C MODO MANUAL PARA PEGAR EL FRAGMENTO DEL LINK ====================
+# === 4.C MODO MANUAL PARA PEGAR EL FRAGMENTO DEL LINK (Confirmado) =======
 # =========================================================================
 def manual_token_view():
     st.subheader("🔧 Modo Manual")
@@ -479,26 +482,38 @@ def manual_token_view():
             st.error("Formato inválido. Asegúrate de pegar el fragmento completo.")
 
 # =========================================================================
-# === 4.D FUNCIÓN PRINCIPAL DEL LOGIN =====================================
+# === 4.D.1 DEFINICIÓN DE JS PARA LIMPIAR URL (SOLUCIÓN NameError) ========
 # =========================================================================
-def login_page():
-    inject_reset_password_js()   # ← SOLO AQUÍ, UNA VEZ
-
-    # --- PEGAS ESTO JUSTO DEBAJO ---
+def inject_reset_password_js():
+    # Este script detecta si hay un hash (#) con tokens en la URL (que es lo que Supabase hace)
+    # y lo convierte a query parameters (?) para que Streamlit (Python) pueda leerlos.
     st.markdown("""
     <script>
     (function() {
         const hash = window.location.hash;
         if (hash && hash.includes("access_token")) {
-            const query = hash.substring(1);
+            // Elimina el '#' inicial y guarda el resto (query)
+            const query = hash.substring(1); 
+            // Construye la nueva URL con '?' en lugar de '#'
             const newUrl = window.location.origin + window.location.pathname + "?" + query;
+            
+            // Reemplaza la URL en el historial sin recargar
             window.history.replaceState(null, null, newUrl);
+            
+            // Fuérza una recarga para que Streamlit detecte los nuevos query params
             window.location.reload();
         }
     })();
     </script>
     """, unsafe_allow_html=True)
-    # ---------------------------------
+
+
+# =========================================================================
+# === 4.D.2 FUNCIÓN PRINCIPAL DEL LOGIN (Corregida) ========================
+# =========================================================================
+def login_page():
+    # Línea 485: Ahora esta función existe y resuelve el NameError
+    inject_reset_password_js()
 
     global supabase
     ss = st.session_state
@@ -509,16 +524,24 @@ def login_page():
     # ----------------------------
     # 2️⃣ — Detectar tokens en la URL
     # ----------------------------
+    # Si el JS de arriba funcionó, los tokens ya están en st.query_params
     params = st.query_params
     
+    # Usamos .get para obtener el valor del parámetro si existe.
     access_token = params.get("access_token", [None])[0]
     refresh_token = params.get("refresh_token", [None])[0]
-    tipo = params.get("type", [None])[0]
+    tipo = params.get("type", [None])[0] # Debe ser 'recovery'
 
-    # Si Supabase envió enlace de recuperación
+    # Lógica central: Si Supabase envió enlace de recuperación
+    # Si detectamos 'type=recovery' Y tenemos tokens, forzamos la vista
     if tipo == "recovery" and access_token and refresh_token:
-        ss["force_password_update"] = True
+        # 1. Activamos la bandera de estado para mantener la vista en recargas futuras
+        ss["force_password_update"] = True 
+        
+        # 2. Mostramos la vista para actualizar la contraseña inmediatamente
         reset_password_view(access_token, refresh_token)
+        
+        # 3. Retornamos para no renderizar la UI de login normal
         return
 
     # Si usuario activó modo manual
@@ -530,7 +553,7 @@ def login_page():
         return
 
     # ----------------------------
-    # 3️⃣ — UI normal
+    # 3️⃣ — UI normal (o formulario de recuperación)
     # ----------------------------
     col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
@@ -550,16 +573,16 @@ def login_page():
             if ss["manual_token_entry"]:
                 manual_token_view()
                 return
-        
-            # ⬇⬇⬇ INSERTAMOS AQUÍ EL MENSAJE PERSISTENTE
+            
+            # ⬇⬇⬇ MENSAJE PERSISTENTE DE RECUPERACIÓN
             if ss.get("password_recovery_sent"):
                 email = ss["password_recovery_sent"]
                 st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
                 st.info("Revisa tu bandeja de entrada y la carpeta SPAM.")
                 ss["password_recovery_sent"] = None
             # ⬆⬆⬆ FIN DEL BLOQUE INSERTADO
-        
-            # FORMULARIO DE RECUPERACIÓN
+            
+            # FORMULARIO DE RECUPERACIÓN (Paso 1: Solicitar Email)
             if ss["view_recuperar_pass"]:
             
                 st.subheader("🔄 Restablecer contraseña")
@@ -586,8 +609,8 @@ def login_page():
                     st.rerun()
             
                 return
-        
-            # FORMULARIO NORMAL
+            
+            # FORMULARIO NORMAL (Paso 2: Iniciar Sesión)
             with st.form("form_login"):
                 email = st.text_input("Correo electrónico")
                 password = st.text_input("Contraseña", type="password")
@@ -611,11 +634,11 @@ def login_page():
         
                     except Exception as e:
                         st.error(f"Error: {e}")
-        
+            
+            # Botón de Olvidé Contraseña
             if st.button("¿Olvidaste tu contraseña?"):
                 ss["view_recuperar_pass"] = True
                 st.rerun()
-
         
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -2369,13 +2392,4 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
-
-
-
-
-
-
-
-
-
 
