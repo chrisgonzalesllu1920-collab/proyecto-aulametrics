@@ -13,11 +13,18 @@ import pptx_generator
 import os 
 import base64 
 from supabase import create_client, Client
+import asyncio # <--- ¡AÑADIDA! NECESARIO PARA ASÍNCRONO
+# --- NUEVAS IMPORTACIONES DE GAMIFICACIÓN ---
+from gamification import config as gm_config # <--- ¡AÑADIDA!
+from gamification import core as gm_core     # <--- ¡AÑADIDA!
+from gamification import views as gm_views   # <--- ¡AÑADIDA!
+# ---------------------------------------------
+
 # --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
 def cargar_lottie(filepath):
     with open(filepath, "r") as f:
         return json.load(f)
-
+        
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
 # =========================================================================
@@ -2351,4 +2358,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
