@@ -643,7 +643,11 @@ def login_page():
             
                     if submit:
                         try:
-                            supabase.auth.reset_password_for_email(email)
+                            supabase.auth.reset_password_for_email(
+                                email,
+                                options={"redirectTo": "https://proyecto-aulametrics-beta.streamlit.app"}
+                            )
+
             
                             # Mostrar mensajes
                             st.success(f"📨 Se envió un enlace de recuperación a **{email}**.")
@@ -2459,6 +2463,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
