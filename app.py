@@ -497,6 +497,21 @@ def login_page():
             background-color: #E94057 !important;
             color: white !important;
         }
+        
+        /* 9. CORRECCIÓN OLVIDASTE CONTRASEÑA (NUEVAS REGLAS) */
+        /* Texto del botón (st.button) a negro */
+        div[data-testid="stVerticalBlock"] button[kind="secondary"] p {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+        }
+        
+        /* 🚩 CORRECCIÓN CRÍTICA: Texto dentro del mensaje de st.info a negro. */
+        /* Usamos selectores más específicos para anular el estilo global que lo ponía blanco. */
+        div[data-testid="stNotification"] p,
+        div[data-testid="stNotification"] div[data-testid="stMarkdownContainer"] p {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+        }
 
         footer {visibility: hidden;}
     </style>
@@ -536,6 +551,12 @@ def login_page():
                         st.rerun() 
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
+
+            # INICIO DE LA INSERCIÓN DEL NUEVO CÓDIGO
+            # Botón y mensaje para "¿Olvidaste tu contraseña?"
+            if st.button("¿Olvidaste tu contraseña?", key="forgot_pass_btn", help="Haz clic para ver las instrucciones de recuperación."):
+                st.info("Para recuperar tu contraseña, por favor, ponte en contacto con el administrador escribiendo al siguiente correo electrónico: **aulametricsia@gmail.com**")
+            # FIN DE LA INSERCIÓN DEL NUEVO CÓDIGO
 
         # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
@@ -595,7 +616,7 @@ def login_page():
             transition: all 0.3s;
             border: none;
         ">
-            💬 ¿Dudas? Contáctanos
+            💬 ¿Dudas? Contáctanos/TikTok
         </a>
         """, unsafe_allow_html=True)
         
@@ -2330,6 +2351,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
 
