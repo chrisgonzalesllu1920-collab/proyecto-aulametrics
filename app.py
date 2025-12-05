@@ -537,6 +537,13 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error al iniciar sesión: {e}")
 
+
+            # INICIO DE LA INSERCIÓN DEL NUEVO CÓDIGO
+            # Botón y mensaje para "¿Olvidaste tu contraseña?"
+            if st.button("¿Olvidaste tu contraseña?", key="forgot_pass_btn", help="Haz clic para ver las instrucciones de recuperación."):
+                st.info("Para recuperar tu contraseña, por favor, ponte en contacto con el administrador escribiendo al siguiente correo electrónico: **aulametricsia@gmail.com**")
+            # FIN DE LA INSERCIÓN DEL NUEVO CÓDIGO
+
         # --- PESTAÑA 2: REGISTRO ---
         with tab_register:
             if 'form_reset_id' not in st.session_state:
@@ -2330,6 +2337,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
