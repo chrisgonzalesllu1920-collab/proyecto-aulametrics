@@ -505,8 +505,10 @@ def login_page():
             text-shadow: none !important;
         }
         
-        /* Texto del st.info a negro */
-        div[data-testid="stNotification"] p {
+        /* 🚩 CORRECCIÓN CRÍTICA: Texto dentro del mensaje de st.info a negro. */
+        /* Usamos selectores más específicos para anular el estilo global que lo ponía blanco. */
+        div[data-testid="stNotification"] p,
+        div[data-testid="stNotification"] div[data-testid="stMarkdownContainer"] p {
             color: #1a1a1a !important;
             text-shadow: none !important;
         }
@@ -2349,6 +2351,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
