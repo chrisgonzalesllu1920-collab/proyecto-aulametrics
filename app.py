@@ -401,34 +401,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
-# === 1, 2, 3: CONFIGURACIÓN GLOBAL, CONEXIÓN Y ESTADO DE SESIÓN (ss) =====
-# =========================================================================
-
-# --- 1. CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(layout="centered", page_title="AulaMetrics", initial_sidebar_state="collapsed")
-st.title("📚 AulaMetrics - Plataforma de Gestión")
-
-# --- 2. CONEXIÓN Y GLOBALES ---
-try:
-    supabase = get_supabase_client()
-except Exception as e:
-    # Este error se dispara si no se configuran las credenciales en supabase_client.py
-    st.error(f"Error al conectar con Supabase. Revisa tu configuración: {e}")
-    st.stop()
-    
-# --- 3. ESTADO DE SESIÓN (ss) ---
-ss = st.session_state
-ss.setdefault("logged_in", False)
-ss.setdefault("user", None)
-ss.setdefault("user_role", "estudiante")
-# Banderas de control de flujo
-ss.setdefault("view_recuperar_pass", False)
-ss.setdefault("force_password_update", False)
-ss.setdefault("manual_token_entry", False)
-ss.setdefault("password_recovery_sent", None)
-
-
-# =========================================================================
 # === 4.A VISTA DE CONTACTO PARA RECUPERACIÓN (NUEVA FUNCIÓN) =============
 # =========================================================================
 def forgot_password_view():
@@ -2352,6 +2324,7 @@ if not st.session_state.logged_in:
 # 4. Si SÍ está logueado → ir al home
 else:
     home_page()
+
 
 
 
