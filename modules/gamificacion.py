@@ -8,7 +8,7 @@ def run():
         st.session_state['juego_actual'] = None
         st.rerun()
 
-# --- B. DEFINICIÓN DEL MENÚ (ESTILO C: GAME CARTRIDGE - ALTO CONTRASTE) ---
+    # --- B. DEFINICIÓN DEL MENÚ (ESTILO C: GAME CARTRIDGE - ALTO CONTRASTE) ---
     def mostrar_menu_juegos():
         # 1. CSS VIBRANTE (SOLO ZONA PRINCIPAL)
         st.markdown("""
