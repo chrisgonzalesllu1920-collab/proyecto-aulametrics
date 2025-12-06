@@ -13,7 +13,6 @@ import pptx_generator
 import os 
 import base64
 import modules.login as login
-import modules.gamificacion as gamificacion
 import modules.evaluacion as evaluacion
 import modules.asistente as asistente
 import modules.ui_components as ui
@@ -1407,6 +1406,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
