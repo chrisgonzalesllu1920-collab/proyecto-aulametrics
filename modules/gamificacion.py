@@ -1,8 +1,6 @@
 import streamlit as st
 
 def run():
-         
-# --- A. GESTIÓN DE ESTADO ---
     if 'juego_actual' not in st.session_state:
         st.session_state['juego_actual'] = None 
 
