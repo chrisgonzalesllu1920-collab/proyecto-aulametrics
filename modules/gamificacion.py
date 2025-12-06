@@ -1,7 +1,6 @@
 import streamlit as st
 
 def run():
- 
     # 5. GAMIFICACIÓN (VERSIÓN LIMPIA V3)
         elif pagina == "Gamificación":
             
