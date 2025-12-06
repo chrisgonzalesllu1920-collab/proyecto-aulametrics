@@ -1,7 +1,6 @@
 import streamlit as st
 
 def run():
-st.write("DEBUG session_state:", dict(st.session_state))
     if 'juego_actual' not in st.session_state:
         st.session_state['juego_actual'] = None 
 
