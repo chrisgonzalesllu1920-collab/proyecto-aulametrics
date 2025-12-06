@@ -2,7 +2,7 @@ import streamlit as st
 
 def run():
     # 5. GAMIFICACIÓN (VERSIÓN LIMPIA V3)
-        elif pagina == "Gamificación":
+        elif pagina == "gamificacion":
             
             # --- A. GESTIÓN DE ESTADO ---
             if 'juego_actual' not in st.session_state:
