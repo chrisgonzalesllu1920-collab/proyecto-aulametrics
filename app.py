@@ -1084,12 +1084,21 @@ def mostrar_sidebar():
 
         # 4. PIE DE PÁGINA
         st.divider()
+        
+        # [AÑADIENDO LA FECHA DE LANZAMIENTO AQUÍ]
+        # Usamos st.info para destacarlo, o st.markdown para un estilo fuerte.
+        st.markdown(
+            "🚀 **Lanzamiento v3.0:** 01/03/2026", 
+            help="Fecha de lanzamiento oficial de la nueva versión de AulaMetrics."
+        )
+        # También podrías usar: st.text("Fecha de lanzamiento de Aulametrics 01/03/2026")
+        
         if st.session_state.get('pagina_actual') == 'Inicio':
             st.info("👋 Selecciona una herramienta del panel.")
         else:
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
-        st.caption("🏫 AulaMetrics v3.0 Beta")
+        st.caption("🏫 AulaMetrics v2.0 Beta")
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1354,5 +1363,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
