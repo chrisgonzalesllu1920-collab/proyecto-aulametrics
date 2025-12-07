@@ -1378,7 +1378,7 @@ def home_page():
             else:
                 st.caption("❌ Archivo 'calendario_2025.pdf' no disponible.")
 
-    elif pagina == "gamificacion":
+elif pagina == "gamificacion":
     gamificacion()
    
 # =========================================================================
@@ -1404,3 +1404,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
