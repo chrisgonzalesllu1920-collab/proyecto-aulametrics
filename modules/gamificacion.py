@@ -956,19 +956,5 @@ def run():
                     if 'sorteo_ganadores' in st.session_state: del st.session_state['sorteo_ganadores']
                     st.rerun()
 
-# =========================================================================
-# === D. LÓGICA DE EJECUCIÓN CENTRAL (Router Corregido) ===
-# =========================================================================
 
-    if st.session_state['juego_actual'] == "Trivia":
-        juego_trivia()
-    elif st.session_state['juego_actual'] == "Ahorcado":
-        juego_ahorcado()
-    elif st.session_state['juego_actual'] == "Ruleta":
-        juego_ruleta()
-    elif st.session_state['juego_actual'] == "Sorteo":
-        juego_sorteo()
-    # AÑADIR AQUÍ: A la misma altura que los 'if/elif'
-    else: 
-        mostrar_menu_juegos() 
 
