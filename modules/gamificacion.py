@@ -26,9 +26,6 @@ def cargar_lottie(filepath):
         return json.load(f)
 
 def gamificacion():
-    if 'juego_actual' not in st.session_state:
-        st.session_state['juego_actual'] = None 
-
     def volver_menu_juegos():
         st.session_state['juego_actual'] = None
         st.rerun()
