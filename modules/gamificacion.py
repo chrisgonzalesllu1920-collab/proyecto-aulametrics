@@ -5,7 +5,6 @@ import random
 import pedagogical_assistant
 
 def gamificacion():
-    st.sidebar.write(f"DEBUG: Estado Juego Actual -> {st.session_state.get('juego_actual')}")
     if 'juego_actual' not in st.session_state:
         st.session_state['juego_actual'] = None 
 
