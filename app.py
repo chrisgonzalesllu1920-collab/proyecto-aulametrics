@@ -307,7 +307,7 @@ def mostrar_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("\n\n\nZONA DE\nGAMIFICACIÓN", key="btn_game", use_container_width=True):
-            navegar_a("Gamificación")
+            navegar_a("gamificacion")
             st.rerun()
             
     st.markdown("<br>", unsafe_allow_html=True)
@@ -1406,6 +1406,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
