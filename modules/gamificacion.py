@@ -94,7 +94,7 @@ def mostrar_menu_juegos():
 # C. JUEGO 1: TRIVIA
 # (Aquí va exactamente lo que me enviaste, convertida en función)
 # ------------------------------------------------------------
-def juego_trivia():
+def juego_trivia(volver_menu_juegos):
 
     # Barra superior
     col_back, col_title = st.columns([1, 5])
