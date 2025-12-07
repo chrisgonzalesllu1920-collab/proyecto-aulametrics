@@ -106,7 +106,7 @@ def juego_trivia(volver_menu_juegos):
     # Barra superior
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        if st.button("🔙 Menú", use_container_width=True): 
+        if st.button("🔙 Menú", use_container_width=True, key="btn_volver_menu"):
             volver_menu_juegos()
     with col_title:
         st.subheader("Desafío Trivia")
@@ -114,6 +114,28 @@ def juego_trivia(volver_menu_juegos):
     # --- CSS TRIVIA ---
     st.markdown("""
         <style>
+
+        /* ----------------------------- */
+        /* BOTÓN "🔙 Menú" PERSONALIZADO */
+        /* ----------------------------- */
+        div.stButton > button#btn_volver_menu {
+            background-color: #fff59d !important;
+            color: #1e3a8a !important;
+            border: 2px solid #fbc02d !important;
+            font-size: 16px !important;        /* <-- tamaño del texto */
+            padding: 6px 12px !important;       /* <-- tamaño del botón */
+            border-radius: 10px !important;     /* <-- curvas más pequeñas */
+            box-shadow: 0px 3px 0px #f9a825 !important;
+        }
+
+        div.stButton > button#btn_volver_menu:hover {
+            background-color: #fff176 !important;
+            transform: translateY(-2px);
+        }
+
+        /* ----------------------------- */
+        /* BOTÓN PRINCIPAL (no usado aquí) */
+        /* ----------------------------- */
         div.stButton > button[kind="primary"] {
             background-color: #28a745 !important;
             border-color: #28a745 !important;
@@ -122,6 +144,10 @@ def juego_trivia(volver_menu_juegos):
             font-weight: bold !important;
             padding: 15px 30px !important;
         }
+
+        /* ----------------------------- */
+        /* ESTILO PREGUNTA PRINCIPAL */
+        /* ----------------------------- */
         .big-question {
             font-size: 50px !important;
             font-weight: 800;
@@ -135,6 +161,10 @@ def juego_trivia(volver_menu_juegos):
             box-shadow: 0 6px 15px rgba(0,0,0,0.15);
             line-height: 1.2;
         }
+
+        /* ----------------------------- */
+        /* BOTONES DE OPCIONES DE RESPUESTA */
+        /* ----------------------------- */
         section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
             background-color: #fff9c4 !important;
             border: 3px solid #fbc02d !important;
@@ -146,17 +176,20 @@ def juego_trivia(volver_menu_juegos):
             margin-bottom: 15px !important;
             box-shadow: 0 6px 0 #f9a825 !important;
         }
+
         section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
             font-size: 36px !important;
             font-weight: 800 !important;
             color: #333333 !important;
             line-height: 1.1 !important;
         }
+
         section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
             background-color: #fff59d !important;
             transform: translateY(-3px);
             border-color: #f57f17 !important;
         }
+
         </style>
     """, unsafe_allow_html=True)
 
