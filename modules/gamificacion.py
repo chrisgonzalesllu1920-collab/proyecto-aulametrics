@@ -115,20 +115,21 @@ def juego_trivia(volver_menu_juegos):
     st.markdown("""
         <style>
 
-        /* ----------------------------- */
-        /* BOTÓN "🔙 Menú" PERSONALIZADO */
-        /* ----------------------------- */
-        div.stButton > button#btn_volver_menu {
+        /* ========================================================= */
+        /*   BOTÓN "🔙 Menú" - selector hiper-específico (INFALIBLE)  */
+        /* ========================================================= */
+
+        button[data-testid="baseButton-default"][id="btn_volver_menu"] {
             background-color: #fff59d !important;
             color: #1e3a8a !important;
             border: 2px solid #fbc02d !important;
-            font-size: 14px !important;        /* <-- tamaño del texto */
-            padding: 4px 10px !important;       /* <-- tamaño del botón */
-            border-radius: 10px !important;     /* <-- curvas más pequeñas */
+            font-size: 14px !important;      /* tamaño del texto */
+            padding: 4px 10px !important;     /* tamaño del botón */
+            border-radius: 10px !important;   /* curvas */
             box-shadow: 0px 3px 0px #f9a825 !important;
         }
 
-        div.stButton > button#btn_volver_menu:hover {
+        button[data-testid="baseButton-default"][id="btn_volver_menu"]:hover {
             background-color: #fff176 !important;
             transform: translateY(-2px);
         }
