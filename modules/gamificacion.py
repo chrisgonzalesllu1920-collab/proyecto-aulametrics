@@ -354,3 +354,28 @@ def juego_trivia():
                 del st.session_state['juego_terminado']
                 st.rerun()
     st.info("⚠️ Falta pegar aquí el contenido completo de tu juego TRIVIA.")
+
+# ------------------------------------------------------------
+# E. FUNCIÓN PRINCIPAL: ROUTER
+# ------------------------------------------------------------
+def gamificacion():
+
+    # Asegura estado inicial
+    if "juego_actual" not in st.session_state:
+        st.session_state["juego_actual"] = None
+
+    # Router
+    if st.session_state["juego_actual"] is None:
+        mostrar_menu_juegos()
+
+    elif st.session_state["juego_actual"] == "trivia":
+        juego_trivia()
+
+    elif st.session_state["juego_actual"] == "pupiletras":
+        juego_pupiletras()
+
+    elif st.session_state["juego_actual"] == "ahorcado":
+        juego_robot()
+
+    elif st.session_state["juego_actual"] == "sorteador":
+        juego_sorteador()
