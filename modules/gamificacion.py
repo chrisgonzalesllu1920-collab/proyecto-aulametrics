@@ -966,7 +966,7 @@ def gamificacion():
         mostrar_menu_juegos()
 
     elif st.session_state["juego_actual"] == "trivia":
-        juego_trivia(volver_menu_juegos)
+        juego_trivia()(volver_menu_juegos)
 
     elif st.session_state['juego_actual'] == 'pupiletras':
         juego_pupiletras(volver_menu_juegos)
