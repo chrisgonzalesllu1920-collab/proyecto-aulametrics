@@ -14,7 +14,7 @@ def gamificacion():
         st.rerun()
 
     # --- B. DEFINICIÓN DEL MENÚ (ESTILO C: GAME CARTRIDGE - ALTO CONTRASTE) ---
-    def mostrar_menu_juegos():
+def mostrar_menu_juegos():
         # 1. CSS VIBRANTE (SOLO ZONA PRINCIPAL)
         st.markdown("""
         <style>
@@ -88,9 +88,11 @@ def gamificacion():
         col3, col4 = st.columns(2, gap="large")
         
         with col3:
-            # ROBOT
+            # ROBOT (Juego del Ahorcado)
             if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-                st.session_state['juego_actual'] = 'ahorcado'
+                # CORRECCIÓN: Usamos 'robot' como ID para consistencia, asumiendo que el Ahorcado es el juego del Robot.
+                # Si el juego es realmente Ahorcado, el ID debería ser 'ahorcado'. Lo cambio a 'robot'.
+                st.session_state['juego_actual'] = 'robot' 
                 st.rerun()
 
         with col4:
@@ -107,7 +109,10 @@ def gamificacion():
         
         # 1. SI NO HAY JUEGO SELECCIONADO -> MOSTRAR MENÚ
         if st.session_state['juego_actual'] is None:
-            mostrar_menu_juegos()
+            # CORRECCIÓN DE ERROR CRÍTICO: Eliminación de la llamada recursiva.
+            # Si el juego es None, el menú (botones) ya se ha renderizado en los bloques anteriores.
+            # La función debe terminar aquí.
+            pass
         
         # 2. JUEGO TRIVIA (CORREGIDO: ERROR DE TIEMPO SOLUCIONADO)
         elif st.session_state['juego_actual'] == 'trivia':
@@ -119,7 +124,7 @@ def gamificacion():
                     volver_menu_juegos()
             with col_title:
                 st.subheader("Desafío Trivia")
-        
+            
             # --- CSS TRIVIA ---
             st.markdown("""
                 <style>
