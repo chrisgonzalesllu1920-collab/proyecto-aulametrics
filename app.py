@@ -18,6 +18,7 @@ import modules.evaluacion as evaluacion
 import modules.asistente as asistente
 import modules.ui_components as ui
 import modules.database as db
+from modules import gamificacion
 from supabase import create_client, Client
 # --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
 def cargar_lottie(filepath):
@@ -1406,6 +1407,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
