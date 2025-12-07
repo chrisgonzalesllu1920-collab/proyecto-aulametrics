@@ -1,5 +1,5 @@
 import streamlit as st
-from modules import pedagogical_assistant
+import pedagogical_assistant
 
 
 # ============================================================
