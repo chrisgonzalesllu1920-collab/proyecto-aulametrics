@@ -12,7 +12,7 @@ import pedagogical_assistant
 # A. FUNCIONES DE GESTIÓN DE ESTADO Y NAVEGACIÓN
 # ------------------------------------------------
 
-def gamificacion(datos_juego=None):
+def gamificacion():
     """Reinicia el estado para volver a mostrar el menú principal de juegos."""
     
     # Limpiamos estados específicos de los juegos (para que la próxima vez inicie limpio)
