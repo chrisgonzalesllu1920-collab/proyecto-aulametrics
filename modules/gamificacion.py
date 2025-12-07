@@ -122,8 +122,8 @@ def juego_trivia(volver_menu_juegos):
             background-color: #fff59d !important;
             color: #1e3a8a !important;
             border: 2px solid #fbc02d !important;
-            font-size: 16px !important;        /* <-- tamaño del texto */
-            padding: 6px 12px !important;       /* <-- tamaño del botón */
+            font-size: 14px !important;        /* <-- tamaño del texto */
+            padding: 4px 10px !important;       /* <-- tamaño del botón */
             border-radius: 10px !important;     /* <-- curvas más pequeñas */
             box-shadow: 0px 3px 0px #f9a825 !important;
         }
