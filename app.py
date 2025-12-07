@@ -1329,8 +1329,7 @@ def home_page():
 
     # 5. GAMIFICACIÓN (Llamando al nuevo módulo)
     elif pagina == "Gamificación":
-        gamificacion.gamificacion_page()
-    
+        gamificacion.gamificacion()
     
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1355,9 +1354,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
 
 
