@@ -14,165 +14,165 @@ def gamificacion():
         st.rerun()
 
     # --- B. DEFINICIÓN DEL MENÚ (ESTILO C: GAME CARTRIDGE - ALTO CONTRASTE) ---
-def mostrar_menu_juegos():
-        # 1. CSS VIBRANTE (SOLO ZONA PRINCIPAL)
-        st.markdown("""
-        <style>
-            /* Selector específico para la zona principal (NO Sidebar) */
-            section[data-testid="stMain"] div.stButton > button {
-                /* FONDO: Degradado Intenso (Indigo a Morado) para contrastar con el gris */
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                
-                /* Borde y Forma */
-                border: none !important;
-                border-radius: 20px !important; /* Muy redondeado */
-                
-                /* Texto */
-                color: white !important;
-                font-family: 'Verdana', sans-serif !important;
-                text-transform: uppercase !important;
-                letter-spacing: 1px !important;
-                
-                /* Sombra de "Tarjeta Flotante" */
-                box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3) !important;
-                
-                /* Geometría */
-                height: auto !important;
-                padding: 25px 15px !important;
-                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            }
-
-            /* Hover: Se eleva y brilla */
-            section[data-testid="stMain"] div.stButton > button:hover {
-                transform: translateY(-6px) scale(1.02);
-                box-shadow: 0 15px 30px rgba(118, 75, 162, 0.5) !important;
-                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important; /* Invierte degradado */
-            }
-
-            /* Texto del Título e Icono */
-            section[data-testid="stMain"] div.stButton > button p {
-                font-size: 19px !important;
-                font-weight: 800 !important;
-                margin: 0 !important;
-                line-height: 1.4 !important;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
-        </style>
-        """, unsafe_allow_html=True)
-
-        # TÍTULO (Ajustado a color oscuro para que se lea en el gris)
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
-            <p style="color: #616161; font-size: 18px; font-weight: 500;">Selecciona tu desafío</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # --- PARRILLA DE JUEGOS ---
-        col1, col2 = st.columns(2, gap="large")
-        
-        with col1:
-            # TRIVIA
-            if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
-                st.session_state['juego_actual'] = 'trivia'
-                st.rerun()
-
-        with col2:
-            # PUPILETRAS
-            if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
-                st.session_state['juego_actual'] = 'pupiletras'
-                st.rerun()
-
-        st.write("") 
-
-        col3, col4 = st.columns(2, gap="large")
-        
-        with col3:
-            # ROBOT (Juego del Ahorcado)
-            if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-                # CORRECCIÓN: Usamos 'robot' como ID para consistencia, asumiendo que el Ahorcado es el juego del Robot.
-                # Si el juego es realmente Ahorcado, el ID debería ser 'ahorcado'. Lo cambio a 'robot'.
-                st.session_state['juego_actual'] = 'robot' 
-                st.rerun()
-
-        with col4:
-            # CAMBIO: DE PIXEL ART A SORTEADOR
-            st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🎰</div>', unsafe_allow_html=True)
-            # Nota: Cambiamos la key para limpiar el estado anterior
-            if st.button("\n\nSorteador\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
-                st.session_state['juego_actual'] = 'sorteador' # Nueva ID interna
-                st.rerun()
-
-        # ==========================================
-        # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
-        # ==========================================
-        
-        # 1. SI NO HAY JUEGO SELECCIONADO -> MOSTRAR MENÚ
-        if st.session_state['juego_actual'] is None:
-            # CORRECCIÓN DE ERROR CRÍTICO: Eliminación de la llamada recursiva.
-            # Si el juego es None, el menú (botones) ya se ha renderizado en los bloques anteriores.
-            # La función debe terminar aquí.
-            pass
-        
-        # 2. JUEGO TRIVIA (CORREGIDO: ERROR DE TIEMPO SOLUCIONADO)
-        elif st.session_state['juego_actual'] == 'trivia':
-            
-            # Barra superior de retorno
-            col_back, col_title = st.columns([1, 5])
-            with col_back:
-                if st.button("🔙 Menú", use_container_width=True): 
-                    volver_menu_juegos()
-            with col_title:
-                st.subheader("Desafío Trivia")
-            
-            # --- CSS TRIVIA ---
+    def mostrar_menu_juegos():
+            # 1. CSS VIBRANTE (SOLO ZONA PRINCIPAL)
             st.markdown("""
-                <style>
-                div.stButton > button[kind="primary"] {
-                    background-color: #28a745 !important;
-                    border-color: #28a745 !important;
+            <style>
+                /* Selector específico para la zona principal (NO Sidebar) */
+                section[data-testid="stMain"] div.stButton > button {
+                    /* FONDO: Degradado Intenso (Indigo a Morado) para contrastar con el gris */
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                    
+                    /* Borde y Forma */
+                    border: none !important;
+                    border-radius: 20px !important; /* Muy redondeado */
+                    
+                    /* Texto */
                     color: white !important;
-                    font-size: 24px !important;
-                    font-weight: bold !important;
-                    padding: 15px 30px !important;
-                }
-                .big-question {
-                    font-size: 50px !important;
-                    font-weight: 800;
-                    color: #1e3a8a;
-                    text-align: center;
-                    background-color: #eff6ff;
-                    padding: 40px;
-                    border-radius: 25px;
-                    border: 5px solid #3b82f6;
-                    margin-bottom: 30px;
-                    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-                    line-height: 1.2;
-                }
-                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
-                    background-color: #fff9c4 !important;
-                    border: 3px solid #fbc02d !important;
-                    border-radius: 20px !important;
-                    min-height: 120px !important;
+                    font-family: 'Verdana', sans-serif !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 1px !important;
+                    
+                    /* Sombra de "Tarjeta Flotante" */
+                    box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3) !important;
+                    
+                    /* Geometría */
                     height: auto !important;
-                    white-space: normal !important;
-                    padding: 15px !important;
-                    margin-bottom: 15px !important;
-                    box-shadow: 0 6px 0 #f9a825 !important;
+                    padding: 25px 15px !important;
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
                 }
-                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
-                    font-size: 36px !important;
+    
+                /* Hover: Se eleva y brilla */
+                section[data-testid="stMain"] div.stButton > button:hover {
+                    transform: translateY(-6px) scale(1.02);
+                    box-shadow: 0 15px 30px rgba(118, 75, 162, 0.5) !important;
+                    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important; /* Invierte degradado */
+                }
+    
+                /* Texto del Título e Icono */
+                section[data-testid="stMain"] div.stButton > button p {
+                    font-size: 19px !important;
                     font-weight: 800 !important;
-                    color: #333333 !important;
-                    line-height: 1.1 !important;
+                    margin: 0 !important;
+                    line-height: 1.4 !important;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 }
-                section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
-                    background-color: #fff59d !important;
-                    transform: translateY(-3px);
-                    border-color: #f57f17 !important;
-                }
-                </style>
+            </style>
             """, unsafe_allow_html=True)
+    
+            # TÍTULO (Ajustado a color oscuro para que se lea en el gris)
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
+                <p style="color: #616161; font-size: 18px; font-weight: 500;">Selecciona tu desafío</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+            # --- PARRILLA DE JUEGOS ---
+            col1, col2 = st.columns(2, gap="large")
+            
+            with col1:
+                # TRIVIA
+                if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
+                    st.session_state['juego_actual'] = 'trivia'
+                    st.rerun()
+    
+            with col2:
+                # PUPILETRAS
+                if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
+                    st.session_state['juego_actual'] = 'pupiletras'
+                    st.rerun()
+    
+            st.write("") 
+    
+            col3, col4 = st.columns(2, gap="large")
+            
+            with col3:
+                # ROBOT (Juego del Ahorcado)
+                if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
+                    # CORRECCIÓN: Usamos 'robot' como ID para consistencia, asumiendo que el Ahorcado es el juego del Robot.
+                    # Si el juego es realmente Ahorcado, el ID debería ser 'ahorcado'. Lo cambio a 'robot'.
+                    st.session_state['juego_actual'] = 'robot' 
+                    st.rerun()
+    
+            with col4:
+                # CAMBIO: DE PIXEL ART A SORTEADOR
+                st.markdown('<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🎰</div>', unsafe_allow_html=True)
+                # Nota: Cambiamos la key para limpiar el estado anterior
+                if st.button("\n\nSorteador\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
+                    st.session_state['juego_actual'] = 'sorteador' # Nueva ID interna
+                    st.rerun()
+    
+            # ==========================================
+            # === C. ROUTER (EL CEREBRO QUE DECIDE QUÉ MOSTRAR) ===
+            # ==========================================
+            
+            # 1. SI NO HAY JUEGO SELECCIONADO -> MOSTRAR MENÚ
+            if st.session_state['juego_actual'] is None:
+                # CORRECCIÓN DE ERROR CRÍTICO: Eliminación de la llamada recursiva.
+                # Si el juego es None, el menú (botones) ya se ha renderizado en los bloques anteriores.
+                # La función debe terminar aquí.
+                pass
+            
+            # 2. JUEGO TRIVIA (CORREGIDO: ERROR DE TIEMPO SOLUCIONADO)
+            elif st.session_state['juego_actual'] == 'trivia':
+                
+                # Barra superior de retorno
+                col_back, col_title = st.columns([1, 5])
+                with col_back:
+                    if st.button("🔙 Menú", use_container_width=True): 
+                        volver_menu_juegos()
+                with col_title:
+                    st.subheader("Desafío Trivia")
+                
+                # --- CSS TRIVIA ---
+                st.markdown("""
+                    <style>
+                    div.stButton > button[kind="primary"] {
+                        background-color: #28a745 !important;
+                        border-color: #28a745 !important;
+                        color: white !important;
+                        font-size: 24px !important;
+                        font-weight: bold !important;
+                        padding: 15px 30px !important;
+                    }
+                    .big-question {
+                        font-size: 50px !important;
+                        font-weight: 800;
+                        color: #1e3a8a;
+                        text-align: center;
+                        background-color: #eff6ff;
+                        padding: 40px;
+                        border-radius: 25px;
+                        border: 5px solid #3b82f6;
+                        margin-bottom: 30px;
+                        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                        line-height: 1.2;
+                    }
+                    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
+                        background-color: #fff9c4 !important;
+                        border: 3px solid #fbc02d !important;
+                        border-radius: 20px !important;
+                        min-height: 120px !important;
+                        height: auto !important;
+                        white-space: normal !important;
+                        padding: 15px !important;
+                        margin-bottom: 15px !important;
+                        box-shadow: 0 6px 0 #f9a825 !important;
+                    }
+                    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
+                        font-size: 36px !important;
+                        font-weight: 800 !important;
+                        color: #333333 !important;
+                        line-height: 1.1 !important;
+                    }
+                    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
+                        background-color: #fff59d !important;
+                        transform: translateY(-3px);
+                        border-color: #f57f17 !important;
+                    }
+                    </style>
+                """, unsafe_allow_html=True)
         
             # --- MODO CINE ---
             col_header1, col_header2 = st.columns([3, 1])
