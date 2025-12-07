@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import time
 import random
+import pandas as pd
 # Asumimos que pedagogical_assistant está disponible para la llamada a la IA
 import pedagogical_assistant 
 
