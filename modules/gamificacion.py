@@ -1,8 +1,29 @@
-import streamlit as st
 import json
 import time
 import random
+from streamlit_lottie import st_lottie
+import streamlit as st
+import pandas as pd
+import analysis_core
 import pedagogical_assistant
+import plotly.express as px
+import io 
+import xlsxwriter
+import pptx_generator
+import os 
+import base64
+import modules.login as login
+import modules.gamificacion as gamificacion
+import modules.evaluacion as evaluacion
+import modules.asistente as asistente
+import modules.ui_components as ui
+import modules.database as db
+from modules import gamificacion
+from supabase import create_client, Client
+# --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
+def cargar_lottie(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
 def gamificacion():
     if 'juego_actual' not in st.session_state:
