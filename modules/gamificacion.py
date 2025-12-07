@@ -353,3 +353,4 @@ def juego_trivia():
                 del st.session_state['juego_preguntas']
                 del st.session_state['juego_terminado']
                 st.rerun()
+    st.info("⚠️ Falta pegar aquí el contenido completo de tu juego TRIVIA.")
