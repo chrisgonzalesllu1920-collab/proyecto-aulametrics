@@ -533,7 +533,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     """
     
     try:
-        # 1. Intentar con modelo Pro
+        # 1. Intentar con modelo flash-preview-09-2025
         response = client.models.generate_content(
             model='models/gemini-2.5-flash-preview-09-2025',
             contents=prompt
@@ -1050,6 +1050,7 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
+
 
 
 
