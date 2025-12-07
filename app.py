@@ -1088,7 +1088,7 @@ def mostrar_sidebar():
         # [AÑADIENDO LA FECHA DE LANZAMIENTO AQUÍ]
         # Usamos st.info para destacarlo, o st.markdown para un estilo fuerte.
         st.markdown(
-            "🚀 **Lanzamiento v3.0:** 01/03/2026", 
+            "🚀 **Lanzamiento oficial de Aulametrics:** 01/03/2026", 
             help="Fecha de lanzamiento oficial de la nueva versión de AulaMetrics."
         )
         # También podrías usar: st.text("Fecha de lanzamiento de Aulametrics 01/03/2026")
@@ -1363,6 +1363,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
