@@ -3,6 +3,7 @@ import json
 import random
 import time
 import pandas as pd
+
 from streamlit_lottie import st_lottie  # Solo si lo usas
 import base64  # Solo si algún juego lo usa
 import os  # Solo si se usa en algún juego
