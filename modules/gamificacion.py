@@ -1,5 +1,5 @@
 # 5. GAMIFICACIÓN (VERSIÓN LIMPIA V3)
-    elif pagina == "Gamificación":
+        elif pagina == "Gamificación":
         
         # --- A. GESTIÓN DE ESTADO ---
         if 'juego_actual' not in st.session_state:
