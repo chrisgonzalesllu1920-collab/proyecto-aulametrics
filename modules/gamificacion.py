@@ -169,7 +169,7 @@ def mostrar_menu_fuentes_trivia():
         st.rerun()
 
     with col1:
-        if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_texto", help="Crea preguntas basadas en un texto que proporciones."):
+        if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_texto", help="Elabora de forma manual las preguntas y añade sus alternativas."):
             set_source_and_continue('Elaboración manual')
     
     with col2:
@@ -178,7 +178,7 @@ def mostrar_menu_fuentes_trivia():
             pass # Lógica de set_source_and_continue('Archivo')
     
     with col3:
-        if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_web", help="Crea preguntas sobre un tema amplio usando la web."):
+        if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_web", help="Crea tus preguntas y alternativas, haciendo uso de la inteligencia artificial."):
             set_source_and_continue('Uso de IA-Tutor')
 
     # Aplicamos el estilo a los botones recién creados
