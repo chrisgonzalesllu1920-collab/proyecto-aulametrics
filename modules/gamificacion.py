@@ -205,16 +205,15 @@ def mostrar_menu_juegos():
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        /* 💡 SOLUCIÓN FINAL: Selector de ALTA ESPECIFICIDAD para el botón de Biblioteca */
-        /* Busca el div contenedor del botón que tiene la key específica (btn_card_biblioteca) */
-        /* Combinamos la estructura general con la key para anular cualquier estilo previo. */
-        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button {
-            /* Usamos un color naranja/dorado distintivo */
+        /* 💡 SOLUCIÓN: Usamos un selector más robusto para el botón de Biblioteca */
+        /* Buscamos el div contenedor con el ID 'btn_card_biblioteca' y aplicamos al botón dentro */
+        div[key="btn_card_biblioteca"] button {
+            /* Usamos un color naranja/dorado distintivo para la biblioteca y !important para forzar */
             background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%) !important; 
             box-shadow: 0 10px 20px rgba(255, 152, 0, 0.4) !important;
         }
         
-         section[data-testid="stMain"] div[key="btn_card_biblioteca"] button:hover {
+         div[key="btn_card_biblioteca"] button:hover {
             background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
         }
     </style>
