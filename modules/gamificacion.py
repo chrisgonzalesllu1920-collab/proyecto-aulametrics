@@ -8,14 +8,150 @@ import pedagogical_assistant
 from streamlit_lottie import st_lottie  # Solo si lo usas
 import base64  # Solo si algún juego lo usa
 import os  # Solo si se usa en algún juego
+# Importaciones de Firebase (Necesarias para la persistencia)
+try:
+    from firebase_admin import initialize_app, credentials
+    from firebase_admin import firestore, auth
+    from google.cloud.firestore import Client as FirestoreClient
+except ImportError:
+    # Estos imports son necesarios para el entorno de ejecución, 
+    # si fallan, se asume que Streamlit se está ejecutando en Canvas 
+    # y los módulos ya están cargados.
+    pass 
 
 # ============================================================
 #   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
 # ============================================================
 
-# ------------------------------------------------------------
-# A. GESTIÓN DE ESTADO GENERAL
-# ------------------------------------------------------------
+
+# ============================================================
+#   A. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE/AUTH (NUEVO)
+# ============================================================
+
+def initialize_firebase():
+    """Inicializa Firebase, Firestore y autentica al usuario."""
+    # Solo ejecutar la inicialización una vez
+    if 'db' in st.session_state and 'auth' in st.session_state and 'is_auth_ready' in st.session_state and st.session_state.is_auth_ready:
+        return
+    
+    try:
+        # Intenta obtener la configuración y el token de las variables globales de Canvas
+        firebase_config = json.loads(os.environ.get('__firebase_config', '{}'))
+        initial_auth_token = os.environ.get('__initial_auth_token')
+        app_id = os.environ.get('__app_id', 'default-app-id')
+
+        # Si la configuración existe, procedemos con la inicialización.
+        if firebase_config:
+            import firebase_admin
+            from firebase_admin import initialize_app, credentials
+            from firebase_admin import firestore, auth
+
+            # La app solo debe inicializarse una vez
+            if not firebase_admin._apps:
+                # Usar el objeto de configuración para inicializar
+                cred = credentials.Certificate(firebase_config)
+                app = initialize_app(cred)
+            else:
+                app = firebase_admin.get_app()
+                
+            db = firestore.client(app)
+            firebase_auth = auth
+            
+            # Autenticación con el token
+            if initial_auth_token:
+                try:
+                    # Verifica el token y obtiene el ID de usuario
+                    decoded_token = firebase_auth.verify_id_token(initial_auth_token)
+                    user_id = decoded_token['uid']
+                    st.session_state['userId'] = user_id
+                    st.session_state['is_authenticated'] = True
+                except Exception as e:
+                    st.warning(f"Error al verificar token: {e}. Usando ID anónimo.")
+                    st.session_state['userId'] = "anonymous_" + os.urandom(16).hex()
+                    st.session_state['is_authenticated'] = False
+            else:
+                # Fallback para usuarios anónimos o desarrollo local
+                st.session_state['userId'] = "anonymous_" + os.urandom(16).hex()
+                st.session_state['is_authenticated'] = False
+
+            # Guardar en el estado de sesión para Streamlit
+            st.session_state['db'] = db
+            st.session_state['auth'] = firebase_auth
+            st.session_state['appId'] = app_id
+            st.session_state['is_auth_ready'] = True
+            
+            # print(f"Firebase Inicializado. UserId: {st.session_state.userId}, AppId: {app_id}")
+
+        else:
+            # Caso de desarrollo local sin configuración de Firebase
+            st.session_state['db'] = None
+            st.session_state['auth'] = None
+            st.session_state['appId'] = 'default-app-id'
+            st.session_state['userId'] = 'offline-user-id'
+            st.session_state['is_auth_ready'] = True
+            st.warning("⚠️ Ejecutando sin conexión a Firebase. Los datos no se guardarán.")
+
+    except Exception as e:
+        st.error(f"FALLO CRÍTICO DE FIREBASE/AUTH: {e}")
+        st.session_state['is_auth_ready'] = False
+        st.session_state['db'] = None
+
+# ============================================================
+#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (NUEVO)
+# ============================================================
+
+# Define las rutas de Firestore
+def get_personal_collection_ref():
+    if not st.session_state.get('db'): return None
+    appId = st.session_state.get('appId', 'default-app-id')
+    userId = st.session_state.get('userId', 'offline-user-id')
+    
+    # Ruta: /artifacts/{appId}/users/{userId}/trivia_games
+    return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection("trivia_games")
+
+def get_global_collection_ref():
+    if not st.session_state.get('db'): return None
+    appId = st.session_state.get('appId', 'default-app-id')
+    
+    # Ruta: /artifacts/{appId}/public/data/trivia_games
+    return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection("trivia_games")
+
+
+def guardar_juego_trivia(game_data, is_public=False):
+    """
+    Guarda el juego de trivia en Firestore.
+    :param game_data: Diccionario con la estructura del juego.
+    :param is_public: Booleano, si es True, guarda en la biblioteca global.
+    """
+    if not st.session_state.get('is_auth_ready') or not st.session_state.get('db'):
+        st.error("No se puede guardar: Firebase no está inicializado o la autenticación falló.")
+        return False
+
+    collection_ref = get_global_collection_ref() if is_public else get_personal_collection_ref()
+    
+    if collection_ref is None:
+        st.error("Error al obtener la referencia de la colección.")
+        return False
+        
+    try:
+        # Añade metadatos antes de guardar
+        game_data['creator_id'] = st.session_state.get('userId', 'anonymous')
+        game_data['created_at'] = firestore.SERVER_TIMESTAMP
+        game_data['is_public'] = is_public
+        
+        # Firestore no soporta diccionarios anidados con listas de listas/objetos complejos.
+        # Guardaremos el juego como un diccionario simple o como un campo JSON STRING si es complejo.
+        # Asumo que game_data es un dict simple aquí.
+        collection_ref.add(game_data)
+        return True
+    except Exception as e:
+        st.error(f"Error al guardar el juego en Firestore: {e}")
+        return False
+
+# ============================================================
+#   C. GESTIÓN DE ESTADO GENERAL Y MENÚS DE NAVEGACIÓN
+# ============================================================
+
 def volver_menu_juegos():
     """Vuelve al menú principal de juegos y limpia estados de sub-menú."""
     st.session_state['juego_actual'] = None
@@ -33,11 +169,11 @@ def volver_menu_fuentes_trivia():
     st.rerun()
 
 # ------------------------------------------------------------
-# B. MENÚ PRINCIPAL DE JUEGOS
+# D. MENÚ PRINCIPAL DE JUEGOS (MODIFICADO para añadir BIBLIOTECA)
 # ------------------------------------------------------------
 def mostrar_menu_juegos():
 
-    # 1. CSS (Tu mismo CSS pegado sin cambiar nada)
+    # 1. CSS 
     st.markdown("""
     <style>
         /* Estilos principales de los botones del menú de juegos */
@@ -68,10 +204,18 @@ def mostrar_menu_juegos():
             line-height: 1.4 !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+        /* Estilo específico para el botón de Biblioteca */
+        #btn_card_biblioteca button {
+            background: linear-gradient(135deg, #fbc02d 0%, #ff8f00 100%) !important;
+            box-shadow: 0 10px 20px rgba(255, 143, 0, 0.3) !important;
+        }
+         #btn_card_biblioteca button:hover {
+            background: linear-gradient(135deg, #ff8f00 0%, #fbc02d 100%) !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # 2. Título (copiado igual)
+    # 2. Título 
     st.markdown("""
     <div style="text-align: center; margin-bottom: 30px;">
         <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
@@ -79,40 +223,43 @@ def mostrar_menu_juegos():
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Botones
-    col1, col2 = st.columns(2, gap="large")
+    # 3. Botones - Layout con 3 columnas en la primera fila (para 5 botones)
+    col1, col2, col3 = st.columns(3, gap="large")
 
     with col1:
-        # MODIFICADO: Redirige al sub-menú de fuentes de Trivia
+        # Redirige al sub-menú de fuentes de Trivia
         if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
-            st.session_state['juego_actual'] = 'trivia_fuentes' # Nuevo estado intermedio
+            st.session_state['juego_actual'] = 'trivia_fuentes'
             st.rerun()
 
     with col2:
         if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
             st.session_state['juego_actual'] = 'pupiletras'
             st.rerun()
+            
+    with col3:
+        # NUEVO BOTÓN: BIBLIOTECA
+        if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
+            st.session_state['juego_actual'] = 'biblioteca'
+            st.rerun()
 
     st.write("")
+    
+    col4, col5, col_spacer = st.columns(3, gap="large")
 
-    col3, col4 = st.columns(2, gap="large")
-
-    with col3:
+    with col4:
         if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
             st.session_state['juego_actual'] = 'ahorcado'
             st.rerun()
 
-    with col4:
-        st.markdown(
-            '<div class="card-icon" style="text-align: center; margin-bottom: -55px; position: relative; z-index: 5; pointer-events: none; font-size: 40px;">🎰</div>',
-            unsafe_allow_html=True
-        )
-        if st.button("\n\nSorteador\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
+    with col5:
+        # Botón Sorteador (Manteniendo el mismo estilo visual)
+        if st.button("🎰 SORTEADOR\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
             st.session_state['juego_actual'] = 'sorteador'
             st.rerun()
 
 # ------------------------------------------------------------
-# C. MENÚ DE SELECCIÓN DE FUENTES DE TRIVIA (NUEVO)
+# E. MENÚ DE SELECCIÓN DE FUENTES DE TRIVIA
 # ------------------------------------------------------------
 def mostrar_menu_fuentes_trivia():
     """Muestra el menú para seleccionar la fuente de contenido para la Trivia."""
@@ -169,17 +316,19 @@ def mostrar_menu_fuentes_trivia():
         st.rerun()
 
     with col1:
-        if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_texto", help="Elabora de forma manual las preguntas y añade sus alternativas."):
-            set_source_and_continue('Elaboración manual')
+        # Elaboración manual
+        if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_manual", help="Introduce o pega tu propio texto de contenido para crear el juego a partir de él."):
+            set_source_and_continue('Manual') 
     
     with col2:
-        # Placeholder para Archivo - solo muestra el botón
+        # Archivo PDF/TXT - DESHABILITADO
         if st.button("📁 Archivo PDF/TXT\n\n(Próximamente)", use_container_width=True, key="source_archivo", disabled=True, help="Sube un documento y la IA lo analizará."):
-            pass # Lógica de set_source_and_continue('Archivo')
+            pass 
     
     with col3:
-        if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_web", help="Crea tus preguntas y alternativas, haciendo uso de la inteligencia artificial."):
-            set_source_and_continue('Uso de IA-Tutor')
+        # Uso de IA-Tutor
+        if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_ia_tutor", help="Deja que la IA busque un tema general en Internet y genere un juego educativo automáticamente."):
+            set_source_and_continue('IA-Tutor')
 
     # Aplicamos el estilo a los botones recién creados
     st.markdown("""
@@ -191,17 +340,20 @@ def mostrar_menu_fuentes_trivia():
     """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------
-# D. JUEGO 1: TRIVIA (MODIFICADO)
+# F. JUEGO 1: TRIVIA
 # ------------------------------------------------------------
 def juego_trivia(volver_menu_juegos):
 
     # Verifica si estamos en la configuración del juego o si ya hay un juego cargado
     trivia_source = st.session_state.get('trivia_source')
 
+    # ... (El resto de la función juego_trivia, incluyendo el CSS y la lógica, permanece igual 
+    # excepto que ahora el botón "Nuevo Juego" debería volver a 'trivia_fuentes' y no a 'juego_actual=None').
+    
     # Barra superior
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        # MODIFICADO: Botón vuelve al menú de fuentes de trivia si estamos en la fase de configuración
+        # Botón vuelve al menú de fuentes de trivia si estamos en la fase de configuración
         if st.session_state.get('juego_iniciado', False) or st.session_state.get('juego_en_lobby', False):
              if st.button("🔙 Menú Fuentes", use_container_width=True, key="btn_volver_menu"):
                 # Si el juego ya está iniciado/cargado, volvemos al menú principal
@@ -217,7 +369,7 @@ def juego_trivia(volver_menu_juegos):
     # --- Resto del CSS del juego Trivia... (Tu CSS original) ---
     st.markdown("""
         <style>
-        /* CSS del juego Trivia... */
+        /* ... CSS Trivia ... */
         button[data-testid="baseButton-default"][id="btn_volver_menu"] {
             background-color: #fff59d !important;
             color: #1e3a8a !important;
@@ -299,24 +451,26 @@ def juego_trivia(volver_menu_juegos):
     if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
         
         # ------------------------------------------------------------
-        # 1. CAMPO DE ENTRADA DINÁMICO SEGÚN LA FUENTE (MODIFICADO)
+        # 1. CAMPO DE ENTRADA DINÁMICO SEGÚN LA FUENTE 
         # ------------------------------------------------------------
         tema_input = None
-        if trivia_source == 'Elaboración manual':
-            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
-            tema_input = st.text_area("Pega el texto fuente aquí:", height=200, placeholder="Ej: La biografía de Marie Curie, el resumen de la Segunda Guerra Mundial, etc.")
+        
+        # CLAVE 'Manual'
+        if trivia_source == 'Manual':
+            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>Elaboración manual</span>**", unsafe_allow_html=True)
+            tema_input = st.text_area("Pega el texto fuente aquí:", height=200, placeholder="Ej: La biografía de Marie Curie, el resumen de la Segunda Guerra Mundial, etc. (Mínimo 50 caracteres)")
             
-        elif trivia_source == 'Uso de IA-Tutor':
-            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
-            tema_input = st.text_input("Crea preguntas con IA:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
+        # CLAVE 'IA-Tutor' 
+        elif trivia_source == 'IA-Tutor':
+            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>Uso de IA-Tutor</span>**", unsafe_allow_html=True)
+            tema_input = st.text_input("Tema General:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
             
         elif trivia_source is None:
-            # Esto no debería pasar si la navegación es correcta, pero es un fallback
             st.warning("⚠️ Debes seleccionar una fuente de Trivia primero.")
             st.stop()
             
         # ------------------------------------------------------------
-        # 2. CONFIGURACIÓN GENERAL
+        # 2. CONFIGURACIÓN GENERAL Y GENERACIÓN
         # ------------------------------------------------------------
         col_game1, col_game2 = st.columns([2, 1])
         with col_game1:
@@ -326,37 +480,32 @@ def juego_trivia(volver_menu_juegos):
             num_input = st.slider("Número de Preguntas:", 1, 10, 5)
             modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
-        # BOTÓN GENERAR CON SISTEMA DE "AUTO-REPARACIÓN" (3 VIDAS)
+        # BOTÓN GENERAR
         if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
             
-            # La validación cambia: si la fuente es "Elaboración manual", el tema_input debe ser largo.
-            if not tema_input or (trivia_source == 'Elaboración manual' and len(tema_input) < 50):
-                st.warning(f"⚠️ Por favor, introduce un tema válido o pega un texto de al menos 50 caracteres para la fuente **{trivia_source}**.")
+            is_text_too_short = (trivia_source == 'Manual' and (not tema_input or len(tema_input) < 50))
+            is_topic_missing = (trivia_source == 'IA-Tutor' and not tema_input)
+
+            if is_text_too_short or is_topic_missing:
+                st.warning(f"⚠️ Por favor, introduce un tema válido o pega un texto de al menos 50 caracteres para la fuente.")
             else:
-                # Variables de control de reintentos
                 intentos = 0
                 max_intentos = 3
                 exito = False
                 
-                # Bucle de intentos
                 while intentos < max_intentos and not exito:
                     intentos += 1
                     try:
                         msg_intento = f"🧠 Creando desafíos desde {trivia_source}..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
                         
                         with st.spinner(msg_intento):
-                            # 1. Llamada a la IA (MODIFICADO: Se pasa el trivia_source como argumento)
-                            # Nota: La función generadora de la IA debe manejar el texto o el Crea preguntas con IA
                             respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, trivia_source, num_input)
                             
                             if respuesta_json:
-                                # 2. Limpieza agresiva del JSON
                                 clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
-                                
-                                # 3. Intento de conversión (Aquí es donde suele fallar)
                                 preguntas = json.loads(clean_json)
                                 
-                                # 4. Si pasa la línea anterior, ¡ÉXITO! Guardamos todo.
+                                # GUARDAMOS LA ESTRUCTURA DEL JUEGO
                                 st.session_state['juego_preguntas'] = preguntas
                                 st.session_state['juego_indice'] = 0
                                 st.session_state['juego_puntaje'] = 0
@@ -368,27 +517,28 @@ def juego_trivia(volver_menu_juegos):
                                 st.session_state['juego_en_lobby'] = True
                                 st.session_state['juego_iniciado'] = True
                                 
-                                exito = True # Rompemos el bucle
+                                exito = True
                                 st.rerun()
                             else:
                                 raise Exception("Respuesta vacía de la IA")
 
                     except json.JSONDecodeError:
-                        time.sleep(1) # Esperamos un segundo para no saturar
-                        continue # Volvemos a empezar el bucle while
+                        time.sleep(1)
+                        continue
                         
                     except Exception as e:
                         st.error(f"Error inesperado: {e}")
-                        break # Si es otro error, paramos
+                        break
                 
-                # Si después de 3 intentos sigue fallando...
                 if not exito:
                     st.error("❌ La IA está teniendo dificultades con este tema específico. Por favor, intenta cambiar ligeramente el nombre del tema o el texto fuente.")
 
     # --- LÓGICA TRIVIA: FASE DE LOBBY / JUEGO ACTIVO / TERMINADO (Sin cambios) ---
     
+    # ... Lógica de Lobby, Activo y Terminado (Se mantiene igual)
+
     elif st.session_state.get('juego_en_lobby', False):
-        # LÓGICA DE LOBBY (Lobby: Pantalla previa a empezar)
+        # LÓGICA DE LOBBY
         tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
         modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
         
@@ -408,7 +558,7 @@ def juego_trivia(volver_menu_juegos):
                 st.rerun()
 
     elif not st.session_state.get('juego_terminado', False):
-        # LÓGICA DE JUEGO ACTIVO (Mostrando preguntas)
+        # LÓGICA DE JUEGO ACTIVO
         idx = st.session_state['juego_indice']
         preguntas = st.session_state['juego_preguntas']
         current_score = int(st.session_state['juego_puntaje'])
@@ -439,7 +589,6 @@ def juego_trivia(volver_menu_juegos):
                 import time
                 
                 correcta = pregunta_actual['respuesta_correcta']
-                # Cálculo de puntos basado en el número total de preguntas
                 puntos_por_pregunta = 100 / len(preguntas) 
                 es_correcta = (opcion_elegida == correcta)
                 
@@ -475,7 +624,7 @@ def juego_trivia(volver_menu_juegos):
                 if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
         
         elif fase == 'feedback':
-            # LÓGICA DE FEEDBACK (Solo en modo "Guiado por Docente")
+            # LÓGICA DE FEEDBACK
             tipo, valor = st.session_state['ultimo_feedback'].split("|")
             if tipo == "correcta":
                 st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
@@ -513,153 +662,46 @@ def juego_trivia(volver_menu_juegos):
             if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                 st.session_state['juego_iniciado'] = False
                 # Limpiamos todos los estados de juego y volvemos al menú de fuentes
-                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta']:
+                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source']:
                     if key in st.session_state:
                         del st.session_state[key]
-                volver_menu_fuentes_trivia()
+                volver_menu_juegos() # Volvemos al menú principal
                 st.rerun()
 
-
-def juego_pupiletras(volver_menu_juegos):
-    # --- BARRA SUPERIOR ---
+# ------------------------------------------------------------
+# G. NUEVA PÁGINA: BIBLIOTECA DE JUEGOS (ESQUELETO)
+# ------------------------------------------------------------
+def mostrar_menu_biblioteca():
+    
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        if st.button("🔙 Menú", use_container_width=True, key="pupi_back"):
+        if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_biblioteca"):
             volver_menu_juegos()
     with col_title:
-        st.subheader("🔎 Pupiletras: Buscador de Palabras")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #FF8F00; font-size: 32px; font-weight: 900;">📚 BIBLIOTECA DE JUEGOS</h2>
+            <p style="color: #616161; font-size: 16px;">Carga o comparte juegos de Trivia con tus compañeros.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # --- SI AÚN NO SE HA CONFIGURADO EL JUEGO ---
-    if 'pupi_grid' not in st.session_state:
-        st.info("Configura tu sopa de letras:")
-        
-        col_conf1, col_conf2, col_conf3 = st.columns([2, 1, 1])
-        with col_conf1:
-            tema_pupi = st.text_input("Tema:", placeholder="Ej: Héroes del Perú...")
-        with col_conf2:
-            lista_grados_pupi = [
-                "1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria",
-                "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"
-            ]
-            grado_pupi = st.selectbox("Grado:", lista_grados_pupi, index=5)
-        with col_conf3:
-            cant_palabras = st.slider("Palabras:", 5, 12, 8) 
+    st.divider()
 
-        if st.button("🧩 Generar Sopa de Letras", type="primary", use_container_width=True):
-            if not tema_pupi:
-                st.warning("⚠️ Escribe un tema.")
-            else:
-                with st.spinner("🤖 Diseñando ficha y juego interactivo..."):
-                    # A) IA genera palabras
-                    palabras = pedagogical_assistant.generar_palabras_pupiletras(
-                        tema_pupi, grado_pupi, cant_palabras
-                    )
-                    
-                    if palabras:
-                        # B) Crear matriz
-                        grid, colocados = pedagogical_assistant.crear_grid_pupiletras(palabras)
-                        
-                        # C) Generar Word
-                        docx_buffer = pedagogical_assistant.generar_docx_pupiletras(
-                            grid, colocados, tema_pupi, grado_pupi
-                        )
-                        
-                        # Guardar estado
-                        st.session_state['pupi_grid'] = grid
-                        st.session_state['pupi_data'] = colocados
-                        st.session_state['pupi_found'] = set()
-                        st.session_state['pupi_docx_bytes'] = docx_buffer.getvalue()
-                        st.rerun()
-                    else:
-                        st.error("Error: La IA no pudo generar palabras. Intenta otro tema.")
+    # --- Secciones de la Biblioteca ---
+    
+    # Biblioteca Personal (Guardada en /artifacts/{appId}/users/{userId}/trivia_games)
+    st.subheader("👤 Mi Colección Personal")
+    st.info("Aquí verás los juegos que has guardado. Haz clic para cargarlos.")
+    # TODO: Implementar la carga de datos de Firestore para la colección personal.
 
-        return  # ← Importante: detener aquí si aún no hay grid
+    # Biblioteca Global (Guardada en /artifacts/{appId}/public/data/trivia_games)
+    st.subheader("🌎 Juegos Compartidos (Global)")
+    st.info("Juegos creados y compartidos por la comunidad. ¡Carga uno y juega!")
+    # TODO: Implementar la carga de datos de Firestore para la colección global.
 
-    # --- JUEGO YA GENERADO ---
-    grid = st.session_state['pupi_grid']
-    palabras_data = st.session_state['pupi_data']
-    encontradas = st.session_state['pupi_found']
+    # Muestra el ID de usuario para referencia de debug/compartir
+    st.caption(f"ID de Usuario (para Firestore): **{st.session_state.get('userId', 'No Autenticado')}**")
 
-    col_tablero, col_panel = st.columns([3, 1])
-
-    # --- TABLERO ---
-    with col_tablero:
-        st.markdown("##### 📍 Tablero Interactivo")
-        
-        celdas_iluminadas = set()
-        for p in palabras_data:
-            if p['palabra'] in encontradas:
-                for coord in p['coords']:
-                    celdas_iluminadas.add(coord)
-
-        html_grid = '<div style="display: flex; justify-content: center; overflow-x: auto;"><table style="border-collapse: collapse; margin: auto;">'
-        for r in range(len(grid)):
-            html_grid += "<tr>"
-            for c in range(len(grid[0])):
-                letra = grid[r][c]
-                bg = "#ffffff"
-                color = "#333"
-                border = "1px solid #ccc"
-                weight = "normal"
-                
-                if (r, c) in celdas_iluminadas:
-                    bg = "#ffeb3b"
-                    color = "#000"
-                    border = "2px solid #fbc02d"
-                    weight = "bold"
-                
-                html_grid += f'''
-                <td style="
-                    width: 45px; height: 45px;
-                    text-align: center;
-                    font-family: monospace; font-size: 28px;
-                    background-color: {bg};
-                    color: {color};
-                    border: {border};
-                    font-weight: {weight};
-                ">{letra}</td>'''
-            html_grid += "</tr>"
-        html_grid += "</table></div>"
-        
-        st.markdown(html_grid, unsafe_allow_html=True)
-
-    # --- PANEL LATERAL ---
-    with col_panel:
-        st.success("📄 Ficha Lista")
-        st.download_button(
-            label="📥 Descargar Word",
-            data=st.session_state['pupi_docx_bytes'],
-            file_name="Pupiletras_Clase.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            use_container_width=True
-        )
-        
-        st.divider()
-        st.markdown("##### 📝 Encontrar:")
-        
-        progreso = len(encontradas) / len(palabras_data)
-        st.progress(progreso, text=f"{len(encontradas)} de {len(palabras_data)}")
-        
-        for i, p_item in enumerate(palabras_data):
-            palabra = p_item['palabra']
-            if palabra in encontradas:
-                label = f"✅ {palabra}"
-                tipo = "primary"
-            else:
-                label = f"⬜ {palabra}"
-                tipo = "secondary"
-            
-            if st.button(label, key=f"btn_pupi_{i}", type=tipo, use_container_width=True):
-                if palabra in encontradas:
-                    st.session_state['pupi_found'].remove(palabra)
-                else:
-                    st.session_state['pupi_found'].add(palabra)
-                st.rerun()
-
-        st.write("")
-        if st.button("🔄 Reiniciar", type="secondary", use_container_width=True):
-            del st.session_state['pupi_grid']
-            st.rerun()
 
 # ============================================================
 # === 3. JUEGO AHORCADO (ROBOT)
@@ -1112,9 +1154,8 @@ def juego_sorteador(volver_menu_juegos):
 
 
 # ------------------------------------------------------------
-# E. FUNCIONES STUB para otros juegos
+# H. FUNCIONES STUB para otros juegos
 # ------------------------------------------------------------
-# Estas funciones solo existen para que el Router no falle, su lógica interna se omite.
 def juego_pupiletras(volver_menu_juegos):
     col_back, _ = st.columns([1, 5])
     with col_back:
@@ -1137,37 +1178,42 @@ def juego_sorteador(volver_menu_juegos):
     st.info("Aquí iría la lógica del Sorteador.")
 
 # ------------------------------------------------------------
-# F. FUNCIÓN PRINCIPAL: ROUTER (MODIFICADO)
+# I. FUNCIÓN PRINCIPAL: ROUTER
 # ------------------------------------------------------------
 def gamificacion():
 
-    # Asegura estado inicial
+    # 0. INICIALIZACIÓN CRÍTICA DE FIREBASE Y AUTH
+    initialize_firebase()
+    if not st.session_state.get('is_auth_ready', False):
+        st.warning("Esperando la inicialización de la autenticación...")
+        return
+
+    # 1. Asegura estado inicial
     if "juego_actual" not in st.session_state:
         st.session_state["juego_actual"] = None
 
-    # Router
+    # 2. Router
     if st.session_state["juego_actual"] is None:
         mostrar_menu_juegos()
 
-    # NUEVO ESTADO INTERMEDIO
+    # Trivia: Seleccionar fuente
     elif st.session_state["juego_actual"] == "trivia_fuentes":
         mostrar_menu_fuentes_trivia()
 
+    # Trivia: Juego activo/configuración
     elif st.session_state["juego_actual"] == "trivia":
         juego_trivia(volver_menu_juegos)
 
+    # NUEVA PÁGINA DE BIBLIOTECA
+    elif st.session_state["juego_actual"] == "biblioteca":
+        mostrar_menu_biblioteca()
 
+    # Otros juegos (stubs)
     elif st.session_state['juego_actual'] == 'pupiletras':
         juego_pupiletras(volver_menu_juegos)
-
 
     elif st.session_state['juego_actual'] == 'ahorcado':
         juego_ahorcado(volver_menu_juegos)
 
-
     elif st.session_state['juego_actual'] == 'sorteador':
         juego_sorteador(volver_menu_juegos)
-
-# Esto es lo que se ejecutaría si este archivo fuera el entry point.
-# if __name__ == '__main__':
-#     gamificacion()
