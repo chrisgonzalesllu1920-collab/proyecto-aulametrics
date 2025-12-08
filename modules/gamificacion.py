@@ -169,14 +169,14 @@ def volver_menu_fuentes_trivia():
     st.rerun()
 
 # ------------------------------------------------------------
-# D. MENÚ PRINCIPAL DE JUEGOS (MODIFICADO para añadir BIBLIOTECA)
+# D. MENÚ PRINCIPAL DE JUEGOS (COMPLETAMENTE CORREGIDO Y ESTILIZADO)
 # ------------------------------------------------------------
 def mostrar_menu_juegos():
 
     # 1. CSS 
     st.markdown("""
     <style>
-        /* Estilos principales de los botones del menú de juegos */
+        /* Estilos generales para todos los botones del menú de juegos (PÚRPURA/AZUL) */
         section[data-testid="stMain"] div.stButton > button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             border: none !important;
@@ -189,6 +189,8 @@ def mostrar_menu_juegos():
             height: auto !important;
             padding: 25px 15px !important;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            width: 100%; /* Asegura que los botones tomen todo el ancho de la columna */
+            min-height: 120px; /* Altura mínima para el texto */
         }
 
         section[data-testid="stMain"] div.stButton > button:hover {
@@ -203,21 +205,21 @@ def mostrar_menu_juegos():
             margin: 0 !important;
             line-height: 1.4 !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: center;
         }
         
-        /* 💡 SOLUCIÓN: Usamos un selector más robusto para el botón de Biblioteca */
-        /* Buscamos el div contenedor con el ID 'btn_card_biblioteca' y aplicamos al botón dentro */
-        div[key="btn_card_biblioteca"] button {
-            /* Usamos un color naranja/dorado distintivo para la biblioteca y !important para forzar */
-            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%) !important; 
-            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.4) !important;
+        /* 🏆 NUEVO DISEÑO: Selector de MÁXIMA ESPECIFICIDAD para el botón de Biblioteca (VERDE ESMERALDA) */
+        /* Incluye el data-testid del contenedor principal para garantizar la anulación de estilos */
+        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%) !important; /* Azul más brillante */
+            box-shadow: 0 10px 20px rgba(0, 198, 255, 0.4) !important;
         }
         
-         div[key="btn_card_biblioteca"] button:hover {
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button:hover {
+            background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) !important;
         }
     </style>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True) 
 
     # 2. Título 
     st.markdown("""
@@ -242,7 +244,7 @@ def mostrar_menu_juegos():
             st.rerun()
             
     with col3:
-        # NUEVO BOTÓN: BIBLIOTECA
+        # BOTÓN BIBLIOTECA - Usará el nuevo estilo azul brillante/turquesa
         if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
             st.session_state['juego_actual'] = 'biblioteca'
             st.rerun()
@@ -253,7 +255,7 @@ def mostrar_menu_juegos():
 
     with col4:
         if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-            st.session_state['juego_actual'] = 'ahorcado'
+            st.session_state['juego_actual'] = 'robot'
             st.rerun()
 
     with col5:
