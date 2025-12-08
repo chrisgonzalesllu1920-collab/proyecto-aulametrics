@@ -178,8 +178,8 @@ def mostrar_menu_fuentes_trivia():
             pass # Lógica de set_source_and_continue('Archivo')
     
     with col3:
-        if st.button("🌐 Internet\n\n(Tema General)", use_container_width=True, key="source_web", help="Crea preguntas sobre un tema amplio usando la web."):
-            set_source_and_continue('Internet')
+        if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_web", help="Crea preguntas sobre un tema amplio usando la web."):
+            set_source_and_continue('Uso de IA-Tutor')
 
     # Aplicamos el estilo a los botones recién creados
     st.markdown("""
@@ -306,9 +306,9 @@ def juego_trivia(volver_menu_juegos):
             st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
             tema_input = st.text_area("Pega el texto fuente aquí:", height=200, placeholder="Ej: La biografía de Marie Curie, el resumen de la Segunda Guerra Mundial, etc.")
             
-        elif trivia_source == 'Internet':
+        elif trivia_source == 'Uso de IA-Tutor':
             st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
-            tema_input = st.text_input("Tema General:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
+            tema_input = st.text_input("Crea preguntas con IA:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
             
         elif trivia_source is None:
             # Esto no debería pasar si la navegación es correcta, pero es un fallback
@@ -346,7 +346,7 @@ def juego_trivia(volver_menu_juegos):
                         
                         with st.spinner(msg_intento):
                             # 1. Llamada a la IA (MODIFICADO: Se pasa el trivia_source como argumento)
-                            # Nota: La función generadora de la IA debe manejar el texto o el tema general
+                            # Nota: La función generadora de la IA debe manejar el texto o el Crea preguntas con IA
                             respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, trivia_source, num_input)
                             
                             if respuesta_json:
