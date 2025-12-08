@@ -205,62 +205,20 @@ def mostrar_menu_juegos():
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        /* 💡 SOLUCIÓN: Usamos un selector más robusto para el botón de Biblioteca */
-        /* Buscamos el div contenedor con el ID 'btn_card_biblioteca' y aplicamos al botón dentro */
-        div[key="btn_card_biblioteca"] button {
-            /* Usamos un color naranja/dorado distintivo para la biblioteca y !important para forzar */
+        /* 💡 SOLUCIÓN FINAL: Selector de ALTA ESPECIFICIDAD para el botón de Biblioteca */
+        /* Busca el div contenedor del botón que tiene la key específica (btn_card_biblioteca) */
+        /* Combinamos la estructura general con la key para anular cualquier estilo previo. */
+        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button {
+            /* Usamos un color naranja/dorado distintivo */
             background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%) !important; 
             box-shadow: 0 10px 20px rgba(255, 152, 0, 0.4) !important;
         }
         
-         div[key="btn_card_biblioteca"] button:hover {
+         section[data-testid="stMain"] div[key="btn_card_biblioteca"] button:hover {
             background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
         }
     </style>
     """, unsafe_allow_html=True)
-
-    # 2. Título 
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
-        <p style="color: #616161; font-size: 18px; font-weight: 500;">Selecciona tu desafío</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 3. Botones - Layout con 3 columnas en la primera fila (para 5 botones)
-    col1, col2, col3 = st.columns(3, gap="large")
-
-    with col1:
-        # Redirige al sub-menú de fuentes de Trivia
-        if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
-            st.session_state['juego_actual'] = 'trivia_fuentes'
-            st.rerun()
-
-    with col2:
-        if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
-            st.session_state['juego_actual'] = 'pupiletras'
-            st.rerun()
-            
-    with col3:
-        # NUEVO BOTÓN: BIBLIOTECA
-        if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
-            st.session_state['juego_actual'] = 'biblioteca'
-            st.rerun()
-
-    st.write("")
-    
-    col4, col5, col_spacer = st.columns(3, gap="large")
-
-    with col4:
-        if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-            st.session_state['juego_actual'] = 'ahorcado'
-            st.rerun()
-
-    with col5:
-        # Botón Sorteador (Manteniendo el mismo estilo visual)
-        if st.button("🎰 SORTEADOR\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
-            st.session_state['juego_actual'] = 'sorteador'
-            st.rerun()
 
 # ------------------------------------------------------------
 # E. MENÚ DE SELECCIÓN DE FUENTES DE TRIVIA
