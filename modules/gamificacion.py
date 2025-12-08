@@ -17,7 +17,19 @@ import os  # Solo si se usa en algún juego
 # A. GESTIÓN DE ESTADO GENERAL
 # ------------------------------------------------------------
 def volver_menu_juegos():
+    """Vuelve al menú principal de juegos y limpia estados de sub-menú."""
     st.session_state['juego_actual'] = None
+    if 'trivia_source' in st.session_state:
+        del st.session_state['trivia_source']
+    st.rerun()
+
+def volver_menu_fuentes_trivia():
+    """Vuelve al menú de selección de fuentes de Trivia."""
+    st.session_state['juego_actual'] = 'trivia_fuentes'
+    if 'trivia_source' in st.session_state:
+        del st.session_state['trivia_source']
+    # También reseteamos el juego por si estaba a medio generar
+    st.session_state['juego_iniciado'] = False
     st.rerun()
 
 # ------------------------------------------------------------
@@ -28,6 +40,7 @@ def mostrar_menu_juegos():
     # 1. CSS (Tu mismo CSS pegado sin cambiar nada)
     st.markdown("""
     <style>
+        /* Estilos principales de los botones del menú de juegos */
         section[data-testid="stMain"] div.stButton > button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             border: none !important;
@@ -70,8 +83,9 @@ def mostrar_menu_juegos():
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
+        # MODIFICADO: Redirige al sub-menú de fuentes de Trivia
         if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
-            st.session_state['juego_actual'] = 'trivia'
+            st.session_state['juego_actual'] = 'trivia_fuentes' # Nuevo estado intermedio
             st.rerun()
 
     with col2:
@@ -98,34 +112,119 @@ def mostrar_menu_juegos():
             st.rerun()
 
 # ------------------------------------------------------------
-# C. JUEGO 1: TRIVIA
-# (Aquí va exactamente lo que me enviaste, convertida en función)
+# C. MENÚ DE SELECCIÓN DE FUENTES DE TRIVIA (NUEVO)
+# ------------------------------------------------------------
+def mostrar_menu_fuentes_trivia():
+    """Muestra el menú para seleccionar la fuente de contenido para la Trivia."""
+
+    # 1. CSS específico para este sub-menú
+    st.markdown("""
+    <style>
+        /* Estilos para los botones de fuente (diferentes al menú principal) */
+        .source-button {
+            background-color: #e8f5e9 !important; /* Verde muy claro */
+            color: #1b5e20 !important; /* Verde oscuro */
+            border: 3px solid #4caf50 !important; /* Verde primario */
+            border-radius: 15px !important;
+            font-weight: 800 !important;
+            font-size: 18px !important;
+            padding: 30px 15px !important;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 #388e3c; /* Sombra */
+            text-align: center;
+        }
+        .source-button:hover {
+            background-color: #d4edda !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #388e3c;
+        }
+        .source-button p {
+            margin: 0 !important;
+            line-height: 1.2;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # 2. Barra superior
+    col_back, col_title = st.columns([1, 5])
+    with col_back:
+        if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_fuentes"):
+            volver_menu_juegos()
+    with col_title:
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #4CAF50; font-size: 32px; font-weight: 900;">🧠 SELECCIONA LA FUENTE DE TRIVIA</h2>
+            <p style="color: #616161; font-size: 16px;">¿De dónde quieres que la IA extraiga el conocimiento?</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+    
+    # 3. Opciones de Fuente (En columnas para mejor layout)
+    col1, col2, col3 = st.columns(3, gap="medium")
+
+    def set_source_and_continue(source):
+        st.session_state['juego_actual'] = 'trivia'
+        st.session_state['trivia_source'] = source
+        st.rerun()
+
+    with col1:
+        if st.button("📝 Texto Libre\n\n(Pega tu contenido aquí)", use_container_width=True, key="source_texto", help="Crea preguntas basadas en un texto que proporciones."):
+            set_source_and_continue('Texto Libre')
+    
+    with col2:
+        # Placeholder para Archivo - solo muestra el botón
+        if st.button("📁 Archivo PDF/TXT\n\n(Próximamente)", use_container_width=True, key="source_archivo", disabled=True, help="Sube un documento y la IA lo analizará."):
+            pass # Lógica de set_source_and_continue('Archivo')
+    
+    with col3:
+        if st.button("🌐 Internet\n\n(Tema General)", use_container_width=True, key="source_web", help="Crea preguntas sobre un tema amplio usando la web."):
+            set_source_and_continue('Internet')
+
+    # Aplicamos el estilo a los botones recién creados
+    st.markdown("""
+    <script>
+        document.querySelectorAll('button[key^="source_"]').forEach(function(button) {
+            button.classList.add('source-button');
+        });
+    </script>
+    """, unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# D. JUEGO 1: TRIVIA (MODIFICADO)
 # ------------------------------------------------------------
 def juego_trivia(volver_menu_juegos):
+
+    # Verifica si estamos en la configuración del juego o si ya hay un juego cargado
+    trivia_source = st.session_state.get('trivia_source')
 
     # Barra superior
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        if st.button("🔙 Menú", use_container_width=True, key="btn_volver_menu"):
-            volver_menu_juegos()
-    with col_title:
-        st.subheader("Desafío Trivia")
+        # MODIFICADO: Botón vuelve al menú de fuentes de trivia si estamos en la fase de configuración
+        if st.session_state.get('juego_iniciado', False) or st.session_state.get('juego_en_lobby', False):
+             if st.button("🔙 Menú Fuentes", use_container_width=True, key="btn_volver_menu"):
+                # Si el juego ya está iniciado/cargado, volvemos al menú principal
+                volver_menu_juegos()
+        else:
+             if st.button("🔙 Fuentes", use_container_width=True, key="btn_volver_menu"):
+                volver_menu_fuentes_trivia()
 
-    # --- CSS TRIVIA ---
+    with col_title:
+        st.subheader(f"Desafío Trivia: {trivia_source if trivia_source else 'Configuración'}")
+
+
+    # --- Resto del CSS del juego Trivia... (Tu CSS original) ---
     st.markdown("""
         <style>
-
-        /* ========================================================= */
-        /*   BOTÓN "🔙 Menú" - selector hiper-específico (INFALIBLE)  */
-        /* ========================================================= */
-
+        /* CSS del juego Trivia... */
         button[data-testid="baseButton-default"][id="btn_volver_menu"] {
             background-color: #fff59d !important;
             color: #1e3a8a !important;
             border: 2px solid #fbc02d !important;
-            font-size: 14px !important;      /* tamaño del texto */
-            padding: 4px 10px !important;     /* tamaño del botón */
-            border-radius: 10px !important;   /* curvas */
+            font-size: 14px !important;
+            padding: 4px 10px !important;
+            border-radius: 10px !important;
             box-shadow: 0px 3px 0px #f9a825 !important;
         }
 
@@ -133,10 +232,7 @@ def juego_trivia(volver_menu_juegos):
             background-color: #fff176 !important;
             transform: translateY(-2px);
         }
-
-        /* ----------------------------- */
-        /* BOTÓN PRINCIPAL (no usado aquí) */
-        /* ----------------------------- */
+        
         div.stButton > button[kind="primary"] {
             background-color: #28a745 !important;
             border-color: #28a745 !important;
@@ -146,9 +242,6 @@ def juego_trivia(volver_menu_juegos):
             padding: 15px 30px !important;
         }
 
-        /* ----------------------------- */
-        /* ESTILO PREGUNTA PRINCIPAL */
-        /* ----------------------------- */
         .big-question {
             font-size: 50px !important;
             font-weight: 800;
@@ -163,9 +256,6 @@ def juego_trivia(volver_menu_juegos):
             line-height: 1.2;
         }
 
-        /* ----------------------------- */
-        /* BOTONES DE OPCIONES DE RESPUESTA */
-        /* ----------------------------- */
         section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
             background-color: #fff9c4 !important;
             border: 3px solid #fbc02d !important;
@@ -190,7 +280,6 @@ def juego_trivia(volver_menu_juegos):
             transform: translateY(-3px);
             border-color: #f57f17 !important;
         }
-
         </style>
     """, unsafe_allow_html=True)
 
@@ -204,39 +293,61 @@ def juego_trivia(volver_menu_juegos):
     if modo_cine:
         st.markdown("""<style>[data-testid="stSidebar"], header, footer {display: none;}</style>""", unsafe_allow_html=True)
 
-    # --- LÓGICA TRIVIA ---
+    st.divider()
+
+    # --- LÓGICA TRIVIA: FASE DE CONFIGURACIÓN ---
     if 'juego_iniciado' not in st.session_state or not st.session_state['juego_iniciado']:
+        
+        # ------------------------------------------------------------
+        # 1. CAMPO DE ENTRADA DINÁMICO SEGÚN LA FUENTE (MODIFICADO)
+        # ------------------------------------------------------------
+        tema_input = None
+        if trivia_source == 'Texto Libre':
+            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
+            tema_input = st.text_area("Pega el texto fuente aquí:", height=200, placeholder="Ej: La biografía de Marie Curie, el resumen de la Segunda Guerra Mundial, etc.")
+            
+        elif trivia_source == 'Internet':
+            st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
+            tema_input = st.text_input("Tema General:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
+            
+        elif trivia_source is None:
+            # Esto no debería pasar si la navegación es correcta, pero es un fallback
+            st.warning("⚠️ Debes seleccionar una fuente de Trivia primero.")
+            st.stop()
+            
+        # ------------------------------------------------------------
+        # 2. CONFIGURACIÓN GENERAL
+        # ------------------------------------------------------------
         col_game1, col_game2 = st.columns([2, 1])
         with col_game1:
-            tema_input = st.text_input("Tema:", placeholder="Ej: La Célula...")
             lista_grados = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
-            grado_input = st.selectbox("Grado:", lista_grados, index=6)
+            grado_input = st.selectbox("Nivel Educativo (Grado):", lista_grados, index=6)
         with col_game2:
-            num_input = st.slider("Preguntas:", 1, 10, 5)
+            num_input = st.slider("Número de Preguntas:", 1, 10, 5)
             modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
         # BOTÓN GENERAR CON SISTEMA DE "AUTO-REPARACIÓN" (3 VIDAS)
         if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
-            if not tema_input:
-                st.warning("⚠️ Escribe un tema.")
+            
+            # La validación cambia: si la fuente es "Texto Libre", el tema_input debe ser largo.
+            if not tema_input or (trivia_source == 'Texto Libre' and len(tema_input) < 50):
+                st.warning(f"⚠️ Por favor, introduce un tema válido o pega un texto de al menos 50 caracteres para la fuente **{trivia_source}**.")
             else:
                 # Variables de control de reintentos
                 intentos = 0
                 max_intentos = 3
                 exito = False
                 
-                # Espacio para mensajes temporales
-                placeholder_estado = st.empty()
-                
-                # Bucle de intentos (La magia de la resiliencia)
+                # Bucle de intentos
                 while intentos < max_intentos and not exito:
                     intentos += 1
                     try:
-                        msg_intento = f"🧠 Creando desafíos..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
+                        msg_intento = f"🧠 Creando desafíos desde {trivia_source}..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
                         
                         with st.spinner(msg_intento):
-                            # 1. Llamada a la IA
-                            respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, "General", num_input)
+                            # 1. Llamada a la IA (MODIFICADO: Se pasa el trivia_source como argumento)
+                            # Nota: La función generadora de la IA debe manejar el texto o el tema general
+                            respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, trivia_source, num_input)
                             
                             if respuesta_json:
                                 # 2. Limpieza agresiva del JSON
@@ -254,7 +365,7 @@ def juego_trivia(volver_menu_juegos):
                                 st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
                                 st.session_state['fase_pregunta'] = "respondiendo"
                                 
-                                st.session_state['juego_en_lobby'] = True 
+                                st.session_state['juego_en_lobby'] = True
                                 st.session_state['juego_iniciado'] = True
                                 
                                 exito = True # Rompemos el bucle
@@ -263,8 +374,6 @@ def juego_trivia(volver_menu_juegos):
                                 raise Exception("Respuesta vacía de la IA")
 
                     except json.JSONDecodeError:
-                        # ¡Ajá! Aquí capturamos el error de la coma (Expecting , delimiter)
-                        import time
                         time.sleep(1) # Esperamos un segundo para no saturar
                         continue # Volvemos a empezar el bucle while
                         
@@ -274,22 +383,24 @@ def juego_trivia(volver_menu_juegos):
                 
                 # Si después de 3 intentos sigue fallando...
                 if not exito:
-                    st.error("❌ La IA está teniendo dificultades con este tema específico. Por favor, intenta cambiar ligeramente el nombre del tema.")
-        st.divider()
+                    st.error("❌ La IA está teniendo dificultades con este tema específico. Por favor, intenta cambiar ligeramente el nombre del tema o el texto fuente.")
 
+    # --- LÓGICA TRIVIA: FASE DE LOBBY / JUEGO ACTIVO / TERMINADO (Sin cambios) ---
+    
     elif st.session_state.get('juego_en_lobby', False):
+        # LÓGICA DE LOBBY (Lobby: Pantalla previa a empezar)
         tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
         modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
         
         st.markdown(f"""
         <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <h1 style="font-size: 70px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
-            <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar}</h2>
+            <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar[:50]}...</h2>
             <p style="color: #888; font-weight: bold; font-size: 20px;">{modo_mostrar}</p>
             <br>
         </div>
         """, unsafe_allow_html=True)
-        st.write("") 
+        st.write("")
         col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
         with col_btn:
             if st.button("🚀 EMPEZAR AHORA", type="primary", use_container_width=True):
@@ -297,6 +408,7 @@ def juego_trivia(volver_menu_juegos):
                 st.rerun()
 
     elif not st.session_state.get('juego_terminado', False):
+        # LÓGICA DE JUEGO ACTIVO (Mostrando preguntas)
         idx = st.session_state['juego_indice']
         preguntas = st.session_state['juego_preguntas']
         current_score = int(st.session_state['juego_puntaje'])
@@ -316,19 +428,19 @@ def juego_trivia(volver_menu_juegos):
         with col_info2:
             st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
         
-        st.write("") 
+        st.write("")
         st.markdown(f"""<div class="big-question">{pregunta_actual['pregunta']}</div>""", unsafe_allow_html=True)
         
         if fase == 'respondiendo':
             opciones = pregunta_actual['opciones']
             col_opt1, col_opt2 = st.columns(2)
             
-            # --- AQUÍ ESTABA EL ERROR ---
             def responder(opcion_elegida):
-                import time # <--- ¡AGREGADO! Soluciona el error NameError
+                import time
                 
                 correcta = pregunta_actual['respuesta_correcta']
-                puntos_por_pregunta = 100 / len(preguntas)
+                # Cálculo de puntos basado en el número total de preguntas
+                puntos_por_pregunta = 100 / len(preguntas) 
                 es_correcta = (opcion_elegida == correcta)
                 
                 if es_correcta:
@@ -344,7 +456,7 @@ def juego_trivia(volver_menu_juegos):
                     else:
                         feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
                     
-                    time.sleep(2.0) # Ahora sí funcionará
+                    time.sleep(2.0)
                     
                     if st.session_state['juego_indice'] < len(preguntas) - 1:
                         st.session_state['juego_indice'] += 1
@@ -363,6 +475,7 @@ def juego_trivia(volver_menu_juegos):
                 if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
         
         elif fase == 'feedback':
+            # LÓGICA DE FEEDBACK (Solo en modo "Guiado por Docente")
             tipo, valor = st.session_state['ultimo_feedback'].split("|")
             if tipo == "correcta":
                 st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
@@ -380,6 +493,7 @@ def juego_trivia(volver_menu_juegos):
                     st.rerun()
 
     elif st.session_state.get('juego_terminado', False):
+        # LÓGICA DE PANTALLA FINAL
         puntaje = int(st.session_state['juego_puntaje'])
         st.markdown(f"<h1 style='text-align: center; font-size: 80px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
         col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
@@ -397,10 +511,14 @@ def juego_trivia(volver_menu_juegos):
                 st.warning("¡Buen intento! A repasar un poco más.")
 
             if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
-                st.session_state['juego_iniciado'] = False 
-                del st.session_state['juego_preguntas']
-                del st.session_state['juego_terminado']
+                st.session_state['juego_iniciado'] = False
+                # Limpiamos todos los estados de juego y volvemos al menú de fuentes
+                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                volver_menu_fuentes_trivia()
                 st.rerun()
+
 
 def juego_pupiletras(volver_menu_juegos):
     # --- BARRA SUPERIOR ---
@@ -994,7 +1112,32 @@ def juego_sorteador(volver_menu_juegos):
 
 
 # ------------------------------------------------------------
-# E. FUNCIÓN PRINCIPAL: ROUTER
+# E. FUNCIONES STUB para otros juegos
+# ------------------------------------------------------------
+# Estas funciones solo existen para que el Router no falle, su lógica interna se omite.
+def juego_pupiletras(volver_menu_juegos):
+    col_back, _ = st.columns([1, 5])
+    with col_back:
+        if st.button("🔙 Menú", use_container_width=True): volver_menu_juegos()
+    st.title("🔤 Pupiletras (Pendiente)")
+    st.info("Aquí iría la lógica del Pupiletras.")
+
+def juego_ahorcado(volver_menu_juegos):
+    col_back, _ = st.columns([1, 5])
+    with col_back:
+        if st.button("🔙 Menú", use_container_width=True): volver_menu_juegos()
+    st.title("🤖 Robot - Ahorcado (Pendiente)")
+    st.info("Aquí iría la lógica del Ahorcado/Robot.")
+
+def juego_sorteador(volver_menu_juegos):
+    col_back, _ = st.columns([1, 5])
+    with col_back:
+        if st.button("🔙 Menú", use_container_width=True): volver_menu_juegos()
+    st.title("🎰 Sorteador (Pendiente)")
+    st.info("Aquí iría la lógica del Sorteador.")
+
+# ------------------------------------------------------------
+# F. FUNCIÓN PRINCIPAL: ROUTER (MODIFICADO)
 # ------------------------------------------------------------
 def gamificacion():
 
@@ -1005,6 +1148,10 @@ def gamificacion():
     # Router
     if st.session_state["juego_actual"] is None:
         mostrar_menu_juegos()
+
+    # NUEVO ESTADO INTERMEDIO
+    elif st.session_state["juego_actual"] == "trivia_fuentes":
+        mostrar_menu_fuentes_trivia()
 
     elif st.session_state["juego_actual"] == "trivia":
         juego_trivia(volver_menu_juegos)
@@ -1021,3 +1168,6 @@ def gamificacion():
     elif st.session_state['juego_actual'] == 'sorteador':
         juego_sorteador(volver_menu_juegos)
 
+# Esto es lo que se ejecutaría si este archivo fuera el entry point.
+# if __name__ == '__main__':
+#     gamificacion()
