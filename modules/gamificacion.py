@@ -219,6 +219,49 @@ def mostrar_menu_juegos():
     </style>
     """, unsafe_allow_html=True)
 
+    # 2. Título 
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
+        <p style="color: #616161; font-size: 18px; font-weight: 500;">Selecciona tu desafío</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3. Botones - Layout con 3 columnas en la primera fila (para 5 botones)
+    col1, col2, col3 = st.columns(3, gap="large")
+
+    with col1:
+        # Redirige al sub-menú de fuentes de Trivia
+        if st.button("🧠 TRIVIA\n\n¿Cuánto sabes?", key="btn_card_trivia", use_container_width=True):
+            st.session_state['juego_actual'] = 'trivia_fuentes'
+            st.rerun()
+
+    with col2:
+        if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
+            st.session_state['juego_actual'] = 'pupiletras'
+            st.rerun()
+            
+    with col3:
+        # NUEVO BOTÓN: BIBLIOTECA
+        if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
+            st.session_state['juego_actual'] = 'biblioteca'
+            st.rerun()
+
+    st.write("")
+    
+    col4, col5, col_spacer = st.columns(3, gap="large")
+
+    with col4:
+        if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
+            st.session_state['juego_actual'] = 'ahorcado'
+            st.rerun()
+
+    with col5:
+        # Botón Sorteador (Manteniendo el mismo estilo visual)
+        if st.button("🎰 SORTEADOR\n\nElegir participantes", key="btn_sorteo_v1", use_container_width=True):
+            st.session_state['juego_actual'] = 'sorteador'
+            st.rerun()
+
 # ------------------------------------------------------------
 # E. MENÚ DE SELECCIÓN DE FUENTES DE TRIVIA
 # ------------------------------------------------------------
