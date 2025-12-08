@@ -173,7 +173,7 @@ def volver_menu_fuentes_trivia():
 # ------------------------------------------------------------
 def mostrar_menu_juegos():
 
-    # 1. CSS 
+    # 1. CSS INYECCIÓN (Selector de Biblioteca corregido para máxima especificidad)
     st.markdown("""
     <style>
         /* Estilos generales para todos los botones del menú de juegos (PÚRPURA/AZUL) */
@@ -208,15 +208,15 @@ def mostrar_menu_juegos():
             text-align: center;
         }
         
-        /* 🏆 NUEVO DISEÑO: Selector de MÁXIMA ESPECIFICIDAD para el botón de Biblioteca (VERDE ESMERALDA) */
-        /* Incluye el data-testid del contenedor principal para garantizar la anulación de estilos */
-        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button {
-            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%) !important; /* Azul más brillante */
-            box-shadow: 0 10px 20px rgba(0, 198, 255, 0.4) !important;
+        /* 🏆 DISEÑO CORREGIDO Y FORZADO: Biblioteca (NARANJA VIBRANTE) */
+        /* Combinamos el selector de la llave (key) con la clase de Streamlit (stButton) */
+        section[data-testid="stMain"] div[key="btn_card_biblioteca"] div.stButton > button {
+            background: linear-gradient(135deg, #FF6F00 0%, #FFB300 100%) !important; /* NARANJA VIVO */
+            box-shadow: 0 10px 20px rgba(255, 111, 0, 0.5) !important;
         }
-        
-        section[data-testid="stMain"] div[key="btn_card_biblioteca"] button:hover {
-            background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) !important;
+
+        section[data-testid="stMain"] div[key="btn_card_biblioteca"] div.stButton > button:hover {
+            background: linear-gradient(135deg, #FFB300 0%, #FF6F00 100%) !important;
         }
     </style>
     """, unsafe_allow_html=True) 
@@ -229,7 +229,7 @@ def mostrar_menu_juegos():
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Botones - Layout con 3 columnas en la primera fila (para 5 botones)
+    # 3. Botones - Layout con 3 columnas en la primera fila
     col1, col2, col3 = st.columns(3, gap="large")
 
     with col1:
@@ -244,7 +244,7 @@ def mostrar_menu_juegos():
             st.rerun()
             
     with col3:
-        # BOTÓN BIBLIOTECA - Usará el nuevo estilo azul brillante/turquesa
+        # BOTÓN BIBLIOTECA - Usará el nuevo estilo NARANJA VIBRANTE
         if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
             st.session_state['juego_actual'] = 'biblioteca'
             st.rerun()
