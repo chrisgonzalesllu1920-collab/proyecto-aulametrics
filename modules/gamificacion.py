@@ -204,13 +204,14 @@ def mostrar_menu_juegos():
             line-height: 1.4 !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        /* Estilo específico para el botón de Biblioteca */
+        /* Estilo específico para el botón de Biblioteca (Diferente diseño) */
         #btn_card_biblioteca button {
-            background: linear-gradient(135deg, #fbc02d 0%, #ff8f00 100%) !important;
-            box-shadow: 0 10px 20px rgba(255, 143, 0, 0.3) !important;
+            /* Usamos un color naranja/dorado distintivo para la biblioteca */
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%) !important; 
+            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.4) !important;
         }
          #btn_card_biblioteca button:hover {
-            background: linear-gradient(135deg, #ff8f00 0%, #fbc02d 100%) !important;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
         }
     </style>
     """, unsafe_allow_html=True)
