@@ -169,8 +169,8 @@ def mostrar_menu_fuentes_trivia():
         st.rerun()
 
     with col1:
-        if st.button("📝 Texto Libre\n\n(Pega tu contenido aquí)", use_container_width=True, key="source_texto", help="Crea preguntas basadas en un texto que proporciones."):
-            set_source_and_continue('Texto Libre')
+        if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_texto", help="Crea preguntas basadas en un texto que proporciones."):
+            set_source_and_continue('Elaboración manual')
     
     with col2:
         # Placeholder para Archivo - solo muestra el botón
@@ -302,7 +302,7 @@ def juego_trivia(volver_menu_juegos):
         # 1. CAMPO DE ENTRADA DINÁMICO SEGÚN LA FUENTE (MODIFICADO)
         # ------------------------------------------------------------
         tema_input = None
-        if trivia_source == 'Texto Libre':
+        if trivia_source == 'Elaboración manual':
             st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>{trivia_source}</span>**", unsafe_allow_html=True)
             tema_input = st.text_area("Pega el texto fuente aquí:", height=200, placeholder="Ej: La biografía de Marie Curie, el resumen de la Segunda Guerra Mundial, etc.")
             
@@ -329,8 +329,8 @@ def juego_trivia(volver_menu_juegos):
         # BOTÓN GENERAR CON SISTEMA DE "AUTO-REPARACIÓN" (3 VIDAS)
         if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
             
-            # La validación cambia: si la fuente es "Texto Libre", el tema_input debe ser largo.
-            if not tema_input or (trivia_source == 'Texto Libre' and len(tema_input) < 50):
+            # La validación cambia: si la fuente es "Elaboración manual", el tema_input debe ser largo.
+            if not tema_input or (trivia_source == 'Elaboración manual' and len(tema_input) < 50):
                 st.warning(f"⚠️ Por favor, introduce un tema válido o pega un texto de al menos 50 caracteres para la fuente **{trivia_source}**.")
             else:
                 # Variables de control de reintentos
