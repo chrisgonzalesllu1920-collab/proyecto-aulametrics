@@ -398,6 +398,11 @@ import streamlit as st
 # de la Sección C, y la función 'pedagogical_assistant.generar_trivia_juego'
 # están definidas o importadas en el script principal.
 
+# --- CONFIGURACIONES GLOBALES REUTILIZABLES ---
+lista_grados_global = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
+lista_areas_global = ["Ciencia y Ambiente", "Matemáticas", "Comunicación y Lenguaje", "Historia", "Geografía", "Educación Física", "Arte y Cultura", "Inglés"]
+lista_num_preguntas_global = list(range(2, 21)) # De 2 a 20 preguntas
+
 def mostrar_generador_ia_tutor():
     """Muestra la interfaz para generar preguntas de Trivia usando IA (búsqueda web/conocimiento)."""
     
@@ -425,14 +430,25 @@ def mostrar_generador_ia_tutor():
     st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>Uso de IA-Tutor</span>**", unsafe_allow_html=True)
     tema_input = st.text_input("Tema General:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
     
-    # 2. CONFIGURACIÓN GENERAL
-    col_game1, col_game2 = st.columns([2, 1])
+    # 2. CONFIGURACIÓN GENERAL (Ahora con los 3 nuevos selectores)
+    # Usamos 3 columnas para los selectores de Grado, Área y Cantidad de Preguntas
+    col_game1, col_game2, col_game3 = st.columns(3)
+    
     with col_game1:
-        lista_grados = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
-        grado_input = st.selectbox("Nivel Educativo (Grado):", lista_grados, index=6)
+        # 3. Nivel Educativo (De 1° Primaria a 5° Secundaria)
+        grado_input = st.selectbox("Nivel Educativo (Grado):", lista_grados_global, index=6)
+    
     with col_game2:
-        num_input = st.slider("Número de Preguntas:", 1, 10, 5)
-        modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
+        # 2. Área/Materia
+        area_input = st.selectbox("Área/Materia:", lista_areas_global, index=0)
+    
+    with col_game3:
+        # 1. Número de Preguntas (De 2 a 20)
+        # El valor por defecto es 5, que está en el índice 3 de lista_num_preguntas_global (2, 3, 4, 5)
+        num_input = st.selectbox("Número de Preguntas:", lista_num_preguntas_global, index=3)
+
+    # Modo de Avance (separado para mantener el flujo original)
+    modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
 
     # BOTÓN GENERAR
     if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
@@ -449,14 +465,18 @@ def mostrar_generador_ia_tutor():
                  st.error("Error: La función 'pedagogical_assistant.generar_trivia_juego' no está definida.")
                  return
             
+            # Preparamos el prompt para la IA incluyendo el Área/Materia
+            tema_ia_prompt = f"Tema: {tema_input}. Área Principal: {area_input}"
+            
             while intentos < max_intentos and not exito:
                 intentos += 1
                 try:
                     msg_intento = f"🧠 Creando desafíos desde {trivia_source}..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
                     
                     with st.spinner(msg_intento):
-                        # Llamada a la IA
-                        respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, trivia_source, num_input)
+                        # Llamada a la IA (se asume que la IA puede inferir el área desde el prompt)
+                        # Nota: Mantenemos la firma de la función IA original (4 argumentos de contenido)
+                        respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_ia_prompt, grado_input, trivia_source, num_input)
                         
                         if respuesta_json:
                             # Limpieza del JSON
@@ -513,37 +533,72 @@ def mostrar_formulario_manual():
             
     with col_title:
         st.subheader("📝 Elaboración Manual de Trivia")
-        st.caption("Introduce tus propias preguntas, opciones y la respuesta correcta. (5 Preguntas)")
+        st.caption("Introduce tus propias preguntas, opciones y la respuesta correcta.")
 
     st.divider()
     
-    # Usamos un formulario Streamlit para manejar la entrada y la validación
+    # --- CONFIGURACIÓN DE NÚMERO DE PREGUNTAS (Fuera del form para actualización dinámica) ---
+    st.markdown("**Configuración del Juego**")
+    
+    # Inicializar el número de preguntas si no está en estado, y actualizar su valor
+    if 'manual_num_select' not in st.session_state:
+        st.session_state['manual_num_select'] = 5
+
+    col_config1, col_config2, col_config3 = st.columns(3)
+
+    with col_config1:
+        # 3. Nivel Educativo (Grado) - AGREGADO AL FORMULARIO MANUAL
+        grado_input = st.selectbox("Nivel Educativo:", lista_grados_global, index=6, key='manual_grado_select')
+        
+    with col_config2:
+        # 2. Área/Materia - NUEVO
+        area_input = st.selectbox("Área/Materia:", lista_areas_global, index=0, key='manual_area_select')
+        
+    with col_config3:
+        # 1. Número de Preguntas (2 a 20) - ACTUALIZADO A SELECTBOX DINÁMICO
+        # Guardamos la selección directamente en el estado
+        num_input_selected = st.selectbox(
+            "Número de Preguntas:", 
+            lista_num_preguntas_global, 
+            index=lista_num_preguntas_global.index(st.session_state['manual_num_select']) if st.session_state['manual_num_select'] in lista_num_preguntas_global else 3,
+            key='manual_num_select' # Vincula el valor a este estado
+        )
+
+    # Lógica para manejar el número de preguntas seleccionado
+    num_preguntas_actual = st.session_state['manual_num_select']
+    
+    # Inicializar o redimensionar la lista de preguntas manuales según el valor seleccionado
+    default_q = {'pregunta': '', 'opcion_A': '', 'opcion_B': '', 'opcion_C': '', 'opcion_D': '', 'correcta': 'A'}
+    if 'preguntas_manuales' not in st.session_state or len(st.session_state['preguntas_manuales']) != num_preguntas_actual:
+        if 'preguntas_manuales' in st.session_state:
+            old_list = st.session_state['preguntas_manuales']
+            new_list = [old_list[i] if i < len(old_list) else default_q.copy() for i in range(num_preguntas_actual)]
+        else:
+            new_list = [default_q.copy() for _ in range(num_preguntas_actual)]
+
+        st.session_state['preguntas_manuales'] = new_list
+
+
+    # --- FORMULARIO DE ENTRADA MANUAL ---
     with st.form("manual_trivia_form", clear_on_submit=False):
         
-        st.markdown("**Configuración del Juego**")
         tema_input = st.text_input("Tema del Desafío:", placeholder="Ej: Las Leyes de Newton", max_chars=100)
         
-        # Configuración de modo 
+        # Configuración de modo (Modo de juego permanece igual)
         col_mode1, col_mode2 = st.columns([2, 1])
         with col_mode1:
             modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"], key='manual_mode_radio')
         with col_mode2:
-            st.markdown("<p style='margin-top: 30px;'><strong>Preguntas: 5 (Fijo)</strong></p>", unsafe_allow_html=True) 
+            st.markdown(f"<p style='margin-top: 30px;'><strong>Preguntas: {num_preguntas_actual}</strong></p>", unsafe_allow_html=True) 
 
         
         st.markdown("---")
-        st.markdown("### **Ingreso de Preguntas (5 Requeridas)**")
-
-        # Inicializar el estado de las preguntas si es necesario
-        if 'preguntas_manuales' not in st.session_state:
-            # Estructura inicial: [pregunta, opcion_A, opcion_B, opcion_C, opcion_D, correcta]
-            st.session_state['preguntas_manuales'] = [{
-                'pregunta': '', 'opcion_A': '', 'opcion_B': '', 'opcion_C': '', 'opcion_D': '', 'correcta': 'A'
-            } for _ in range(5)]
+        st.markdown(f"### **Ingreso de Preguntas ({num_preguntas_actual} Requeridas)**")
 
         preguntas_form_data = []
         
-        for i in range(5):
+        # El bucle ahora se adapta al número seleccionado
+        for i in range(num_preguntas_actual): 
             st.markdown(f"#### Pregunta {i+1}")
             
             # Los valores de los inputs se vinculan al session_state
@@ -637,6 +692,10 @@ def mostrar_formulario_manual():
                 st.session_state['juego_en_lobby'] = True 
                 st.session_state['juego_iniciado'] = True 
                 st.session_state['trivia_source'] = 'Elaboración manual' # Establecer la fuente
+                
+                # Guardamos los nuevos datos de configuración, aunque solo se usan en la UI
+                st.session_state['manual_grado'] = grado_input
+                st.session_state['manual_area'] = area_input
                 
                 st.session_state['juego_actual'] = 'trivia_jugar' # Cambia la vista al juego
                 st.rerun()
@@ -781,18 +840,18 @@ def mostrar_juego_trivia():
         if st.session_state.get('juego_terminado', False):
              if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_juego"):
                  if 'volver_menu_juegos' in globals():
-                    volver_menu_juegos()
+                     volver_menu_juegos()
                  else:
-                    st.session_state['vista_actual'] = 'menu_juegos'
-                    st.rerun()
+                     st.session_state['vista_actual'] = 'menu_juegos'
+                     st.rerun()
         else:
             # Si el juego está en lobby o activo, el botón vuelve a la selección de fuente.
             if st.button("🔙 Fuentes", use_container_width=True, key="btn_volver_menu_juego"):
                  if 'volver_menu_fuentes_trivia' in globals():
-                    volver_menu_fuentes_trivia()
+                     volver_menu_fuentes_trivia()
                  else:
-                    st.session_state['vista_actual'] = 'menu_fuentes_trivia'
-                    st.rerun()
+                     st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+                     st.rerun()
             
     with col_title:
         st.subheader(f"Desafío Trivia: {trivia_source}")
@@ -954,7 +1013,7 @@ def mostrar_juego_trivia():
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                 # Limpiamos todos los estados de juego y volvemos al menú de fuentes
-                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales', 'ultimo_feedback']:
+                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales', 'ultimo_feedback', 'manual_num_select', 'manual_grado_select', 'manual_area_select']:
                     if key in st.session_state:
                         del st.session_state[key]
                 
