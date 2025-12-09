@@ -160,7 +160,19 @@ def volver_menu_juegos():
     st.session_state['juego_actual'] = None
     
     # Lista de estados de Trivia y submenús que deben ser borrados
-    keys_to_delete = ['trivia_source', 'juego_iniciado', 'preguntas_manuales', 'juego_preguntas', 'pregunta_actual']
+    keys_to_delete = [
+        'trivia_source', 
+        'juego_iniciado', 
+        'preguntas_manuales', 
+        'juego_preguntas', 
+        'pregunta_actual',
+        
+        # NUEVAS VARIABLES DE CONFIGURACIÓN DEL FORMULARIO MANUAL
+        'num_preguntas_manual', 
+        'num_opciones_manual', 
+        'orden_manual'
+    ]
+    
     for key in keys_to_delete:
         if key in st.session_state:
             del st.session_state[key]
@@ -175,7 +187,17 @@ def volver_menu_fuentes_trivia():
     st.session_state['juego_actual'] = 'trivia_fuentes'
     
     # Limpiamos el progreso de generación
-    keys_to_clean = ['trivia_source', 'juego_iniciado', 'preguntas_manuales']
+    keys_to_clean = [
+        'trivia_source', 
+        'juego_iniciado', 
+        'preguntas_manuales',
+        
+        # NUEVAS VARIABLES DE CONFIGURACIÓN DEL FORMULARIO MANUAL
+        'num_preguntas_manual', 
+        'num_opciones_manual', 
+        'orden_manual'
+    ]
+    
     for key in keys_to_clean:
         if key in st.session_state:
             del st.session_state[key]
@@ -337,7 +359,9 @@ def mostrar_menu_fuentes_trivia():
     with col1:
         # **MODIFICACIÓN CLAVE: Elaboración manual**
         if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_manual", help="Introduce directamente las preguntas y respuestas para crear el juego a partir de ellas."):
-            st.session_state['juego_actual'] = 'trivia_elaboracion_manual'
+            # CAMBIO CLAVE: Cambiamos el estado de destino. 
+            # Ahora vamos al menú de CONFIGURACIÓN MANUAL antes de ir al formulario.
+            st.session_state['juego_actual'] = 'trivia_configuracion_manual'
             st.rerun()
     
     with col2:
@@ -364,7 +388,11 @@ def mostrar_menu_fuentes_trivia():
 # F. JUEGO 1: TRIVIA (Generación y Lógica Principal)
 # ------------------------------------------------------------
 import json
-import time # Necesario para el modo automático
+# Importamos time, aunque su uso en 'mostrar_juego_trivia' ha sido refactorizado
+# para evitar bloqueos en Streamlit, lo mantenemos por si el usuario lo necesita
+# en futuras funciones asíncronas.
+import time
+import streamlit as st
 
 # NOTA: Se asume que las funciones 'volver_menu_juegos' y 'volver_menu_fuentes_trivia'
 # de la Sección C, y la función 'pedagogical_assistant.generar_trivia_juego'
@@ -377,7 +405,12 @@ def mostrar_generador_ia_tutor():
     col_back, col_title = st.columns([1, 5])
     with col_back:
         if st.button("🔙 Fuentes", use_container_width=True, key="btn_ia_back"):
-            volver_menu_fuentes_trivia()
+            # Llama a la función de la Sección C para cambiar de vista
+            if 'volver_menu_fuentes_trivia' in globals():
+                volver_menu_fuentes_trivia()
+            else:
+                st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+                st.rerun()
             
     with col_title:
         st.subheader("🌐 Generar Trivia con IA-Tutor")
@@ -411,17 +444,22 @@ def mostrar_generador_ia_tutor():
             max_intentos = 3
             exito = False
             
+            # Placeholder para la función de IA - ASUME que está definida globalmente
+            if 'pedagogical_assistant' not in globals() or not hasattr(pedagogical_assistant, 'generar_trivia_juego'):
+                 st.error("Error: La función 'pedagogical_assistant.generar_trivia_juego' no está definida.")
+                 return
+            
             while intentos < max_intentos and not exito:
                 intentos += 1
                 try:
                     msg_intento = f"🧠 Creando desafíos desde {trivia_source}..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
                     
                     with st.spinner(msg_intento):
-                        # Llamada a la IA (Usando el placeholder original)
-                        # NOTA: Se asume que esta función llama a la API de Gemini
+                        # Llamada a la IA
                         respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_input, grado_input, trivia_source, num_input)
                         
                         if respuesta_json:
+                            # Limpieza del JSON
                             clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
                             preguntas = json.loads(clean_json)
                             
@@ -430,7 +468,7 @@ def mostrar_generador_ia_tutor():
                                 # GUARDAMOS LA ESTRUCTURA DEL JUEGO
                                 st.session_state['juego_preguntas'] = preguntas
                                 st.session_state['juego_indice'] = 0
-                                st.session_state['juego_puntaje'] = 0
+                                st.session_state['juego_puntaje'] = 0.0 # Usar float para mejor precisión con divisiones
                                 st.session_state['juego_terminado'] = False
                                 st.session_state['tema_actual'] = tema_input
                                 st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
@@ -449,7 +487,7 @@ def mostrar_generador_ia_tutor():
 
                 except json.JSONDecodeError as e:
                     print(f"JSON Decode Error: {e}. Retrying...")
-                    time.sleep(1)
+                    time.sleep(0.5) # Pausa mínima antes de reintentar
                     continue
                     
                 except Exception as e:
@@ -457,7 +495,7 @@ def mostrar_generador_ia_tutor():
                     break
             
             if not exito:
-                st.error("❌ La IA está teniendo dificultades. Por favor, intenta cambiar el tema.")
+                st.error("❌ La IA está teniendo dificultades para generar un formato válido. Por favor, intenta cambiar el tema.")
 
 def mostrar_formulario_manual():
     """Muestra el formulario para que el usuario ingrese las preguntas manualmente."""
@@ -466,7 +504,12 @@ def mostrar_formulario_manual():
     col_back, col_title = st.columns([1, 5])
     with col_back:
         if st.button("🔙 Fuentes", use_container_width=True, key="btn_manual_back"):
-            volver_menu_fuentes_trivia()
+            # Llama a la función de la Sección C para cambiar de vista
+            if 'volver_menu_fuentes_trivia' in globals():
+                volver_menu_fuentes_trivia()
+            else:
+                st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+                st.rerun()
             
     with col_title:
         st.subheader("📝 Elaboración Manual de Trivia")
@@ -491,7 +534,7 @@ def mostrar_formulario_manual():
         st.markdown("---")
         st.markdown("### **Ingreso de Preguntas (5 Requeridas)**")
 
-        # Inicializar el estado de las preguntas si es necesario (para que no se pierdan al rerenderizar)
+        # Inicializar el estado de las preguntas si es necesario
         if 'preguntas_manuales' not in st.session_state:
             # Estructura inicial: [pregunta, opcion_A, opcion_B, opcion_C, opcion_D, correcta]
             st.session_state['preguntas_manuales'] = [{
@@ -519,8 +562,10 @@ def mostrar_formulario_manual():
             with col_d:
                 d = st.text_input("Opción D:", key=f'q_opt_d_{i}', value=st.session_state['preguntas_manuales'][i]['opcion_D'])
             
-            correcta = st.radio(f"Respuesta Correcta para Pregunta {i+1}:", ['A', 'B', 'C', 'D'], key=f'q_correct_{i}', 
-                                index=['A', 'B', 'C', 'D'].index(st.session_state['preguntas_manuales'][i]['correcta']))
+            correcta_radio_options = ['A', 'B', 'C', 'D']
+            current_correcta_index = correcta_radio_options.index(st.session_state['preguntas_manuales'][i]['correcta'])
+            correcta = st.radio(f"Respuesta Correcta para Pregunta {i+1}:", correcta_radio_options, key=f'q_correct_{i}', 
+                                 index=current_correcta_index, horizontal=True)
             
             # Guardar el estado actual en session_state para persistir los cambios al escribir
             st.session_state['preguntas_manuales'][i].update({
@@ -563,7 +608,10 @@ def mostrar_formulario_manual():
                     break
                     
                 # 2. Formateo a la estructura de juego (el mismo JSON que genera la IA)
-                correcta_texto = q_data[f'opcion_{q_data["correcta_key"]}']
+                # Obtenemos el texto de la respuesta correcta basándonos en la clave (A, B, C, D)
+                key_map = {'A': 'opcion_A', 'B': 'opcion_B', 'C': 'opcion_C', 'D': 'opcion_D'}
+                correcta_texto = q_data[key_map[q_data["correcta_key"]]]
+
                 
                 pregunta_formateada = {
                     "pregunta": q_data['pregunta'].strip(),
@@ -581,7 +629,7 @@ def mostrar_formulario_manual():
             if valid_submission:
                 st.session_state['juego_preguntas'] = preguntas_finales
                 st.session_state['juego_indice'] = 0
-                st.session_state['juego_puntaje'] = 0
+                st.session_state['juego_puntaje'] = 0.0 # Usar float
                 st.session_state['juego_terminado'] = False
                 st.session_state['tema_actual'] = tema_input
                 st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
@@ -596,11 +644,18 @@ def mostrar_formulario_manual():
 def mostrar_juego_trivia():
     """Muestra el lobby, el juego activo y la pantalla final de la Trivia."""
     
-    # 1. CSS (Incluye el CSS original adaptado para esta función)
+    # 1. CSS (Optimizado y mejorado)
     st.markdown("""
         <style>
+        /* Estilos generales para el modo cine */
+        .cinema-mode {
+            background-color: #0d1117; /* Fondo oscuro */
+            padding: 20px;
+            border-radius: 10px;
+        }
+
         /* CSS para el botón de volver en la barra superior */
-        button[data-testid="baseButton-default"][id="btn_volver_menu_juego"] {
+        button[data-testid*="baseButton-default"][key="btn_volver_menu_juego"] {
             background-color: #fff59d !important;
             color: #1e3a8a !important;
             border: 2px solid #fbc02d !important;
@@ -610,45 +665,48 @@ def mostrar_juego_trivia():
             box-shadow: 0px 3px 0px #f9a825 !important;
         }
 
-        button[data-testid="baseButton-default"][id="btn_volver_menu_juego"]:hover {
+        button[data-testid*="baseButton-default"][key="btn_volver_menu_juego"]:hover {
             background-color: #fff176 !important;
             transform: translateY(-2px);
+            box-shadow: 0px 5px 0px #f9a825 !important;
         }
         
-        /* Estilos de botones de opción */
-        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) {
+        /* Estilos de botones de opción (Genérico para columnas) */
+        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button {
             background-color: #fff9c4 !important;
             border: 3px solid #fbc02d !important;
             border-radius: 20px !important;
-            min-height: 120px !important;
+            min-height: 100px !important; /* Ligeramente más pequeños para mejor responsividad */
             height: auto !important;
             white-space: normal !important;
             padding: 15px !important;
             margin-bottom: 15px !important;
             box-shadow: 0 6px 0 #f9a825 !important;
+            transition: all 0.1s ease;
         }
 
-        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]) p {
-            font-size: 36px !important;
+        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button p {
+            font-size: 24px !important; /* Reducido para mejor ajuste en móvil */
             font-weight: 800 !important;
             color: #333333 !important;
-            line-height: 1.1 !important;
+            line-height: 1.2 !important;
         }
 
-        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:not([kind="primary"]):hover {
+        section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
             background-color: #fff59d !important;
             transform: translateY(-3px);
             border-color: #f57f17 !important;
+            box-shadow: 0 9px 0 #f9a825 !important;
         }
 
         /* Estilos de la pregunta grande */
         .big-question {
-            font-size: 50px !important;
+            font-size: 40px !important; /* Adaptado para mejor lectura */
             font-weight: 800;
             color: #1e3a8a;
             text-align: center;
             background-color: #eff6ff;
-            padding: 40px;
+            padding: 30px;
             border-radius: 25px;
             border: 5px solid #3b82f6;
             margin-bottom: 30px;
@@ -656,23 +714,61 @@ def mostrar_juego_trivia():
             line-height: 1.2;
         }
         
-        /* Estilos del botón principal */
+        /* Estilos de Botón Principal/Siguiente Pregunta */
         div.stButton > button[kind="primary"] {
             background-color: #28a745 !important;
-            border-color: #28a745 !important;
+            border-color: #1e7e34 !important;
+            border: 3px solid #1e7e34 !important;
             color: white !important;
-            font-size: 24px !important;
+            font-size: 20px !important;
             font-weight: bold !important;
-            padding: 15px 30px !important;
+            padding: 10px 20px !important;
+            box-shadow: 0 4px 0 #1e7e34 !important;
+            border-radius: 15px !important;
+            transition: all 0.1s ease;
         }
         
+        div.stButton > button[kind="primary"]:hover {
+            background-color: #1e7e34 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #1c7430 !important;
+        }
+        
+        /* Estilos de Retroalimentación */
+        .feedback-correct {
+            background-color: #d1e7dd; 
+            color: #0f5132; 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            font-size: 40px; 
+            font-weight: bold; 
+            border: 4px solid #badbcc; 
+            margin-bottom: 20px;
+        }
+        .feedback-incorrect {
+            background-color: #f8d7da; 
+            color: #842029; 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            font-size: 40px; 
+            font-weight: bold; 
+            border: 4px solid #f5c2c7; 
+            margin-bottom: 20px;
+        }
+
         </style>
     """, unsafe_allow_html=True)
     
     # Manejo de estado básico: si no hay juego cargado, volvemos a fuentes.
     if 'juego_preguntas' not in st.session_state:
         st.warning("No hay un juego de Trivia cargado. Volviendo al menú de fuentes.")
-        volver_menu_fuentes_trivia()
+        if 'volver_menu_fuentes_trivia' in globals():
+            volver_menu_fuentes_trivia()
+        else:
+            st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+            st.rerun()
         return
 
     # 2. Barra superior
@@ -684,12 +780,20 @@ def mostrar_juego_trivia():
         # Si el juego terminó, el botón vuelve al menú principal de juegos.
         if st.session_state.get('juego_terminado', False):
              if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_juego"):
-                volver_menu_juegos()
+                 if 'volver_menu_juegos' in globals():
+                    volver_menu_juegos()
+                 else:
+                    st.session_state['vista_actual'] = 'menu_juegos'
+                    st.rerun()
         else:
             # Si el juego está en lobby o activo, el botón vuelve a la selección de fuente.
             if st.button("🔙 Fuentes", use_container_width=True, key="btn_volver_menu_juego"):
-                volver_menu_fuentes_trivia()
-                
+                 if 'volver_menu_fuentes_trivia' in globals():
+                    volver_menu_fuentes_trivia()
+                 else:
+                    st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+                    st.rerun()
+            
     with col_title:
         st.subheader(f"Desafío Trivia: {trivia_source}")
 
@@ -710,12 +814,12 @@ def mostrar_juego_trivia():
     if st.session_state.get('juego_en_lobby', False):
         # LÓGICA DE LOBBY
         tema_mostrar = st.session_state.get('tema_actual', 'Trivia')
-        modo_mostrar = "Modo Automático" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
+        modo_mostrar = "Modo Automático (Rápido)" if st.session_state.get('modo_avance') == "auto" else "Modo Guiado (Pausa)"
         
         st.markdown(f"""
         <div style="text-align: center; padding: 40px; background-color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <h1 style="font-size: 70px; color: #28a745; margin: 0;">🏆 TRIVIA TIME 🏆</h1>
-            <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar[:50]}...</h2>
+            <h2 style="color: #555; font-size: 30px; margin-top: 10px;">Tema: {tema_mostrar[:50]}{'...' if len(tema_mostrar) > 50 else ''}</h2>
             <p style="color: #888; font-weight: bold; font-size: 20px;">{modo_mostrar}</p>
             <br>
         </div>
@@ -731,7 +835,7 @@ def mostrar_juego_trivia():
         # LÓGICA DE JUEGO ACTIVO
         idx = st.session_state['juego_indice']
         preguntas = st.session_state['juego_preguntas']
-        current_score = int(st.session_state['juego_puntaje'])
+        current_score = st.session_state['juego_puntaje']
         modo = st.session_state.get('modo_avance', 'auto')
         fase = st.session_state.get('fase_pregunta', 'respondiendo')
 
@@ -746,7 +850,7 @@ def mostrar_juego_trivia():
             st.caption(f"Pregunta {idx + 1} de {len(preguntas)}")
             st.progress((idx + 1) / len(preguntas))
         with col_info2:
-            st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{current_score}</span></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="text-align: right;"><span style="font-size: 45px; font-weight: 900; color: #28a745; background: #e6fffa; padding: 5px 20px; border-radius: 15px; border: 2px solid #28a745;">{int(current_score)}</span></div>""", unsafe_allow_html=True)
         
         st.write("")
         st.markdown(f"""<div class="big-question">{pregunta_actual['pregunta']}</div>""", unsafe_allow_html=True)
@@ -757,8 +861,10 @@ def mostrar_juego_trivia():
             
             # --- Respuesta Handler ---
             def responder(opcion_elegida):
+                # La respuesta correcta es el texto de la opción
                 correcta = pregunta_actual['respuesta_correcta']
-                puntos_por_pregunta = 100 / len(st.session_state['juego_preguntas']) 
+                # Puntos base para el cálculo (asegura que el total sea 100)
+                puntos_por_pregunta = 100.0 / len(st.session_state['juego_preguntas'])
                 es_correcta = (opcion_elegida == correcta)
                 
                 if es_correcta:
@@ -768,45 +874,56 @@ def mostrar_juego_trivia():
                     st.session_state['ultimo_feedback'] = f"incorrecta|{correcta}"
 
                 if modo == 'auto':
-                    # Manejo de feedback rápido para modo automático (sin pausa)
-                    feedback_container = st.empty()
-                    if es_correcta:
-                        feedback_container.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">🎉 ¡CORRECTO!</div>""", unsafe_allow_html=True)
-                    else:
-                        feedback_container.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 20px; border-radius: 10px; text-align: center; font-size: 30px; font-weight: bold;">❌ INCORRECTO. Era: {correcta}</div>""", unsafe_allow_html=True)
-                    
-                    time.sleep(2.0)
-                    
+                    # MODO AUTOMÁTICO: No podemos usar time.sleep(), avanzamos inmediatamente
+                    # El feedback se muestra muy brevemente antes del rerender.
                     if st.session_state['juego_indice'] < len(st.session_state['juego_preguntas']) - 1:
                         st.session_state['juego_indice'] += 1
+                        st.session_state['fase_pregunta'] = 'respondiendo'
                     else:
                         st.session_state['juego_terminado'] = True
                     st.rerun()
                 else:
-                    # Modo guiado: entra en fase de feedback
+                    # MODO GUIADO: entra en fase de feedback
                     st.session_state['fase_pregunta'] = 'feedback'
                     st.rerun()
             # --- End Respuesta Handler ---
 
-            with col_opt1:
-                # Botones de opción
-                if st.button(f"A) {opciones[0]}", use_container_width=True, key=f"btn_a_{idx}"): responder(opciones[0])
-                if st.button(f"C) {opciones[2]}", use_container_width=True, key=f"btn_c_{idx}"): responder(opciones[2])
-            with col_opt2:
-                if st.button(f"B) {opciones[1]}", use_container_width=True, key=f"btn_b_{idx}"): responder(opciones[1])
-                if st.button(f"D) {opciones[3]}", use_container_width=True, key=f"btn_d_{idx}"): responder(opciones[3])
+            # Mapeo de opciones a botones
+            opcion_letras = ['A', 'B', 'C', 'D']
+            cols = [col_opt1, col_opt2]
+            
+            for i in range(len(opciones)):
+                col = cols[i % 2]
+                with col:
+                    # Usamos el texto de la opción completa como clave para el botón
+                    if st.button(f"{opcion_letras[i]}) {opciones[i]}", use_container_width=True, key=f"btn_opt_{i}_{idx}"): 
+                        responder(opciones[i])
         
         elif fase == 'feedback':
-            # LÓGICA DE FEEDBACK
+            # LÓGICA DE FEEDBACK (Solo para modo Guiado)
             tipo, valor = st.session_state['ultimo_feedback'].split("|")
-            if tipo == "correcta":
-                st.markdown(f"""<div style="background-color: #d1e7dd; color: #0f5132; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #badbcc; margin-bottom: 20px;">🎉 ¡CORRECTO! <br> <span style="font-size: 30px">Has ganado +{valor} puntos</span></div>""", unsafe_allow_html=True)
-            else:
-                st.markdown(f"""<div style="background-color: #f8d7da; color: #842029; padding: 40px; border-radius: 20px; text-align: center; font-size: 40px; font-weight: bold; border: 4px solid #f5c2c7; margin-bottom: 20px;">❌ INCORRECTO <br> <span style="font-size: 30px; color: #333;">La respuesta era: {valor}</span></div>""", unsafe_allow_html=True)
             
+            # Contenedor de feedback
+            if tipo == "correcta":
+                feedback_html = f"""
+                    <div class="feedback-correct">
+                        🎉 ¡CORRECTO! <br> 
+                        <span style="font-size: 30px">Has ganado +{valor} puntos</span>
+                    </div>
+                """
+            else:
+                feedback_html = f"""
+                    <div class="feedback-incorrect">
+                        ❌ INCORRECTO <br> 
+                        <span style="font-size: 30px; color: #333;">La respuesta era: {valor}</span>
+                    </div>
+                """
+            st.markdown(feedback_html, unsafe_allow_html=True)
+            
+            # Botón Siguiente Pregunta
             col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
             with col_next2:
-                if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True):
+                if st.button("➡️ SIGUIENTE PREGUNTA", type="primary", use_container_width=True, key="btn_next_q"):
                     if st.session_state['juego_indice'] < len(preguntas) - 1:
                         st.session_state['juego_indice'] += 1
                         st.session_state['fase_pregunta'] = 'respondiendo'
@@ -824,22 +941,29 @@ def mostrar_juego_trivia():
                 st.balloons()
                 st.markdown("""<div style="text-align: center; font-size: 120px;">🏆</div>""", unsafe_allow_html=True)
                 st.success("¡MAESTRO TOTAL! 🌟")
+                st.markdown("<p style='text-align: center; font-size: 20px;'>¡Respondiste todas las preguntas correctamente!</p>", unsafe_allow_html=True)
             elif puntaje >= 60:
                 st.snow()
                 st.markdown("""<div style="text-align: center; font-size: 120px;">😎</div>""", unsafe_allow_html=True)
-                st.info("¡Bien hecho! Aprobado.")
+                st.info("¡Bien hecho! Aprobado. Un poco más de práctica y serás un experto.")
             else:
                 st.markdown("""<div style="text-align: center; font-size: 120px;">📚</div>""", unsafe_allow_html=True)
-                st.warning("¡Buen intento! A repasar un poco más.")
+                st.warning("¡Buen intento! A repasar un poco más el tema. Siempre puedes generar otro juego.")
 
             # Botón Nuevo Juego vuelve al menú de fuentes
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                 # Limpiamos todos los estados de juego y volvemos al menú de fuentes
-                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales']:
+                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales', 'ultimo_feedback']:
                     if key in st.session_state:
                         del st.session_state[key]
-                volver_menu_fuentes_trivia() # Vuelve al menú de fuentes
-                st.rerun()
+                
+                # Volvemos al menú de fuentes
+                if 'volver_menu_fuentes_trivia' in globals():
+                    volver_menu_fuentes_trivia()
+                else:
+                    st.session_state['vista_actual'] = 'menu_fuentes_trivia'
+                    st.rerun()
 
 # ------------------------------------------------------------
 # G. NUEVA PÁGINA: BIBLIOTECA DE JUEGOS (ESQUELETO)
