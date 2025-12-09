@@ -1475,7 +1475,7 @@ def juego_sorteador(volver_menu_juegos):
     st.info("Aquí iría la lógica del Sorteador.")
 
 # ============================================================
-# III. FUNCIÓN PRINCIPAL: ROUTER
+# I. FUNCIÓN PRINCIPAL: ROUTER
 # ============================================================
 
 def gamificacion():
@@ -1486,7 +1486,7 @@ def gamificacion():
     # 1. GESTIÓN DE ESTADO (Asegurando el estado inicial)
     if 'juego_actual' not in st.session_state:
         # Inicializa a None para mostrar el menú principal
-        st.session_state['juego_actual'] = None 
+        st.session_state['juego_actual'] = None    
     
     # 2. RENDERIZADO DE VISTAS
     if st.session_state['juego_actual'] is None:
@@ -1501,8 +1501,9 @@ def gamificacion():
         # Generación de Trivia usando IA-Tutor (F - Subsección IA)
         mostrar_generador_ia_tutor()
 
-    # **RUTA VALIDADA** para el formulario manual
-    elif st.session_state['juego_actual'] == 'trivia_elaboracion_manual':
+    # **CORRECCIÓN CLAVE AQUÍ:** Se cambió 'trivia_elaboracion_manual' por 
+    # 'trivia_configuracion_manual' para coincidir con el valor seteado en la Sección E.
+    elif st.session_state['juego_actual'] == 'trivia_configuracion_manual':
         # Formulario Manual Puro (F - Subsección Manual)
         mostrar_formulario_manual()
 
