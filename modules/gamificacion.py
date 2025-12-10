@@ -110,11 +110,12 @@ def initialize_firebase():
         st.session_state['db'] = None
 
 # ============================================================
-#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (NUEVO)
+#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE
 # ============================================================
 
-# Define las rutas de Firestore
+# Define las rutas de Firestore (Trivia Games)
 def get_personal_collection_ref():
+    """Retorna la referencia a la colección privada del usuario."""
     if not st.session_state.get('db'): return None
     appId = st.session_state.get('appId', 'default-app-id')
     userId = st.session_state.get('userId', 'offline-user-id')
@@ -123,27 +124,32 @@ def get_personal_collection_ref():
     return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection("trivia_games")
 
 def get_global_collection_ref():
+    """Retorna la referencia a la colección pública global."""
     if not st.session_state.get('db'): return None
     appId = st.session_state.get('appId', 'default-app-id')
     
     # Ruta: /artifacts/{appId}/public/data/trivia_games
+    # NOTA: Los dos documents (public, data) son necesarios para cumplir con las reglas de seguridad
     return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection("trivia_games")
 
 
-def guardar_juego_trivia(game_data, is_public=False):
+def guardar_juego_trivia(game_data: dict, is_public: bool = False, doc_id: str = None):
     """
-    Guarda el juego de trivia en Firestore.
+    Guarda el juego de trivia en Firestore en la colección personal o global.
     :param game_data: Diccionario con la estructura del juego.
     :param is_public: Booleano, si es True, guarda en la biblioteca global.
+    :param doc_id: ID opcional para el documento. Si es None, se genera uno automáticamente.
+    :return: El ID del documento generado/usado o False si falla.
     """
     if not st.session_state.get('is_auth_ready') or not st.session_state.get('db'):
-        st.error("No se puede guardar: Firebase no está inicializado o la autenticación falló.")
+        # No usamos st.error aquí ya que esto puede ser llamado en el backend
+        print("Error: No se puede guardar: Firebase no está inicializado o la autenticación falló.")
         return False
 
     collection_ref = get_global_collection_ref() if is_public else get_personal_collection_ref()
     
     if collection_ref is None:
-        st.error("Error al obtener la referencia de la colección.")
+        print("Error al obtener la referencia de la colección.")
         return False
         
     try:
@@ -152,11 +158,16 @@ def guardar_juego_trivia(game_data, is_public=False):
         game_data['created_at'] = firestore.SERVER_TIMESTAMP
         game_data['is_public'] = is_public
         
-        # Firestore no soporta diccionarios anidados con listas de listas/objetos complejos.
-        # Guardaremos el juego como un diccionario simple o como un campo JSON STRING si es complejo.
-        # Asumo que game_data es un dict simple aquí.
-        collection_ref.add(game_data)
-        return True
+        # 1. Elegir si crear o actualizar
+        if doc_id:
+            doc_ref = collection_ref.document(doc_id)
+            doc_ref.set(game_data)
+            return doc_id
+        else:
+            # 2. Crear documento con ID generado automáticamente
+            doc_ref = collection_ref.add(game_data)
+            return doc_ref[1].id
+            
     except Exception as e:
         st.error(f"Error al guardar el juego en Firestore: {e}")
         return False
