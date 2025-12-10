@@ -321,7 +321,7 @@ def navegar_a(pagina):
     st.rerun()
 
 # ============================================================
-#   C. GESTIÓN DE ESTADO GENERAL Y MENÚS DE NAVEGACIÓN
+# C. GESTIÓN DE ESTADO GENERAL Y MENÚS DE NAVEGACIÓN
 # ============================================================
 
 def volver_menu_juegos():
@@ -330,25 +330,25 @@ def volver_menu_juegos():
     Limpia todos los estados específicos de los juegos (Trivia, Preguntas Manuales, etc.).
     """
     st.session_state['juego_actual'] = None
-    
+
     # Lista de estados de Trivia y submenús que deben ser borrados
     keys_to_delete = [
-        'trivia_source', 
-        'juego_iniciado', 
-        'preguntas_manuales', 
-        'juego_preguntas', 
+        'trivia_source',
+        'juego_iniciado',
+        'preguntas_manuales',
+        'juego_preguntas',
         'pregunta_actual',
-        
+
         # NUEVAS VARIABLES DE CONFIGURACIÓN DEL FORMULARIO MANUAL
-        'num_preguntas_manual', 
-        'num_opciones_manual', 
+        'num_preguntas_manual',
+        'num_opciones_manual',
         'orden_manual'
     ]
-    
+
     for key in keys_to_delete:
         if key in st.session_state:
             del st.session_state[key]
-            
+
     st.rerun()
 
 def volver_menu_fuentes_trivia():
@@ -357,23 +357,23 @@ def volver_menu_fuentes_trivia():
     Limpia los datos de generación actual (texto IA o preguntas manuales) para un nuevo inicio.
     """
     st.session_state['juego_actual'] = 'trivia_fuentes'
-    
+
     # Limpiamos el progreso de generación
     keys_to_clean = [
-        'trivia_source', 
-        'juego_iniciado', 
+        'trivia_source',
+        'juego_iniciado',
         'preguntas_manuales',
-        
+
         # NUEVAS VARIABLES DE CONFIGURACIÓN DEL FORMULARIO MANUAL
-        'num_preguntas_manual', 
-        'num_opciones_manual', 
+        'num_preguntas_manual',
+        'num_opciones_manual',
         'orden_manual'
     ]
-    
+
     for key in keys_to_clean:
         if key in st.session_state:
             del st.session_state[key]
-            
+
     st.rerun()
 
 # ------------------------------------------------------------
