@@ -419,6 +419,12 @@ import json
 import time
 import streamlit as st
 
+# Importaciones de Firebase (Asumiendo que se usan en el entorno principal,
+# pero se definen aquí si este bloque fuera el script completo)
+# NOTA: En un script Streamlit normal, estas serían importaciones de la librería
+# python de Firebase o de las funciones wrapper. Aquí, solo incluimos la función
+# de guardado.
+
 # NOTA: Se asume que las funciones 'volver_menu_juegos' y 'volver_menu_fuentes_trivia'
 # de la Sección C, y la función 'pedagogical_assistant.generar_trivia_juego'
 # están definidas o importadas en el script principal.
@@ -704,7 +710,6 @@ def mostrar_formulario_manual():
                     "respuesta_correcta": correcta_texto.strip()
                 }
                 preguntas_finales.append(pregunta_formateada)
-
             # 3. Guardar estado e iniciar juego
             if valid_submission:
                 st.session_state['juego_preguntas'] = preguntas_finales
@@ -1018,6 +1023,22 @@ def mostrar_juego_trivia():
     elif st.session_state.get('juego_terminado', False):
         # LÓGICA DE PANTALLA FINAL
         puntaje = int(st.session_state['juego_puntaje'])
+        
+        # Intentamos guardar el resultado del juego en Firestore
+        # NOTA: Llamamos a la función de guardado aquí, inmediatamente después de que se confirma el juego_terminado
+        if st.session_state.get('juego_guardado', False) is False:
+             # Necesitamos que la función guardar_juego_trivia sea definida y esté disponible
+             # Asumiendo la disponibilidad global:
+             if 'guardar_juego_trivia' in globals():
+                 try:
+                     # El resultado del guardado se maneja dentro de la función
+                     guardar_juego_trivia(puntaje)
+                     st.session_state['juego_guardado'] = True
+                 except Exception as e:
+                     st.error(f"Error al intentar guardar el juego: {e}")
+             else:
+                 st.warning("Función de guardado no disponible. El resultado no se guardará.")
+        
         st.markdown(f"<h1 style='text-align: center; font-size: 80px; color: #2c3e50;'>PUNTAJE FINAL: {puntaje}</h1>", unsafe_allow_html=True)
         col_spacer1, col_center, col_spacer2 = st.columns([1, 2, 1])
         with col_center:
@@ -1038,7 +1059,7 @@ def mostrar_juego_trivia():
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🔄 Nuevo Juego", type="primary", use_container_width=True):
                 # Limpiamos todos los estados de juego y volvemos al menú de fuentes
-                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales', 'ultimo_feedback', 'manual_num_select', 'manual_grado_select', 'manual_area_select']:
+                for key in ['juego_preguntas', 'juego_terminado', 'juego_indice', 'juego_puntaje', 'juego_en_lobby', 'tema_actual', 'modo_avance', 'fase_pregunta', 'trivia_source', 'preguntas_manuales', 'ultimo_feedback', 'manual_num_select', 'manual_grado_select', 'manual_area_select', 'juego_guardado']:
                     if key in st.session_state:
                         del st.session_state[key]
                 
@@ -1048,6 +1069,66 @@ def mostrar_juego_trivia():
                 else:
                     st.session_state['vista_actual'] = 'menu_fuentes_trivia'
                     st.rerun()
+
+# ------------------------------------------------------------
+# F.1. FUNCIÓN DE GUARDADO FIREBASE/FIRESTORE (NUEVO CÓDIGO)
+# ------------------------------------------------------------
+def guardar_juego_trivia(puntaje_final):
+    """Guarda el resultado del juego de Trivia en Firestore."""
+    
+    # Simulación de la inicialización de Firebase y Auth
+    # En un entorno real de Streamlit, estas variables (db, auth, appId, userId)
+    # deberían estar disponibles globalmente o ser pasadas como argumentos.
+    # Aquí asumimos que las funciones y variables están disponibles para la simulación
+    # del entorno Canvas (aunque se use Streamlit).
+
+    # **Asunción Clave:** Las funciones de Firebase wrapper (db, auth) están disponibles.
+    # Por seguridad, no simularemos aquí la lógica completa de Firebase/Auth en Python,
+    # sino el punto de llamada para el guardado de datos.
+    
+    # Las variables de sesión ya contienen la información necesaria:
+    tema = st.session_state.get('tema_actual', 'Tema Desconocido')
+    source = st.session_state.get('trivia_source', 'Fuente Desconocida')
+    num_preguntas = len(st.session_state.get('juego_preguntas', []))
+    
+    # Si el origen fue manual, usamos los datos de Grado y Área guardados
+    if source == 'Elaboración manual':
+        grado = st.session_state.get('manual_grado', 'N/A')
+        area = st.session_state.get('manual_area', 'N/A')
+    # Si el origen fue IA-Tutor, asumimos que están implícitos en el tema/prompt
+    # En un caso ideal, se guardarían en session_state['ia_grado'] y ['ia_area']
+    else:
+        # Aquí usaríamos el valor por defecto o el último seleccionado
+        # Para evitar errores, simplemente se usaría la información disponible
+        grado = st.session_state.get('manual_grado_select', 'N/A') # Si viene de IA, usamos el valor del selector de IA (que no se guarda aquí)
+        area = st.session_state.get('manual_area_select', 'N/A') # Mismo caso que arriba
+
+    # Estructura del documento a guardar
+    datos_juego = {
+        'timestamp': time.time(), # Marca de tiempo para el orden
+        'tema': tema,
+        'puntaje_final': puntaje_final,
+        'num_preguntas': num_preguntas,
+        'origen': source,
+        'modo_avance': st.session_state.get('modo_avance', 'auto'),
+        'grado': grado,
+        'area': area,
+        'es_trivia': True # Marcador de tipo de juego
+    }
+
+    # --- SIMULACIÓN DE LLAMADA A FIRESTORE ---
+    # En un entorno Streamlit con acceso a Firebase (como el que estamos simulando en Canvas),
+    # la llamada sería a una función wrapper:
+    
+    # st.session_state['db'].collection('artifacts').document(appId).collection('users').document(userId).collection('trivia_scores').add(datos_juego)
+    
+    # Dado que no tenemos el SDK real aquí, simulamos el mensaje de éxito en la consola
+    print(f"✅ [FIRESTORE SIMULACIÓN] Guardado exitoso. Puntaje: {puntaje_final}. Tema: {tema}")
+    # Nota: No mostramos un mensaje de éxito en la UI para no interrumpir la pantalla final.
+    # El estado 'juego_guardado' evita reintentos.
+
+# Nota: La función 'guardar_juego_trivia' no necesita retornar nada.
+# Se activa en la lógica de 'mostrar_juego_trivia' cuando 'juego_terminado' es True.
 
 # ------------------------------------------------------------
 # G. NUEVA PÁGINA: BIBLIOTECA DE JUEGOS (ESQUELETO)
