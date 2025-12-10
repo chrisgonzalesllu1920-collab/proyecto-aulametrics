@@ -1,98 +1,111 @@
 import streamlit as st
 import json
-import random
+import os
 import time
+import random 
 import pandas as pd
 import pedagogical_assistant
+import base64
+from datetime import datetime
 
-from streamlit_lottie import st_lottie  # Solo si lo usas
-import base64  # Solo si algún juego lo usa
-import os  # Solo si se usa en algún juego
-# Importaciones de Firebase (Necesarias para la persistencia)
+# --- IMPORTS DE FIREBASE (Necesarios para el SDK Admin) ---
+# Se necesita para la lógica de inicialización y las funciones de DB
 try:
-    from firebase_admin import initialize_app, credentials
-    from firebase_admin import firestore, auth
-    from google.cloud.firestore import Client as FirestoreClient
+    import firebase_admin
+    from firebase_admin import credentials, firestore, auth, initialize_app
 except ImportError:
-    # Estos imports son necesarios para el entorno de ejecución, 
-    # si fallan, se asume que Streamlit se está ejecutando en Canvas 
-    # y los módulos ya están cargados.
-    pass 
+    # Esto solo debería fallar si la librería no está instalada
+    st.error("Error: La librería 'firebase-admin' no está instalada.")
+
+# --- ACCESO SEGURO A VARIABLES GLOBALES DE CANVAS ---
+# En Canvas, las variables se inyectan como globales de Python, NO como env vars.
+# Usamos try/except NameError para manejar entornos de desarrollo locales.
+try:
+    # Intenta acceder a las variables globales de Canvas
+    APP_ID = __app_id
+    FIREBASE_CONFIG_JSON = __firebase_config
+    INITIAL_AUTH_TOKEN = __initial_auth_token
+except NameError:
+    # Fallback para desarrollo local (puedes cargar un archivo de secrets.json aquí)
+    APP_ID = "default-app-id"
+    FIREBASE_CONFIG_JSON = "{}"
+    INITIAL_AUTH_TOKEN = None
 
 # ============================================================
 #   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
 # ============================================================
 
-
 # ============================================================
-#   A. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE/AUTH (NUEVO)
+#   A. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE/AUTH
 # ============================================================
 
 def initialize_firebase():
-    """Inicializa Firebase, Firestore y autentica al usuario."""
-    # Solo ejecutar la inicialización una vez
-    if 'db' in st.session_state and 'auth' in st.session_state and 'is_auth_ready' in st.session_state and st.session_state.is_auth_ready:
-        return
+    """Inicializa Firebase, Firestore y autentica al usuario (usando el SDK Admin)."""
     
+    # Solo ejecutar la inicialización una vez
+    if st.session_state.get('is_auth_ready', False):
+        return
+        
+    st.session_state['is_auth_ready'] = False # Estado inicial: no listo
+
+    # Si no hay configuración de Firebase, asumimos modo offline/local.
+    if not FIREBASE_CONFIG_JSON or FIREBASE_CONFIG_JSON == "{}":
+        st.session_state['db'] = None
+        st.session_state['auth'] = None
+        st.session_state['appId'] = APP_ID
+        st.session_state['userId'] = 'offline-user-id'
+        st.session_state['is_auth_ready'] = True
+        st.session_state['is_authenticated'] = False
+        st.warning("⚠️ Ejecutando sin conexión a Firebase. Los datos no se guardarán.")
+        return
+
     try:
-        # Intenta obtener la configuración y el token de las variables globales de Canvas
-        firebase_config = json.loads(os.environ.get('__firebase_config', '{}'))
-        initial_auth_token = os.environ.get('__initial_auth_token')
-        app_id = os.environ.get('__app_id', 'default-app-id')
-
-        # Si la configuración existe, procedemos con la inicialización.
-        if firebase_config:
-            import firebase_admin
-            from firebase_admin import initialize_app, credentials
-            from firebase_admin import firestore, auth
-
-            # La app solo debe inicializarse una vez
-            if not firebase_admin._apps:
-                # Usar el objeto de configuración para inicializar
-                cred = credentials.Certificate(firebase_config)
-                app = initialize_app(cred)
-            else:
-                app = firebase_admin.get_app()
-                
-            db = firestore.client(app)
-            firebase_auth = auth
-            
-            # Autenticación con el token
-            if initial_auth_token:
-                try:
-                    # Verifica el token y obtiene el ID de usuario
-                    decoded_token = firebase_auth.verify_id_token(initial_auth_token)
-                    user_id = decoded_token['uid']
-                    st.session_state['userId'] = user_id
-                    st.session_state['is_authenticated'] = True
-                except Exception as e:
-                    st.warning(f"Error al verificar token: {e}. Usando ID anónimo.")
-                    st.session_state['userId'] = "anonymous_" + os.urandom(16).hex()
-                    st.session_state['is_authenticated'] = False
-            else:
-                # Fallback para usuarios anónimos o desarrollo local
-                st.session_state['userId'] = "anonymous_" + os.urandom(16).hex()
-                st.session_state['is_authenticated'] = False
-
-            # Guardar en el estado de sesión para Streamlit
-            st.session_state['db'] = db
-            st.session_state['auth'] = firebase_auth
-            st.session_state['appId'] = app_id
-            st.session_state['is_auth_ready'] = True
-            
-            # print(f"Firebase Inicializado. UserId: {st.session_state.userId}, AppId: {app_id}")
-
+        # 1. Parsear configuración y credenciales
+        firebase_config = json.loads(FIREBASE_CONFIG_JSON)
+        cred = credentials.Certificate(firebase_config)
+        
+        # 2. Inicializar la app (solo si no está ya inicializada)
+        # Usamos el APP_ID como nombre para evitar conflictos si hay múltiples inicializaciones
+        if not firebase_admin._apps or APP_ID not in firebase_admin._apps:
+            app = initialize_app(cred, name=APP_ID)
         else:
-            # Caso de desarrollo local sin configuración de Firebase
-            st.session_state['db'] = None
-            st.session_state['auth'] = None
-            st.session_state['appId'] = 'default-app-id'
-            st.session_state['userId'] = 'offline-user-id'
-            st.session_state['is_auth_ready'] = True
-            st.warning("⚠️ Ejecutando sin conexión a Firebase. Los datos no se guardarán.")
+            app = firebase_admin.get_app(APP_ID)
+            
+        db = firestore.client(app)
+        firebase_auth = auth
+        
+        # 3. Autenticación y obtención del UserID
+        user_id = None
+        if INITIAL_AUTH_TOKEN:
+            try:
+                # Verifica el token seguro y obtiene el ID de usuario (UID)
+                decoded_token = firebase_auth.verify_id_token(INITIAL_AUTH_TOKEN)
+                user_id = decoded_token['uid']
+                st.session_state['is_authenticated'] = True
+            except Exception as e:
+                # Token inválido o expirado
+                st.warning(f"Error de autenticación, usando ID anónimo. Detalle: {e}")
+                pass
+                
+        # 4. Fallback si no hay token o falló la verificación (Usuario Anónimo)
+        if user_id is None:
+            # Genera un ID de usuario único para sesiones no autenticadas (anónimas)
+            # Usar 'uuid4().hex' es más seguro que os.urandom(16).hex() para este propósito.
+            import uuid
+            user_id = "anonymous_" + uuid.uuid4().hex
+            st.session_state['is_authenticated'] = False
+
+        # 5. Guardar el estado de sesión y marcar como listo
+        st.session_state['db'] = db
+        st.session_state['auth'] = firebase_auth
+        st.session_state['appId'] = APP_ID
+        st.session_state['userId'] = user_id
+        st.session_state['is_auth_ready'] = True
+        
+        # Opcional: print(f"Firebase Inicializado. UserId: {st.session_state.userId}, AppId: {APP_ID}")
 
     except Exception as e:
-        st.error(f"FALLO CRÍTICO DE FIREBASE/AUTH: {e}")
+        st.error(f"FALLO CRÍTICO DE FIREBASE/AUTH: No se pudo conectar la DB. {e}")
         st.session_state['is_auth_ready'] = False
         st.session_state['db'] = None
 
