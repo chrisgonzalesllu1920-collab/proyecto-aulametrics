@@ -7,6 +7,7 @@ import pandas as pd
 import pedagogical_assistant
 import base64
 from datetime import datetime
+from types import SimpleNamespace
 
 
 # --- IMPORTS DE FIREBASE (Necesarios para el SDK Admin) ---
@@ -111,18 +112,16 @@ def initialize_firebase():
         st.session_state['db'] = None
 
 # ============================================================
-#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (ACTUALIZADO)
+#    B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (ACTUALIZADO)
 # ============================================================
 
 # --- UTILIDADES DE SIMULACIÓN NECESARIAS ---
 # Nota: Estas utilidades deben estar definidas antes de esta sección.
-import time
-from types import SimpleNamespace
 # firestore = SimpleNamespace(SERVER_TIMESTAMP='SERVER_TIMESTAMP_SIM') # Asumimos que ya está definido arriba
 
 # --- DATOS SIMULADOS PARA LA LECTURA (onSnapshot) ---
 # Usamos una estructura simple que simula lo que devolvería doc.to_dict()
-# Esta lista será modificada por 'guardar_juego_trivia'
+# Esta lista será modificada por 'guardar_juego_trivia' y 'eliminar_juego_trivia'
 simulated_firestore_games = [
     {'doc_id': 'game_a', 'titulo': 'La Célula y sus Organelos', 'created_at': time.time() - 3600*24, 'configuracion': {'grado': '6° Primaria', 'area': 'Ciencias', 'num_preguntas': 4, 'origen': 'Manual'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 1', 'respuesta_correcta': 'X'}]},
     {'doc_id': 'game_b', 'titulo': 'Batalla de Gettysburg (1863)', 'created_at': time.time() - 3600*12, 'configuracion': {'grado': '5° Secundaria', 'area': 'Historia', 'num_preguntas': 10, 'origen': 'IA-Tutor'}, 'is_public': True, 'preguntas': [{'pregunta': 'Simulada 2', 'respuesta_correcta': 'Y'}]},
@@ -143,7 +142,10 @@ def get_personal_collection_ref(collection_name="trivia_games"):
         return f"artifacts/{appId}/users/{userId}/{collection_name}"
         
     # Ruta real (si usamos el SDK real)
-    return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection(collection_name)
+    # return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection(collection_name)
+    # Usamos la ruta simulada por ahora.
+    return f"artifacts/{appId}/users/{userId}/{collection_name}"
+
 
 def get_global_collection_ref(collection_name="trivia_games"):
     """Retorna la referencia a la colección pública global (o la ruta simulada)."""
@@ -155,7 +157,9 @@ def get_global_collection_ref(collection_name="trivia_games"):
         return f"artifacts/{appId}/public/data/{collection_name}"
         
     # Ruta real
-    return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection(collection_name)
+    # return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection(collection_name)
+    # Usamos la ruta simulada por ahora.
+    return f"artifacts/{appId}/public/data/{collection_name}"
 
 
 def guardar_juego_trivia(game_data: dict, is_public: bool = False, doc_id: str = None):
@@ -204,6 +208,52 @@ def guardar_juego_trivia(game_data: dict, is_public: bool = False, doc_id: str =
         return False
 
 
+def eliminar_juego_trivia(doc_id: str):
+    """
+    Elimina permanentemente un juego de trivia de la colección personal del usuario.
+    [IMPLEMENTACIÓN SIMULADA]
+    """
+    global simulated_firestore_games
+    
+    if not st.session_state.get('is_auth_ready'):
+        print("Error: No se puede eliminar: Firebase no está inicializado o la autenticación falló.")
+        st.toast("🚫 Error de autenticación. No se pudo eliminar.", icon='❌')
+        return False
+
+    # Obtenemos la referencia (real o simulada) a la colección
+    collection_ref = get_personal_collection_ref()
+    
+    if collection_ref is None:
+        print("Error al obtener la referencia de la colección.")
+        return False
+        
+    try:
+        # --- SIMULACIÓN DE ELIMINACIÓN ---
+        initial_length = len(simulated_firestore_games)
+        
+        # Filtrar el juego a eliminar (solo si no es público) y guardar los restantes
+        # El juego solo se elimina si su doc_id coincide Y NO es público.
+        simulated_firestore_games = [
+            g for g in simulated_firestore_games 
+            if g.get('doc_id') != doc_id or g.get('is_public') == True
+        ]
+
+        if len(simulated_firestore_games) < initial_length:
+            # Forzar recarga de la biblioteca al eliminar un juego
+            st.session_state['juegos_biblioteca'] = None
+            st.toast(f"🗑️ Juego eliminado de la biblioteca privada.", icon='✅')
+            return True
+        else:
+            # Este mensaje puede indicar que el doc_id no existía o que era público.
+            st.toast(f"🚫 Error: El juego no se pudo eliminar (no encontrado o es público).", icon='❌')
+            return False
+            
+    except Exception as e:
+        print(f"Error al eliminar el juego: {e}")
+        st.toast(f"🚫 Error al eliminar el juego: {e}", icon='❌')
+        return False
+
+
 def obtener_juegos_trivia_usuario():
     """
     NUEVA FUNCIÓN. Simula la obtención de juegos de Trivia del usuario desde Firestore
@@ -240,8 +290,15 @@ def obtener_juegos_trivia_usuario():
         # Solo incluimos juegos que NO son públicos (is_public=False)
         juegos_cargados = []
         for doc in simulated_firestore_games:
+            # En una aplicación real, se filtrarían por userId en el Query.
+            # Aquí, solo filtramos los NO públicos.
             if not doc.get('is_public', False):
-                 juegos_cargados.append(doc)
+                # Asegúrate de que el juego pertenezca al usuario, aunque es implícito en la simulación
+                # con 'is_public': False, lo hacemos explícito para mayor claridad.
+                if doc.get('creator_id', 'anonymous') == st.session_state.get('userId', 'anonymous'):
+                    juegos_cargados.append(doc)
+                # Si el creator_id no coincide, asumimos que no es un juego del usuario
+                # (aunque la simulación es imperfecta, sigue el espíritu del filtro de seguridad).
 
         # Almacenar la lista de juegos en el estado, ordenados por fecha de creación descendente
         st.session_state['juegos_biblioteca'] = sorted(
@@ -1156,7 +1213,9 @@ def mostrar_biblioteca():
     col_back, col_title = st.columns([1, 5])
     with col_back:
         if st.button("🔙 Inicio", use_container_width=True, key="btn_volver_menu_biblioteca"):
-            navegar_a('home')
+            # navegar_a('home') # Asumimos esta función existe
+            st.session_state['pagina_actual'] = 'home'
+            st.rerun()
             
     with col_title:
         st.markdown("""
@@ -1172,7 +1231,6 @@ def mostrar_biblioteca():
     st.subheader("👤 Mi Colección Personal")
     
     # Llama a la utilidad de carga (inicia el onSnapshot simulado)
-    # Esta función se ejecutará en cada render, pero solo dispara la carga una vez.
     obtener_juegos_trivia_usuario() 
     
     # Manejo del estado de carga
@@ -1184,11 +1242,13 @@ def mostrar_biblioteca():
         if is_loading:
              # st.progress(50) # Si quisiéramos mostrar una barra de progreso
              pass
-        
+             
     elif not juegos:
         st.warning("Aún no tienes juegos de Trivia guardados. ¡Ve al 'Generador IA' para crear el primero!")
         if st.button("Crear Nueva Trivia", key="btn_crear_desde_biblioteca"):
-            navegar_a('generador_ia')
+            # navegar_a('generador_ia') # Asumimos esta función existe
+            st.session_state['pagina_actual'] = 'generador_ia'
+            st.rerun()
             
     else:
         # 3. Mostrar la lista de juegos personales cargados
@@ -1230,15 +1290,76 @@ def mostrar_biblioteca():
                     st.session_state['juego_indice'] = 0
                     st.session_state['juego_puntaje'] = 0.0
                     st.session_state['juego_terminado'] = False
-                    navegar_a('juego')
+                    # navegar_a('juego')
+                    st.session_state['pagina_actual'] = 'juego'
+                    st.rerun()
             
             st.markdown("---")
 
-    # --- 2. COLECCIÓN GLOBAL (PENDIENTE) ---
+    # --- 2. COLECCIÓN GLOBAL (IMPLEMENTACIÓN ACTUALIZADA) ---
     st.subheader("🌎 Juegos Compartidos (Global)")
-    st.info("Juegos creados y compartidos por la comunidad. La carga de datos globales será implementada en el siguiente paso.")
-    # TODO: Implementar la carga de datos de Firestore para la colección global.
     
+    # Llama a la utilidad de carga de juegos globales (onSnapshot simulado)
+    obtener_juegos_trivia_globales() 
+    
+    # Manejo del estado de carga global
+    is_loading_global = st.session_state.get('is_loading_library_global', False)
+    juegos_globales = st.session_state.get('juegos_biblioteca_global')
+    
+    if is_loading_global or juegos_globales is None:
+        st.info("Cargando juegos compartidos por la comunidad...", icon="⏳")
+             
+    elif not juegos_globales:
+        st.info("Aún no hay juegos compartidos en la biblioteca global. ¡Sé el primero en compartir uno!")
+            
+    else:
+        # Mostrar la lista de juegos globales cargados
+        st.markdown(f"**{len(juegos_globales)}** Juegos compartidos disponibles.")
+        st.markdown("---")
+        
+        for game in juegos_globales:
+            doc_id = game.get('doc_id', 'N/A')
+            titulo = game.get('titulo', 'Sin Título')
+            config = game.get('configuracion', {})
+            num_preguntas = config.get('num_preguntas', '??')
+            area = config.get('area', 'General')
+            
+            # Formatear el timestamp
+            try:
+                created_at = time.strftime('%d/%m/%Y %H:%M', time.localtime(game.get('created_at', 0)))
+            except Exception:
+                created_at = "Fecha N/A"
+
+            # Layout con columnas para la presentación del juego
+            col_title, col_details, col_action = st.columns([4, 3, 2])
+            
+            with col_title:
+                # Muestra el título y un fragmento del ID del creador
+                creator_id_snippet = game.get('creator_id', 'Desconocido')[:8]
+                st.markdown(f"**{titulo}**")
+                st.caption(f"Creador: {creator_id_snippet}... | Grado: {config.get('grado', 'N/A')}")
+            
+            with col_details:
+                st.markdown(f"**{num_preguntas}** preguntas")
+                st.caption(f"Área: {area} | Creado: {created_at}")
+
+            with col_action:
+                # Botón de acción principal para juegos globales (color secundario)
+                if st.button("🕹️ Jugar", key=f"play_global_{doc_id}", use_container_width=True, type='secondary'):
+                    # Cargamos el juego en el estado de sesión y navegamos a la pantalla de juego
+                    st.session_state['juego_preguntas'] = game.get('preguntas', [])
+                    st.session_state['tema_actual'] = titulo
+                    st.session_state['juego_iniciado'] = True
+                    st.session_state['juego_en_lobby'] = True 
+                    st.session_state['juego_indice'] = 0
+                    st.session_state['juego_puntaje'] = 0.0
+                    st.session_state['juego_terminado'] = False
+                    # navegar_a('juego')
+                    st.session_state['pagina_actual'] = 'juego'
+                    st.rerun()
+            
+            st.markdown("---")
+            
     # Muestra el ID de usuario para referencia de debug/compartir
     st.caption(f"ID de Usuario (para Firestore): **{st.session_state.get('userId', 'No Autenticado')}**")
 
