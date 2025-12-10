@@ -1843,7 +1843,6 @@ def juego_sorteador(volver_menu_juegos):
 # ============================================================
 
 def gamificacion():
-    
     """
     Función principal que gestiona el enrutamiento (routing) de las diferentes vistas del arcade.
     """
