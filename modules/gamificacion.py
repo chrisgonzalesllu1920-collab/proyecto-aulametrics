@@ -505,14 +505,14 @@ def mostrar_menu_fuentes_trivia():
         }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # 2. Barra superior
     col_back, col_title = st.columns([1, 5])
     with col_back:
         # Usamos la función de la Sección C
         if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_fuentes"):
             volver_menu_juegos()
-            
+
     with col_title:
         st.markdown("""
         <div style="text-align: center; margin-bottom: 20px;">
@@ -522,25 +522,25 @@ def mostrar_menu_fuentes_trivia():
         """, unsafe_allow_html=True)
 
     st.write("")
-    
+
     # 3. Opciones de Fuente (En columnas para mejor layout)
     col1, col2, col3 = st.columns(3, gap="medium")
 
     # Eliminamos la función set_source_and_continue, la lógica va dentro del botón.
-    
+
     with col1:
         # **MODIFICACIÓN CLAVE: Elaboración manual**
         if st.button("📝 Elaboración manual\n\n(Crea tus preguntas)", use_container_width=True, key="source_manual", help="Introduce directamente las preguntas y respuestas para crear el juego a partir de ellas."):
-            # CAMBIO CLAVE: Cambiamos el estado de destino. 
+            # CAMBIO CLAVE: Cambiamos el estado de destino.
             # Ahora vamos al menú de CONFIGURACIÓN MANUAL antes de ir al formulario.
             st.session_state['juego_actual'] = 'trivia_configuracion_manual'
             st.rerun()
-    
+
     with col2:
         # Archivo PDF/TXT - DESHABILITADO
         if st.button("📁 Archivo PDF/TXT\n\n(Próximamente)", use_container_width=True, key="source_archivo", disabled=True, help="Sube un documento y la IA lo analizará."):
             pass
-    
+
     with col3:
         # **MODIFICACIÓN CLAVE: Uso de IA-Tutor**
         if st.button("🌐 Uso de IA-Tutor\n\n(Crea preguntas con IA)", use_container_width=True, key="source_ia_tutor", help="Deja que la IA busque un tema general en Internet y genere un juego educativo automáticamente."):
