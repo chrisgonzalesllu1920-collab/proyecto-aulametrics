@@ -1147,14 +1147,17 @@ def guardar_juego_trivia(puntaje_final):
 # Se activa en la lógica de 'mostrar_juego_trivia' cuando 'juego_terminado' es True.
 
 # ------------------------------------------------------------
-# G. NUEVA PÁGINA: BIBLIOTECA DE JUEGOS (ESQUELETO)
+# G. PÁGINA: BIBLIOTECA DE JUEGOS (IMPLEMENTACIÓN COMPLETA)
 # ------------------------------------------------------------
-def mostrar_menu_biblioteca():
+def mostrar_biblioteca():
+    """Muestra el historial y la biblioteca de juegos personales y globales."""
     
+    # Encabezado con estilo
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        if st.button("🔙 Menú Juegos", use_container_width=True, key="btn_volver_menu_biblioteca"):
-            volver_menu_juegos()
+        if st.button("🔙 Inicio", use_container_width=True, key="btn_volver_menu_biblioteca"):
+            navegar_a('home')
+            
     with col_title:
         st.markdown("""
         <div style="text-align: center; margin-bottom: 20px;">
@@ -1164,19 +1167,78 @@ def mostrar_menu_biblioteca():
         """, unsafe_allow_html=True)
 
     st.divider()
-
-    # --- Secciones de la Biblioteca ---
     
-    # Biblioteca Personal (Guardada en /artifacts/{appId}/users/{userId}/trivia_games)
+    # --- 1. COLECCIÓN PERSONAL ---
     st.subheader("👤 Mi Colección Personal")
-    st.info("Aquí verás los juegos que has guardado. Haz clic para cargarlos.")
-    # TODO: Implementar la carga de datos de Firestore para la colección personal.
+    
+    # Llama a la utilidad de carga (inicia el onSnapshot simulado)
+    # Esta función se ejecutará en cada render, pero solo dispara la carga una vez.
+    obtener_juegos_trivia_usuario() 
+    
+    # Manejo del estado de carga
+    is_loading = st.session_state.get('is_loading_library', False)
+    juegos = st.session_state.get('juegos_biblioteca')
+    
+    if is_loading or juegos is None:
+        st.info("Cargando tu historial de juegos...", icon="⏳")
+        if is_loading:
+             # st.progress(50) # Si quisiéramos mostrar una barra de progreso
+             pass
+        
+    elif not juegos:
+        st.warning("Aún no tienes juegos de Trivia guardados. ¡Ve al 'Generador IA' para crear el primero!")
+        if st.button("Crear Nueva Trivia", key="btn_crear_desde_biblioteca"):
+            navegar_a('generador_ia')
+            
+    else:
+        # 3. Mostrar la lista de juegos personales cargados
+        st.markdown(f"**{len(juegos)}** Juegos guardados.")
+        st.markdown("---")
+        
+        for game in juegos:
+            doc_id = game.get('doc_id', 'N/A')
+            titulo = game.get('titulo', 'Sin Título')
+            config = game.get('configuracion', {})
+            num_preguntas = config.get('num_preguntas', '??')
+            area = config.get('area', 'General')
+            
+            # Formatear el timestamp simulado (que es un float)
+            try:
+                created_at = time.strftime('%d/%m/%Y %H:%M', time.localtime(game.get('created_at', 0)))
+            except Exception:
+                created_at = "Fecha N/A"
 
-    # Biblioteca Global (Guardada en /artifacts/{appId}/public/data/trivia_games)
+            # Layout con columnas para la presentación del juego
+            col_title, col_details, col_action = st.columns([4, 3, 2])
+            
+            with col_title:
+                st.markdown(f"**{titulo}**")
+                st.caption(f"Grado: {config.get('grado', 'N/A')}")
+            
+            with col_details:
+                st.markdown(f"**{num_preguntas}** preguntas")
+                st.caption(f"Área: {area} | Creado: {created_at}")
+
+            with col_action:
+                # Botón de acción principal
+                if st.button("🕹️ Jugar", key=f"play_personal_{doc_id}", use_container_width=True, type='primary'):
+                    # Cargamos el juego en el estado de sesión y navegamos a la pantalla de juego
+                    st.session_state['juego_preguntas'] = game.get('preguntas', [])
+                    st.session_state['tema_actual'] = titulo
+                    st.session_state['juego_iniciado'] = True
+                    st.session_state['juego_en_lobby'] = True # Aseguramos que inicie en lobby
+                    st.session_state['juego_indice'] = 0
+                    st.session_state['juego_puntaje'] = 0.0
+                    st.session_state['juego_terminado'] = False
+                    navegar_a('juego')
+            
+            st.markdown("---")
+
+    # --- 2. COLECCIÓN GLOBAL (PENDIENTE) ---
     st.subheader("🌎 Juegos Compartidos (Global)")
-    st.info("Juegos creados y compartidos por la comunidad. ¡Carga uno y juega!")
+    st.info("Juegos creados y compartidos por la comunidad. La carga de datos globales será implementada en el siguiente paso.")
     # TODO: Implementar la carga de datos de Firestore para la colección global.
-
+    
     # Muestra el ID de usuario para referencia de debug/compartir
     st.caption(f"ID de Usuario (para Firestore): **{st.session_state.get('userId', 'No Autenticado')}**")
 
