@@ -5,6 +5,7 @@ import time
 import random 
 import pandas as pd
 import pedagogical_assistant
+import modules.gamificacion as gamificacion
 import base64
 from datetime import datetime
 from types import SimpleNamespace
