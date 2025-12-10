@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import os
 import time
-import random 
+import random
 import pandas as pd
 import pedagogical_assistant
 import base64
@@ -32,6 +32,84 @@ except NameError:
     APP_ID = "default-app-id"
     FIREBASE_CONFIG_JSON = "{}"
     INITIAL_AUTH_TOKEN = None
+
+# ============================================================
+#   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
+# ============================================================
+
+# ============================================================
+#   A. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE/AUTH
+# ============================================================
+
+def initialize_firebase():
+    """Inicializa Firebase, Firestore y autentica al usuario (usando el SDK Admin)."""
+    
+    # Solo ejecutar la inicialización una vez
+    if st.session_state.get('is_auth_ready', False):
+        return
+        
+    st.session_state['is_auth_ready'] = False # Estado inicial: no listo
+
+    # Si no hay configuración de Firebase, asumimos modo offline/local.
+    if not FIREBASE_CONFIG_JSON or FIREBASE_CONFIG_JSON == "{}":
+        st.session_state['db'] = None
+        st.session_state['auth'] = None
+        st.session_state['appId'] = APP_ID
+        st.session_state['userId'] = 'offline-user-id'
+        st.session_state['is_auth_ready'] = True
+        st.session_state['is_authenticated'] = False
+        st.warning("⚠️ Ejecutando sin conexión a Firebase. Los datos no se guardarán.")
+        return
+
+    try:
+        # 1. Parsear configuración y credenciales
+        firebase_config = json.loads(FIREBASE_CONFIG_JSON)
+        cred = credentials.Certificate(firebase_config)
+        
+        # 2. Inicializar la app (solo si no está ya inicializada)
+        # Usamos el APP_ID como nombre para evitar conflictos si hay múltiples inicializaciones
+        if not firebase_admin._apps or APP_ID not in firebase_admin._apps:
+            app = initialize_app(cred, name=APP_ID)
+        else:
+            app = firebase_admin.get_app(APP_ID)
+            
+        db = firestore.client(app)
+        firebase_auth = auth
+        
+        # 3. Autenticación y obtención del UserID
+        user_id = None
+        if INITIAL_AUTH_TOKEN:
+            try:
+                # Verifica el token seguro y obtiene el ID de usuario (UID)
+                decoded_token = firebase_auth.verify_id_token(INITIAL_AUTH_TOKEN)
+                user_id = decoded_token['uid']
+                st.session_state['is_authenticated'] = True
+            except Exception as e:
+                # Token inválido o expirado
+                st.warning(f"Error de autenticación, usando ID anónimo. Detalle: {e}")
+                pass
+                
+        # 4. Fallback si no hay token o falló la verificación (Usuario Anónimo)
+        if user_id is None:
+            # Genera un ID de usuario único para sesiones no autenticadas (anónimas)
+            # Usar 'uuid4().hex' es más seguro que os.urandom(16).hex() para este propósito.
+            import uuid
+            user_id = "anonymous_" + uuid.uuid4().hex
+            st.session_state['is_authenticated'] = False
+
+        # 5. Guardar el estado de sesión y marcar como listo
+        st.session_state['db'] = db
+        st.session_state['auth'] = firebase_auth
+        st.session_state['appId'] = APP_ID
+        st.session_state['userId'] = user_id
+        st.session_state['is_auth_ready'] = True
+        
+        # Opcional: print(f"Firebase Inicializado. UserId: {st.session_state.userId}, AppId: {APP_ID}")
+
+    except Exception as e:
+        st.error(f"FALLO CRÍTICO DE FIREBASE/AUTH: No se pudo conectar la DB. {e}")
+        st.session_state['is_auth_ready'] = False
+        st.session_state['db'] = None
 
 # ============================================================
 #   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
