@@ -400,7 +400,7 @@ import streamlit as st
 
 # --- CONFIGURACIONES GLOBALES REUTILIZABLES ---
 lista_grados_global = ["1° Primaria", "2° Primaria", "3° Primaria", "4° Primaria", "5° Primaria", "6° Primaria", "1° Secundaria", "2° Secundaria", "3° Secundaria", "4° Secundaria", "5° Secundaria"]
-lista_areas_global = ["Ciencia y Ambiente", "Matemáticas", "Comunicación y Lenguaje", "Historia", "Geografía", "Educación Física", "Arte y Cultura", "Inglés"]
+lista_areas_global = ["Ciencia y Ambiente", "Matemáticas", "Tecnología", "Comunicación y Lenguaje", "Historia", "Geografía", "Educación Física", "Arte y Cultura", "Inglés", "Otro"]
 lista_num_preguntas_global = list(range(2, 21)) # De 2 a 20 preguntas
 
 def mostrar_generador_ia_tutor():
