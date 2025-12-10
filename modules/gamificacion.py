@@ -415,7 +415,7 @@ def mostrar_menu_juegos():
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             text-align: center;
         }
-        
+
         /* 🏆 DISEÑO CORREGIDO Y FORZADO: Biblioteca (NARANJA VIBRANTE) */
         /* Combinamos el selector de la llave (key) con la clase de Streamlit (stButton) */
         section[data-testid="stMain"] div[key="btn_card_biblioteca"] div.stButton > button {
@@ -427,9 +427,9 @@ def mostrar_menu_juegos():
             background: linear-gradient(135deg, #FFB300 0%, #FF6F00 100%) !important;
         }
     </style>
-    """, unsafe_allow_html=True) 
+    """, unsafe_allow_html=True)
 
-    # 2. Título 
+    # 2. Título
     st.markdown("""
     <div style="text-align: center; margin-bottom: 30px;">
         <h2 style="color: #4A148C; font-size: 38px; font-weight: 900; letter-spacing: -1px;">🎮 ARCADE PEDAGÓGICO</h2>
@@ -450,7 +450,7 @@ def mostrar_menu_juegos():
         if st.button("🔤 PUPILETRAS\n\nAgudeza Visual", key="btn_card_pupi", use_container_width=True):
             st.session_state['juego_actual'] = 'pupiletras'
             st.rerun()
-            
+
     with col3:
         # BOTÓN BIBLIOTECA - Usará el nuevo estilo NARANJA VIBRANTE
         if st.button("📚 BIBLIOTECA\n\nGuardar y Compartir", key="btn_card_biblioteca", use_container_width=True):
@@ -458,7 +458,7 @@ def mostrar_menu_juegos():
             st.rerun()
 
     st.write("")
-    
+
     col4, col5, col_spacer = st.columns(3, gap="large")
 
     with col4:
