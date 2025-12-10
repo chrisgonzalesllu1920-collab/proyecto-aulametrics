@@ -111,67 +111,157 @@ def initialize_firebase():
         st.session_state['db'] = None
 
 # ============================================================
-#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE
+#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (ACTUALIZADO)
 # ============================================================
 
+# --- UTILIDADES DE SIMULACIÓN NECESARIAS ---
+# Nota: Estas utilidades deben estar definidas antes de esta sección.
+import time
+from types import SimpleNamespace
+# firestore = SimpleNamespace(SERVER_TIMESTAMP='SERVER_TIMESTAMP_SIM') # Asumimos que ya está definido arriba
+
+# --- DATOS SIMULADOS PARA LA LECTURA (onSnapshot) ---
+# Usamos una estructura simple que simula lo que devolvería doc.to_dict()
+# Esta lista será modificada por 'guardar_juego_trivia'
+simulated_firestore_games = [
+    {'doc_id': 'game_a', 'titulo': 'La Célula y sus Organelos', 'created_at': time.time() - 3600*24, 'configuracion': {'grado': '6° Primaria', 'area': 'Ciencias', 'num_preguntas': 4, 'origen': 'Manual'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 1', 'respuesta_correcta': 'X'}]},
+    {'doc_id': 'game_b', 'titulo': 'Batalla de Gettysburg (1863)', 'created_at': time.time() - 3600*12, 'configuracion': {'grado': '5° Secundaria', 'area': 'Historia', 'num_preguntas': 10, 'origen': 'IA-Tutor'}, 'is_public': True, 'preguntas': [{'pregunta': 'Simulada 2', 'respuesta_correcta': 'Y'}]},
+    {'doc_id': 'game_c', 'titulo': 'Introducción al Álgebra Lineal', 'created_at': time.time(), 'configuracion': {'grado': 'Universidad', 'area': 'Matemáticas', 'num_preguntas': 5, 'origen': 'IA-Tutor'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 3', 'respuesta_correcta': 'Z'}]},
+]
+# ----------------------------------------------------
+
+
 # Define las rutas de Firestore (Trivia Games)
-def get_personal_collection_ref():
-    """Retorna la referencia a la colección privada del usuario."""
-    if not st.session_state.get('db'): return None
+def get_personal_collection_ref(collection_name="trivia_games"):
+    """Retorna la referencia a la colección privada del usuario (o la ruta simulada)."""
+    if not st.session_state.get('is_auth_ready'): return None 
     appId = st.session_state.get('appId', 'default-app-id')
     userId = st.session_state.get('userId', 'offline-user-id')
     
-    # Ruta: /artifacts/{appId}/users/{userId}/trivia_games
-    return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection("trivia_games")
+    # En la simulación, retornamos la ruta de string si no hay DB real
+    if not st.session_state.get('db') or st.session_state.get('db') == 'SIM_DB':
+        return f"artifacts/{appId}/users/{userId}/{collection_name}"
+        
+    # Ruta real (si usamos el SDK real)
+    return st.session_state.db.collection(f"artifacts").document(appId).collection("users").document(userId).collection(collection_name)
 
-def get_global_collection_ref():
-    """Retorna la referencia a la colección pública global."""
-    if not st.session_state.get('db'): return None
+def get_global_collection_ref(collection_name="trivia_games"):
+    """Retorna la referencia a la colección pública global (o la ruta simulada)."""
+    if not st.session_state.get('is_auth_ready'): return None
     appId = st.session_state.get('appId', 'default-app-id')
     
-    # Ruta: /artifacts/{appId}/public/data/trivia_games
-    # NOTA: Los dos documents (public, data) son necesarios para cumplir con las reglas de seguridad
-    return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection("trivia_games")
+    # En la simulación, retornamos la ruta de string si no hay DB real
+    if not st.session_state.get('db') or st.session_state.get('db') == 'SIM_DB':
+        return f"artifacts/{appId}/public/data/{collection_name}"
+        
+    # Ruta real
+    return st.session_state.db.collection(f"artifacts").document(appId).collection("public").document("data").collection(collection_name)
 
 
 def guardar_juego_trivia(game_data: dict, is_public: bool = False, doc_id: str = None):
     """
     Guarda el juego de trivia en Firestore en la colección personal o global.
-    :param game_data: Diccionario con la estructura del juego.
-    :param is_public: Booleano, si es True, guarda en la biblioteca global.
-    :param doc_id: ID opcional para el documento. Si es None, se genera uno automáticamente.
-    :return: El ID del documento generado/usado o False si falla.
+    [IMPLEMENTACIÓN SIMULADA]
     """
-    if not st.session_state.get('is_auth_ready') or not st.session_state.get('db'):
-        # No usamos st.error aquí ya que esto puede ser llamado en el backend
+    global simulated_firestore_games # Asegura que podemos modificar la lista simulada
+    
+    if not st.session_state.get('is_auth_ready'):
         print("Error: No se puede guardar: Firebase no está inicializado o la autenticación falló.")
         return False
 
-    collection_ref = get_global_collection_ref() if is_public else get_personal_collection_ref()
+    # Usar la ruta de colección simulada (o referencia real)
+    collection_path = get_global_collection_ref() if is_public else get_personal_collection_ref()
     
-    if collection_ref is None:
+    if collection_path is None:
         print("Error al obtener la referencia de la colección.")
         return False
         
     try:
         # Añade metadatos antes de guardar
+        # Simular la generación de ID
+        doc_id = doc_id if doc_id else f"sim_doc_{int(time.time() * 1000)}_{len(simulated_firestore_games)}"
         game_data['creator_id'] = st.session_state.get('userId', 'anonymous')
-        game_data['created_at'] = firestore.SERVER_TIMESTAMP
+        game_data['created_at'] = time.time() # Usamos timestamp real para la simulación de ordenamiento
         game_data['is_public'] = is_public
         
-        # 1. Elegir si crear o actualizar
-        if doc_id:
-            doc_ref = collection_ref.document(doc_id)
-            doc_ref.set(game_data)
-            return doc_id
-        else:
-            # 2. Crear documento con ID generado automáticamente
-            doc_ref = collection_ref.add(game_data)
-            return doc_ref[1].id
+        # --- SIMULACIÓN DE GUARDADO ---
+        # 1. Borrar cualquier juego existente con el mismo ID (para simular .set)
+        global simulated_firestore_games
+        simulated_firestore_games = [g for g in simulated_firestore_games if g.get('doc_id') != doc_id]
+        
+        # 2. Añadir el nuevo/actualizado juego
+        new_game = {'doc_id': doc_id, **game_data}
+        simulated_firestore_games.append(new_game)
+        
+        # Forzar recarga de la biblioteca al guardar un nuevo juego
+        st.session_state['juegos_biblioteca'] = None
+        
+        st.toast(f"💾 Juego '{game_data.get('titulo', 'Sin Título')}' Guardado!", icon='✅')
+        return doc_id
             
     except Exception as e:
-        st.error(f"Error al guardar el juego en Firestore: {e}")
+        print(f"Error al guardar el juego: {e}")
         return False
+
+
+def obtener_juegos_trivia_usuario():
+    """
+    NUEVA FUNCIÓN. Simula la obtención de juegos de Trivia del usuario desde Firestore
+    usando un onSnapshot listener y almacena los resultados en el estado.
+    """
+    global simulated_firestore_games
+    
+    if 'juegos_biblioteca' not in st.session_state:
+        st.session_state['juegos_biblioteca'] = None
+        st.session_state['is_loading_library'] = False
+    
+    # Asegurar que la autenticación esté lista antes de intentar "cargar"
+    if not st.session_state.get('is_auth_ready'):
+        return
+
+    # Evitar llamadas repetidas si ya está cargando o ya se cargó
+    if st.session_state['juegos_biblioteca'] is not None or st.session_state['is_loading_library']:
+        return
+
+    # Iniciamos la carga simulada
+    st.session_state['is_loading_library'] = True
+    print("Iniciando simulación de carga de juegos privados...")
+    
+    collection_path = get_personal_collection_ref()
+    if collection_path is None:
+        st.session_state['is_loading_library'] = False
+        return
+        
+    try:
+        # SIMULACIÓN DE LA CONEXIÓN Y onSnapshot
+        time.sleep(0.5) # Simular latencia de carga
+        
+        # Filtrar los juegos que pertenecerían a la colección privada del usuario
+        # Solo incluimos juegos que NO son públicos (is_public=False)
+        juegos_cargados = []
+        for doc in simulated_firestore_games:
+            if not doc.get('is_public', False):
+                 juegos_cargados.append(doc)
+
+        # Almacenar la lista de juegos en el estado, ordenados por fecha de creación descendente
+        st.session_state['juegos_biblioteca'] = sorted(
+            juegos_cargados, 
+            key=lambda x: x.get('created_at', 0), 
+            reverse=True
+        )
+        print(f"Cargados {len(st.session_state['juegos_biblioteca'])} juegos privados simulados.")
+
+    except Exception as e:
+        print(f"Error simulado al cargar juegos: {e}")
+        st.session_state['juegos_biblioteca'] = [] # Vacío en caso de error
+        
+    finally:
+        st.session_state['is_loading_library'] = False
+
+def navegar_a(pagina):
+    """Cambia la página actual y fuerza un nuevo renderizado."""
+    st.session_state['pagina_actual'] = pagina
+    st.rerun()
 
 # ============================================================
 #   C. GESTIÓN DE ESTADO GENERAL Y MENÚS DE NAVEGACIÓN
