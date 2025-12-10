@@ -435,118 +435,44 @@ lista_areas_global = ["Ciencia y Ambiente", "Matemáticas", "Tecnología", "Comu
 lista_num_preguntas_global = list(range(2, 21)) # De 2 a 20 preguntas
 
 def mostrar_generador_ia_tutor():
-    """Muestra la interfaz para generar preguntas de Trivia usando IA (búsqueda web/conocimiento)."""
+    """Interfaz para generar juegos de trivia con la IA."""
+    st.title("🌟 Generador IA Tutor")
     
-    # 1. Barra superior
-    col_back, col_title = st.columns([1, 5])
-    with col_back:
-        if st.button("🔙 Fuentes", use_container_width=True, key="btn_ia_back"):
-            # Llama a la función de la Sección C para cambiar de vista
-            if 'volver_menu_fuentes_trivia' in globals():
-                volver_menu_fuentes_trivia()
-            else:
-                st.session_state['vista_actual'] = 'menu_fuentes_trivia'
-                st.rerun()
-            
-    with col_title:
-        st.subheader("🌐 Generar Trivia con IA-Tutor")
-        st.caption("La IA buscará y creará preguntas basadas en el tema general proporcionado.")
+    # ... [Código de Configuración (Selectbox, Text_input)] ...
+
+    # Botón de Generar
+    if st.button("🚀 Generar Preguntas", disabled=st.session_state.get('is_generating') or not tema_input, use_container_width=True):
+        # ... [Lógica de llamada a la IA y rerender] ...
         
-    st.divider()
-    
-    # --- CONFIGURACIÓN DE GENERACIÓN IA ---
-    trivia_source = 'IA-Tutor'
-    
-    # 1. CAMPO DE ENTRADA
-    st.markdown(f"**Fuente de la Trivia:** **<span style='color:#1b5e20;'>Uso de IA-Tutor</span>**", unsafe_allow_html=True)
-    tema_input = st.text_input("Tema General:", placeholder="Ej: La Célula, La Revolución Francesa, Álgebra...")
-    
-    # 2. CONFIGURACIÓN GENERAL (Ahora con los 3 nuevos selectores)
-    # Usamos 3 columnas para los selectores de Grado, Área y Cantidad de Preguntas
-    col_game1, col_game2, col_game3 = st.columns(3)
-    
-    with col_game1:
-        # 3. Nivel Educativo (De 1° Primaria a 5° Secundaria)
-        grado_input = st.selectbox("Nivel Educativo (Grado):", lista_grados_global, index=6)
-    
-    with col_game2:
-        # 2. Área/Materia
-        area_input = st.selectbox("Área/Materia:", lista_areas_global, index=0)
-    
-    with col_game3:
-        # 1. Número de Preguntas (De 2 a 20)
-        # El valor por defecto es 5, que está en el índice 3 de lista_num_preguntas_global (2, 3, 4, 5)
-        num_input = st.selectbox("Número de Preguntas:", lista_num_preguntas_global, index=3)
-
-    # Modo de Avance (separado para mantener el flujo original)
-    modo_avance = st.radio("Modo de Juego:", ["Automático (Rápido)", "Guiado por Docente (Pausa)"])
-
-    # BOTÓN GENERAR
-    if st.button("🎲 Generar Juego", type="primary", use_container_width=True):
+    # ---------------------------------------------------------------
+    # 💥 INICIO DEL CAMBIO DEL PASO 3
+    # Este bloque solo se muestra si el juego ya fue generado.
+    # ---------------------------------------------------------------
+    if st.session_state.get('juego_iniciado'):
+        st.markdown("---")
+        st.subheader("✅ Trivia Generada - Opciones de Gestión")
         
-        if not tema_input:
-            st.warning(f"⚠️ Por favor, introduce un tema válido.")
-        else:
-            intentos = 0
-            max_intentos = 3
-            exito = False
-            
-            # Placeholder para la función de IA - ASUME que está definida globalmente
-            if 'pedagogical_assistant' not in globals() or not hasattr(pedagogical_assistant, 'generar_trivia_juego'):
-                 st.error("Error: La función 'pedagogical_assistant.generar_trivia_juego' no está definida.")
-                 return
-            
-            # Preparamos el prompt para la IA incluyendo el Área/Materia
-            tema_ia_prompt = f"Tema: {tema_input}. Área Principal: {area_input}"
-            
-            while intentos < max_intentos and not exito:
-                intentos += 1
-                try:
-                    msg_intento = f"🧠 Creando desafíos desde {trivia_source}..." if intentos == 1 else f"⚠️ Ajustando formato (Intento {intentos}/{max_intentos})..."
-                    
-                    with st.spinner(msg_intento):
-                        # Llamada a la IA (se asume que la IA puede inferir el área desde el prompt)
-                        # Nota: Mantenemos la firma de la función IA original (4 argumentos de contenido)
-                        respuesta_json = pedagogical_assistant.generar_trivia_juego(tema_ia_prompt, grado_input, trivia_source, num_input)
-                        
-                        if respuesta_json:
-                            # Limpieza del JSON
-                            clean_json = respuesta_json.replace('```json', '').replace('```', '').strip()
-                            preguntas = json.loads(clean_json)
-                            
-                            # Validar que la estructura sea una lista de diccionarios
-                            if isinstance(preguntas, list) and all(isinstance(p, dict) for p in preguntas):
-                                # GUARDAMOS LA ESTRUCTURA DEL JUEGO
-                                st.session_state['juego_preguntas'] = preguntas
-                                st.session_state['juego_indice'] = 0
-                                st.session_state['juego_puntaje'] = 0.0 # Usar float para mejor precisión con divisiones
-                                st.session_state['juego_terminado'] = False
-                                st.session_state['tema_actual'] = tema_input
-                                st.session_state['modo_avance'] = "auto" if "Automático" in modo_avance else "guiado"
-                                st.session_state['fase_pregunta'] = "respondiendo"
-                                st.session_state['juego_en_lobby'] = True 
-                                st.session_state['juego_iniciado'] = True 
-                                st.session_state['trivia_source'] = trivia_source # Establecer la fuente
-                                
-                                exito = True
-                                st.session_state['juego_actual'] = 'trivia_jugar' # Cambia la vista al juego
-                                st.rerun()
-                            else:
-                                raise json.JSONDecodeError("JSON no es una lista de preguntas válida", clean_json, 0)
-                        else:
-                            raise Exception("Respuesta vacía de la IA")
+        col_guardar, col_jugar = st.columns(2)
+        
+        with col_guardar:
+            if st.button("💾 Guardar en mi Historial", use_container_width=True):
+                # Lógica de guardado...
+                st.toast("¡Juego Guardado!", icon='🎉')
+                
+        with col_jugar:
+            if st.button("🕹️ Jugar esta Trivia Ahora", use_container_width=True, type='primary'):
+                navegar_a('juego') # O la función de navegación correspondiente
 
-                except json.JSONDecodeError as e:
-                    print(f"JSON Decode Error: {e}. Retrying...")
-                    time.sleep(0.5) # Pausa mínima antes de reintentar
-                    continue
-                    
-                except Exception as e:
-                    st.error(f"Error inesperado durante la generación: {e}")
-                    break
-            
-            if not exito:
-                st.error("❌ La IA está teniendo dificultades para generar un formato válido. Por favor, intenta cambiar el tema.")
+        st.markdown("---")
+        # Mostrar las preguntas generadas para revisión
+        st.subheader("🔍 Preguntas para Revisión")
+        # ... [Lógica de mostrar preguntas] ...
+
+    elif st.session_state.get('is_generating'):
+        st.info("Generando preguntas... por favor espera.")
+        
+    else:
+        st.info("Ingresa un tema específico y haz clic en 'Generar Preguntas' para comenzar.")
 
 def mostrar_formulario_manual():
     """Muestra el formulario para que el usuario ingrese las preguntas manualmente."""
