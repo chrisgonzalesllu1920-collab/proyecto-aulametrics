@@ -8,6 +8,7 @@ import pedagogical_assistant
 import base64
 from datetime import datetime
 
+
 # --- IMPORTS DE FIREBASE (Necesarios para el SDK Admin) ---
 # Se necesita para la lógica de inicialización y las funciones de DB
 try:
@@ -1609,7 +1610,7 @@ def gamificacion():
         
     elif st.session_state['juego_actual'] == 'biblioteca':
         # Nueva página: Biblioteca (G)
-        mostrar_biblioteca_juegos()
+        mostrar_menu_biblioteca()
 
 # Ejecutar la función principal si el archivo se ejecuta directamente
 if __name__ == '__main__':
