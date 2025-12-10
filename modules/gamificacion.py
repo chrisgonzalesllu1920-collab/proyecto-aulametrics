@@ -8,7 +8,7 @@ import pedagogical_assistant
 import base64
 from datetime import datetime
 from types import SimpleNamespace
-
+import uuid # Necesario para generar IDs anónimos
 
 # --- IMPORTS DE FIREBASE (Necesarios para el SDK Admin) ---
 # Se necesita para la lógica de inicialización y las funciones de DB
@@ -92,8 +92,7 @@ def initialize_firebase():
         # 4. Fallback si no hay token o falló la verificación (Usuario Anónimo)
         if user_id is None:
             # Genera un ID de usuario único para sesiones no autenticadas (anónimas)
-            # Usar 'uuid4().hex' es más seguro que os.urandom(16).hex() para este propósito.
-            import uuid
+            # Usamos uuid para mayor robustez en lugar de os.urandom
             user_id = "anonymous_" + uuid.uuid4().hex
             st.session_state['is_authenticated'] = False
 
@@ -112,98 +111,16 @@ def initialize_firebase():
         st.session_state['db'] = None
 
 # ============================================================
-#   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
+#   B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (ACTUALIZADO)
 # ============================================================
-
-# ============================================================
-#   A. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE/AUTH
-# ============================================================
-
-def initialize_firebase():
-    """Inicializa Firebase, Firestore y autentica al usuario (usando el SDK Admin)."""
-    
-    # Solo ejecutar la inicialización una vez
-    if st.session_state.get('is_auth_ready', False):
-        return
-        
-    st.session_state['is_auth_ready'] = False # Estado inicial: no listo
-
-    # Si no hay configuración de Firebase, asumimos modo offline/local.
-    if not FIREBASE_CONFIG_JSON or FIREBASE_CONFIG_JSON == "{}":
-        st.session_state['db'] = None
-        st.session_state['auth'] = None
-        st.session_state['appId'] = APP_ID
-        st.session_state['userId'] = 'offline-user-id'
-        st.session_state['is_auth_ready'] = True
-        st.session_state['is_authenticated'] = False
-        st.warning("⚠️ Ejecutando sin conexión a Firebase. Los datos no se guardarán.")
-        return
-
-    try:
-        # 1. Parsear configuración y credenciales
-        firebase_config = json.loads(FIREBASE_CONFIG_JSON)
-        cred = credentials.Certificate(firebase_config)
-        
-        # 2. Inicializar la app (solo si no está ya inicializada)
-        # Usamos el APP_ID como nombre para evitar conflictos si hay múltiples inicializaciones
-        if not firebase_admin._apps or APP_ID not in firebase_admin._apps:
-            app = initialize_app(cred, name=APP_ID)
-        else:
-            app = firebase_admin.get_app(APP_ID)
-            
-        db = firestore.client(app)
-        firebase_auth = auth
-        
-        # 3. Autenticación y obtención del UserID
-        user_id = None
-        if INITIAL_AUTH_TOKEN:
-            try:
-                # Verifica el token seguro y obtiene el ID de usuario (UID)
-                decoded_token = firebase_auth.verify_id_token(INITIAL_AUTH_TOKEN)
-                user_id = decoded_token['uid']
-                st.session_state['is_authenticated'] = True
-            except Exception as e:
-                # Token inválido o expirado
-                st.warning(f"Error de autenticación, usando ID anónimo. Detalle: {e}")
-                pass
-                
-        # 4. Fallback si no hay token o falló la verificación (Usuario Anónimo)
-        if user_id is None:
-            # Genera un ID de usuario único para sesiones no autenticadas (anónimas)
-            # Usar 'uuid4().hex' es más seguro que os.urandom(16).hex() para este propósito.
-            import uuid
-            user_id = "anonymous_" + uuid.uuid4().hex
-            st.session_state['is_authenticated'] = False
-
-        # 5. Guardar el estado de sesión y marcar como listo
-        st.session_state['db'] = db
-        st.session_state['auth'] = firebase_auth
-        st.session_state['appId'] = APP_ID
-        st.session_state['userId'] = user_id
-        st.session_state['is_auth_ready'] = True
-        
-        # Opcional: print(f"Firebase Inicializado. UserId: {st.session_state.userId}, AppId: {APP_ID}")
-
-    except Exception as e:
-        st.error(f"FALLO CRÍTICO DE FIREBASE/AUTH: No se pudo conectar la DB. {e}")
-        st.session_state['is_auth_ready'] = False
-        st.session_state['db'] = None
-
-# ============================================================
-#    B. GESTIÓN DE ESTADO Y UTILIDADES DE FIREBASE (ACTUALIZADO)
-# ============================================================
-
-# --- UTILIDADES DE SIMULACIÓN NECESARIAS ---
-# Nota: Estas utilidades deben estar definidas antes de esta sección.
-# firestore = SimpleNamespace(SERVER_TIMESTAMP='SERVER_TIMESTAMP_SIM') # Asumimos que ya está definido arriba
 
 # --- DATOS SIMULADOS PARA LA LECTURA (onSnapshot) ---
 # Usamos una estructura simple que simula lo que devolvería doc.to_dict()
 # Esta lista será modificada por 'guardar_juego_trivia' y 'eliminar_juego_trivia'
 simulated_firestore_games = [
-    {'doc_id': 'game_a', 'titulo': 'La Célula y sus Organelos', 'created_at': time.time() - 3600*24, 'configuracion': {'grado': '6° Primaria', 'area': 'Ciencias', 'num_preguntas': 4, 'origen': 'Manual'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 1', 'respuesta_correcta': 'X'}]},
-    {'doc_id': 'game_b', 'titulo': 'Batalla de Gettysburg (1863)', 'created_at': time.time() - 3600*12, 'configuracion': {'grado': '5° Secundaria', 'area': 'Historia', 'num_preguntas': 10, 'origen': 'IA-Tutor'}, 'is_public': True, 'preguntas': [{'pregunta': 'Simulada 2', 'respuesta_correcta': 'Y'}]},
-    {'doc_id': 'game_c', 'titulo': 'Introducción al Álgebra Lineal', 'created_at': time.time(), 'configuracion': {'grado': 'Universidad', 'area': 'Matemáticas', 'num_preguntas': 5, 'origen': 'IA-Tutor'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 3', 'respuesta_correcta': 'Z'}]},
+    {'doc_id': 'game_a', 'titulo': 'La Célula y sus Organelos', 'created_at': time.time() - 3600*24, 'configuracion': {'grado': '6° Primaria', 'area': 'Ciencias', 'num_preguntas': 4, 'origen': 'Manual'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 1', 'respuesta_correcta': 'X'}], 'creator_id': 'offline-user-id'},
+    {'doc_id': 'game_b', 'titulo': 'Batalla de Gettysburg (1863)', 'created_at': time.time() - 3600*12, 'configuracion': {'grado': '5° Secundaria', 'area': 'Historia', 'num_preguntas': 10, 'origen': 'IA-Tutor'}, 'is_public': True, 'preguntas': [{'pregunta': 'Simulada 2', 'respuesta_correcta': 'Y'}], 'creator_id': 'offline-user-id'},
+    {'doc_id': 'game_c', 'titulo': 'Introducción al Álgebra Lineal', 'created_at': time.time(), 'configuracion': {'grado': 'Universidad', 'area': 'Matemáticas', 'num_preguntas': 5, 'origen': 'IA-Tutor'}, 'is_public': False, 'preguntas': [{'pregunta': 'Simulada 3', 'respuesta_correcta': 'Z'}], 'creator_id': 'offline-user-id'},
 ]
 # ----------------------------------------------------
 
@@ -211,7 +128,7 @@ simulated_firestore_games = [
 # Define las rutas de Firestore (Trivia Games)
 def get_personal_collection_ref(collection_name="trivia_games"):
     """Retorna la referencia a la colección privada del usuario (o la ruta simulada)."""
-    if not st.session_state.get('is_auth_ready'): return None 
+    if not st.session_state.get('is_auth_ready'): return None
     appId = st.session_state.get('appId', 'default-app-id')
     userId = st.session_state.get('userId', 'offline-user-id')
     
@@ -312,7 +229,7 @@ def eliminar_juego_trivia(doc_id: str):
         # Filtrar el juego a eliminar (solo si no es público) y guardar los restantes
         # El juego solo se elimina si su doc_id coincide Y NO es público.
         simulated_firestore_games = [
-            g for g in simulated_firestore_games 
+            g for g in simulated_firestore_games
             if g.get('doc_id') != doc_id or g.get('is_public') == True
         ]
 
@@ -334,7 +251,7 @@ def eliminar_juego_trivia(doc_id: str):
 
 def obtener_juegos_trivia_usuario():
     """
-    NUEVA FUNCIÓN. Simula la obtención de juegos de Trivia del usuario desde Firestore
+    Simula la obtención de juegos de Trivia del usuario desde Firestore
     usando un onSnapshot listener y almacena los resultados en el estado.
     """
     global simulated_firestore_games
@@ -367,16 +284,15 @@ def obtener_juegos_trivia_usuario():
         # Filtrar los juegos que pertenecerían a la colección privada del usuario
         # Solo incluimos juegos que NO son públicos (is_public=False)
         juegos_cargados = []
+        target_user_id = st.session_state.get('userId', 'anonymous')
+        
         for doc in simulated_firestore_games:
-            # En una aplicación real, se filtrarían por userId en el Query.
-            # Aquí, solo filtramos los NO públicos.
-            if not doc.get('is_public', False):
-                # Asegúrate de que el juego pertenezca al usuario, aunque es implícito en la simulación
-                # con 'is_public': False, lo hacemos explícito para mayor claridad.
-                if doc.get('creator_id', 'anonymous') == st.session_state.get('userId', 'anonymous'):
-                    juegos_cargados.append(doc)
-                # Si el creator_id no coincide, asumimos que no es un juego del usuario
-                # (aunque la simulación es imperfecta, sigue el espíritu del filtro de seguridad).
+            # Filtramos solo los juegos privados creados por el usuario actual
+            is_private = not doc.get('is_public', False)
+            is_creator = doc.get('creator_id', 'anonymous') == target_user_id
+            
+            if is_private and is_creator:
+                juegos_cargados.append(doc)
 
         # Almacenar la lista de juegos en el estado, ordenados por fecha de creación descendente
         st.session_state['juegos_biblioteca'] = sorted(
