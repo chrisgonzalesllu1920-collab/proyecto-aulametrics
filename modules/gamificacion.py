@@ -402,6 +402,10 @@ def juego_trivia(volver_menu_juegos):
                 del st.session_state['juego_terminado']
                 st.rerun()
 
+# ============================================================
+# === JUEGO 2: PUPILETRAS
+# ============================================================
+
 def juego_pupiletras(volver_menu_juegos):
     # --- BARRA SUPERIOR ---
     col_back, col_title = st.columns([1, 5])
@@ -544,7 +548,7 @@ def juego_pupiletras(volver_menu_juegos):
             st.rerun()
 
 # ============================================================
-# === 3. JUEGO AHORCADO (ROBOT)
+# === JUEGO 3: AHORCADO (ROBOT)
 # ============================================================
 
 def juego_ahorcado(volver_menu_juegos):
@@ -766,6 +770,9 @@ def juego_ahorcado(volver_menu_juegos):
                             time.sleep(1.0)
                         
                         st.rerun()
+# ============================================================
+# === JUEGO 4: SORTEADOR
+# ============================================================
 
 def juego_sorteador(volver_menu_juegos):
     import streamlit as st
