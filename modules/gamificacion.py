@@ -1841,13 +1841,14 @@ def gamificacion():
     Función principal que gestiona el enrutamiento (routing) de las diferentes vistas del arcade.
     """
     
-    # 1. GESTIÓN DE ESTADO (Asegurando el estado inicial)
+    # 1. GESTIÓN DE ESTADO (Asegurando el estado inicial en 'menu_juegos')
+    # Inicializar con el valor directo del menú principal
     if 'juego_actual' not in st.session_state:
-        # Inicializa a None para mostrar el menú principal
-        st.session_state['juego_actual'] = None    
-    
+        st.session_state['juego_actual'] = 'menu_juegos'
+        
     # 2. RENDERIZADO DE VISTAS
-    if st.session_state['juego_actual'] is None:
+    # Usamos 'menu_juegos' como ruta de inicio
+    if st.session_state['juego_actual'] == 'menu_juegos':
         # Menú principal de juegos (D)
         mostrar_menu_juegos()
 
@@ -1859,8 +1860,6 @@ def gamificacion():
         # Generación de Trivia usando IA-Tutor (F - Subsección IA)
         mostrar_generador_ia_tutor()
 
-    # **CORRECCIÓN CLAVE AQUÍ:** Se cambió 'trivia_elaboracion_manual' por 
-    # 'trivia_configuracion_manual' para coincidir con el valor seteado en la Sección E.
     elif st.session_state['juego_actual'] == 'trivia_configuracion_manual':
         # Formulario Manual Puro (F - Subsección Manual)
         mostrar_formulario_manual()
@@ -1886,6 +1885,7 @@ def gamificacion():
         # Nueva página: Biblioteca (G)
         mostrar_menu_biblioteca()
 
-# Ejecutar la función principal si el archivo se ejecuta directamente
-if __name__ == '__main__':
-    gamificacion()
+    else:
+        # Fallback de seguridad: Si el estado no coincide con ninguna ruta, vuelve al menú
+        st.session_state['juego_actual'] = 'menu_juegos'
+        st.rerun() # Forzar el rerenderizado
