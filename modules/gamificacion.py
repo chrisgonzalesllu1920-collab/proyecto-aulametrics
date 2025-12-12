@@ -23,15 +23,15 @@ except ImportError:
 # En Canvas, las variables se inyectan como globales de Python, NO como env vars.
 # Usamos try/except NameError para manejar entornos de desarrollo locales.
 try:
-    # Intenta acceder a las variables globales de Canvas
-    APP_ID = __app_id
-    FIREBASE_CONFIG_JSON = __firebase_config
-    INITIAL_AUTH_TOKEN = __initial_auth_token
+# Intenta acceder a las variables globales de Canvas
+APP_ID = __app_id
+FIREBASE_CONFIG_JSON = __firebase_config
+INITIAL_AUTH_TOKEN = __initial_auth_token
 except NameError:
-    # Fallback para desarrollo local (puedes cargar un archivo de secrets.json aquí)
-    APP_ID = "default-app-id"
-    FIREBASE_CONFIG_JSON = "{}"
-    INITIAL_AUTH_TOKEN = None
+# Fallback para desarrollo local (puedes cargar un archivo de secrets.json aquí)
+APP_ID = "default-app-id"
+FIREBASE_CONFIG_JSON = "{}"
+INITIAL_AUTH_TOKEN = None
 
 # ============================================================
 #   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
@@ -558,7 +558,6 @@ import json
 # para evitar bloqueos en Streamlit, lo mantenemos por si el usuario lo necesita
 # en futuras funciones asíncronas.
 import time
-import streamlit as st
 
 # Importaciones de Firebase (Asumiendo que se usan en el entorno principal,
 # pero se definen aquí si este bloque fuera el script completo)
