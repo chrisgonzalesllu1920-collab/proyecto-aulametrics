@@ -122,13 +122,13 @@ st.markdown("""
 
 @st.cache_data 
 def get_image_as_base64(file_path):
-  """Carga una imagen y la convierte a Base64 string."""
-  try:
-      with open(file_path, "rb") as f:
-          data = f.read()
-      return base64.b64encode(data).decode()
-  except FileNotFoundError:
-      return None
+    """Carga una imagen y la convierte a Base64 string."""
+    try:
+        with open(file_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except FileNotFoundError:
+        return None
 
 # =========================================================================
 # === 1.B. SISTEMA DE NAVEGACIÓN (EL GPS) ===
@@ -1363,6 +1363,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
