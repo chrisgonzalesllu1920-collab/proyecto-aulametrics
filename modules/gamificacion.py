@@ -185,7 +185,7 @@ def guardar_juego_trivia(game_data: dict, is_public: bool = False, doc_id: str =
         
         # --- SIMULACIÓN DE GUARDADO ---
         # 1. Borrar cualquier juego existente con el mismo ID (para simular .set)
-        global simulated_firestore_games
+        
         simulated_firestore_games = [g for g in simulated_firestore_games if g.get('doc_id') != doc_id]
         
         # 2. Añadir el nuevo/actualizado juego
