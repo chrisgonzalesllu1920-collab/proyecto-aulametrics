@@ -1,7 +1,3 @@
-# Archivo: juego_robot.py
-# Módulo que contiene la lógica y el diseño para el juego "Robot Ahorcado" (Hangman).
-# Recibe la función 'volver_menu_juegos' para permitir la navegación al menú principal.
-
 def juego_ahorcado(volver_menu_juegos):
     """
     Implementa el juego "Robot Ahorcado" utilizando Streamlit.
