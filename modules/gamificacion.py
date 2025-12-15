@@ -88,7 +88,7 @@ def mostrar_menu_juegos():
 
     with col3:
         if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-            st.session_state['juego_actual'] = 'robot'
+            st.session_state['juego_actual'] = 'ahorcado'
             st.rerun()
 
     with col4:
@@ -552,7 +552,6 @@ def juego_pupiletras(volver_menu_juegos):
 # ============================================================
 # === 3. JUEGO AHORCADO (ROBOT)
 # ============================================================
-
 def juego_ahorcado(volver_menu_juegos):
 
     import streamlit as st
