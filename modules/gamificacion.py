@@ -550,9 +550,9 @@ def juego_pupiletras(volver_menu_juegos):
             st.rerun()
 
     # === JUEGO 3: ROBOT AHORCADO ===
-    # El estado se cambió a 'ahorcado' para que el flujo de sesión sea claro
+    # El estado de sesión 'robot' es el que dispara la llamada.
     elif st.session_state['juego_actual'] == 'robot': 
-        juego_robot(volver_menu_juegos) # Llama a la función importada
+        juego_ahorcado(volver_menu_juegos) # Corregido: Llama a la función importada 'juego_ahorcado'
 
 
     # El sorteador ahora usa la función importada de juego_sorteador.py
