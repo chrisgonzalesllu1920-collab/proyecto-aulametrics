@@ -1,15 +1,15 @@
 import streamlit as st
 import json
-import random
+import os
 import time
+import random
 import pandas as pd
 import pedagogical_assistant
-# Importación relativa corregida para juego_robot (debe ser coherente con juego_sorteador)
-from .juego_sorteador import juego_sorteador
-from .juego_robot import juego_robot
-from streamlit_lottie import st_lottie  # Solo si lo usas
-import base64  # Solo si algún juego lo usa
-import os  # Solo si se usa en algún juego
+import base64
+from datetime import datetime
+from types import SimpleNamespace
+import uuid # Necesario para generar IDs anónimos
+# from streamlit_lottie import st_lottie # Dejar comentada si no se usa
 
 # ============================================================
 #   MÓDULO DE GAMIFICACIÓN – VERSIÓN ORGANIZADA
