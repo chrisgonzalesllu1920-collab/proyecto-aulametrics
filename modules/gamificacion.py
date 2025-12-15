@@ -8,6 +8,7 @@ import pedagogical_assistant
 import base64
 from datetime import datetime
 from types import SimpleNamespace
+from .juego_sorteador import juego_sorteador
 import uuid # Necesario para generar IDs anónimos
 # from streamlit_lottie import st_lottie # Dejar comentada si no se usa
 
