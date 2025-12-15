@@ -804,7 +804,7 @@ def gamificacion():
 
 
     elif st.session_state['juego_actual'] == 'robot': 
-        juego_ahorcado(volver_menu_juegos)
+        juego_robot(volver_menu_juegos)
 
 
     elif st.session_state['juego_actual'] == 'sorteador':
