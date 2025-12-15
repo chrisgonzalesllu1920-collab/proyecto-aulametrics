@@ -572,19 +572,25 @@ def gamificacion():
 
     # Router
     if st.session_state["juego_actual"] is None:
-        mostrar_menu_juegos()
+        # Asumiendo que 'mostrar_menu_juegos' está definida en alguna parte.
+        mostrar_menu_juegos() 
 
     elif st.session_state["juego_actual"] == "trivia":
+        # Asumiendo que 'juego_trivia' está importada/definida.
         juego_trivia(volver_menu_juegos)
 
 
     elif st.session_state['juego_actual'] == 'pupiletras':
+        # Asumiendo que 'juego_pupiletras' está importada/definida.
         juego_pupiletras(volver_menu_juegos)
 
-
-    elif st.session_state['juego_actual'] == 'ahorcado':
-        juego_ahorcado(volver_menu_juegos)
+    
+    # === CORRECCIÓN CLAVE: Robot Ahorcado ===
+    # El estado 'robot' llama a la función 'juego_ahorcado' importada de juego_robot.py
+    elif st.session_state['juego_actual'] == 'robot': 
+        juego_ahorcado(volver_menu_juegos) # Llamada verificada y correcta
 
 
     elif st.session_state['juego_actual'] == 'sorteador':
+        # Llamada verificada y correcta
         juego_sorteador(volver_menu_juegos)
