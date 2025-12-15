@@ -1,15 +1,16 @@
-def juego_robot(volver_menu_juegos):
+def juego_ahorcado(volver_menu_juegos):
     import streamlit as st
     import time
     # Se asume que 'pedagogical_assistant' está disponible en el entorno.
     import pedagogical_assistant
+
     """
-    Implementa el juego "Robot robot" utilizando Streamlit.
+    Implementa el juego "Robot Ahorcado" utilizando Streamlit.
 
     Args:
         volver_menu_juegos (function): Función de callback para regresar
-                                        al menú principal de juegos.
-    """
+                                       al menú principal de juegos.
+    """"
     # El if se mantiene para contener toda la lógica del juego.
     if st.session_state.get('juego_actual') == 'robot':
         
