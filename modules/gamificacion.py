@@ -6,7 +6,7 @@ import pandas as pd
 import pedagogical_assistant
 # Importación relativa corregida para juego_robot (debe ser coherente con juego_sorteador)
 from .juego_sorteador import juego_sorteador
-from .juego_robot import juego_ahorcado # <-- CORREGIDO: añadido el punto para importación relativa
+from .juego_robot import juego_robot # <-- CORREGIDO: añadido el punto para importación relativa
 
 from streamlit_lottie import st_lottie  # Solo si lo usas
 import base64  # Solo si algún juego lo usa
@@ -550,10 +550,10 @@ def juego_pupiletras(volver_menu_juegos):
             del st.session_state['pupi_grid']
             st.rerun()
 
-    # === JUEGO 3: ROBOT AHORCADO ===
+    # === JUEGO 3: ROBOT robot ===
     # El estado de sesión 'robot' es el que dispara la llamada.
     elif st.session_state['juego_actual'] == 'robot': 
-        juego_ahorcado(volver_menu_juegos) # Corregido: Llama a la función importada 'juego_ahorcado'
+        juego_robot(volver_menu_juegos) # Corregido: Llama a la función importada 'juego_robot'
 
 
     # El sorteador ahora usa la función importada de juego_sorteador.py
@@ -586,7 +586,7 @@ def gamificacion():
 
 
     elif st.session_state['juego_actual'] == 'robot': 
-        juego_ahorcado(volver_menu_juegos)
+        juego_robot(volver_menu_juegos)
 
 
     elif st.session_state['juego_actual'] == 'sorteador':
