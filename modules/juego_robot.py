@@ -1,8 +1,18 @@
-def juego_robot(volver_menu_juegos):
+def juego_ahorcado(volver_menu_juegos):
     import streamlit as st
     import time
     # Se asume que 'pedagogical_assistant' está disponible en el entorno.
     import pedagogical_assistant
+
+    """
+    Implementa el juego "Robot Ahorcado" utilizando Streamlit.
+
+    Args:
+        volver_menu_juegos (function): Función de callback para regresar
+                                        al menú principal de juegos.
+    """
+    # Se elimina la validación redundante 'if st.session_state.get('juego_actual') == 'robot':'
+    # y el cuerpo de la función se mueve al nivel superior.
 
     # 4. JUEGO ROBOT (AHORCADO - VERSIÓN HÍBRIDA: CONFIGURACIÓN ORIGINAL + MEJORAS)
     # La validación 'juego_actual == 'ahorcado'' que estaba presente ya no es necesaria aquí,
