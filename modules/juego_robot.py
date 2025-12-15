@@ -1,10 +1,10 @@
-def juego_ahorcado(volver_menu_juegos):
+def juego_robot(volver_menu_juegos):
     import streamlit as st
     import time
     # Se asume que 'pedagogical_assistant' está disponible en el entorno.
     import pedagogical_assistant
     """
-    Implementa el juego "Robot Ahorcado" utilizando Streamlit.
+    Implementa el juego "Robot robot" utilizando Streamlit.
 
     Args:
         volver_menu_juegos (function): Función de callback para regresar
@@ -107,7 +107,7 @@ def juego_ahorcado(volver_menu_juegos):
                 else:
                     with st.spinner(f"⚡ Generando {cant_robot} niveles de seguridad..."):
                         # Llamada a la función de la IA (pedagogical_assistant)
-                        retos = pedagogical_assistant.generar_reto_ahorcado(tema_robot, grado_robot, cant_robot)
+                        retos = pedagogical_assistant.generar_reto_robot(tema_robot, grado_robot, cant_robot)
                         if retos and len(retos) > 0:
                             st.session_state['robot_challenges'] = retos
                             st.session_state['robot_level'] = 0
@@ -233,6 +233,6 @@ def juego_ahorcado(volver_menu_juegos):
                         
                         st.rerun()
     else:
-        # Esto maneja el caso teórico de que se llame la función pero 'juego_actual' no sea 'ahorcado'
+        # Esto maneja el caso teórico de que se llame la función pero 'juego_actual' no sea 'robot'
         # aunque en una integración normal esto no debería suceder.
         pass
