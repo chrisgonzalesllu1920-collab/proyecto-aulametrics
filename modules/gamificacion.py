@@ -4,8 +4,9 @@ import random
 import time
 import pandas as pd
 import pedagogical_assistant
+# Importación relativa corregida para juego_robot (debe ser coherente con juego_sorteador)
 from .juego_sorteador import juego_sorteador
-from juego_robot import juego_ahorcado
+from .juego_robot import juego_ahorcado # <-- CORREGIDO: añadido el punto para importación relativa
 
 from streamlit_lottie import st_lottie  # Solo si lo usas
 import base64  # Solo si algún juego lo usa
