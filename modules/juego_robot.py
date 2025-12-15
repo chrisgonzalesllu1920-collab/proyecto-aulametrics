@@ -3,7 +3,6 @@ def juego_ahorcado(volver_menu_juegos):
     import time
     # Se asume que 'pedagogical_assistant' está disponible en el entorno.
     import pedagogical_assistant
-
     """
     Implementa el juego "Robot Ahorcado" utilizando Streamlit.
 
