@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import pedagogical_assistant
 from .juego_sorteador import juego_sorteador
-from .juego_robot import juego_robot
+from juego_robot import juego_robot
 
 from streamlit_lottie import st_lottie  # Solo si lo usas
 import base64  # Solo si algún juego lo usa
