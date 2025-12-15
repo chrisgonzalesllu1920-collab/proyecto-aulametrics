@@ -548,6 +548,10 @@ def juego_pupiletras(volver_menu_juegos):
             del st.session_state['pupi_grid']
             st.rerun()
 
+    # === JUEGO 3: ROBOT AHORCADO ===
+    # El estado se cambió a 'ahorcado' para que el flujo de sesión sea claro
+    elif st.session_state['juego_actual'] == 'ahorcado': 
+        juego_ahorcado(volver_menu_juegos) # Llama a la función importada
 
 
     # El sorteador ahora usa la función importada de juego_sorteador.py
