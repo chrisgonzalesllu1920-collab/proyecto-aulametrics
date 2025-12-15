@@ -584,11 +584,9 @@ def gamificacion():
         # Asumiendo que 'juego_pupiletras' está importada/definida.
         juego_pupiletras(volver_menu_juegos)
 
-    
-    # === CORRECCIÓN CLAVE: Robot Ahorcado ===
-    # El estado 'robot' llama a la función 'juego_ahorcado' importada de juego_robot.py
+
     elif st.session_state['juego_actual'] == 'robot': 
-        juego_ahorcado(volver_menu_juegos) # Llamada verificada y correcta
+        juego_ahorcado(volver_menu_juegos)
 
 
     elif st.session_state['juego_actual'] == 'sorteador':
