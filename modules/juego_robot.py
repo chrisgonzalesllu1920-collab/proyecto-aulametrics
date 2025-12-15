@@ -1,14 +1,5 @@
 def juego_robot(volver_menu_juegos):
     import streamlit as st
-
-    """
-    Implementa el juego "Robot Ahorcado" utilizando Streamlit.
-
-    Args:
-        volver_menu_juegos (function): Función de callback para regresar
-                                       al menú principal de juegos.
-    """
-    import streamlit as st
     import time
     # Se asume que 'pedagogical_assistant' está disponible en el entorno.
     import pedagogical_assistant
