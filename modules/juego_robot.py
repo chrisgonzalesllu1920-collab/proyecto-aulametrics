@@ -11,14 +11,7 @@ def juego_ahorcado(volver_menu_juegos):
         volver_menu_juegos (function): Función de callback para regresar
                                         al menú principal de juegos.
     """
-    # Se elimina la validación redundante 'if st.session_state.get('juego_actual') == 'robot':'
-    # y el cuerpo de la función se mueve al nivel superior.
-
-    # 4. JUEGO ROBOT (AHORCADO - VERSIÓN HÍBRIDA: CONFIGURACIÓN ORIGINAL + MEJORAS)
-    # La validación 'juego_actual == 'ahorcado'' que estaba presente ya no es necesaria aquí,
-    # pues se asume que esta función solo se llama cuando 'juego_actual' es 'ahorcado'.
-    # Sin embargo, para mantener la lógica original del código, se mantiene el 'if'
-    # que estaba originalmente para contener todo.
+    # El if se mantiene para contener toda la lógica del juego.
     if st.session_state.get('juego_actual') == 'robot':
         
         # --- BARRA SUPERIOR ---
