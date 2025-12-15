@@ -1,4 +1,5 @@
 def juego_ahorcado(volver_menu_juegos):
+        import streamlit as st
     """
     Implementa el juego "Robot Ahorcado" utilizando Streamlit.
 
