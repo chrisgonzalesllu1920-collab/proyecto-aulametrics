@@ -1,4 +1,4 @@
-def juego_ahorcado(volver_menu_juegos):
+def juego_robot(volver_menu_juegos):
     import streamlit as st
 
     """
