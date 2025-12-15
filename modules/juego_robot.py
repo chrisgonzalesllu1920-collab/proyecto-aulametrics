@@ -18,7 +18,7 @@ def juego_ahorcado(volver_menu_juegos):
     # pues se asume que esta función solo se llama cuando 'juego_actual' es 'ahorcado'.
     # Sin embargo, para mantener la lógica original del código, se mantiene el 'if'
     # que estaba originalmente para contener todo.
-    if st.session_state.get('juego_actual') == 'ahorcado':
+    if st.session_state.get('juego_actual') == 'robot':
         
         # --- BARRA SUPERIOR ---
         col_back, col_title = st.columns([1, 5])
