@@ -129,7 +129,7 @@ def gamificacion():
         # Asumiendo que 'mostrar_menu_juegos' está definida en alguna parte.
         mostrar_menu_juegos() 
 
-    elif st.session_state["juego_actual"] == 'trivia':
+    elif st.session_state['juego_actual'] == 'trivia':
         juego_trivia(volver_menu_juegos)
 
 
