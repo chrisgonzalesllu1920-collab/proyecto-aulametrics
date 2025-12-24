@@ -22,10 +22,14 @@ try:
 except ImportError as e:
     st.error(f"Error al importar el módulo: {e}")
 
+# Importación de funciones desde el módulo de evaluación
 try:
     from modules.evaluacion import (
         convert_df_to_excel, 
         mostrar_analisis_por_estudiante
+    )
+except ImportError as e:
+    st.error(f"Error al importar módulos: {e}")
 
 from supabase import create_client, Client
 # --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
@@ -1126,6 +1130,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
