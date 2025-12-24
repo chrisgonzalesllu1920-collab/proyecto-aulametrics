@@ -10,7 +10,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from .juego_sorteador import juego_sorteador
 from .juego_pupiletras import juego_pupiletras
-from juego_robot import juego_robot
+from .juego_robot import juego_robot
 import uuid # Necesario para generar IDs anónimos
 # from streamlit_lottie import st_lottie # Dejar comentada si no se usa
 
