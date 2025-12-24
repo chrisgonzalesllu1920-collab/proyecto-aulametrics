@@ -103,7 +103,7 @@ def mostrar_menu_juegos():
             st.session_state['juego_actual'] = 'sorteador'
             st.rerun()
 
-    elif st.session_state["juego_actual"] == 'trivia':
+    elif st.session_state['juego_actual'] == 'trivia':
         juego_trivia(volver_menu_juegos)
 
     elif st.session_state['juego_actual'] == 'pupiletras':
