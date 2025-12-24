@@ -16,6 +16,14 @@ import modules.database as db
 import modules.recursos as recursos
 import modules.gamificacion as gamificacion
 import modules.evaluacion as evaluacion
+
+try:
+    from modules.evaluacion import convert_df_to_excel
+except ImportError as e:
+    st.error(f"Error al importar el módulo: {e}")
+    # Tip: Asegúrate de que dentro de la carpeta 'modules' exista 
+    # un archivo vacío llamado '__init__.py' (opcional en versiones modernas, pero recomendado)
+
 from supabase import create_client, Client
 # --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
 def cargar_lottie(filepath):
@@ -1115,6 +1123,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
