@@ -1,41 +1,44 @@
 import json
 import time
 import random
-from streamlit_lottie import st_lottie
+import os
+import base64
+import io
+
 import streamlit as st
 import pandas as pd
 import xlsxwriter
-import pptx_generator
-import io
 import plotly.express as px
+from streamlit_lottie import st_lottie
+from supabase import create_client, Client
+
+# Importación de módulos personalizados
+import pptx_generator
 import pedagogical_assistant
 import analysis_core
-import os
-import base64
 import modules.database as db
 import modules.recursos as recursos
 import modules.gamificacion as gamificacion
-import modules.evaluacion as evaluacion
 
+# --- CONSOLIDACIÓN DEL MÓDULO DE EVALUACIÓN ---
+# Importamos el módulo completo y las funciones específicas en un solo bloque
 try:
-    from modules.evaluacion import convert_df_to_excel
-except ImportError as e:
-    st.error(f"Error al importar el módulo: {e}")
-
-# Importación de funciones desde el módulo de evaluación
-try:
+    import modules.evaluacion as evaluacion
     from modules.evaluacion import (
-        convert_df_to_excel, 
+        convert_df_to_excel,
         mostrar_analisis_por_estudiante
     )
 except ImportError as e:
-    st.error(f"Error al importar módulos: {e}")
+    st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
 
-from supabase import create_client, Client
-# --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
+# --- UTILIDADES ---
 def cargar_lottie(filepath):
-    with open(filepath, "r") as f:
-        return json.load(f)
+    """Carga archivos JSON para animaciones Lottie."""
+    try:
+        with open(filepath, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
 
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
@@ -1130,6 +1133,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
