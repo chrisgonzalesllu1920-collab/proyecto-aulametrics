@@ -21,8 +21,11 @@ try:
     from modules.evaluacion import convert_df_to_excel
 except ImportError as e:
     st.error(f"Error al importar el módulo: {e}")
-    # Tip: Asegúrate de que dentro de la carpeta 'modules' exista 
-    # un archivo vacío llamado '__init__.py' (opcional en versiones modernas, pero recomendado)
+
+try:
+    from modules.evaluacion import (
+        convert_df_to_excel, 
+        mostrar_analisis_por_estudiante
 
 from supabase import create_client, Client
 # --- FUNCIÓN PARA CARGAR ROBOTS (LOTTIE) ---
@@ -1123,6 +1126,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
