@@ -6,7 +6,7 @@ import pptx_generator
 import pedagogical_assistant
 
 
-def evaluacion_page(asistente):
+def evaluacion_page():
     """
     Controlador principal del Sistema de Evaluación.
     Maneja la carga de archivos y la visualización de resultados.
