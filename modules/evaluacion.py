@@ -105,7 +105,7 @@ def mostrar_analisis_general(info_areas):
 # =========================================================================
 # === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ===
 # =========================================================================
-def mostrar_analisis_por_estudiante():
+def mostrar_analisis_por_estudiante(df, df_config, info_areas):
     """
     Muestra el perfil INTEGRAL y permite descargar INFORME WORD.
     Utiliza los datos almacenados en st.session_state.
