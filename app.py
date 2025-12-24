@@ -5,6 +5,7 @@ from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
 import xlsxwriter
+import pptx_generator
 import io
 import plotly.express as px
 import pedagogical_assistant
@@ -1115,6 +1116,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
