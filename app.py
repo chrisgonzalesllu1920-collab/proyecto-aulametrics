@@ -844,7 +844,7 @@ def mostrar_sidebar():
 
 
 # =========================================================================
-# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
+# === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.1 ===
 # =========================================================================
 def home_page():
     
@@ -856,10 +856,20 @@ def home_page():
         st.toast(f"¡Hola, {user_name}!", icon="👋")
         st.session_state.show_welcome_message = False
 
-    # 2. Inicialización de Variables
+    # 2. Inicialización de Variables de Estado
     if 'sesion_generada' not in st.session_state: st.session_state.sesion_generada = None
     if 'docx_bytes' not in st.session_state: st.session_state.docx_bytes = None
     if 'tema_sesion' not in st.session_state: st.session_state.tema_sesion = ""
+    
+    # --- INICIALIZACIÓN DEL OBJETO ASISTENTE (Para evitar errores de variable) ---
+    if 'asistente_instancia' not in st.session_state:
+        # Intentamos inicializar como clase, si falla, usamos el módulo directamente
+        try:
+            st.session_state.asistente_instancia = pedagogical_assistant.PedagogicalAssistant()
+        except Exception:
+            st.session_state.asistente_instancia = pedagogical_assistant
+    
+    asistente = st.session_state.asistente_instancia
 
     # 3. ACTIVAR BARRA LATERAL (La función de la Sección 5)
     mostrar_sidebar()
@@ -867,21 +877,16 @@ def home_page():
     # 4. CONTROLADOR DE PÁGINAS (GPS)
     pagina = st.session_state['pagina_actual']
 
-# --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
+    # --- ESCENARIO A: ESTAMOS EN EL LOBBY (INICIO) ---
     if pagina == 'Inicio':
-            
         # DIBUJAMOS LAS TARJETAS DEL MENÚ
         mostrar_home()
-
-        # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
-        # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
-
 
     # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
     # 1. SISTEMA DE EVALUACIÓN
     if pagina == "Sistema de Evaluación":
-        # Asegúrate de que esta línea esté indentada con 4 espacios respecto al 'if'
+        # Ahora 'asistente' está definido correctamente
         evaluacion.evaluacion_page(asistente)
 
     # 3. ASISTENTE PEDAGÓGICO
@@ -1010,14 +1015,15 @@ def home_page():
                                     estandares_lista = datos_filtrados[columna_estandar_correcta].dropna().unique().tolist()
                                     estandar_texto_completo = "\n\n".join(estandares_lista)
 
-                                    sesion_generada = pedagogical_assistant.generar_sesion_aprendizaje(
+                                    # Se usa el objeto 'asistente' definido al inicio
+                                    sesion_generada = asistente.generar_sesion_aprendizaje(
                                         nivel=nivel, grado=grado, ciclo=str(ciclo_encontrado), area=area,
                                         competencias_lista=competencias, capacidades_lista=capacidades_lista,
                                         estandar_texto=estandar_texto_completo, tematica=tema, tiempo=tiempo,
                                         region=region_sel, provincia=provincia_sel, distrito=distrito_sel,
                                         instrucciones_docente=instrucciones_sel 
                                     )
-                                    docx_bytes = pedagogical_assistant.generar_docx_sesion(sesion_markdown_text=sesion_generada, area_docente=area)
+                                    docx_bytes = asistente.generar_docx_sesion(sesion_markdown_text=sesion_generada, area_docente=area)
                                     
                                     st.session_state.sesion_generada = sesion_generada
                                     st.session_state.docx_bytes = docx_bytes
@@ -1054,11 +1060,11 @@ def home_page():
         elif st.session_state.asistente_tipo_herramienta == "Planificación Anual":
             st.info("Función de Planificación Anual (Próximamente).")
 
-    # 4. RECURSOS (Llamando al nuevo módulo)
+    # 4. RECURSOS
     elif pagina == "Recursos":
         recursos.recursos_page()
 
-    # 5. GAMIFICACIÓN (Llamando al nuevo módulo)
+    # 5. GAMIFICACIÓN
     elif pagina == "Gamificación":
         gamificacion.gamificacion()
     
@@ -1085,5 +1091,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
