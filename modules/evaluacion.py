@@ -1,8 +1,49 @@
+import streamlit as st
 import analysis_core
 import plotly.express as px
 import xlsxwriter
 import pptx_generator
 
+
+def evaluacion_page(asistente):
+    """
+    Controlador principal del Sistema de Evaluación.
+    Maneja la carga de archivos y la visualización de resultados.
+    """
+    # Verificamos si hay datos cargados en el estado de la sesión
+    if not st.session_state.get('df_cargado', False):
+        st.header("📊 Sistema de Evaluación")
+        st.info("Para comenzar, sube tu registro de notas (Excel).")
+        
+        # IMPORTANTE: Aquí llamamos a la función de carga.
+        # Como configurar_uploader probablemente esté en app.py o sea una función auxiliar,
+        # asegúrate de que sea accesible o impórtala si la mueves a este módulo.
+        from app import configurar_uploader 
+        configurar_uploader()
+        
+    else:
+        # B) Si YA hay datos, mostramos el panel con pestañas internas
+        tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+        
+        with tab_global:
+            st.subheader("Panorama General del Aula")
+            # Obtenemos los datos necesarios desde el session_state
+            info_areas = st.session_state.get('info_areas')
+            
+            # Llamamos a la función de análisis (debe estar disponible en el scope o importada)
+            from app import mostrar_analisis_general
+            mostrar_analisis_general(info_areas)
+            
+        with tab_individual:
+            st.subheader("Libreta Individual")
+            # Obtenemos los datos necesarios
+            df = st.session_state.get('df')
+            df_config = st.session_state.get('df_config')
+            info_areas = st.session_state.get('info_areas')
+            
+            # Llamamos a la función de análisis individual
+            from app import mostrar_analisis_por_estudiante
+            mostrar_analisis_por_estudiante(df, df_config, info_areas)
 
 
 # =========================================================================
