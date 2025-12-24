@@ -77,6 +77,37 @@ def mostrar_analisis_general(info_areas):
             c2.metric("Logro Esperado (A)", resumen.get('A', 0))
             c3.metric("En Proceso (B)", resumen.get('B', 0))
             c4.metric("En Inicio (C)", resumen.get('C', 0))
+
+            # --- NUEVA SECCIÓN: DISEÑO DE TABLA DE FRECUENCIAS ---
+            st.markdown("#### 📋 Detalle de Frecuencias por Competencia")
+            
+            df_frec = datos['df_frecuencias']
+
+            # Función para aplicar colores a las celdas según el encabezado
+            def resaltar_niveles(val):
+                return 'background-color: #f8f9fa; color: #333; border: 1px solid #dee2e6;'
+
+            # Aplicar estilos específicos por columnas de logros
+            styled_df = df_frec.style.set_properties(**{
+                'background-color': 'white',
+                'color': 'black',
+                'border-color': '#e6e6e6'
+            })
+
+            # Resaltar columnas según nivel de logro (AD, A, B, C)
+            for col in df_frec.columns:
+                col_upper = str(col).upper()
+                if 'AD' in col_upper:
+                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#d1e7dd', 'color': '#0f5132', 'font-weight': 'bold'})
+                elif 'A' in col_upper:
+                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#d1e7dd', 'color': '#0f5132'})
+                elif 'B' in col_upper:
+                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#fff3cd', 'color': '#664d03'})
+                elif 'C' in col_upper:
+                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#f8d7da', 'color': '#842029'})
+
+            st.dataframe(styled_df, use_container_width=True)
+            # -----------------------------------------------------
             
             # Botones de descarga para esta área específica
             col_btn1, col_btn2 = st.columns(2)
