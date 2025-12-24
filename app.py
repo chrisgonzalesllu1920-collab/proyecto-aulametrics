@@ -5,6 +5,7 @@ from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
 import xlsxwriter
+import io
 import pedagogical_assistant
 import analysis_core
 import io
@@ -1113,6 +1114,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
