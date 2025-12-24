@@ -60,78 +60,78 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {str(e)}")
 
 def mostrar_analisis_general(info_areas):
-    """Muestra el resumen estadístico de todas las áreas cargadas."""
+    """Muestra el resumen estadístico con diseño de tabla HTML forzado para evitar caché visual."""
     if not info_areas:
         st.warning("No hay datos de áreas para mostrar.")
         return
+
+    # Estilos CSS para la tabla (inyectados una sola vez)
+    st.markdown("""
+        <style>
+            .tabla-frecuencias { width: 100%; border-collapse: collapse; font-family: sans-serif; margin: 10px 0; }
+            .tabla-frecuencias th, .tabla-frecuencias td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            .tabla-frecuencias th { background-color: #f2f2f2; font-weight: bold; }
+            .nivel-ad { background-color: #d1e7dd !important; color: #0f5132 !important; font-weight: bold; }
+            .nivel-a { background-color: #e2f3eb !important; color: #0f5132 !important; }
+            .nivel-b { background-color: #fff3cd !important; color: #664d03 !important; }
+            .nivel-c { background-color: #f8d7da !important; color: #842029 !important; }
+            .col-comp { text-align: left !important; background-color: #ffffff; min-width: 250px; }
+        </style>
+    """, unsafe_allow_html=True)
 
     for area, datos in info_areas.items():
         with st.container(border=True):
             st.markdown(f"### 📚 Área: {area}")
             
-            # Métricas rápidas
+            # Métricas
             c1, c2, c3, c4 = st.columns(4)
             resumen = datos['resumen_frecuencias']
-            
-            c1.metric("Logro Destacado (AD)", resumen.get('AD', 0))
-            c2.metric("Logro Esperado (A)", resumen.get('A', 0))
+            c1.metric("Logro (AD)", resumen.get('AD', 0))
+            c2.metric("Logro (A)", resumen.get('A', 0))
             c3.metric("En Proceso (B)", resumen.get('B', 0))
             c4.metric("En Inicio (C)", resumen.get('C', 0))
 
-            # --- NUEVA SECCIÓN: DISEÑO DE TABLA DE FRECUENCIAS ---
-            st.markdown("#### 📋 Detalle de Frecuencias por Competencia")
+            st.markdown("#### 📋 Detalle de Frecuencias")
             
-            df_frec = datos['df_frecuencias']
-
-            # Función para aplicar colores a las celdas según el encabezado
-            def resaltar_niveles(val):
-                return 'background-color: #f8f9fa; color: #333; border: 1px solid #dee2e6;'
-
-            # Aplicar estilos específicos por columnas de logros
-            styled_df = df_frec.style.set_properties(**{
-                'background-color': 'white',
-                'color': 'black',
-                'border-color': '#e6e6e6'
-            })
-
-            # Resaltar columnas según nivel de logro (AD, A, B, C)
-            for col in df_frec.columns:
-                col_upper = str(col).upper()
-                if 'AD' in col_upper:
-                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#d1e7dd', 'color': '#0f5132', 'font-weight': 'bold'})
-                elif 'A' in col_upper:
-                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#d1e7dd', 'color': '#0f5132'})
-                elif 'B' in col_upper:
-                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#fff3cd', 'color': '#664d03'})
-                elif 'C' in col_upper:
-                    styled_df = styled_df.set_properties(subset=[col], **{'background-color': '#f8d7da', 'color': '#842029'})
-
-            st.dataframe(styled_df, use_container_width=True)
-            # -----------------------------------------------------
+            df = datos['df_frecuencias']
             
-            # Botones de descarga para esta área específica
+            # Construcción manual de la tabla HTML para asegurar el renderizado de colores
+            html_table = '<table class="tabla-frecuencias"><thead><tr>'
+            for col in df.columns:
+                html_table += f'<th>{col}</th>'
+            html_table += '</tr></thead><tbody>'
+
+            for _, row in df.iterrows():
+                html_table += '<tr>'
+                for i, col in enumerate(df.columns):
+                    val = row[col]
+                    clase = ""
+                    col_name = str(col).upper()
+                    
+                    if i == 0: clase = "col-comp"
+                    elif 'AD' in col_name: clase = "nivel-ad"
+                    elif 'A' in col_name: clase = "nivel-a"
+                    elif 'B' in col_name: clase = "nivel-b"
+                    elif 'C' in col_name: clase = "nivel-c"
+                    
+                    html_table += f'<td class="{clase}">{val}</td>'
+                html_table += '</tr>'
+            
+            html_table += '</tbody></table>'
+            
+            # Renderizado directo de HTML
+            st.markdown(html_table, unsafe_allow_html=True)
+            
+            # Botones de descarga
             col_btn1, col_btn2 = st.columns(2)
-            
             with col_btn1:
-                excel_data = convert_df_to_excel(datos['df_frecuencias'], area, datos['general_info'])
-                st.download_button(
-                    label=f"📥 Descargar Excel - {area}",
-                    data=excel_data,
-                    file_name=f"Analisis_{area}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key=f"btn_xl_{area}"
-                )
-            
+                excel_data = convert_df_to_excel(df, area, datos['general_info'])
+                st.download_button(label=f"📥 Excel {area}", data=excel_data, 
+                                 file_name=f"Analisis_{area}.xlsx", key=f"xl_{area}")
             with col_btn2:
-                # Generar PPTX (usando el generador importado)
                 ppt_buffer = pptx_generator.generate_area_report(area, datos)
-                st.download_button(
-                    label=f"📊 Descargar PPTX - {area}",
-                    data=ppt_buffer,
-                    file_name=f"Reporte_{area}.pptx",
-                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    key=f"btn_ppt_{area}"
-                )
+                st.download_button(label=f"📊 PPTX {area}", data=ppt_buffer, 
+                                 file_name=f"Reporte_{area}.pptx", key=f"ppt_{area}")
 
 # =========================================================================
 # === FUNCIÓN (TAB 2: ANÁLISIS POR ESTUDIANTE) ===
