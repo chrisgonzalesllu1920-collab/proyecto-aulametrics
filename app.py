@@ -877,14 +877,35 @@ def home_page():
         # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
 
 
-    # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
- 
-    # 1. SISTEMA DE EVALUACIÓN
+# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
+
+    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
     if pagina == "Sistema de Evaluación":
-        # Importamos el módulo (asegúrate de tener 'import evaluacion' al inicio de app.py)
-        # No necesitamos pasarle parámetros de datos, ya que evaluacion_page 
-        # gestiona internamente la lectura del st.session_state
-        evaluacion.evaluacion_page(asistente)
+        
+        # A) Si NO hay datos cargados, mostramos el cargador
+        if not st.session_state.df_cargado:
+            st.header("📊 Sistema de Evaluación")
+            st.info("Para comenzar, sube tu registro de notas (Excel).")
+            # Llamamos a tu función de carga existente
+            configurar_uploader()
+            
+        # B) Si YA hay datos, mostramos el panel con pestañas internas
+        else:
+            # Creamos pestañas internas solo para esta herramienta
+            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            
+            with tab_global:
+                st.subheader("Panorama General del Aula")
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_general(info_areas)
+                
+            with tab_individual:
+                st.subheader("Libreta Individual")
+                df = st.session_state.df
+                df_config = st.session_state.df_config
+                info_areas = st.session_state.info_areas
+                mostrar_analisis_por_estudiante(df, df_config, info_areas)
+
 
 
     # 3. ASISTENTE PEDAGÓGICO
@@ -1090,5 +1111,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
