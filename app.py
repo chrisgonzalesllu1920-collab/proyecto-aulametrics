@@ -7,10 +7,10 @@ import pandas as pd
 import analysis_core
 import pedagogical_assistant
 import plotly.express as px
-import io 
+import io
 import xlsxwriter
 import pptx_generator
-import os 
+import os
 import base64
 import modules.database as db
 import modules.recursos as recursos
@@ -122,13 +122,13 @@ st.markdown("""
 
 @st.cache_data 
 def get_image_as_base64(file_path):
-  """Carga una imagen y la convierte a Base64 string."""
-  try:
-      with open(file_path, "rb") as f:
-          data = f.read()
-      return base64.b64encode(data).decode()
-  except FileNotFoundError:
-      return None
+    """Carga una imagen y la convierte a Base64 string."""
+    try:
+        with open(file_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except FileNotFoundError:
+        return None
 
 # =========================================================================
 # === 1.B. SISTEMA DE NAVEGACIÓN (EL GPS) ===
@@ -1084,12 +1084,21 @@ def mostrar_sidebar():
 
         # 4. PIE DE PÁGINA
         st.divider()
+        
+        # [AÑADIENDO LA FECHA DE LANZAMIENTO AQUÍ]
+        # Usamos st.info para destacarlo, o st.markdown para un estilo fuerte.
+        st.markdown(
+            "🚀 **Lanzamiento oficial de Aulametrics:** 01/03/2026", 
+            help="Fecha de lanzamiento oficial de la nueva versión de AulaMetrics."
+        )
+        # También podrías usar: st.text("Fecha de lanzamiento de Aulametrics 01/03/2026")
+        
         if st.session_state.get('pagina_actual') == 'Inicio':
             st.info("👋 Selecciona una herramienta del panel.")
         else:
             st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
         
-        st.caption("🏫 AulaMetrics v3.0 Beta")
+        st.caption("🏫 AulaMetrics v2.0 Beta")
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1354,5 +1363,9 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
+
+
+
 
 
