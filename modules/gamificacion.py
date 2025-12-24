@@ -662,8 +662,8 @@ def gamificacion():
         juego_pupiletras(volver_menu_juegos)
     
 
-    elif st.session_state['juego_actual'] == 'ahorcado': 
-        juego_ahorcado(volver_menu_juegos)
+    elif st.session_state['juego_actual'] == 'robot': 
+        juego_robot(volver_menu_juegos)
 
 
     elif st.session_state['juego_actual'] == 'sorteador':
