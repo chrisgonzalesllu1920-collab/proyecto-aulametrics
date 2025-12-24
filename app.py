@@ -4,12 +4,8 @@ import random
 from streamlit_lottie import st_lottie
 import streamlit as st
 import pandas as pd
-import analysis_core
 import pedagogical_assistant
-import plotly.express as px
 import io
-import xlsxwriter
-import pptx_generator
 import os
 import base64
 import modules.database as db
@@ -1364,6 +1360,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
