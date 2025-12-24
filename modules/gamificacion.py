@@ -90,7 +90,7 @@ def mostrar_menu_juegos():
 
     with col3:
         if st.button("🤖 ROBOT\n\nLógica & Deducción", key="btn_card_robot", use_container_width=True):
-            st.session_state['juego_actual'] = 'ahorcado'
+            st.session_state['juego_actual'] = 'robot'
             st.rerun()
 
     with col4:
