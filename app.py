@@ -788,6 +788,60 @@ def mostrar_analisis_general(results):
                 else:
                     st.warning("Selecciona una competencia en el desplegable de gráficos.")
 
+# --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
+def mostrar_sidebar():
+    """
+    Muestra el menú lateral. Detecta el contexto para mostrar herramientas.
+    """
+    with st.sidebar:
+        # 1. BOTÓN VOLVER (Siempre visible si no estamos en Inicio)
+        if st.session_state.get('pagina_actual') != 'Inicio':
+            st.divider()
+            if st.button("🏠 Volver al Menú Principal", use_container_width=True):
+                navegar_a("Inicio")
+                st.rerun()
+
+        # 2. BOTÓN DE CARGA DE ARCHIVO (Solo visible en Evaluación)
+        if st.session_state.get('pagina_actual') == 'Sistema de Evaluación':
+            st.divider()
+            if st.button("📂 Subir Nuevo Archivo", use_container_width=True):
+                # Limpieza total de datos para permitir nueva carga
+                st.session_state.df_cargado = False
+                st.session_state.info_areas = None
+                st.session_state.all_dataframes = None
+                st.session_state.df = None
+                # Truco para limpiar el widget de carga
+                if 'file_uploader' in st.session_state:
+                    del st.session_state['file_uploader']
+                st.rerun()
+
+        # 3. BOTÓN CERRAR SESIÓN (NUEVO)
+        st.write("") # Espacio vertical
+        st.write("") 
+        
+        st.divider()
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+            st.session_state.clear() # Borra toda la memoria
+            st.rerun() # Reinicia la app (te llevará al Login)
+
+        # 4. PIE DE PÁGINA
+        st.divider()
+        
+        # [AÑADIENDO LA FECHA DE LANZAMIENTO AQUÍ]
+        # Usamos st.info para destacarlo, o st.markdown para un estilo fuerte.
+        st.markdown(
+            "🚀 **Lanzamiento oficial de Aulametrics:** 01/03/2026", 
+            help="Fecha de lanzamiento oficial de la nueva versión de AulaMetrics."
+        )
+        # También podrías usar: st.text("Fecha de lanzamiento de Aulametrics 01/03/2026")
+        
+        if st.session_state.get('pagina_actual') == 'Inicio':
+            st.info("👋 Selecciona una herramienta del panel.")
+        else:
+            st.caption(f"📍 Sección: {st.session_state.get('pagina_actual')}")
+        
+        st.caption("🏫 AulaMetrics v2.0 Beta")
+
 
 # =========================================================================
 # === 6. FUNCIÓN PRINCIPAL `home_page` (EL DASHBOARD) v5.0 ===
@@ -1031,4 +1085,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
