@@ -879,8 +879,10 @@ def home_page():
 
     # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
-    elif pagina == "Sistema de Evaluación":
-        evaluacion.evaluacion_page()
+    # 1. SISTEMA DE EVALUACIÓN
+    if pagina == "Sistema de Evaluación":
+        evaluacion.evaluacion_page(asistente)
+
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
@@ -1085,11 +1087,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
 
