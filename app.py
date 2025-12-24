@@ -10,7 +10,6 @@ import io
 import plotly.express as px
 import pedagogical_assistant
 import analysis_core
-import io
 import os
 import base64
 import modules.database as db
@@ -1116,6 +1115,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
