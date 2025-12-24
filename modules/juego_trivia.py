@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import time
+import pedagogical_assistant
 
 def juego_trivia(volver_menu_juegos):
     """
