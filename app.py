@@ -881,7 +881,7 @@ def home_page():
 
     # 1. SISTEMA DE EVALUACIÓN
     if pagina == "Sistema de Evaluación":
-        evaluacion.evaluacion_page(asistente)
+        evaluacion.evaluacion_page()
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
@@ -1086,6 +1086,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
