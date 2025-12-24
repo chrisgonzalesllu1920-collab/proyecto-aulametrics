@@ -822,11 +822,13 @@ def home_page():
         # (Nota: El código de Yape/Logout del sidebar antiguo desaparece aquí momentáneamente
         # para limpiar la interfaz. Lo podemos reintegrar luego en mostrar_sidebar si lo deseas).
 
-# --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
 
-    # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
+    # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
+
+    # 1. SISTEMA DE EVALUACIÓN
     if pagina == "Sistema de Evaluación":
-
+        # Asegúrate de que esta línea esté indentada con 4 espacios respecto al 'if'
+        evaluacion.evaluacion_page(asistente)
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
@@ -1029,3 +1031,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
