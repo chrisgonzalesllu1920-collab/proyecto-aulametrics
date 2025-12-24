@@ -878,9 +878,12 @@ def home_page():
 
 
     # --- ESCENARIO B: HERRAMIENTAS (CONEXIÓN LÓGICA) ---
-
+ 
     # 1. SISTEMA DE EVALUACIÓN
     if pagina == "Sistema de Evaluación":
+        # Importamos el módulo (asegúrate de tener 'import evaluacion' al inicio de app.py)
+        # No necesitamos pasarle parámetros de datos, ya que evaluacion_page 
+        # gestiona internamente la lectura del st.session_state
         evaluacion.evaluacion_page(asistente)
 
 
@@ -1087,4 +1090,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
