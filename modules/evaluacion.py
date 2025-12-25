@@ -36,22 +36,56 @@ def evaluacion_page(asistente):
             mostrar_analisis_por_estudiante(df, df_config, info_areas)
 
 def configurar_uploader():
-    """Maneja la carga y el procesamiento inicial del archivo Excel."""
-    with st.container(border=True):
-        archivo_cargado = st.file_uploader("Selecciona el Registro Auxiliar (Excel)", type=['xlsx', 'xls'])
-        if archivo_cargado is not None:
-            with st.spinner('🛠️ Analizando estructura...'):
-                try:
-                    resultado = analysis_core.procesar_archivo_evaluacion(archivo_cargado)
-                    if resultado:
-                        st.session_state.df = resultado['df_notas']
-                        st.session_state.df_config = resultado['df_config']
-                        st.session_state.info_areas = resultado['info_areas']
-                        st.session_state.all_dataframes = resultado['all_dataframes']
-                        st.session_state.df_cargado = True
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
+    """
+    Procesa el archivo Excel.
+    AHORA GUARDA TODAS LAS HOJAS EN MEMORIA para el análisis integral.
+    """
+    uploaded_file = st.file_uploader(
+        "Sube tu archivo de Excel aquí", 
+        type=["xlsx", "xls"], 
+        key="file_uploader"
+    )
+
+    if uploaded_file is not None:
+        with st.spinner('Procesando todas las áreas...'):
+            try:
+                # 1. Leer el archivo Excel
+                excel_file = pd.ExcelFile(uploaded_file)
+                sheet_names = excel_file.sheet_names
+                
+                # 2. Filtrar hojas que no son áreas (Generalidades, etc.)
+                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros', 'generalidades']
+                valid_sheets = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
+
+                # 3. Ejecutar análisis de frecuencias (Tab 1)
+                results_dict = analysis_core.analyze_data(excel_file, valid_sheets)
+                st.session_state.info_areas = results_dict
+                st.session_state.df_cargado = True
+                
+                # --- 4. ¡LA CLAVE! LEER Y GUARDAR TODAS LAS HOJAS ---
+                # Creamos un diccionario donde guardaremos: {'Matemática': df_mate, 'Arte': df_arte...}
+                all_dataframes = {}
+                
+                for sheet in valid_sheets:
+                    try:
+                        # Leemos cada hoja individualmente
+                        df_temp = pd.read_excel(uploaded_file, sheet_name=sheet, header=0)
+                        all_dataframes[sheet] = df_temp
+                    except:
+                        pass # Si una hoja falla, la saltamos para no romper todo
+                
+                # Guardamos este "Tesoro" en la memoria de la App
+                st.session_state.all_dataframes = all_dataframes
+
+                # Mantenemos st.session_state.df solo para compatibilidad (usamos la primera hoja)
+                if valid_sheets:
+                    st.session_state.df = all_dataframes[valid_sheets[0]]
+                
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"Error al procesar el archivo: {e}")
+                st.session_state.df_cargado = False
 
 def mostrar_analisis_general(info_areas):
     """Muestra el resumen estadístico con gráfico de barras horizontales premium."""
