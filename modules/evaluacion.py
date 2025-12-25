@@ -53,7 +53,7 @@ def configurar_uploader():
                     st.error(f"❌ Error: {str(e)}")
 
 def mostrar_analisis_general(info_areas):
-    """Muestra el resumen estadístico con diseño de alta visibilidad para proyección."""
+    """Muestra el resumen estadístico con gráfico de barras horizontales premium."""
     if not info_areas:
         st.warning("⚠️ No hay datos disponibles.")
         return
@@ -75,35 +75,50 @@ def mostrar_analisis_general(info_areas):
         with st.container(border=True):
             st.markdown(f"#### 📚 Área: {area}")
             
-            # Gráfico de Barras con Etiquetas Grandes para Proyección
             df_bar = datos['df_frecuencias'].copy()
-            # Seleccionar solo columnas de niveles
             cols_niveles = [c for c in ['AD', 'A', 'B', 'C'] if c in df_bar.columns]
             
+            # --- MEJORA: GRÁFICO DE BARRAS HORIZONTALES ---
             fig_bar = go.Figure()
             colores = {'AD': '#166534', 'A': '#22c55e', 'B': '#eab308', 'C': '#ef4444'}
             
+            # Invertimos el orden para que la primera competencia salga arriba
+            df_plot = df_bar.iloc[::-1]
+
             for nivel in cols_niveles:
                 fig_bar.add_trace(go.Bar(
                     name=nivel,
-                    x=df_bar.index,
-                    y=df_bar[nivel],
+                    y=df_plot.index,
+                    x=df_plot[nivel],
+                    orientation='h',
                     marker_color=colores.get(nivel),
-                    text=df_bar[nivel],
-                    textposition='auto',
-                    textfont=dict(size=14, color='white', family="Arial Black")
+                    text=df_plot[nivel],
+                    textposition='inside',
+                    textfont=dict(size=14, color='white', family="Arial Black"),
+                    hovertemplate=f"Nivel {nivel}: %{{x}} alumnos"
                 ))
 
             fig_bar.update_layout(
                 barmode='group',
-                height=450,
+                height=300 + (len(df_bar) * 50), # Altura dinámica
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=14)),
-                xaxis=dict(tickangle=-45, tickfont=dict(size=12, color='#1e293b', family="Arial")),
-                yaxis=dict(title="Número de Estudiantes", titlefont=dict(size=14)),
-                margin=dict(l=20, r=20, t=60, b=100),
-                plot_bgcolor='rgba(240,242,246,0.5)'
+                xaxis=dict(
+                    title="Número de Estudiantes", 
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    dtick=1
+                ),
+                yaxis=dict(
+                    tickfont=dict(size=13, color='#1e293b'),
+                    # Truncar nombres si son excesivamente largos para la vista
+                    ticktext=[(c[:60] + '...') if len(c) > 60 else c for c in df_plot.index],
+                    tickmode='array',
+                    tickvals=df_plot.index
+                ),
+                margin=dict(l=20, r=20, t=60, b=50),
+                plot_bgcolor='rgba(255,255,255,0)',
+                paper_bgcolor='rgba(255,255,255,0)',
             )
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
 
             # Tabla HTML
             html_table = '<table class="tabla-frecuencias"><thead><tr>'
@@ -155,9 +170,8 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
         st.error("❌ No se encontró la columna de nombres.")
         return
 
-    # --- FILTRADO DE LISTA DE ESTUDIANTES (PARA ELIMINAR "NOMBRES", "ESTUDIANTE", ETC) ---
     lista_cruda = df_base[col_nombre].dropna().unique()
-    stop_words = ["NOMBRES", "ESTUDIANTE", "APELLIDOS", "ALUMNO", "NOMBRE COMPLETO", "NOMBRES Y APELLIDOS", "NOMBRES Y APELLIDOS", "NOMBRE"]
+    stop_words = ["NOMBRES", "ESTUDIANTE", "APELLIDOS", "ALUMNO", "NOMBRE COMPLETO", "NOMBRES Y APELLIDOS", "NOMBRE"]
     lista_estudiantes = sorted([est for est in lista_cruda if str(est).strip().upper() not in stop_words])
 
     estudiante_sel = st.selectbox("🔍 Selecciona un estudiante:", options=lista_estudiantes, index=None, placeholder="Escribe para buscar...")
@@ -192,7 +206,6 @@ def mostrar_analisis_por_estudiante(df, df_config, info_areas):
 
         with col_der:
             if suma_total > 0:
-                # GRÁFICO CIRCULAR PREMIUM (DONUT CHART)
                 labels = [k for k, v in total_conteo.items() if v > 0]
                 values = [v for v in total_conteo.values() if v > 0]
                 colors = {'AD': '#166534', 'A': '#22c55e', 'B': '#eab308', 'C': '#ef4444'}
