@@ -263,10 +263,18 @@ def inject_pbi_css():
     st.markdown(f"""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
+        
+        /* USANDO EL SELECTOR QUE TE FUNCIONÓ EN HOME PARA EL FONDO */
+        [data-testid="stAppViewContainer"] {{
+            background-color: {PBI_BG} !important;
+            background-attachment: fixed;
+        }}
+
         .stApp {{ 
-            background-color: {PBI_BG} !important; 
+            background-color: transparent !important;
             font-family: 'Segoe UI', sans-serif;
         }}
+
         .pbi-card {{
             background-color: {PBI_CARD_BG};
             padding: 24px;
