@@ -109,7 +109,7 @@ def mostrar_analisis_general(results):
             st.markdown("</div>", unsafe_allow_html=True)
 
             # --- GRÁFICOS INTERACTIVOS ---
-            st.markdown(f<div class='pbi-card'><b>2. Visualización Dinámica: {st.session_state.chart_type}</b>", unsafe_allow_html=True)
+            st.markdown(f"<div class='pbi-card'><b>2. Visualización Dinámica: {st.session_state.chart_type}</b>", unsafe_allow_html=True)
             competencia_nombres_limpios = df_table.index.tolist()
             selected_comp = st.selectbox(f"Filtrar por Competencia específica:", options=competencia_nombres_limpios, key=f'sel_{sheet_name}_{i}')
 
@@ -263,13 +263,10 @@ def inject_pbi_css():
     st.markdown(f"""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
-        
-        /* PRUEBA DE COLOR DE FONDO CON PRIORIDAD MÁXIMA */
         .stApp {{ 
             background-color: {PBI_BG} !important; 
             font-family: 'Segoe UI', sans-serif;
         }}
-
         .pbi-card {{
             background-color: {PBI_CARD_BG};
             padding: 24px;
