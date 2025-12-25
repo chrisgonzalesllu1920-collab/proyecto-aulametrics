@@ -5,154 +5,207 @@ import analysis_core
 import plotly.express as px
 import plotly.graph_objects as go
 import xlsxwriter
+import pedagogical_assistant
 
-# Paleta de Colores Power BI
+# --- CONFIGURACIÓN DE COLORES PBI ---
 PBI_BLUE = "#113770"
 PBI_LIGHT_BLUE = "#0078D4"
 PBI_BG = "#F3F2F1"
 PBI_CARD_BG = "#FFFFFF"
-COLORS_NIVELES = {'AD': '#004B50', 'A': '#00838F', 'B': '#F9A825', 'C': '#C62828'}
+COLORS_NIVELES = {'AD': '#008450', 'A': '#4CAF50', 'B': '#FFEB3B', 'C': '#F44336'}
 
 def evaluacion_page(asistente):
-    """Controlador principal compatible con app.py"""
+    """Punto de entrada compatible con app.py"""
     inject_pbi_css()
     
     if not st.session_state.get('df_cargado', False):
-        st.markdown(f"<h1 class='pbi-header'>📊 Dashboard de Evaluación Pedagógica</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 class='pbi-header'>📊 Dashboard de Evaluación</h1>", unsafe_allow_html=True)
         configurar_uploader()
     else:
-        # Recuperar datos
-        info_areas = st.session_state.get('info_areas', {})
+        tab_global, tab_individual = st.tabs(["🌎 VISTA GLOBAL DEL AULA", "👤 PERFIL POR ESTUDIANTE"])
         
-        # Sidebar de Filtros (Estilo Slicer de Power BI)
-        with st.sidebar:
-            st.markdown(f"<h2 style='color:{PBI_BLUE};'>Filtros</h2>", unsafe_allow_html=True)
-            areas_disponibles = list(info_areas.keys())
-            area_sel = st.selectbox("Seleccionar Área Curricular", ["Vista General"] + areas_disponibles)
-            st.divider()
-            if st.button("🔄 Cargar nuevo archivo"):
-                st.session_state.df_cargado = False
-                st.rerun()
-
-        if area_sel == "Vista General":
+        with tab_global:
+            info_areas = st.session_state.get('info_areas', {})
             mostrar_analisis_general(info_areas)
-        else:
-            render_detalle_area(area_sel, info_areas[area_sel])
+            
+        with tab_individual:
+            df_first = st.session_state.get('df')
+            df_config = st.session_state.get('df_config')
+            mostrar_analisis_por_estudiante(df_first, df_config, st.session_state.get('info_areas'))
 
-def mostrar_analisis_general(info_areas):
-    """Función requerida por app.py - Renderiza el Dashboard Global"""
-    st.markdown(f"<h1 class='pbi-header'>Resumen Ejecutivo de Desempeño</h1>", unsafe_allow_html=True)
+def mostrar_analisis_general(results):
+    """Tu lógica original con piel de Power BI"""
+    st.markdown(f"<h2 class='pbi-header'>Resultados Consolidados por Área</h2>", unsafe_allow_html=True)
+
+    first_sheet_key = next(iter(results), None)
+    general_data = {}
+    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
+        general_data = results[first_sheet_key]['generalidades']
+        st.markdown(f"""
+            <div class='pbi-card' style='padding: 10px 20px; border-left: 5px solid {PBI_LIGHT_BLUE};'>
+                <b>Grupo:</b> Nivel {general_data.get('nivel', 'Descon.')} | Grado {general_data.get('grado', 'Descon.')}
+            </div>
+        """, unsafe_allow_html=True)
     
-    # KPIs SUPERIORES
-    total_comps = sum(len(d.get('df_frecuencias', [])) for d in info_areas.values() if 'df_frecuencias' in d)
+    # Sidebar de Configuración (Power BI Slicer Style)
+    with st.sidebar:
+        st.markdown(f"<h3 style='color:{PBI_BLUE};'>⚙️ Visualización</h3>", unsafe_allow_html=True)
+        chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
+        st.session_state.chart_type = st.radio("Tipo de gráfico:", chart_options, key="chart_radio_pbi")
+
+    tabs = st.tabs([f"📍 {sheet_name}" for sheet_name in results.keys()])
+
+    for i, (sheet_name, result) in enumerate(results.items()):
+        with tabs[i]:
+            if 'error' in result:
+                st.error(f"Error en '{sheet_name}': {result['error']}")
+                continue
+            
+            competencias = result.get('competencias', {})
+            if not competencias:
+                st.info(f"Sin datos en '{sheet_name}'.")
+                continue
+
+            # --- TABLA DE DATOS (ESTILO PBI) ---
+            st.markdown("<div class='pbi-card'><b>1. Distribución de Logros</b>", unsafe_allow_html=True)
+            data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
+            
+            for col_original_name, comp_data in competencias.items():
+                counts = comp_data['conteo_niveles']
+                total = comp_data['total_evaluados']
+                data['Competencia'].append(comp_data['nombre_limpio']) 
+                for level in ['AD', 'A', 'B', 'C']:
+                    count = counts.get(level, 0)
+                    porcentaje = (count / total * 100) if total > 0 else 0
+                    data[f'{level} (Est.)'].append(count)
+                    data[f'% {level}'].append(f"{porcentaje:.1f}%")
+                data['Total'].append(total)
+            
+            df_table = pd.DataFrame(data).set_index('Competencia')
+            st.dataframe(df_table, use_container_width=True)
+            
+            excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
+            st.download_button(label=f"⬇️ Exportar Excel ({sheet_name})", data=excel_data, 
+                             file_name=f'Frecuencias_{sheet_name}.xlsx', key=f'btn_dl_{i}')
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # --- GRÁFICOS ---
+            st.markdown("<div class='pbi-card'><b>2. Análisis Gráfico</b>", unsafe_allow_html=True)
+            competencia_nombres_limpios = df_table.index.tolist()
+            selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'sel_{sheet_name}')
+
+            if selected_comp:
+                df_plot = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].reset_index()
+                df_plot.columns = ['Nivel', 'Estudiantes']
+                df_plot['Nivel'] = df_plot['Nivel'].str.replace(' (Est.)', '', regex=False)
+
+                if st.session_state.chart_type == 'Barras (Por Competencia)':
+                    fig = px.bar(df_plot, x='Nivel', y='Estudiantes', color='Nivel', 
+                                color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                else:
+                    fig = px.pie(df_plot, values='Estudiantes', names='Nivel', hole=0.4,
+                                color='Nivel', color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                
+                fig.update_layout(margin=dict(t=30, b=0, l=0, r=0), height=350)
+                st.plotly_chart(fig, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # --- ASISTENTE IA ---
+            if st.button(f"🎯 Propuestas de mejora - {sheet_name}", type="primary", use_container_width=True):
+                with st.expander("Análisis Pedagógico IA", expanded=True):
+                    ai_text = pedagogical_assistant.generate_suggestions(results, sheet_name, selected_comp)
+                    st.markdown(ai_text, unsafe_allow_html=True)
+
+def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
+    """Tu lógica de perfil individual con diseño mejorado"""
+    st.markdown(f"<h2 class='pbi-header'>Perfil Integral del Estudiante</h2>", unsafe_allow_html=True)
     
-    conteo_gen = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
-    for d in info_areas.values():
-        if 'df_frecuencias' in d:
-            for nivel in conteo_gen:
-                if nivel in d['df_frecuencias'].columns:
-                    conteo_gen[nivel] += d['df_frecuencias'][nivel].sum()
-
-    cols = st.columns(4)
-    with cols[0]: render_kpi("Áreas Analizadas", len(info_areas))
-    with cols[1]: render_kpi("Competencias", total_comps)
-    with cols[2]: 
-        total = sum(conteo_gen.values())
-        pct = (conteo_gen['AD'] + conteo_gen['A']) / total * 100 if total > 0 else 0
-        render_kpi("% Logro (AD+A)", f"{pct:.1f}%")
-    with cols[3]: render_kpi("Alertas (C)", conteo_gen['C'])
-
-    # Dashboard Grid
-    c1, c2 = st.columns([1, 1.2])
-    
-    with c1:
-        st.markdown("<div class='pbi-card'><b>Distribución de Logros</b>", unsafe_allow_html=True)
-        fig_pie = px.pie(names=list(conteo_gen.keys()), values=list(conteo_gen.values()), 
-                         color=list(conteo_gen.keys()), color_discrete_map=COLORS_NIVELES, hole=0.5)
-        fig_pie.update_layout(margin=dict(t=20, b=20, l=0, r=0), height=350, showlegend=True)
-        st.plotly_chart(fig_pie, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c2:
-        st.markdown("<div class='pbi-card'><b>Desempeño Comparativo por Área</b>", unsafe_allow_html=True)
-        data_stack = []
-        for area, d in info_areas.items():
-            if 'df_frecuencias' in d:
-                res = d['df_frecuencias'].sum(numeric_only=True).to_dict()
-                res['Área'] = area
-                data_stack.append(res)
-        
-        if data_stack:
-            df_stack = pd.DataFrame(data_stack)
-            fig_bar = px.bar(df_stack, x='Área', y=['AD', 'A', 'B', 'C'], 
-                             color_discrete_map=COLORS_NIVELES, barmode='stack')
-            fig_bar.update_layout(margin=dict(t=20, b=20, l=0, r=0), height=350, xaxis_title=None)
-            st.plotly_chart(fig_bar, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-def render_detalle_area(nombre, datos):
-    """Visualización detallada por área"""
-    st.markdown(f"<h1 class='pbi-header'>Detalle: {nombre}</h1>", unsafe_allow_html=True)
-    
-    if 'df_frecuencias' not in datos:
-        st.warning("No hay datos de frecuencias para esta área.")
+    all_dfs = st.session_state.get('all_dataframes', {})
+    if not all_dfs:
+        st.warning("⚠️ No hay datos cargados.")
         return
 
-    df_f = datos['df_frecuencias']
-    
-    col_t, col_g = st.columns([1, 1.5])
-    with col_t:
-        st.markdown("<div class='pbi-card'><b>Tabla de Datos</b>", unsafe_allow_html=True)
-        st.dataframe(df_f, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Detección de columna de nombre
+    posibles = ["Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", "ALUMNO"]
+    first_sheet = next(iter(all_dfs))
+    df_base = all_dfs[first_sheet]
+    col_nombre = next((c for c in df_base.columns if str(c).strip() in posibles), None)
+
+    if not col_nombre:
+        st.error("No se encontró la columna de nombres.")
+        return
+
+    estudiante_sel = st.selectbox("🔍 Buscar estudiante:", options=df_base[col_nombre].dropna().unique(), index=None)
+
+    if estudiante_sel:
+        st.markdown(f"<div class='pbi-card'><h3>📊 Reporte: {estudiante_sel}</h3>", unsafe_allow_html=True)
         
-        # Botón de descarga estilizado
-        excel_data = convert_df_to_excel(df_f, nombre, datos.get('general_info', {}))
-        st.download_button("📥 Descargar Reporte Excel", data=excel_data, file_name=f"Reporte_{nombre}.xlsx")
+        total_conteo = {'AD': 0, 'A': 0, 'B': 0, 'C': 0}
+        desglose_areas = {'AD': [], 'A': [], 'B': [], 'C': []}
+        
+        for area_name, df_area in all_dfs.items():
+            fila = df_area[df_area[col_nombre] == estudiante_sel]
+            if not fila.empty:
+                vals = [str(v).upper().strip() for v in fila.iloc[0].values]
+                for n in total_conteo.keys():
+                    count = vals.count(n)
+                    total_conteo[n] += count
+                    if count > 0: desglose_areas[n].append(f"{area_name} ({count})")
 
-    with col_g:
-        st.markdown("<div class='pbi-card'><b>Análisis por Competencia</b>", unsafe_allow_html=True)
-        fig = go.Figure()
-        for n in ['C', 'B', 'A', 'AD']:
-            if n in df_f.columns:
-                fig.add_trace(go.Bar(name=n, y=df_f.index, x=df_f[n], orientation='h', marker_color=COLORS_NIVELES[n]))
-        fig.update_layout(barmode='stack', height=400, margin=dict(l=10, r=10, t=10, b=10))
-        st.plotly_chart(fig, use_container_width=True)
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            for n, label in [('AD', '🏆 Destacado'), ('A', '✅ Logrado'), ('B', '⚠️ Proceso'), ('C', '🛑 Inicio')]:
+                if total_conteo[n] > 0:
+                    with st.expander(f"{label}: {total_conteo[n]}"):
+                        for a in desglose_areas[n]: st.write(f"- {a}")
+                else:
+                    st.caption(f"{label}: 0")
+        
+        with c2:
+            fig = px.pie(values=list(total_conteo.values()), names=list(total_conteo.keys()), hole=0.5,
+                         color=list(total_conteo.keys()), color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+            fig.update_layout(showlegend=False, height=250, margin=dict(t=0, b=0, l=0, r=0))
+            st.plotly_chart(fig, use_container_width=True)
+
+        # Botón Word Azul
+        doc_buffer = pedagogical_assistant.generar_reporte_estudiante(estudiante_sel, total_conteo, desglose_areas)
+        st.download_button(label="📄 Descargar Informe de Progreso (Word)", data=doc_buffer, 
+                         file_name=f"Informe_{estudiante_sel}.docx", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-def render_kpi(label, value):
-    st.markdown(f"""
-        <div class='pbi-card' style='text-align: center; padding: 10px;'>
-            <div style='color: #666; font-size: 0.9rem; font-weight: 500;'>{label}</div>
-            <div style='color: {PBI_BLUE}; font-size: 1.8rem; font-weight: 700;'>{value}</div>
-        </div>
-    """, unsafe_allow_html=True)
-
+@st.cache_data
 def convert_df_to_excel(df, area_name, general_info):
-    """Función requerida por app.py para exportación"""
+    """Tu función de Excel con formato mejorado"""
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Frecuencias')
+        df.to_excel(writer, sheet_name='Frecuencias', index=True)
         workbook = writer.book
         worksheet = writer.sheets['Frecuencias']
-        header_format = workbook.add_format({'bold': True, 'bg_color': '#113770', 'font_color': 'white'})
+        
+        # Formatos
+        fmt_header = workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1})
+        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1})
+        
+        worksheet.set_column('A:A', 50, fmt_comp)
+        worksheet.set_column('B:Z', 10)
+        
         for col_num, value in enumerate(df.columns.values):
-            worksheet.write(0, col_num + 1, value, header_format)
+            worksheet.write(0, col_num + 1, value, fmt_header)
+            
     return output.getvalue()
 
 def configurar_uploader():
-    with st.container():
-        st.markdown("<div class='pbi-card'>", unsafe_allow_html=True)
-        uploaded_file = st.file_uploader("📂 Cargar Reporte SIAGIE (Excel)", type=["xlsx"])
-        if uploaded_file:
-            with st.spinner('Analizando estructura...'):
-                excel_file = pd.ExcelFile(uploaded_file)
-                # Llamada al core de análisis
-                info_areas = analysis_core.analyze_data(excel_file, excel_file.sheet_names)
-                st.session_state.info_areas = info_areas
-                st.session_state.df_cargado = True
-                st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<div class='pbi-card'>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("📂 Subir archivo Excel SIAGIE", type=["xlsx"])
+    if uploaded_file:
+        with st.spinner('Procesando...'):
+            excel_file = pd.ExcelFile(uploaded_file)
+            st.session_state.all_dataframes = {sheet: excel_file.parse(sheet) for sheet in excel_file.sheet_names}
+            info_areas = analysis_core.analyze_data(excel_file, excel_file.sheet_names)
+            st.session_state.info_areas = info_areas
+            st.session_state.df_cargado = True
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def inject_pbi_css():
     st.markdown(f"""
@@ -161,18 +214,26 @@ def inject_pbi_css():
         .pbi-card {{
             background-color: {PBI_CARD_BG};
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: 1px solid #E1E1E1;
         }}
         .pbi-header {{
             color: {PBI_BLUE};
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 1.5rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1.6rem;
             font-weight: 700;
-            border-left: 5px solid {PBI_LIGHT_BLUE};
-            padding-left: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid {PBI_LIGHT_BLUE};
+            padding-bottom: 10px;
+        }}
+        div.stDownloadButton > button {{
+            background-color: #0056b3 !important;
+            color: white !important;
+            border-radius: 6px !important;
+            border: none !important;
+            padding: 10px 20px !important;
         }}
         </style>
     """, unsafe_allow_html=True)
