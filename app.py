@@ -680,55 +680,10 @@ def cargar_datos_pedagogicos():
 # --- FUNCIÓN (UPLOADER) - v3.0 MULTI-HOJA ---
 def configurar_uploader():
     """
-    Procesa el archivo Excel.
-    AHORA GUARDA TODAS LAS HOJAS EN MEMORIA para el análisis integral.
+    Punto de entrada en la aplicación principal.
+    Llama a la función centralizada en el módulo de evaluación.
     """
-    uploaded_file = st.file_uploader(
-        "Sube tu archivo de Excel aquí", 
-        type=["xlsx", "xls"], 
-        key="file_uploader"
-    )
-
-    if uploaded_file is not None:
-        with st.spinner('Procesando todas las áreas...'):
-            try:
-                # 1. Leer el archivo Excel
-                excel_file = pd.ExcelFile(uploaded_file)
-                sheet_names = excel_file.sheet_names
-                
-                # 2. Filtrar hojas que no son áreas (Generalidades, etc.)
-                IGNORE_SHEETS = [analysis_core.GENERAL_SHEET_NAME.lower(), 'parametros', 'generalidades']
-                valid_sheets = [name for name in sheet_names if name.lower() not in IGNORE_SHEETS]
-
-                # 3. Ejecutar análisis de frecuencias (Tab 1)
-                results_dict = analysis_core.analyze_data(excel_file, valid_sheets)
-                st.session_state.info_areas = results_dict
-                st.session_state.df_cargado = True
-                
-                # --- 4. ¡LA CLAVE! LEER Y GUARDAR TODAS LAS HOJAS ---
-                # Creamos un diccionario donde guardaremos: {'Matemática': df_mate, 'Arte': df_arte...}
-                all_dataframes = {}
-                
-                for sheet in valid_sheets:
-                    try:
-                        # Leemos cada hoja individualmente
-                        df_temp = pd.read_excel(uploaded_file, sheet_name=sheet, header=0)
-                        all_dataframes[sheet] = df_temp
-                    except:
-                        pass # Si una hoja falla, la saltamos para no romper todo
-                
-                # Guardamos este "Tesoro" en la memoria de la App
-                st.session_state.all_dataframes = all_dataframes
-
-                # Mantenemos st.session_state.df solo para compatibilidad (usamos la primera hoja)
-                if valid_sheets:
-                    st.session_state.df = all_dataframes[valid_sheets[0]]
-                
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"Error al procesar el archivo: {e}")
-                st.session_state.df_cargado = False
+    evaluacion.configurar_uploader()
 
 def mostrar_analisis_general(results):
     st.markdown("---")
@@ -1134,5 +1089,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
