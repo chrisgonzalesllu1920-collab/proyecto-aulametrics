@@ -280,8 +280,8 @@ def convert_df_to_excel(df, area_name, general_info):
         info_sheet.write('A2', 'Nivel:', bold_fmt); info_sheet.write('B2', general_info.get('nivel', 'N/A'))
         info_sheet.write('A3', 'Grado:', bold_fmt); info_sheet.write('B3', general_info.get('grado', 'N/A'))
         
-        df.to_excel(writer, sheet_name='Frecuencias', index=True)
-        worksheet = writer.sheets['Frecuencias']
+        df.to_excel(writer, sheet_name='frecuencias', index=True)
+        worksheet = writer.sheets['frecuencias']
         
         fmt_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100', 'bold': True, 'border': 1})
         fmt_orange = workbook.add_format({'bg_color': '#FFEB9C', 'font_color': '#9C5700', 'bold': True, 'border': 1})
