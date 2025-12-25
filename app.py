@@ -17,7 +17,6 @@ from supabase import create_client, Client
 import pptx_generator
 import pedagogical_assistant
 import analysis_core
-from modules import evaluacion
 import modules.database as db
 import modules.recursos as recursos
 import modules.gamificacion as gamificacion
@@ -1090,6 +1089,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
