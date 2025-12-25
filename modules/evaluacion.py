@@ -73,7 +73,7 @@ def mostrar_analisis_general(results):
             for col_original_name, comp_data in competencias.items():
                 counts = comp_data['conteo_niveles']
                 total = comp_data['total_evaluados']
-                data['Competencia'].append(comp_data['nombre_limpio']) 
+                data['Competencia'].append(comp_data['nombre_limpio'])
                 for level in ['AD', 'A', 'B', 'C']:
                     count = counts.get(level, 0)
                     porcentaje = (count / total * 100) if total > 0 else 0
@@ -86,7 +86,7 @@ def mostrar_analisis_general(results):
             
             excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
             st.download_button(label=f"⬇️ Exportar Excel ({sheet_name})", data=excel_data, 
-                             file_name=f'Frecuencias_{sheet_name}.xlsx', key=f'btn_dl_{i}')
+                                file_name=f'Frecuencias_{sheet_name}.xlsx', key=f'btn_dl_{i}')
             st.markdown("</div>", unsafe_allow_html=True)
 
             # --- GRÁFICOS ---
@@ -163,14 +163,14 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         
         with c2:
             fig = px.pie(values=list(total_conteo.values()), names=list(total_conteo.keys()), hole=0.5,
-                         color=list(total_conteo.keys()), color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                        color=list(total_conteo.keys()), color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
             fig.update_layout(showlegend=False, height=250, margin=dict(t=0, b=0, l=0, r=0))
             st.plotly_chart(fig, use_container_width=True)
 
         # Botón Word Azul
         doc_buffer = pedagogical_assistant.generar_reporte_estudiante(estudiante_sel, total_conteo, desglose_areas)
         st.download_button(label="📄 Descargar Informe de Progreso (Word)", data=doc_buffer, 
-                         file_name=f"Informe_{estudiante_sel}.docx", use_container_width=True)
+                        file_name=f"Informe_{estudiante_sel}.docx", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 @st.cache_data
@@ -200,8 +200,12 @@ def configurar_uploader():
     if uploaded_file:
         with st.spinner('Procesando...'):
             excel_file = pd.ExcelFile(uploaded_file)
-            st.session_state.all_dataframes = {sheet: excel_file.parse(sheet) for sheet in excel_file.sheet_names}
-            info_areas = analysis_core.analyze_data(excel_file, excel_file.sheet_names)
+            
+            # --- CAMBIO SOLICITADO: FILTRAR HOJAS NO DESEADAS ---
+            hojas_validas = [s for s in excel_file.sheet_names if s not in ["Generalidades", "Parametros"]]
+            
+            st.session_state.all_dataframes = {sheet: excel_file.parse(sheet) for sheet in hojas_validas}
+            info_areas = analysis_core.analyze_data(excel_file, hojas_validas)
             st.session_state.info_areas = info_areas
             st.session_state.df_cargado = True
             st.rerun()
