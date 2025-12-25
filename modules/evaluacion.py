@@ -87,7 +87,7 @@ def configurar_uploader():
                 st.error(f"Error al procesar el archivo: {e}")
                 st.session_state.df_cargado = False
 
-def mostrar_analisis_general(df, df_config, info_areas):
+def mostrar_analisis_general(info_areas):
     """Muestra el resumen estadístico con gráfico de barras horizontales premium."""
     if not info_areas:
         st.warning("⚠️ No hay datos disponibles.")
