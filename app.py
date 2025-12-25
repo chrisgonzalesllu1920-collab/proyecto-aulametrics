@@ -8,7 +8,7 @@ import io
 import streamlit as st
 import pandas as pd
 import xlsxwriter
-import plotly.express as px
+import plotly.graph_objects as go
 from streamlit_lottie import st_lottie
 from supabase import create_client, Client
 
@@ -1133,6 +1133,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
