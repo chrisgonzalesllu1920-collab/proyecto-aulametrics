@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import io
 import analysis_core
-import plotly.express as px
 import plotly.graph_objects as go
 import xlsxwriter
 import pptx_generator
