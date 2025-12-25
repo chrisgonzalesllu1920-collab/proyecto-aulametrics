@@ -685,86 +685,12 @@ def configurar_uploader():
     """
     evaluacion.configurar_uploader()
 
-def mostrar_analisis_general(results):
-    st.markdown("---")
-    st.subheader("Resultados Consolidados por Área")
-
-    first_sheet_key = next(iter(results), None)
-    general_data = {}
-    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
-        general_data = results[first_sheet_key]['generalidades']
-        st.info(f"Datos del Grupo: Nivel: **{general_data.get('nivel', 'Desconocido')}** | Grado: **{general_data.get('grado', 'Desconocido')}**")
-    
-    st.sidebar.subheader("⚙️ Configuración del Gráfico")
-    
-    chart_options = ('Barras (Por Competencia)', 'Pastel (Proporción)')
-    st.session_state.chart_type = st.sidebar.radio("Elige el tipo de visualización:", chart_options, key="chart_radio_premium")
-
-    tabs = st.tabs([f"Área: {sheet_name}" for sheet_name in results.keys()])
-
-    for i, (sheet_name, result) in enumerate(results.items()):
-        with tabs[i]:
-            if 'error' in result:
-                st.error(f"Error al procesar la hoja '{sheet_name}': {result['error']}")
-                continue
-            competencias = result['competencias']
-            if not competencias:
-                st.info(f"No se encontraron datos de competencias en la hoja '{sheet_name}'.")
-                continue
-
-            st.markdown("##### 1. Distribución de Logros")
-            
-            data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
-            
-            for col_original_name, comp_data in competencias.items():
-                counts = comp_data['conteo_niveles']
-                total = comp_data['total_evaluados']
-                data['Competencia'].append(comp_data['nombre_limpio']) 
-                for level in ['AD', 'A', 'B', 'C']:
-                    count = counts.get(level, 0)
-                    porcentaje = (count / total * 100) if total > 0 else 0
-                    data[f'{level} (Est.)'].append(count)
-                    data[f'% {level}'].append(f"{porcentaje:.1f}%")
-                data['Total'].append(total)
-            df_table = pd.DataFrame(data).set_index('Competencia')
-            st.dataframe(df_table)
-            
-            excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
-            st.download_button(label=f"⬇️ Exportar Excel ({sheet_name})", data=excel_data, file_name=f'Frecuencias_{sheet_name}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', key=f'download_excel_{sheet_name}')
-
-            st.markdown("---")
-            competencia_nombres_limpios = df_table.index.tolist()
-            selected_comp = None 
-
-            if st.session_state.chart_type == 'Barras (Por Competencia)':
-                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_bar_{sheet_name}')
-                df_bar_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].rename(index={'AD (Est.)': 'AD', 'A (Est.)': 'A', 'B (Est.)': 'B', 'C (Est.)': 'C'})
-                df_bar = df_bar_data.reset_index()
-                df_bar.columns = ['Nivel', 'Estudiantes']
-                fig = px.bar(df_bar, x='Nivel', y='Estudiantes', title=f"Logros: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
-                st.plotly_chart(fig, use_container_width=True)
-            
-            elif st.session_state.chart_type == 'Pastel (Proporción)':
-                selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'select_comp_pie_{sheet_name}')
-                data_pie_data = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']]
-                data_pie = data_pie_data.reset_index()
-                data_pie.columns = ['Nivel', 'Estudiantes']
-                fig = px.pie(data_pie, values='Estudiantes', names='Nivel', title=f"Proporción: {selected_comp}", color='Nivel', color_discrete_map={'AD': 'green', 'A': 'lightgreen', 'B': 'orange', 'C': 'red'})
-                st.plotly_chart(fig, use_container_width=True)
-
-            st.markdown("---")
-            if selected_comp:
-                st.session_state[f'selected_comp_{sheet_name}'] = selected_comp
-            selected_comp_key = f'selected_comp_{sheet_name}'
-            
-            if st.button(f"🎯 Propuestas de mejora", key=f"asistente_comp_{sheet_name}", type="primary"):
-                if selected_comp_key in st.session_state and st.session_state[selected_comp_key]:
-                    comp_name_limpio = st.session_state[selected_comp_key]
-                    with st.expander(f"Ver Propuestas de mejora para: {comp_name_limpio}", expanded=True):
-                        ai_report_text = pedagogical_assistant.generate_suggestions(results, sheet_name, comp_name_limpio)
-                        st.markdown(ai_report_text, unsafe_allow_html=True)
-                else:
-                    st.warning("Selecciona una competencia en el desplegable de gráficos.")
+def mostrar_analisis_general(info_areas):
+    """
+    Punto de entrada en la aplicación principal.
+    Llama a la función centralizada en el módulo de evaluación para mostrar estadísticas y gráficos.
+    """
+    evaluacion.mostrar_analisis_general(info_areas)
 
 # --- FUNCIÓN AUXILIAR: BARRA LATERAL DE NAVEGACIÓN (V3 - CON LOGOUT) ---
 def mostrar_sidebar():
@@ -1089,6 +1015,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
