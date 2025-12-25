@@ -95,19 +95,26 @@ def mostrar_analisis_general(results):
             selected_comp = st.selectbox(f"Selecciona la competencia:", options=competencia_nombres_limpios, key=f'sel_{sheet_name}')
 
             if selected_comp:
-                df_plot = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].reset_index()
-                df_plot.columns = ['Nivel', 'Estudiantes']
-                df_plot['Nivel'] = df_plot['Nivel'].str.replace(' (Est.)', '', regex=False)
+                try:
+                    df_plot = df_table.loc[selected_comp, ['AD (Est.)', 'A (Est.)', 'B (Est.)', 'C (Est.)']].reset_index()
+                    df_plot.columns = ['Nivel', 'Estudiantes']
+                    df_plot['Nivel'] = df_plot['Nivel'].str.replace(' (Est.)', '', regex=False)
 
-                if st.session_state.chart_type == 'Barras (Por Competencia)':
-                    fig = px.bar(df_plot, x='Nivel', y='Estudiantes', color='Nivel', 
-                                color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
-                else:
-                    fig = px.pie(df_plot, values='Estudiantes', names='Nivel', hole=0.4,
-                                color='Nivel', color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
-                
-                fig.update_layout(margin=dict(t=30, b=0, l=0, r=0), height=350)
-                st.plotly_chart(fig, use_container_width=True)
+                    # Validación de datos para el gráfico
+                    if df_plot['Estudiantes'].sum() == 0:
+                        st.warning(f"No hay datos numéricos para graficar en la competencia: {selected_comp}")
+                    else:
+                        if st.session_state.chart_type == 'Barras (Por Competencia)':
+                            fig = px.bar(df_plot, x='Nivel', y='Estudiantes', color='Nivel', 
+                                        color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                        else:
+                            fig = px.pie(df_plot, values='Estudiantes', names='Nivel', hole=0.4,
+                                        color='Nivel', color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                        
+                        fig.update_layout(margin=dict(t=30, b=0, l=0, r=0), height=350)
+                        st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error al generar gráfico para {selected_comp}: {str(e)}")
             st.markdown("</div>", unsafe_allow_html=True)
 
             # --- ASISTENTE IA ---
@@ -162,10 +169,13 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
                     st.caption(f"{label}: 0")
         
         with c2:
-            fig = px.pie(values=list(total_conteo.values()), names=list(total_conteo.keys()), hole=0.5,
-                        color=list(total_conteo.keys()), color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
-            fig.update_layout(showlegend=False, height=250, margin=dict(t=0, b=0, l=0, r=0))
-            st.plotly_chart(fig, use_container_width=True)
+            if sum(total_conteo.values()) > 0:
+                fig = px.pie(values=list(total_conteo.values()), names=list(total_conteo.keys()), hole=0.5,
+                            color=list(total_conteo.keys()), color_discrete_map={'AD': 'green', 'A': '#90EE90', 'B': 'orange', 'C': 'red'})
+                fig.update_layout(showlegend=False, height=250, margin=dict(t=0, b=0, l=0, r=0))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No hay datos de calificación para este estudiante.")
 
         # Botón Word Azul
         doc_buffer = pedagogical_assistant.generar_reporte_estudiante(estudiante_sel, total_conteo, desglose_areas)
