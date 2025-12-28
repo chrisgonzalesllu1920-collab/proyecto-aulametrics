@@ -5,7 +5,7 @@ primaryColor = "#2962FF"
 # 2. Color de Fondo (EL CAMBIO CLAVE)
 # Este es un Gris Azulado con más "peso".
 # Hará que las tarjetas blancas resalten muchísimo más.
-backgroundColor = "#E1E4E8"
+backgroundColor = "#FFF4E6"
 
 # 3. Barra Lateral
 # Blanco Puro para crear el marco limpio a la izquierda
