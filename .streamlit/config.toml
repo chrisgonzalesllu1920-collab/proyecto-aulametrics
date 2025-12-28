@@ -1,16 +1,15 @@
 [theme]
+# Azul corporativo Power BI
+primaryColor = "#0078D4"
 
-# Color primario (acento en botones, sliders, selecciones)
-primaryColor = "#2962FF"
+# Fondo general (blanco humo Power BI)
+backgroundColor = "#F9FAFB"
 
-# Fondo principal totalmente blanco (canvas limpio)
-backgroundColor = "#FFFFFF"
-
-# Contenedores y sidebar también blancos (sin “tarjetas grises”)
+# Sidebar blanco limpio
 secondaryBackgroundColor = "#FFFFFF"
 
-# Texto gris oscuro profesional (no negro puro)
-textColor = "#263238"
+# Texto oscuro profesional
+textColor = "#1F2937"
 
-# Tipografía limpia y corporativa
+# Fuente base
 font = "sans serif"
