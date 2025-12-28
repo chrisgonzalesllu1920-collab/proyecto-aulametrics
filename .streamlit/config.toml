@@ -1,18 +1,16 @@
 [theme]
-# 1. Color Primario (Acentos)
+
+# Color primario (acento en botones, sliders, selecciones)
 primaryColor = "#2962FF"
 
-# 2. Color de Fondo (EL CAMBIO CLAVE)
-# Este es un Gris Azulado con más "peso".
-# Hará que las tarjetas blancas resalten muchísimo más.
-backgroundColor = "#FFF4E6"
+# Fondo principal totalmente blanco (canvas limpio)
+backgroundColor = "#FFFFFF"
 
-# 3. Barra Lateral
-# Blanco Puro para crear el marco limpio a la izquierda
+# Contenedores y sidebar también blancos (sin “tarjetas grises”)
 secondaryBackgroundColor = "#FFFFFF"
 
-# 4. Texto
+# Texto gris oscuro profesional (no negro puro)
 textColor = "#263238"
 
-# 5. Fuente
+# Tipografía limpia y corporativa
 font = "sans serif"
