@@ -544,11 +544,51 @@ def mostrar_comparacion_entre_periodos():
                                     'Período': [info1['periodo'], info2['periodo']],
                                     '% AD + A': [pct_ad_a_1, pct_ad_a_2]
                                 })
-                                fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
-                                              text='% AD + A', range_y=[0,100])
-                                fig.update_traces(textposition='top center')
+
+                                # Cálculo de escala dinámica en Y (zoom con margen 5%)
+                                min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
+                                max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
+                                range_y = [max(0, min_pct), min(100, max_pct)]  # Limitado a 0-100
+
+                                # Color de línea basado en delta
+                                line_color = "green" if delta_pct > 0 else "red" if delta_pct < 0 else "gray"
+
+                                fig = px.line(
+                                    df_line, 
+                                    x='Período', 
+                                    y='% AD + A', 
+                                    markers=True,
+                                    range_y=range_y
+                                )
+
+                                # Ajustes visuales
+                                fig.update_traces(
+                                    line=dict(width=4, color=line_color),  # Línea más gruesa + color condicional
+                                    marker=dict(size=12, line=dict(width=2, color='DarkSlateGrey')),  # Marcadores grandes
+                                    text='% AD + A', 
+                                    textposition='top center',  # Etiquetas visibles siempre
+                                    hovertemplate='%{y:.1f}%'  # Tooltip preciso con 1 decimal
+                                )
+
+                                fig.update_layout(
+                                    xaxis_title="Período",
+                                    yaxis_title="% AD + A",
+                                    hovermode="x unified",  # Tooltip unificado
+                                    plot_bgcolor='rgba(0,0,0,0)',  # Fondo transparente
+                                    yaxis=dict(
+                                        gridcolor='rgba(200,200,200,0.3)',  # Gridlines finas y sutiles
+                                        gridwidth=1
+                                    ),
+                                    xaxis=dict(
+                                        gridcolor='rgba(200,200,200,0.3)',
+                                        gridwidth=1
+                                    ),
+                                    font=dict(size=12, family="Segoe UI")
+                                )
+
                                 st.plotly_chart(fig, use_container_width=True)
-    
+
+                            
                             # Tabla comparativa detallada
                             st.markdown("**Tabla comparativa detallada**")
                             tabla = pd.DataFrame({
