@@ -574,23 +574,26 @@ def login_page():
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
             del st.session_state["email_sent_message"]
 
-        # === NUEVA DETECCIÓN DIRECTA DE MODO RECOVERY (con token_hash en query params) ===
+        # === DETECCIÓN DIRECTA DE MODO RECOVERY (CORREGIDA PARA SESSION MISSING) ===
         query_params = st.query_params
 
         if query_params.get("type") == "recovery" and query_params.get("token_hash"):
             token_hash = query_params["token_hash"]
 
             try:
-                # Verificamos el token OTP para activar la sesión de recuperación
+                # Verificamos el token y creamos la sesión de recuperación
                 supabase.auth.verify_otp({
                     "type": "recovery",
                     "token_hash": token_hash
                 })
 
+                # === CLAVE: Refrescamos la sesión para que update_user la reconozca ===
+                supabase.auth.get_session()  # Esto carga la sesión temporal recién creada
+
                 # Activamos el modo recovery
                 st.session_state.in_recovery_mode = True
 
-                # Limpiamos la URL para que quede bonita y sin parámetros sensibles
+                # Limpiamos la URL
                 st.query_params.clear()
 
                 # Recargamos para mostrar el formulario
@@ -598,8 +601,8 @@ def login_page():
 
             except Exception as e:
                 st.error("Enlace inválido o expirado. Por favor, solicita un nuevo enlace de recuperación.")
-                # Opcional: limpiar params si hay error
                 st.query_params.clear()
+                st.rerun()  # Opcional: recargar para limpiar
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
@@ -1121,6 +1124,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
