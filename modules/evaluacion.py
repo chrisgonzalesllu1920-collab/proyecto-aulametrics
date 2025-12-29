@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import xlsxwriter
 import pedagogical_assistant
 import colorsys  # CAMBIO: Import para manejar colores
+import re
 
 # --- CONFIGURACIÓN DE ESTÉTICA POWER BI ---
 PBI_BLUE = "#113770"
