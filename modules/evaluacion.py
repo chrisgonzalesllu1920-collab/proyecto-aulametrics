@@ -377,7 +377,7 @@ def mostrar_comparacion_entre_periodos():
     if 'excel_periodo1' in st.session_state and 'excel_periodo2' in st.session_state:
         info1 = st.session_state['info_periodo1']
         info2 = st.session_state['info_periodo2']
-
+    
         # Solo continuamos si ya pasó la validación de grado/sección
         if (info1['grado'] == info2['grado'] and 
             (info1['seccion'] == info2['seccion'] or 
@@ -386,7 +386,7 @@ def mostrar_comparacion_entre_periodos():
             
             st.markdown("---")
             st.subheader("Procesamiento de datos")
-
+    
             # Botón para procesar (evita procesar automáticamente en cada rerun)
             if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True):
                 with st.spinner("Procesando datos de ambos períodos..."):
@@ -394,52 +394,54 @@ def mostrar_comparacion_entre_periodos():
                         # Hoja Generalidades se excluye como antes
                         hojas_validas = [s for s in st.session_state['excel_periodo1'].sheet_names 
                                         if s != "Generalidades" and s != "Parametros"]
-
+    
                         # Procesamos ambos archivos
                         results1 = analysis_core.analyze_data(st.session_state['excel_periodo1'], hojas_validas)
                         results2 = analysis_core.analyze_data(st.session_state['excel_periodo2'], hojas_validas)
-
+    
                         st.session_state['results_periodo1'] = results1
                         st.session_state['results_periodo2'] = results2
-
+    
                         st.success("¡Datos procesados correctamente!")
-
+    
                     except Exception as e:
                         st.error(f"Error al procesar los datos: {str(e)}")
                         return
-
+    
             # Si ya están procesados, mostramos la interfaz de comparación
             if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
                 results1 = st.session_state['results_periodo1']
                 results2 = st.session_state['results_periodo2']
-
+    
                 # ------------------------------------------------
                 # Selección de competencias a comparar
                 # ------------------------------------------------
                 st.subheader("Seleccione qué comparar")
-
-                todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
-
+    
+                # Obtenemos las competencias disponibles desde la primera hoja válida
                 competencias_disponibles = []
                 if results1:
-                    competencias_disponibles = list(results1.values())[0].get('competencias', {}).keys()
-
+                    primera_hoja = next(iter(results1))
+                    competencias_disponibles = list(results1[primera_hoja].get('competencias', {}).keys())
+    
+                todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
+    
                 competencias_sel = []
                 if not todas_competencias:
                     competencias_sel = st.multiselect(
                         "Seleccione las competencias específicas a comparar",
                         options=competencias_disponibles,
-                        default=competencias_disponibles[:3],
+                        default=competencias_disponibles[:3] if competencias_disponibles else [],  # Protección contra lista vacía
                         key="competencias_comparar"
                     )
-
+    
                 competencias_a_mostrar = competencias_disponibles if todas_competencias else competencias_sel
-
+    
                 if not competencias_a_mostrar:
                     st.info("Seleccione al menos una competencia para comparar.")
                 else:
                     st.subheader("Visualizaciones comparativas")
-
+    
                     # Tipo de gráfico
                     tipo_grafico = st.radio(
                         "Tipo de visualización",
@@ -451,66 +453,82 @@ def mostrar_comparacion_entre_periodos():
                         horizontal=True,
                         key="tipo_grafico_comparacion"
                     )
-
-                    for competencia in competencias_a_mostrar:
-                        with st.expander(f"Competencia: {competencia}", expanded=True):
-                            # Obtenemos datos de ambos periodos para esta competencia
-                            data1 = results1.get(competencia, {}).get('competencias', {}).get(competencia, {})
-                            data2 = results2.get(competencia, {}).get('competencias', {}).get(competencia, {})
-
+    
+                    for competencia_original in competencias_a_mostrar:
+                        # Obtenemos el nombre limpio (más amigable)
+                        nombre_limpio = "Competencia desconocida"
+                        for hoja in results1:
+                            comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
+                            if comp_data and 'nombre_limpio' in comp_data:
+                                nombre_limpio = comp_data['nombre_limpio']
+                                break
+    
+                        with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
+                            # Buscamos la competencia en alguna de las hojas (normalmente está en una por área)
+                            data1 = None
+                            for hoja in results1:
+                                comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
+                                if comp_data:
+                                    data1 = comp_data
+                                    break
+    
+                            data2 = None
+                            for hoja in results2:
+                                comp_data = results2[hoja].get('competencias', {}).get(competencia_original)
+                                if comp_data:
+                                    data2 = comp_data
+                                    break
+    
                             if not data1 or not data2:
                                 st.warning("No se encontraron datos completos para esta competencia en uno de los períodos.")
                                 continue
-
-                            # Conteos y porcentajes
+    
+                            # Aquí ya tenemos los datos correctos
                             conteos1 = data1.get('conteo_niveles', {})
                             total1 = data1.get('total_evaluados', 1)
-                            pct1 = {k: v/total1*100 for k,v in conteos1.items()}
-
+                            pct1 = {k: (v / total1 * 100) if total1 > 0 else 0 for k, v in conteos1.items()}
+    
                             conteos2 = data2.get('conteo_niveles', {})
                             total2 = data2.get('total_evaluados', 1)
-                            pct2 = {k: v/total2*100 for k,v in conteos2.items()}
-
-                            # Preparamos datos para gráficos
+                            pct2 = {k: (v / total2 * 100) if total2 > 0 else 0 for k, v in conteos2.items()}
+    
                             niveles = ['AD', 'A', 'B', 'C']
                             valores1 = [conteos1.get(n, 0) for n in niveles]
                             valores2 = [conteos2.get(n, 0) for n in niveles]
-
+    
                             pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
                             pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
                             delta_pct = pct_ad_a_2 - pct_ad_a_1
-
+    
                             color_delta = "green" if delta_pct > 0 else "red" if delta_pct < 0 else "gray"
                             flecha = "↑" if delta_pct > 0 else "↓" if delta_pct < 0 else "→"
-
+    
                             st.metric(
                                 label="% Destacado + Logrado (AD+A)",
                                 value=f"{pct_ad_a_2:.1f}%",
-                                delta=f"{delta_pct:+.1f}%",
-                                delta_color="normal"  # lo manejamos con color manual abajo
+                                delta=f"{delta_pct:+.1f}%"
                             )
-
-                            # Indicador visual
+    
                             st.markdown(f"""
                             <div style="font-size: 1.8rem; color: {color_delta}; text-align: center;">
-                                {flecha} {abs(delta_pct):.1f}% { 'mejora' if delta_pct > 0 else 'retroceso' if delta_pct < 0 else 'sin cambio'}
+                                {flecha} {abs(delta_pct):.1f}% {'mejora' if delta_pct > 0 else 'retroceso' if delta_pct < 0 else 'sin cambio'}
                             </div>
                             """, unsafe_allow_html=True)
-
+    
                             # Preparación de datos para Plotly
                             df_comp = pd.DataFrame({
                                 'Nivel': niveles * 2,
                                 'Estudiantes': valores1 + valores2,
                                 'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
                             })
-
+    
                             if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
                                 fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
                                              barmode='group', text='Estudiantes',
                                              color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
                                 fig.update_traces(textposition='outside')
                                 st.plotly_chart(fig, use_container_width=True)
-
+    
                             elif tipo_grafico == "Barras apiladas (distribución %)":
                                 df_pct = pd.DataFrame({
                                     'Nivel': niveles,
@@ -520,7 +538,7 @@ def mostrar_comparacion_entre_periodos():
                                 fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
                                              color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
                                 st.plotly_chart(fig, use_container_width=True)
-
+    
                             elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
                                 df_line = pd.DataFrame({
                                     'Período': [info1['periodo'], info2['periodo']],
@@ -530,7 +548,7 @@ def mostrar_comparacion_entre_periodos():
                                               text='% AD + A', range_y=[0,100])
                                 fig.update_traces(textposition='top center')
                                 st.plotly_chart(fig, use_container_width=True)
-
+    
                             # Tabla comparativa detallada
                             st.markdown("**Tabla comparativa detallada**")
                             tabla = pd.DataFrame({
