@@ -242,10 +242,6 @@ def extraer_periodo_de_generalidades(excel_file):
 # ----------------------------------------------------------------------
 
 def mostrar_comparacion_entre_periodos():
-    """
-    Interfaz para cargar y comparar dos periodos diferentes
-    (Paso 1 y 2 - carga + detección de periodo)
-    """
     st.markdown("<h2 class='pbi-header'>📈 Comparación entre Períodos</h2>", unsafe_allow_html=True)
     
     st.info("""
@@ -253,7 +249,6 @@ def mostrar_comparacion_entre_periodos():
     del aula entre dos momentos diferentes (bimestres, trimestres, etc.).
     """)
 
-    # Creamos dos columnas para que se vea más organizado
     col1, col2 = st.columns(2)
 
     with col1:
@@ -269,7 +264,9 @@ def mostrar_comparacion_entre_periodos():
             try:
                 excel1 = pd.ExcelFile(file1)
                 periodo1 = extraer_periodo_de_generalidades(excel1)
-                st.success(f"**Archivo cargado** • Período detectado: **{periodo1}**")
+                # CAMBIO: Mostramos el período detectado de forma más clara
+                st.success(f"Archivo cargado correctamente")
+                st.markdown(f"**Período detectado:** {periodo1}")
                 st.session_state['excel_periodo1'] = excel1
                 st.session_state['periodo1_nombre'] = periodo1
             except Exception as e:
@@ -288,7 +285,8 @@ def mostrar_comparacion_entre_periodos():
             try:
                 excel2 = pd.ExcelFile(file2)
                 periodo2 = extraer_periodo_de_generalidades(excel2)
-                st.success(f"**Archivo cargado** • Período detectado: **{periodo2}**")
+                st.success(f"Archivo cargado correctamente")
+                st.markdown(f"**Período detectado:** {periodo2}")
                 st.session_state['excel_periodo2'] = excel2
                 st.session_state['periodo2_nombre'] = periodo2
             except Exception as e:
@@ -299,15 +297,14 @@ def mostrar_comparacion_entre_periodos():
         st.markdown("---")
         st.success("¡Ambos periodos están cargados! Listo para comparar.")
         
-        # Mostramos los nombres detectados de forma destacada
+        # CAMBIO: Mostramos los nombres de forma mucho más visible
+        st.markdown("### Comparación entre:")
         st.markdown(f"""
-        **Comparación entre:**  
-        🡅 **{st.session_state['periodo1_nombre']}**  
-        🡇 **{st.session_state['periodo2_nombre']}**
-        """)
+        **🡅 {st.session_state.get('periodo1_nombre', 'No detectado')}**  
+        **🡇 {st.session_state.get('periodo2_nombre', 'No detectado')}**
+        """, unsafe_allow_html=True)
         
-        # Aquí vendrán las siguientes funcionalidades (selección de competencias, gráficos...)
-        st.info("Próximos pasos: selección de competencias y visualizaciones comparativas (próximamente)")
+        st.info("Próximos pasos: selección de competencias y visualizaciones comparativas (en desarrollo)")
 
     elif 'excel_periodo1' in st.session_state or 'excel_periodo2' in st.session_state:
         st.warning("Carga el segundo archivo para comenzar la comparación.")
