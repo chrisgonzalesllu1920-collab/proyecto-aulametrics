@@ -275,49 +275,15 @@ def extraer_periodo_de_generalidades(excel_file):
 # ----------------------------------------------------------------------
 # NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
 # ----------------------------------------------------------------------
-
 def mostrar_comparacion_entre_periodos():
     st.markdown("<h2 class='pbi-header'>📈 Comparación entre Períodos</h2>", unsafe_allow_html=True)
-    
+   
     st.info("""
-    Carga dos archivos Excel con la misma estructura para comparar el desempeño 
+    Carga dos archivos Excel con la misma estructura para comparar el desempeño
     del aula entre dos momentos diferentes (bimestres, trimestres, etc.).
     """)
 
-    # Botón "Nuevo análisis" - solo visible si ya hay datos procesados
-    if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
-        if st.button("Nuevo análisis", type="secondary", use_container_width=True):
-            if st.session_state.get("confirm_reset", False):
-                # Confirmación aceptada → limpiar todo
-                keys_to_clear = [
-                    'excel_periodo1', 'excel_periodo2',
-                    'info_periodo1', 'info_periodo2',
-                    'results_periodo1', 'results_periodo2'
-                ]
-                for key in keys_to_clear:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.session_state["confirm_reset"] = False
-                st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
-                st.rerun()
-            else:
-                # Primera pulsación → pedir confirmación
-                st.session_state["confirm_reset"] = True
-                st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán los datos actuales.")
-                if st.button("Sí, confirmar y limpiar", type="primary"):
-                    # Confirmación aceptada
-                    for key in keys_to_clear:
-                        if key in st.session_state:
-                            del st.session_state[key]
-                    st.session_state["confirm_reset"] = False
-                    st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
-                    st.rerun()
-                if st.button("No, cancelar"):
-                    st.session_state["confirm_reset"] = False
-                    st.info("Acción cancelada.")
-    
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("Período 1 (anterior/base)")
         file1 = st.file_uploader(
@@ -326,7 +292,7 @@ def mostrar_comparacion_entre_periodos():
             key="comparacion_file1",
             help="Archivo base para la comparación"
         )
-        
+       
         if file1 is not None:
             try:
                 excel1 = pd.ExcelFile(file1)
@@ -348,7 +314,7 @@ def mostrar_comparacion_entre_periodos():
             key="comparacion_file2",
             help="Archivo que se comparará con el primero"
         )
-        
+       
         if file2 is not None:
             try:
                 excel2 = pd.ExcelFile(file2)
@@ -366,16 +332,16 @@ def mostrar_comparacion_entre_periodos():
     if 'info_periodo1' in st.session_state and 'info_periodo2' in st.session_state:
         info1 = st.session_state['info_periodo1']
         info2 = st.session_state['info_periodo2']
-        
+       
         # Verificamos si grado y sección coinciden (ignoramos si no se detectaron)
         if (info1['grado'] != "No encontrado" and info2['grado'] != "No encontrado" and
             info1['grado'] != info2['grado']) or \
            (info1['seccion'] != "No encontrado" and info2['seccion'] != "No encontrado" and
             info1['seccion'] != info2['seccion']):
             st.error("""
-            ❌ **Error de compatibilidad**  
-            Los dos archivos pertenecen a **grados o secciones diferentes**.  
-            No se puede comparar el desempeño entre grupos distintos.  
+            ❌ **Error de compatibilidad**
+            Los dos archivos pertenecen a **grados o secciones diferentes**.
+            No se puede comparar el desempeño entre grupos distintos.
             Por favor, carga archivos del **mismo grado y sección**.
             """)
             # Limpiamos para obligar recarga
@@ -383,19 +349,72 @@ def mostrar_comparacion_entre_periodos():
                 del st.session_state['excel_periodo2']
                 del st.session_state['info_periodo2']
             return
-        
+       
         st.markdown("---")
         st.success("¡Ambos periodos están cargados y son compatibles! Listo para comparar.")
-        
+       
         st.markdown("### Comparación entre:")
         st.markdown(f"""
-        **🡅 {info1['periodo']}**  
+        **🡅 {info1['periodo']}**
         Grado: {info1['grado']} | Sección: {info1['seccion']}
-        
-        **🡇 {info2['periodo']}**  
+       
+        **🡇 {info2['periodo']}**
         Grado: {info2['grado']} | Sección: {info2['seccion']}
         """, unsafe_allow_html=True)
-        
+       
+        # Botón "Procesar"
+        if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True):
+            with st.spinner("Procesando datos de ambos períodos..."):
+                try:
+                    hojas_validas = [s for s in st.session_state['excel_periodo1'].sheet_names 
+                                    if s != "Generalidades" and s != "Parametros"]
+
+                    results1 = analysis_core.analyze_data(st.session_state['excel_periodo1'], hojas_validas)
+                    results2 = analysis_core.analyze_data(st.session_state['excel_periodo2'], hojas_validas)
+
+                    st.session_state['results_periodo1'] = results1
+                    st.session_state['results_periodo2'] = results2
+
+                    st.success("¡Datos procesados correctamente!")
+                except Exception as e:
+                    st.error(f"Error al procesar los datos: {str(e)}")
+                    return
+
+        # Botón "Nuevo análisis" - aparece SOLO después de procesar (aquí sí ve los results)
+        if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
+            st.markdown("---")
+            if st.button("Nuevo análisis", type="secondary", use_container_width=True):
+                if st.session_state.get("confirm_reset", False):
+                    # Confirmación aceptada → limpiar todo
+                    keys_to_clear = [
+                        'excel_periodo1', 'excel_periodo2',
+                        'info_periodo1', 'info_periodo2',
+                        'results_periodo1', 'results_periodo2'
+                    ]
+                    for key in keys_to_clear:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.session_state["confirm_reset"] = False
+                    st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                    st.rerun()
+                else:
+                    # Primera pulsación → pedir confirmación
+                    st.session_state["confirm_reset"] = True
+                    st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán los datos actuales.")
+                    col_yes, col_no = st.columns(2)
+                    with col_yes:
+                        if st.button("Sí, confirmar y limpiar", type="primary", use_container_width=True):
+                            for key in keys_to_clear:
+                                if key in st.session_state:
+                                    del st.session_state[key]
+                            st.session_state["confirm_reset"] = False
+                            st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                            st.rerun()
+                    with col_no:
+                        if st.button("No, cancelar", use_container_width=True):
+                            st.session_state["confirm_reset"] = False
+                            st.info("Acción cancelada.")
+       
     elif 'excel_periodo1' in st.session_state or 'excel_periodo2' in st.session_state:
         st.warning("Carga el segundo archivo para comenzar la comparación.")
     else:
