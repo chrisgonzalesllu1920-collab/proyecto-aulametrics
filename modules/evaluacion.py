@@ -39,18 +39,25 @@ def evaluacion_page(asistente):
         st.markdown(f"<h1 class='pbi-header'>📊 Dashboard de Evaluación</h1>", unsafe_allow_html=True)
         configurar_uploader()
     else:
-        tab_global, tab_individual = st.tabs(["🌎 VISTA GLOBAL DEL AULA", "👤 PERFIL POR ESTUDIANTE"])
+        # MODIFICACIÓN: agregamos la tercera pestaña
+        tab_global, tab_individual, tab_comparar = st.tabs([
+            "🌎 VISTA GLOBAL DEL AULA",
+            "👤 PERFIL POR ESTUDIANTE",
+            "📈 COMPARAR PERÍODOS"              # ← Nueva pestaña
+        ])
        
         with tab_global:
             info_areas = st.session_state.get('info_areas', {})
             mostrar_analisis_general(info_areas)
            
         with tab_individual:
-            # Recuperamos los datos de la sesión para la vista individual
             df_first = st.session_state.get('df')
             df_config = st.session_state.get('df_config')
             info_areas = st.session_state.get('info_areas')
             mostrar_analisis_por_estudiante(df_first, df_config, info_areas)
+        
+        with tab_comparar:
+            mostrar_comparacion_entre_periodos()
 
 def mostrar_analisis_general(results):
     """Lógica original con diseño avanzado de Power BI"""
@@ -182,6 +189,130 @@ def mostrar_analisis_general(results):
                 with st.expander("Panel de Sugerencias Pedagógicas (Generado por IA)", expanded=True):
                     ai_text = pedagogical_assistant.generate_suggestions(results, sheet_name, selected_comp)
                     st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid {PBI_BLUE};'>{ai_text}</div>", unsafe_allow_html=True)
+
+# ----------------------------------------------------------------------
+# NUEVAS FUNCIONES AUXILIARES
+# ----------------------------------------------------------------------
+
+def extraer_periodo_de_generalidades(excel_file):
+    """
+    Intenta extraer el texto del 'Período de evaluación :' desde la hoja Generalidades
+    Retorna el período encontrado o un mensaje por defecto
+    """
+    if "Generalidades" not in excel_file.sheet_names:
+        return "Período no detectado (falta hoja Generalidades)"
+    
+    try:
+        df_gen = excel_file.parse("Generalidades")
+        
+        # Convertimos todo a string y buscamos el patrón
+        for _, row in df_gen.iterrows():
+            for val in row:
+                if pd.isna(val):
+                    continue
+                texto = str(val).strip().upper()
+                if "PERÍODO DE EVALUACIÓN" in texto or "PERIODO DE EVALUACION" in texto:
+                    # Intentamos extraer lo que viene después de los dos puntos
+                    match = re.search(r'PERÍODO DE EVALUACI[ÓO]N\s*[:;]?\s*(.+)', texto, re.IGNORECASE)
+                    if match:
+                        periodo = match.group(1).strip()
+                        return periodo.title()  # Primera letra mayúscula por estética
+        
+        # Si no encontramos con regex, intentamos buscar en celdas específicas
+        # (muchos formatos tienen el valor en la misma fila, columna siguiente)
+        for i in range(len(df_gen)):
+            row = df_gen.iloc[i].astype(str).str.upper()
+            if any("PERÍODO DE EVALUACIÓN" in cell for cell in row):
+                idx = row[row.str.contains("PERÍODO DE EVALUACIÓN", case=False)].index[0]
+                # Intentamos tomar el valor de la celda siguiente
+                if idx + 1 < len(row):
+                    valor = str(df_gen.iloc[i, idx + 1]).strip()
+                    if valor and valor != "nan":
+                        return valor.title()
+        
+        return "Período no detectado en Generalidades"
+    
+    except Exception as e:
+        return f"Error al leer Generalidades: {str(e)}"
+
+
+# ----------------------------------------------------------------------
+# NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
+# ----------------------------------------------------------------------
+
+def mostrar_comparacion_entre_periodos():
+    """
+    Interfaz para cargar y comparar dos periodos diferentes
+    (Paso 1 y 2 - carga + detección de periodo)
+    """
+    st.markdown("<h2 class='pbi-header'>📈 Comparación entre Períodos</h2>", unsafe_allow_html=True)
+    
+    st.info("""
+    Carga dos archivos Excel con la misma estructura para comparar el desempeño 
+    del aula entre dos momentos diferentes (bimestres, trimestres, etc.).
+    """)
+
+    # Creamos dos columnas para que se vea más organizado
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Período 1 (anterior/base)")
+        file1 = st.file_uploader(
+            "Selecciona el archivo del primer período",
+            type=["xlsx"],
+            key="comparacion_file1",
+            help="Archivo base para la comparación"
+        )
+        
+        if file1 is not None:
+            try:
+                excel1 = pd.ExcelFile(file1)
+                periodo1 = extraer_periodo_de_generalidades(excel1)
+                st.success(f"**Archivo cargado** • Período detectado: **{periodo1}**")
+                st.session_state['excel_periodo1'] = excel1
+                st.session_state['periodo1_nombre'] = periodo1
+            except Exception as e:
+                st.error(f"Error al procesar el primer archivo: {str(e)}")
+
+    with col2:
+        st.subheader("Período 2 (actual/comparación)")
+        file2 = st.file_uploader(
+            "Selecciona el archivo del segundo período",
+            type=["xlsx"],
+            key="comparacion_file2",
+            help="Archivo que se comparará con el primero"
+        )
+        
+        if file2 is not None:
+            try:
+                excel2 = pd.ExcelFile(file2)
+                periodo2 = extraer_periodo_de_generalidades(excel2)
+                st.success(f"**Archivo cargado** • Período detectado: **{periodo2}**")
+                st.session_state['excel_periodo2'] = excel2
+                st.session_state['periodo2_nombre'] = periodo2
+            except Exception as e:
+                st.error(f"Error al procesar el segundo archivo: {str(e)}")
+
+    # Información de estado
+    if 'excel_periodo1' in st.session_state and 'excel_periodo2' in st.session_state:
+        st.markdown("---")
+        st.success("¡Ambos periodos están cargados! Listo para comparar.")
+        
+        # Mostramos los nombres detectados de forma destacada
+        st.markdown(f"""
+        **Comparación entre:**  
+        🡅 **{st.session_state['periodo1_nombre']}**  
+        🡇 **{st.session_state['periodo2_nombre']}**
+        """)
+        
+        # Aquí vendrán las siguientes funcionalidades (selección de competencias, gráficos...)
+        st.info("Próximos pasos: selección de competencias y visualizaciones comparativas (próximamente)")
+
+    elif 'excel_periodo1' in st.session_state or 'excel_periodo2' in st.session_state:
+        st.warning("Carga el segundo archivo para comenzar la comparación.")
+    else:
+        st.info("Carga ambos archivos para iniciar la comparación entre períodos.")
+
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
