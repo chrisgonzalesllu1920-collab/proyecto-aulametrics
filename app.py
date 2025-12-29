@@ -787,38 +787,35 @@ def home_page():
 
     # 1. SISTEMA DE EVALUACIÓN (UNIFICADO: CARGA + VISTAS)
     if pagina == "Sistema de Evaluación":
-        
-        # A) Si NO hay datos cargados, mostramos el cargador
-        if not st.session_state.df_cargado:
-            st.header("📊 Sistema de Evaluación")
-            st.info("Para comenzar, sube tu registro de notas (Excel).")
-            # Llamamos a tu función de carga existente
-            configurar_uploader()
-            
-        # B) Si YA hay datos, mostramos el panel con pestañas internas
-        else:
-            # Creamos pestañas internas solo para esta herramienta
-            tab_global, tab_individual, tab_comparar = st.tabs([
-                "🌎 VISTA GLOBAL DEL AULA",
-                "👤 PERFIL POR ESTUDIANTE",
-                "📈 COMPARAR PERÍODOS"           # ← nueva pestaña
-            ])
-            
-            with tab_global:
-                st.subheader("Panorama General del Aula")
-                info_areas = st.session_state.info_areas
+        st.header("📊 Sistema de Evaluación")
+    
+        # Siempre mostramos las 3 pestañas en el orden solicitado
+        tab_global, tab_individual, tab_comparar = st.tabs([
+            "🌎 VISTA GLOBAL DEL AULA",
+            "👤 PERFIL POR ESTUDIANTE",
+            "📈 COMPARAR PERÍODOS"
+        ])
+    
+        with tab_global:
+            if st.session_state.df_cargado:
+                info_areas = st.session_state.get('info_areas', {})
                 mostrar_analisis_general(info_areas)
-                
-            with tab_individual:
-                st.subheader("Libreta Individual")
-                df = st.session_state.df
-                df_config = st.session_state.df_config
-                info_areas = st.session_state.info_areas
-                mostrar_analisis_por_estudiante(df, df_config, info_areas)
-            
-            with tab_comparar:
-                mostrar_comparacion_entre_periodos()   # ← llamada a la nueva función
-
+            else:
+                st.info("Carga un archivo Excel para ver el análisis global del aula.")
+                configurar_uploader()
+    
+        with tab_individual:
+            if st.session_state.df_cargado:
+                df_first = st.session_state.get('df')
+                df_config = st.session_state.get('df_config')
+                info_areas = st.session_state.get('info_areas')
+                mostrar_analisis_por_estudiante(df_first, df_config, info_areas)
+            else:
+                st.info("Carga un archivo Excel para analizar perfiles individuales.")
+                configurar_uploader()
+    
+        with tab_comparar:
+            mostrar_comparacion_entre_periodos()
 
 
     # 3. ASISTENTE PEDAGÓGICO
@@ -1024,6 +1021,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
