@@ -363,7 +363,7 @@ def mostrar_comparacion_entre_periodos():
         """, unsafe_allow_html=True)
        
         # Botón "Procesar"
-        if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True):
+        if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True, key="procesar_comparacion"):
             with st.spinner("Procesando datos de ambos períodos..."):
                 try:
                     hojas_validas = [s for s in st.session_state['excel_periodo1'].sheet_names 
@@ -420,47 +420,6 @@ def mostrar_comparacion_entre_periodos():
     else:
         st.info("Carga ambos archivos para iniciar la comparación entre períodos.")
 
-    # ------------------------------------------------------------
-    # NUEVA SECCIÓN: Procesamiento y comparación visual
-    # ------------------------------------------------------------
-    if 'excel_periodo1' in st.session_state and 'excel_periodo2' in st.session_state:
-        info1 = st.session_state['info_periodo1']
-        info2 = st.session_state['info_periodo2']
-    
-        # Solo continuamos si ya pasó la validación de grado/sección
-        if (info1['grado'] == info2['grado'] and 
-            (info1['seccion'] == info2['seccion'] or 
-             info1['seccion'] in ["No encontrado", "Error"] or 
-             info2['seccion'] in ["No encontrado", "Error"])):
-            
-            st.markdown("---")
-            st.subheader("Procesamiento de datos")
-    
-            # Botón para procesar (evita procesar automáticamente en cada rerun)
-            if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True):
-                with st.spinner("Procesando datos de ambos períodos..."):
-                    try:
-                        # Hoja Generalidades se excluye como antes
-                        hojas_validas = [s for s in st.session_state['excel_periodo1'].sheet_names 
-                                        if s != "Generalidades" and s != "Parametros"]
-    
-                        # Procesamos ambos archivos
-                        results1 = analysis_core.analyze_data(st.session_state['excel_periodo1'], hojas_validas)
-                        results2 = analysis_core.analyze_data(st.session_state['excel_periodo2'], hojas_validas)
-    
-                        st.session_state['results_periodo1'] = results1
-                        st.session_state['results_periodo2'] = results2
-    
-                        st.success("¡Datos procesados correctamente!")
-    
-                    except Exception as e:
-                        st.error(f"Error al procesar los datos: {str(e)}")
-                        return
-    
-            # Si ya están procesados, mostramos la interfaz de comparación
-            if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
-                results1 = st.session_state['results_periodo1']
-                results2 = st.session_state['results_periodo2']
     
                 # ------------------------------------------------
                 # Selección de competencias a comparar
