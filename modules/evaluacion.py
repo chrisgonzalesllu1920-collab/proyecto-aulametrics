@@ -284,6 +284,38 @@ def mostrar_comparacion_entre_periodos():
     del aula entre dos momentos diferentes (bimestres, trimestres, etc.).
     """)
 
+    # Botón "Nuevo análisis" - solo visible si ya hay datos procesados
+    if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
+        if st.button("Nuevo análisis", type="secondary", use_container_width=True):
+            if st.session_state.get("confirm_reset", False):
+                # Confirmación aceptada → limpiar todo
+                keys_to_clear = [
+                    'excel_periodo1', 'excel_periodo2',
+                    'info_periodo1', 'info_periodo2',
+                    'results_periodo1', 'results_periodo2'
+                ]
+                for key in keys_to_clear:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.session_state["confirm_reset"] = False
+                st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                st.rerun()
+            else:
+                # Primera pulsación → pedir confirmación
+                st.session_state["confirm_reset"] = True
+                st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán los datos actuales.")
+                if st.button("Sí, confirmar y limpiar", type="primary"):
+                    # Confirmación aceptada
+                    for key in keys_to_clear:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.session_state["confirm_reset"] = False
+                    st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                    st.rerun()
+                if st.button("No, cancelar"):
+                    st.session_state["confirm_reset"] = False
+                    st.info("Acción cancelada.")
+    
     col1, col2 = st.columns(2)
 
     with col1:
