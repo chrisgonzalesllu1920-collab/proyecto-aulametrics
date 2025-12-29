@@ -25,10 +25,11 @@ import modules.gamificacion as gamificacion
 # Importamos el módulo completo y las funciones específicas en un solo bloque
 try:
     import modules.evaluacion as evaluacion
+    
     from modules.evaluacion import (
         convert_df_to_excel,
-        mostrar_analisis_por_estudiante
-        mostrar_comparacion_entre_periodos
+        mostrar_analisis_por_estudiante,
+        mostrar_comparacion_entre_periodos,    # coma aquí
     )
 except ImportError as e:
     st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
@@ -1023,5 +1024,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
