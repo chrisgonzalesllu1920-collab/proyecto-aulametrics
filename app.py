@@ -574,18 +574,32 @@ def login_page():
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
             del st.session_state["email_sent_message"]
 
-        # --- DETECCIÓN AUTOMÁTICA DE MODO RECOVERY (gracias al listener arriba) ---
-        # Además, forzamos una lectura de sesión al cargar la página
-        try:
-            current_session = supabase.auth.get_session()
-            if current_session and current_session.user:  # Hay sesión activa
-                # Si el evento no se disparó por timing, verificamos manualmente
-                if st.session_state.get("in_recovery_mode", False) is False:
-                    # Supabase pone al usuario en modo recovery automáticamente
-                    # Puedes agregar una verificación extra si quieres
-                    pass
-        except Exception:
-            pass
+        # === NUEVA DETECCIÓN DIRECTA DE MODO RECOVERY (con token_hash en query params) ===
+        query_params = st.query_params
+
+        if query_params.get("type") == "recovery" and query_params.get("token_hash"):
+            token_hash = query_params["token_hash"]
+
+            try:
+                # Verificamos el token OTP para activar la sesión de recuperación
+                supabase.auth.verify_otp({
+                    "type": "recovery",
+                    "token_hash": token_hash
+                })
+
+                # Activamos el modo recovery
+                st.session_state.in_recovery_mode = True
+
+                # Limpiamos la URL para que quede bonita y sin parámetros sensibles
+                st.query_params.clear()
+
+                # Recargamos para mostrar el formulario
+                st.rerun()
+
+            except Exception as e:
+                st.error("Enlace inválido o expirado. Por favor, solicita un nuevo enlace de recuperación.")
+                # Opcional: limpiar params si hay error
+                st.query_params.clear()
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
@@ -1107,6 +1121,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
