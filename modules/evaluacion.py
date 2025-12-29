@@ -362,7 +362,7 @@ def mostrar_comparacion_entre_periodos():
         Grado: {info2['grado']} | Sección: {info2['seccion']}
         """, unsafe_allow_html=True)
        
-        # Botón "Procesar"
+        # Botón "Procesar" (con key para evitar duplicados)
         if st.button("🔄 Procesar ambos periodos y comparar", type="primary", use_container_width=True, key="procesar_comparacion"):
             with st.spinner("Procesando datos de ambos períodos..."):
                 try:
@@ -380,12 +380,11 @@ def mostrar_comparacion_entre_periodos():
                     st.error(f"Error al procesar los datos: {str(e)}")
                     return
 
-        # Botón "Nuevo análisis" - aparece SOLO después de procesar (aquí sí ve los results)
+        # Botón "Nuevo análisis" - aparece SOLO después de procesar
         if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
             st.markdown("---")
             if st.button("Nuevo análisis", type="secondary", use_container_width=True):
                 if st.session_state.get("confirm_reset", False):
-                    # Confirmación aceptada → limpiar todo
                     keys_to_clear = [
                         'excel_periodo1', 'excel_periodo2',
                         'info_periodo1', 'info_periodo2',
@@ -398,7 +397,6 @@ def mostrar_comparacion_entre_periodos():
                     st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
                     st.rerun()
                 else:
-                    # Primera pulsación → pedir confirmación
                     st.session_state["confirm_reset"] = True
                     st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán los datos actuales.")
                     col_yes, col_no = st.columns(2)
@@ -419,59 +417,63 @@ def mostrar_comparacion_entre_periodos():
         st.warning("Carga el segundo archivo para comenzar la comparación.")
     else:
         st.info("Carga ambos archivos para iniciar la comparación entre períodos.")
+   
+    # ------------------------------------------------
+    # Selección de competencias a comparar y visualizaciones
+    # ------------------------------------------------
+    if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
+        results1 = st.session_state['results_periodo1']
+        results2 = st.session_state['results_periodo2']
 
-    
-                # ------------------------------------------------
-                # Selección de competencias a comparar
-                # ------------------------------------------------
-                st.subheader("Seleccione qué comparar")
-    
-                # Obtenemos las competencias disponibles desde la primera hoja válida
-                competencias_disponibles = []
-                if results1:
-                    primera_hoja = next(iter(results1))
-                    competencias_disponibles = list(results1[primera_hoja].get('competencias', {}).keys())
-    
-                todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
-    
-                competencias_sel = []
-                if not todas_competencias:
-                    competencias_sel = st.multiselect(
-                        "Seleccione las competencias específicas a comparar",
-                        options=competencias_disponibles,
-                        default=competencias_disponibles[:3] if competencias_disponibles else [],  # Protección contra lista vacía
-                        key="competencias_comparar"
-                    )
-    
-                competencias_a_mostrar = competencias_disponibles if todas_competencias else competencias_sel
-    
-                if not competencias_a_mostrar:
-                    st.info("Seleccione al menos una competencia para comparar.")
-                else:
-                    st.subheader("Visualizaciones comparativas")
-    
-                    # Tipo de gráfico
-                    tipo_grafico = st.radio(
-                        "Tipo de visualización",
-                        options=[
-                            "Barras agrupadas (AD/A/B/C por período)",
-                            "Barras apiladas (distribución %)",
-                            "Líneas - Evolución % Destacado + Logrado (AD+A)"
-                        ],
-                        horizontal=True,
-                        key="tipo_grafico_comparacion"
-                    )
-    
-                    for competencia_original in competencias_a_mostrar:
-                        # Obtenemos el nombre limpio (más amigable)
-                        nombre_limpio = "Competencia desconocida"
-                        for hoja in results1:
-                            comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
-                            if comp_data and 'nombre_limpio' in comp_data:
-                                nombre_limpio = comp_data['nombre_limpio']
-                                break
-    
-                        with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
+        st.subheader("Seleccione qué comparar")
+
+        # Obtenemos las competencias disponibles desde la primera hoja válida
+        competencias_disponibles = []
+        if results1:
+            primera_hoja = next(iter(results1))
+            competencias_disponibles = list(results1[primera_hoja].get('competencias', {}).keys())
+
+        todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
+
+        competencias_sel = []
+        if not todas_competencias:
+            competencias_sel = st.multiselect(
+                "Seleccione las competencias específicas a comparar",
+                options=competencias_disponibles,
+                default=competencias_disponibles[:3] if competencias_disponibles else [],
+                key="competencias_comparar"
+            )
+
+        competencias_a_mostrar = competencias_disponibles if todas_competencias else competencias_sel
+
+        if not competencias_a_mostrar:
+            st.info("Seleccione al menos una competencia para comparar.")
+        else:
+            st.subheader("Visualizaciones comparativas")
+
+            tipo_grafico = st.radio(
+                "Tipo de visualización",
+                options=[
+                    "Barras agrupadas (AD/A/B/C por período)",
+                    "Barras apiladas (distribución %)",
+                    "Líneas - Evolución % Destacado + Logrado (AD+A)"
+                ],
+                horizontal=True,
+                key="tipo_grafico_comparacion"
+            )
+
+            for competencia_original in competencias_a_mostrar:
+                nombre_limpio = "Competencia desconocida"
+                for hoja in results1:
+                    comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
+                    if comp_data and 'nombre_limpio' in comp_data:
+                        nombre_limpio = comp_data['nombre_limpio']
+                        break
+
+                with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
+                    # ... (el resto del código de métricas, tabla y gráficos que ya tenías va aquí)
+                    # Puedes pegar tu código anterior de métricas, deltas, tabla y gráficos
+                            
                             # Buscamos la competencia en alguna de las hojas
                             data1 = None
                             for hoja in results1:
