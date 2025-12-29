@@ -191,7 +191,7 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     if not all_dfs:
         st.warning("⚠️ No se detectaron datos en la sesión actual.")
         return
-    posibles = ["Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", "ALUMNO"]
+    posibles = ["Estudiante", "ESTUDIANTE", "APELLIDOS Y NOMBRES", "Apellidos y Nombres", "Nombres"]
     first_sheet = next(iter(all_dfs))
     df_base = all_dfs[first_sheet]
     col_nombre = next((c for c in df_base.columns if str(c).strip() in posibles), None)
