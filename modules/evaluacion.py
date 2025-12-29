@@ -385,22 +385,25 @@ def mostrar_comparacion_entre_periodos():
             st.markdown("---")
             if st.button("Nuevo análisis", type="primary", use_container_width=True, help="Inicia una nueva comparación desde cero"):
                 if st.session_state.get("confirm_reset", False):
-                    # Limpieza completa de todas las claves relacionadas
+                    # Limpieza completa: borramos TODAS las claves relacionadas
                     keys_to_clear = [
                         'excel_periodo1', 'excel_periodo2',
                         'info_periodo1', 'info_periodo2',
                         'results_periodo1', 'results_periodo2',
-                        'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Limpieza de selecciones
+                        'comparacion_file1', 'comparacion_file2',  # Claves internas de los uploaders
+                        'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Selecciones
                     ]
                     for key in keys_to_clear:
                         if key in st.session_state:
                             del st.session_state[key]
                     
-                    # Limpieza adicional de caché (por si hay cachés residuales)
+                    # Limpieza de caché para forzar reinicio completo de widgets
                     st.cache_data.clear()
                     
                     st.session_state["confirm_reset"] = False
-                    st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos períodos.")
+                    st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
+                    
+                    # Forzamos rerun completo
                     st.rerun()
                 else:
                     # Primera pulsación → pedir confirmación
@@ -414,6 +417,7 @@ def mostrar_comparacion_entre_periodos():
                                 'excel_periodo1', 'excel_periodo2',
                                 'info_periodo1', 'info_periodo2',
                                 'results_periodo1', 'results_periodo2',
+                                'comparacion_file1', 'comparacion_file2',
                                 'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'
                             ]
                             for key in keys_to_clear:
@@ -421,7 +425,7 @@ def mostrar_comparacion_entre_periodos():
                                     del st.session_state[key]
                             st.cache_data.clear()
                             st.session_state["confirm_reset"] = False
-                            st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos períodos.")
+                            st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
                             st.rerun()
                     with col_no:
                         if st.button("No, cancelar", use_container_width=True):
