@@ -191,50 +191,53 @@ def mostrar_analisis_general(results):
                     ai_text = pedagogical_assistant.generate_suggestions(results, sheet_name, selected_comp)
                     st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid {PBI_BLUE};'>{ai_text}</div>", unsafe_allow_html=True)
 
-# ----------------------------------------------------------------------
-# NUEVAS FUNCIONES AUXILIARES
-# ----------------------------------------------------------------------
-
 def extraer_periodo_de_generalidades(excel_file):
     """
-    Intenta extraer el texto del 'Período de evaluación :' desde la hoja Generalidades
-    Retorna el período encontrado o un mensaje por defecto
+    Extrae el período de evaluación desde la hoja 'Generalidades'
+    Busca específicamente la fila con 'Período de evaluación :' y toma el valor de la columna siguiente
     """
     if "Generalidades" not in excel_file.sheet_names:
-        return "Período no detectado (falta hoja Generalidades)"
+        return "Hoja 'Generalidades' no encontrada"
     
     try:
-        df_gen = excel_file.parse("Generalidades")
+        # Leemos la hoja sin encabezados para preservar todo el formato
+        df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None)
         
-        # Convertimos todo a string y buscamos el patrón
-        for _, row in df_gen.iterrows():
-            for val in row:
-                if pd.isna(val):
-                    continue
-                texto = str(val).strip().upper()
-                if "PERÍODO DE EVALUACIÓN" in texto or "PERIODO DE EVALUACION" in texto:
-                    # Intentamos extraer lo que viene después de los dos puntos
-                    match = re.search(r'PERÍODO DE EVALUACI[ÓO]N\s*[:;]?\s*(.+)', texto, re.IGNORECASE)
-                    if match:
-                        periodo = match.group(1).strip()
-                        return periodo.title()  # Primera letra mayúscula por estética
+        # Convertimos todo a string para búsqueda segura
+        df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
         
-        # Si no encontramos con regex, intentamos buscar en celdas específicas
-        # (muchos formatos tienen el valor en la misma fila, columna siguiente)
-        for i in range(len(df_gen)):
-            row = df_gen.iloc[i].astype(str).str.upper()
-            if any("PERÍODO DE EVALUACIÓN" in cell for cell in row):
-                idx = row[row.str.contains("PERÍODO DE EVALUACIÓN", case=False)].index[0]
-                # Intentamos tomar el valor de la celda siguiente
-                if idx + 1 < len(row):
-                    valor = str(df_gen.iloc[i, idx + 1]).strip()
-                    if valor and valor != "nan":
-                        return valor.title()
+        # Buscamos la fila donde aparece "Período de evaluación" (insensible a mayúsculas)
+        mask = df_gen.apply(lambda row: row.str.contains("período de evaluación", case=False).any(), axis=1)
         
-        return "Período no detectado en Generalidades"
+        if not mask.any():
+            return "Texto 'Período de evaluación' no encontrado"
+        
+        # Tomamos la primera fila que coincida
+        row_idx = mask.idxmax()
+        row = df_gen.iloc[row_idx]
+        
+        # Buscamos la posición del texto en la fila
+        col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
+        
+        # Intentamos tomar el valor de la columna siguiente (normalmente D o E)
+        next_col = col_idx + 1
+        if next_col < len(row):
+            valor = row[next_col].strip()
+            if valor and valor.lower() != "nan" and valor != "":
+                return valor.title()  # Ej: "Segundo Bimestre"
+        
+        # Si no encuentra en la siguiente, busca hacia la derecha hasta 5 columnas
+        for offset in range(1, 6):
+            col_try = col_idx + offset
+            if col_try < len(row):
+                valor = row[col_try].strip()
+                if valor and valor.lower() != "nan" and valor != "":
+                    return valor.title()
+        
+        return "Valor del período no encontrado en la fila"
     
     except Exception as e:
-        return f"Error al leer Generalidades: {str(e)}"
+        return f"Error al leer hoja Generalidades: {str(e)}"
 
 
 # ----------------------------------------------------------------------
