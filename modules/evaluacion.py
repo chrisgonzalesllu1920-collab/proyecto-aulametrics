@@ -364,8 +364,6 @@ def mostrar_comparacion_entre_periodos():
         Grado: {info2['grado']} | Sección: {info2['seccion']}
         """, unsafe_allow_html=True)
         
-        st.info("Próximos pasos: selección de competencias y visualizaciones comparativas (en desarrollo)")
-
     elif 'excel_periodo1' in st.session_state or 'excel_periodo2' in st.session_state:
         st.warning("Carga el segundo archivo para comenzar la comparación.")
     else:
