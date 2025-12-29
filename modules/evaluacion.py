@@ -149,12 +149,15 @@ def mostrar_analisis_general(results):
                     height=450,
                     font_family="Segoe UI",
                     font=dict(size=12),
+                    color="black"
                     hovermode="closest",
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
                 )
-                
+                # Para forzar negrita específicamente en los títulos de los ejes y etiquetas:
+                fig.update_xaxes(tickfont=dict(size=14, family='Segoe UI Bold', color='black'))
+                fig.update_yaxes(tickfont=dict(size=14, family='Segoe UI Bold', color='black'))
                 st.plotly_chart(fig, use_container_width=True, key=f"plotly_v2_{sheet_name}_{selected_comp}_{i}")
             st.markdown("</div>", unsafe_allow_html=True)
 
