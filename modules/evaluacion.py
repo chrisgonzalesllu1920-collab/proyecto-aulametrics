@@ -121,7 +121,7 @@ def mostrar_analisis_general(results):
                 if st.session_state.chart_type == 'Barras (Clásico PBI)':
                     fig = px.bar(df_plot, x='Nivel', y='Estudiantes', color='Nivel', 
                                  text='Estudiantes', color_discrete_map=COLORS_NIVELES)
-                    fig.update_traces(textposition='outside', textfont=dict(size=22))
+                    fig.update_traces(textposition='outside')
 
                 elif st.session_state.chart_type == 'Anillo (Proporción)':
                     fig = px.pie(df_plot, values='Estudiantes', names='Nivel', hole=0.6,
