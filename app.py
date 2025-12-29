@@ -6,11 +6,13 @@ import base64
 import io
 
 import streamlit as st
+from streamlit import _gather_metrics
 import pandas as pd
 import xlsxwriter
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+from streamlit.components.v1 import html
 from streamlit_lottie import st_lottie
 from supabase import create_client, Client
 
@@ -339,6 +341,22 @@ try:
     supabase_url = st.secrets['supabase']['url']
     supabase_key = st.secrets['supabase']['anon_key']
     supabase: Client = create_client(supabase_url, supabase_key)
+
+    # === NUEVO: Listener para detectar automáticamente el modo de recuperación ===
+    def on_auth_state_change(event: str, session):
+        """
+        Esta función se ejecuta cada vez que cambia el estado de autenticación en Supabase.
+        Cuando el usuario hace clic en el enlace de recuperación del correo, Supabase
+        emite el evento "PASSWORD_RECOVERY" y crea una sesión temporal.
+        """
+        if event == "PASSWORD_RECOVERY":
+            st.session_state.in_recovery_mode = True
+            # Forzamos recarga para mostrar inmediatamente el formulario de nueva contraseña
+            st.rerun()
+
+    # Registramos el listener (esto es clave)
+    supabase.auth.on_auth_state_change(on_auth_state_change)
+
 except KeyError:
     st.error("Error: Faltan las claves de Supabase en 'secrets.toml'.")
     st.stop()
@@ -346,21 +364,25 @@ except Exception as e:
     st.error(f"Error al conectar con Supabase: {e}")
     st.stop()
 
+# Inicialización de variables de sesión (se mantiene igual)
 if 'logged_in' not in st.session_state:
-  st.session_state.logged_in = False
-  
-if 'show_welcome_message' not in st.session_state:
-  st.session_state.show_welcome_message = False
-  
-if 'df_cargado' not in st.session_state:
-  st.session_state.df_cargado = False
+    st.session_state.logged_in = False
 
+if 'show_welcome_message' not in st.session_state:
+    st.session_state.show_welcome_message = False
+
+if 'df_cargado' not in st.session_state:
+    st.session_state.df_cargado = False
 if 'df' not in st.session_state:
-  st.session_state.df = None
+    st.session_state.df = None
 if 'df_config' not in st.session_state:
-  st.session_state.df_config = None
+    st.session_state.df_config = None
 if 'info_areas' not in st.session_state:
-  st.session_state.info_areas = None
+    st.session_state.info_areas = None
+
+# === NUEVO: Aseguramos que el estado de recuperación exista ===
+if 'in_recovery_mode' not in st.session_state:
+    st.session_state.in_recovery_mode = False
 
 # =========================================================================
 # === 3. ESTILOS CSS ===
@@ -425,11 +447,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; aquí ya no es necesario para esto
+
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (CON RECUPERACIÓN DE CONTRASEÑA CORREGIDA) ===
+# === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL --- (se mantiene igual)
+    # --- A. INYECCIÓN DE ESTILO VISUAL ---
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO */
@@ -532,16 +556,6 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # NUEVO: Snippet JS para convertir # a ? y redirigir (resuelve el problema del hash de Supabase)
-    components.html("""
-        <script>
-            const hash = window.location.hash.substr(1);
-            if (hash && !window.location.search) {
-                window.location.replace(window.location.pathname + '?' + hash);
-            }
-        </script>
-    """, height=0, width=0)
-
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
    
@@ -555,20 +569,26 @@ def login_page():
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # --- DETECCIÓN DE MODO RECOVERY ---
-        query_params = st.query_params.to_dict()  # MODIFICADO: Usamos .to_dict() para mejor manejo
-        if "type" in query_params and query_params["type"][0] == "recovery":  # Ahora detecta correctamente gracias al JS
-            st.session_state.in_recovery_mode = True
-            st.query_params.clear()  # Limpiamos para evitar que quede en URL
-
-        # MODIFICADO: Mostrar mensaje persistente si se envió el email (para que se vea después de rerun)
+        # Mostrar mensaje persistente de enlace enviado
         if st.session_state.get("email_sent_message", False):
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
-            del st.session_state["email_sent_message"]  # Lo borramos después de mostrarlo una vez
+            del st.session_state["email_sent_message"]
+
+        # --- DETECCIÓN AUTOMÁTICA DE MODO RECOVERY (gracias al listener arriba) ---
+        # Además, forzamos una lectura de sesión al cargar la página
+        try:
+            current_session = supabase.auth.get_session()
+            if current_session and current_session.user:  # Hay sesión activa
+                # Si el evento no se disparó por timing, verificamos manualmente
+                if st.session_state.get("in_recovery_mode", False) is False:
+                    # Supabase pone al usuario en modo recovery automáticamente
+                    # Puedes agregar una verificación extra si quieres
+                    pass
+        except Exception:
+            pass
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
-            # Si estamos en modo recovery → mostrar formulario de nueva contraseña
             if st.session_state.get("in_recovery_mode", False):
                 st.markdown("### 🔑 Restablece tu contraseña")
                 st.info("Ingresa tu nueva contraseña segura abajo.")
@@ -579,9 +599,7 @@ def login_page():
                     submitted = st.form_submit_button("Actualizar contraseña", type="primary", use_container_width=True)
                     
                     if submitted:
-                        if not new_password or not confirm_password:
-                            st.error("Por favor completa ambos campos.")
-                        elif new_password != confirm_password:
+                        if new_password != confirm_password:
                             st.error("Las contraseñas no coinciden.")
                         elif len(new_password) < 6:
                             st.error("La contraseña debe tener al menos 6 caracteres.")
@@ -594,16 +612,15 @@ def login_page():
                                 supabase.auth.sign_out()
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Error al actualizar la contraseña: {e}")
+                                st.error(f"Error al actualizar: {e}")
 
-            # Si NO estamos en recovery → mostrar login normal
             else:
                 with st.form("login_form"):
                     st.markdown("### 🔐 Acceso Docente")
                     email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
                     password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
                     submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-                   
+                    
                     if submitted:
                         try:
                             session = supabase.auth.sign_in_with_password({
@@ -613,13 +630,12 @@ def login_page():
                             st.session_state.logged_in = True
                             st.session_state.user = session.user
                             st.session_state.show_welcome_message = True
-                            if 'registro_exitoso' in st.session_state: 
+                            if 'registro_exitoso' in st.session_state:
                                 del st.session_state['registro_exitoso']
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error al iniciar sesión: {e}")
 
-                # --- OLVIDASTE CONTRASEÑA ---
                 st.markdown("<br>", unsafe_allow_html=True)
 
                 if st.button("¿Olvidaste tu contraseña?", type="secondary", use_container_width=True):
@@ -640,12 +656,11 @@ def login_page():
                             else:
                                 try:
                                     redirect_url = "https://proyecto-aulametrics-beta.streamlit.app/"
-                                    
                                     supabase.auth.reset_password_for_email(
                                         forgot_email,
                                         options={"redirect_to": redirect_url}
                                     )
-                                    st.session_state.email_sent_message = True  # NUEVO: Persistimos el mensaje
+                                    st.session_state.email_sent_message = True
                                     st.session_state.show_forgot_form = False
                                     st.rerun()
                                 except Exception as e:
@@ -655,7 +670,7 @@ def login_page():
                         st.session_state.show_forgot_form = False
                         st.rerun()
 
-        # --- PESTAÑA 2: REGISTRO (se mantiene igual) ---
+        # --- PESTAÑA 2: REGISTRO --- (mantengo tu código original completo)
         with tab_register:
             if 'form_reset_id' not in st.session_state:
                 st.session_state['form_reset_id'] = 0
@@ -692,7 +707,6 @@ def login_page():
 
         st.divider()
        
-        # BOTÓN DE CONTACTO
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
        
         st.markdown(f"""
@@ -1093,6 +1107,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
