@@ -789,7 +789,12 @@ def home_page():
     if pagina == "Sistema de Evaluación":
         st.header("📊 Sistema de Evaluación")
     
-        # Siempre mostramos las 3 pestañas en el orden solicitado
+        # Uploader principal SOLO si NO hay datos cargados (arriba, fuera de pestañas)
+        if not st.session_state.df_cargado:
+            st.info("Carga un archivo Excel para activar Vista Global y Perfil por Estudiante.")
+            configurar_uploader()  # ← ÚNICO llamado aquí
+    
+        # Siempre mostramos las 3 pestañas
         tab_global, tab_individual, tab_comparar = st.tabs([
             "🌎 VISTA GLOBAL DEL AULA",
             "👤 PERFIL POR ESTUDIANTE",
@@ -801,8 +806,7 @@ def home_page():
                 info_areas = st.session_state.get('info_areas', {})
                 mostrar_analisis_general(info_areas)
             else:
-                st.info("Carga un archivo Excel para ver el análisis global del aula.")
-                configurar_uploader()
+                st.info("Carga un archivo arriba para ver el análisis global del aula.")
     
         with tab_individual:
             if st.session_state.df_cargado:
@@ -811,12 +815,10 @@ def home_page():
                 info_areas = st.session_state.get('info_areas')
                 mostrar_analisis_por_estudiante(df_first, df_config, info_areas)
             else:
-                st.info("Carga un archivo Excel para analizar perfiles individuales.")
-                configurar_uploader()
+                st.info("Carga un archivo arriba para analizar perfiles individuales.")
     
         with tab_comparar:
             mostrar_comparacion_entre_periodos()
-
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
@@ -1021,6 +1023,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
