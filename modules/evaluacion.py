@@ -197,47 +197,79 @@ def extraer_periodo_de_generalidades(excel_file):
     Busca específicamente la fila con 'Período de evaluación :' y toma el valor de la columna siguiente
     """
     if "Generalidades" not in excel_file.sheet_names:
-        return "Hoja 'Generalidades' no encontrada"
-    
+        return {
+            "periodo": "Hoja 'Generalidades' no encontrada",
+            "grado": "No encontrado",
+            "seccion": "No encontrado"
+        }
+   
     try:
         # Leemos la hoja sin encabezados para preservar todo el formato
         df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None)
-        
+       
         # Convertimos todo a string para búsqueda segura
         df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
-        
+       
         # Buscamos la fila donde aparece "Período de evaluación" (insensible a mayúsculas)
         mask = df_gen.apply(lambda row: row.str.contains("período de evaluación", case=False).any(), axis=1)
-        
+       
         if not mask.any():
-            return "Texto 'Período de evaluación' no encontrado"
-        
+            return {
+                "periodo": "Texto 'Período de evaluación' no encontrado",
+                "grado": "No encontrado",
+                "seccion": "No encontrado"
+            }
+       
         # Tomamos la primera fila que coincida
         row_idx = mask.idxmax()
         row = df_gen.iloc[row_idx]
-        
+       
         # Buscamos la posición del texto en la fila
         col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
-        
-        # Intentamos tomar el valor de la columna siguiente (normalmente D o E)
-        next_col = col_idx + 1
-        if next_col < len(row):
-            valor = row[next_col].strip()
-            if valor and valor.lower() != "nan" and valor != "":
-                return valor.title()  # Ej: "Segundo Bimestre"
-        
-        # Si no encuentra en la siguiente, busca hacia la derecha hasta 5 columnas
-        for offset in range(1, 6):
+       
+        result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
+       
+        # Extraemos período (hasta 10 columnas a la derecha, por si hay espacios)
+        for offset in range(1, 11):
             col_try = col_idx + offset
             if col_try < len(row):
                 valor = row[col_try].strip()
                 if valor and valor.lower() != "nan" and valor != "":
-                    return valor.title()
-        
-        return "Valor del período no encontrado en la fila"
-    
+                    result["periodo"] = valor.title()
+                    break
+       
+        # Extraemos grado: buscamos "grado :" en la misma fila
+        mask_grado = row.str.contains("grado :", case=False)
+        if mask_grado.any():
+            col_grado = mask_grado.idxmax()
+            for offset in range(1, 6):
+                col_try = col_grado + offset
+                if col_try < len(row):
+                    valor = row[col_try].strip()
+                    if valor and valor.lower() != "nan" and valor != "":
+                        result["grado"] = valor.title()
+                        break
+       
+        # Extraemos sección: buscamos "sección :" en la misma fila
+        mask_seccion = row.str.contains("sección :", case=False)
+        if mask_seccion.any():
+            col_seccion = mask_seccion.idxmax()
+            for offset in range(1, 6):
+                col_try = col_seccion + offset
+                if col_try < len(row):
+                    valor = row[col_try].strip()
+                    if valor and valor.lower() != "nan" and valor != "":
+                        result["seccion"] = valor.upper()  # Sección suele ser mayúscula (A, B...)
+                        break
+       
+        return result
+   
     except Exception as e:
-        return f"Error al leer hoja Generalidades: {str(e)}"
+        return {
+            "periodo": f"Error al leer: {str(e)}",
+            "grado": "Error",
+            "seccion": "Error"
+        }
 
 
 # ----------------------------------------------------------------------
@@ -266,12 +298,13 @@ def mostrar_comparacion_entre_periodos():
         if file1 is not None:
             try:
                 excel1 = pd.ExcelFile(file1)
-                periodo1 = extraer_periodo_de_generalidades(excel1)
-                # CAMBIO: Mostramos el período detectado de forma más clara
-                st.success(f"Archivo cargado correctamente")
-                st.markdown(f"**Período detectado:** {periodo1}")
+                info1 = extraer_periodo_de_generalidades(excel1)
+                st.success("Archivo cargado correctamente")
+                st.markdown(f"**Período:** {info1['periodo']}")
+                st.markdown(f"**Grado:** {info1['grado']}")
+                st.markdown(f"**Sección:** {info1['seccion']}")
                 st.session_state['excel_periodo1'] = excel1
-                st.session_state['periodo1_nombre'] = periodo1
+                st.session_state['info_periodo1'] = info1
             except Exception as e:
                 st.error(f"Error al procesar el primer archivo: {str(e)}")
 
@@ -287,24 +320,48 @@ def mostrar_comparacion_entre_periodos():
         if file2 is not None:
             try:
                 excel2 = pd.ExcelFile(file2)
-                periodo2 = extraer_periodo_de_generalidades(excel2)
-                st.success(f"Archivo cargado correctamente")
-                st.markdown(f"**Período detectado:** {periodo2}")
+                info2 = extraer_periodo_de_generalidades(excel2)
+                st.success("Archivo cargado correctamente")
+                st.markdown(f"**Período:** {info2['periodo']}")
+                st.markdown(f"**Grado:** {info2['grado']}")
+                st.markdown(f"**Sección:** {info2['seccion']}")
                 st.session_state['excel_periodo2'] = excel2
-                st.session_state['periodo2_nombre'] = periodo2
+                st.session_state['info_periodo2'] = info2
             except Exception as e:
                 st.error(f"Error al procesar el segundo archivo: {str(e)}")
 
-    # Información de estado
-    if 'excel_periodo1' in st.session_state and 'excel_periodo2' in st.session_state:
-        st.markdown("---")
-        st.success("¡Ambos periodos están cargados! Listo para comparar.")
+    # Validación de compatibilidad
+    if 'info_periodo1' in st.session_state and 'info_periodo2' in st.session_state:
+        info1 = st.session_state['info_periodo1']
+        info2 = st.session_state['info_periodo2']
         
-        # CAMBIO: Mostramos los nombres de forma mucho más visible
+        # Verificamos si grado y sección coinciden (ignoramos si no se detectaron)
+        if (info1['grado'] != "No encontrado" and info2['grado'] != "No encontrado" and
+            info1['grado'] != info2['grado']) or \
+           (info1['seccion'] != "No encontrado" and info2['seccion'] != "No encontrado" and
+            info1['seccion'] != info2['seccion']):
+            st.error("""
+            ❌ **Error de compatibilidad**  
+            Los dos archivos pertenecen a **grados o secciones diferentes**.  
+            No se puede comparar el desempeño entre grupos distintos.  
+            Por favor, carga archivos del **mismo grado y sección**.
+            """)
+            # Limpiamos para obligar recarga
+            if 'excel_periodo2' in st.session_state:
+                del st.session_state['excel_periodo2']
+                del st.session_state['info_periodo2']
+            return
+        
+        st.markdown("---")
+        st.success("¡Ambos periodos están cargados y son compatibles! Listo para comparar.")
+        
         st.markdown("### Comparación entre:")
         st.markdown(f"""
-        **🡅 {st.session_state.get('periodo1_nombre', 'No detectado')}**  
-        **🡇 {st.session_state.get('periodo2_nombre', 'No detectado')}**
+        **🡅 {info1['periodo']}**  
+        Grado: {info1['grado']} | Sección: {info1['seccion']}
+        
+        **🡇 {info2['periodo']}**  
+        Grado: {info2['grado']} | Sección: {info2['seccion']}
         """, unsafe_allow_html=True)
         
         st.info("Próximos pasos: selección de competencias y visualizaciones comparativas (en desarrollo)")
