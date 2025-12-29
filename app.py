@@ -28,6 +28,7 @@ try:
     from modules.evaluacion import (
         convert_df_to_excel,
         mostrar_analisis_por_estudiante
+        mostrar_comparacion_entre_periodos
     )
 except ImportError as e:
     st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
@@ -796,7 +797,11 @@ def home_page():
         # B) Si YA hay datos, mostramos el panel con pestañas internas
         else:
             # Creamos pestañas internas solo para esta herramienta
-            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            tab_global, tab_individual, tab_comparar = st.tabs([
+                "🌎 VISTA GLOBAL DEL AULA",
+                "👤 PERFIL POR ESTUDIANTE",
+                "📈 COMPARAR PERÍODOS"           # ← nueva pestaña
+            ])
             
             with tab_global:
                 st.subheader("Panorama General del Aula")
@@ -809,6 +814,9 @@ def home_page():
                 df_config = st.session_state.df_config
                 info_areas = st.session_state.info_areas
                 mostrar_analisis_por_estudiante(df, df_config, info_areas)
+            
+            with tab_comparar:
+                mostrar_comparacion_entre_periodos()   # ← llamada a la nueva función
 
 
 
@@ -1015,4 +1023,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
