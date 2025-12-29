@@ -148,7 +148,7 @@ def mostrar_analisis_general(results):
                     margin=dict(t=40, b=20, l=20, r=20), 
                     height=450,
                     font_family="Segoe UI",
-                    font=dict(size=20),
+                    font=dict(size=18),
                     hovermode="closest",
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
