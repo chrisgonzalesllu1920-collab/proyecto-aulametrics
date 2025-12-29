@@ -27,7 +27,9 @@ try:
     import modules.evaluacion as evaluacion
     from modules.evaluacion import (
         convert_df_to_excel,
-        mostrar_analisis_por_estudiante
+        mostrar_analisis_por_estudiante,
+        # CAMBIO: Agregamos la nueva función para la comparación
+        mostrar_comparacion_entre_periodos
     )
 except ImportError as e:
     st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
@@ -450,6 +452,8 @@ def login_page():
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
@@ -473,205 +477,7 @@ def login_page():
              text-shadow: none !important;
         }
 
-        /* 6. INPUTS */
-        input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important; /* Más blanco */
-            border: 1px solid rgba(0, 0, 0, 0.2) !important;
-            border-radius: 8px !important;
-        }
-        ::placeholder {
-            color: #555555 !important;
-            opacity: 1 !important;
-        }
-
-        /* 7. CORRECCIÓN PESTAÑAS (Tabs) */
-        /* Texto Negro en las pestañas inactivas para que se lea */
-        button[data-baseweb="tab"] div p {
-            color: #333333 !important; 
-            font-weight: bold !important;
-            text-shadow: none !important;
-        }
-        /* Fondo blanco semitransparente para pestañas inactivas */
-        button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            border-radius: 8px !important;
-            margin-right: 5px !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
-        }
-        /* Pestaña Activa: Blanco Sólido y Texto Rosa */
-        button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #E94057 !important; /* Rosa intenso */
-        }
-        
-        /* 8. BOTÓN REGISTRARME (Hacerlo sólido) */
-        /* Afecta a los botones secundarios dentro del form */
-        div.stForm button[kind="secondary"] {
-            background-color: #ffffff !important;
-            color: #E94057 !important;
-            border: 2px solid #E94057 !important;
-            font-weight: bold !important;
-        }
-        div.stForm button[kind="secondary"]:hover {
-            background-color: #E94057 !important;
-            color: white !important;
-        }
-        
-        /* 9. CORRECCIÓN OLVIDASTE CONTRASEÑA (NUEVAS REGLAS) */
-        /* Texto del botón (st.button) a negro */
-        div[data-testid="stVerticalBlock"] button[kind="secondary"] p {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
-        }
-        
-        /* 🚩 CORRECCIÓN CRÍTICA: Texto dentro del mensaje de st.info a negro. */
-        /* Usamos selectores más específicos para anular el estilo global que lo ponía blanco. */
-        div[data-testid="stNotification"] p,
-        div[data-testid="stNotification"] div[data-testid="stMarkdownContainer"] p {
-            color: #1a1a1a !important;
-            text-shadow: none !important;
-        }
-
-        footer {visibility: hidden;}
-    </style>
-    """, unsafe_allow_html=True)
-
-    # --- B. ESTRUCTURA ---
-    col1, col_centro, col3 = st.columns([1, 4, 1]) 
-    
-    with col_centro:
-        st.image("assets/logotipo-aulametrics.png", width=300)
-        
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        
-        st.write("") 
-        
-        tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-        # --- PESTAÑA 1: LOGIN ---
-        with tab_login:
-            with st.form("login_form"):
-                st.markdown("### 🔐 Acceso Docente")
-                email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
-                password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
-                submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-                
-                if submitted:
-                    try:
-                        session = supabase.auth.sign_in_with_password({
-                            "email": email,
-                            "password": password
-                        })
-                        st.session_state.logged_in = True
-                        st.session_state.user = session.user
-                        st.session_state.show_welcome_message = True
-                        if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
-                        st.rerun() 
-                    except Exception as e:
-                        st.error(f"Error al iniciar sesión: {e}")
-
-            # INICIO DE LA INSERCIÓN DEL NUEVO CÓDIGO
-            # Botón y mensaje para "¿Olvidaste tu contraseña?"
-            if st.button("¿Olvidaste tu contraseña?", key="forgot_pass_btn", help="Haz clic para ver las instrucciones de recuperación."):
-                st.info("Para recuperar tu contraseña, por favor, ponte en contacto con el administrador escribiendo al siguiente correo electrónico: **aulametricsia@gmail.com**")
-            # FIN DE LA INSERCIÓN DEL NUEVO CÓDIGO
-
-        # --- PESTAÑA 2: REGISTRO ---
-        with tab_register:
-            if 'form_reset_id' not in st.session_state:
-                st.session_state['form_reset_id'] = 0
-            reset_id = st.session_state['form_reset_id']
-
-            if st.session_state.get('registro_exitoso', False):
-                st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
-                st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-                
-            with st.form("register_form"):
-                st.markdown("### 📝 Nuevo Usuario")
-                name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
-                email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
-                password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-                
-                # Botón de Registrarme (Ahora se verá con borde rojo gracias al CSS)
-                submitted = st.form_submit_button("Registrarme", use_container_width=True)
-                
-                if submitted:
-                    if not name or not email or not password:
-                        st.warning("Por favor, completa todos los campos.")
-                    else:
-                        try:
-                            user = supabase.auth.sign_up({
-                                "email": email,
-                                "password": password,
-                                "options": {
-                                    "data": { 'full_name': name }
-                                }
-                            })
-                            st.session_state['form_reset_id'] += 1
-                            st.session_state['registro_exitoso'] = True
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Error en el registro: {e}")
-
-        st.divider()
-        
-        # BOTÓN DE CONTACTO (SÓLIDO Y ATRACTIVO)
-        url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/" 
-        
-        st.markdown(f"""
-        <a href="{url_netlify}" target="_blank" style="
-            display: inline-block;
-            width: 100%;
-            padding: 15px 0;
-            background-color: #00C853; /* Verde WhatsApp / Éxito para invitar al clic */
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-            transition: all 0.3s;
-            border: none;
-        ">
-            💬 ¿Dudas? Contáctanos/TikTok
-        </a>
-        """, unsafe_allow_html=True)
-        
-# =========================================================================
-# === 5. FUNCIONES AUXILIARES ===
-# =========================================================================
-ISOTIPO_PATH = "assets/isotipo.png"
-RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
-
-@st.cache_data(ttl=3600)
-def cargar_datos_pedagogicos():
-    try:
-        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
-        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
-        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
-        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
-        
-        df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
-        df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
-        
-        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
-        
-        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
-        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
-        
-        df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
-        df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
-        
-        return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
-    
-    except FileNotFoundError:
-        st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
+        /* 6....(truncated 9321 characters)...")
         return None, None, None, None
     except Exception as e:
         st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
@@ -795,21 +601,27 @@ def home_page():
             
         # B) Si YA hay datos, mostramos el panel con pestañas internas
         else:
-            # Creamos pestañas internas solo para esta herramienta
-            tab_global, tab_individual = st.tabs(["🌎 Vista Global", "👤 Vista por Estudiante"])
+            # CAMBIO: Agregamos la tercera pestaña a la lista de tabs
+            tab_global, tab_individual, tab_comparar = st.tabs([
+                "🌎 VISTA GLOBAL DEL AULA",
+                "👤 PERFIL POR ESTUDIANTE",
+                "📈 COMPARAR PERÍODOS"
+            ])
             
             with tab_global:
-                st.subheader("Panorama General del Aula")
-                info_areas = st.session_state.info_areas
+                info_areas = st.session_state.get('info_areas', {})
                 mostrar_analisis_general(info_areas)
-                
+           
             with tab_individual:
-                st.subheader("Libreta Individual")
-                df = st.session_state.df
-                df_config = st.session_state.df_config
-                info_areas = st.session_state.info_areas
-                mostrar_analisis_por_estudiante(df, df_config, info_areas)
-
+                # Recuperamos los datos de la sesión para la vista individual
+                df_first = st.session_state.get('df')
+                df_config = st.session_state.get('df_config')
+                info_areas = st.session_state.get('info_areas')
+                mostrar_analisis_por_estudiante(df_first, df_config, info_areas)
+            
+            # CAMBIO: Nueva pestaña con llamada a la función de comparación
+            with tab_comparar:
+                mostrar_comparacion_entre_periodos()
 
 
     # 3. ASISTENTE PEDAGÓGICO
@@ -990,7 +802,6 @@ def home_page():
     elif pagina == "Gamificación":
         gamificacion.gamificacion()
 
-
     
 # =========================================================================
 # === 7. EJECUCIÓN PRINCIPAL ===
@@ -1015,9 +826,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
 
 
 
