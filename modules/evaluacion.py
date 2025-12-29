@@ -549,8 +549,52 @@ def mostrar_comparacion_entre_periodos():
                                 use_container_width=True
                             )
 
-                            # Los 3 gráficos se mantienen como estaban (sin cambios aquí)
-                            # ... (puedes dejar el resto del código de gráficos que ya tenías: barras agrupadas, apiladas, líneas)
+                            # Preparación de datos comunes para los gráficos
+                            niveles = ['AD', 'A', 'B', 'C']
+                            valores1 = [conteos1.get(n, 0) for n in niveles]
+                            valores2 = [conteos2.get(n, 0) for n in niveles]
+
+                            df_comp = pd.DataFrame({
+                                'Nivel': niveles * 2,
+                                'Estudiantes': valores1 + valores2,
+                                'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
+                            })
+
+                            if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
+                                fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
+                                             barmode='group', text='Estudiantes',
+                                             color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
+                                fig.update_traces(textposition='outside')
+                                st.plotly_chart(fig, use_container_width=True)
+
+                            elif tipo_grafico == "Barras apiladas (distribución %)":
+                                df_pct = pd.DataFrame({
+                                    'Nivel': niveles,
+                                    info1['periodo']: [pct1.get(n, 0) for n in niveles],
+                                    info2['periodo']: [pct2.get(n, 0) for n in niveles]
+                                }).set_index('Nivel')
+                                fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
+                                             color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
+                                st.plotly_chart(fig, use_container_width=True)
+
+                            elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
+                                pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
+                                pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
+
+                                df_line = pd.DataFrame({
+                                    'Período': [info1['periodo'], info2['periodo']],
+                                    '% AD + A': [pct_ad_a_1, pct_ad_a_2]
+                                })
+
+                                # Escala dinámica (ya implementada antes)
+                                min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
+                                max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
+                                range_y = [max(0, min_pct), min(100, max_pct)]
+
+                                fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
+                                              range_y=range_y, text='% AD + A')
+                                fig.update_traces(textposition='top center')
+                                st.plotly_chart(fig, use_container_width=True)
 
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
