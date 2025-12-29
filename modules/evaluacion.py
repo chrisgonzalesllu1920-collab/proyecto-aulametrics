@@ -120,29 +120,31 @@ def mostrar_analisis_general(results):
                 
                 if st.session_state.chart_type == 'Barras (Clásico PBI)':
                     fig = px.bar(df_plot, x='Nivel', y='Estudiantes', color='Nivel', 
-                                 text='Estudiantes', color_discrete_map=COLORS_NIVELES)
-                    fig.update_traces(textposition='outside')
+                                  text='Estudiantes', color_discrete_map=COLORS_NIVELES)
+                    fig.update_traces(textposition='outside', marker_line_width=2, marker_line_color="#333")
 
                 elif st.session_state.chart_type == 'Anillo (Proporción)':
                     fig = px.pie(df_plot, values='Estudiantes', names='Nivel', hole=0.6,
-                                 color='Nivel', color_discrete_map=COLORS_NIVELES)
-                    fig.update_traces(textinfo='percent+label')
+                                  color='Nivel', color_discrete_map=COLORS_NIVELES)
+                    fig.update_traces(textinfo='percent+label', marker=dict(line=dict(color='#333', width=2)))
 
                 elif st.session_state.chart_type == 'Mapa de Árbol (Jerarquía)':
                     fig = px.treemap(df_plot, path=['Nivel'], values='Estudiantes',
-                                     color='Nivel', color_discrete_map=COLORS_NIVELES)
+                                      color='Nivel', color_discrete_map=COLORS_NIVELES)
+                    fig.update_traces(marker_line_width=2, marker_line_color="#333")
 
                 elif st.session_state.chart_type == 'Radar de Competencias':
                     fig = go.Figure(data=go.Scatterpolar(
                         r=df_plot['Estudiantes'],
                         theta=df_plot['Nivel'],
                         fill='toself',
-                        line_color=PBI_LIGHT_BLUE
+                        line=dict(color=PBI_LIGHT_BLUE, width=3)
                     ))
                 
                 elif st.session_state.chart_type == 'Solar (Sunburst)':
                     fig = px.sunburst(df_plot, path=['Nivel'], values='Estudiantes',
-                                      color='Nivel', color_discrete_map=COLORS_NIVELES)
+                                       color='Nivel', color_discrete_map=COLORS_NIVELES)
+                    fig.update_traces(marker_line_width=2, marker_line_color="#333")
 
                 fig.update_layout(
                     margin=dict(t=40, b=20, l=20, r=20), 
@@ -203,7 +205,7 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         for idx, (n, label) in enumerate([('AD', 'Destacado'), ('A', 'Logrado'), ('B', 'Proceso'), ('C', 'Inicio')]):
             with cols[idx]:
                 st.markdown(f"""
-                    <div style='background: {COLORS_NIVELES[n]}; padding: 15px; border-radius: 5px; color: white; text-align: center;'>
+                    <div style='background: {COLORS_NIVELES[n]}; padding: 15px; border-radius: 5px; color: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.1);'>
                         <div style='font-size: 0.8rem; opacity: 0.9;'>{label}</div>
                         <div style='font-size: 1.8rem; font-weight: bold;'>{total_conteo[n]}</div>
                     </div>
@@ -222,6 +224,7 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
         with c2:
             fig = px.pie(values=list(total_conteo.values()), names=list(total_conteo.keys()), hole=0.5,
                         color=list(total_conteo.keys()), color_discrete_map=COLORS_NIVELES)
+            fig.update_traces(marker=dict(line=dict(color='#333', width=2)))
             fig.update_layout(showlegend=True, height=280, margin=dict(t=0, b=0, l=0, r=0),
                             legend=dict(orientation="v", x=1))
             st.plotly_chart(fig, use_container_width=True, key=f"pie_ind_pbi_{estudiante_sel}")
@@ -264,7 +267,7 @@ def inject_pbi_css():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
         
-        /* USANDO EL SELECTOR QUE TE FUNCIONÓ EN HOME PARA EL FONDO */
+        /* FONDO DE APLICACIÓN */
         [data-testid="stAppViewContainer"] {{
             background-color: {PBI_BG} !important;
             background-attachment: fixed;
@@ -275,14 +278,23 @@ def inject_pbi_css():
             font-family: 'Segoe UI', sans-serif;
         }}
 
+        /* TARJETAS CON SOMBRAS PROFUNDAS Y BORDES REFORZADOS */
         .pbi-card {{
             background-color: {PBI_CARD_BG};
             padding: 24px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             margin-bottom: 24px;
-            border: 1px solid #E5E7EB;
+            border: 1px solid #E2E8F0;
         }}
+
+        /* ESTILO PARA TABLAS (DATAFRAMES) */
+        [data-testid="stDataFrame"] {{
+            border: 1px solid #CBD5E0;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }}
+
         .pbi-header {{
             color: {PBI_BLUE};
             font-size: 1.5rem;
@@ -292,22 +304,42 @@ def inject_pbi_css():
             padding-bottom: 8px;
             text-transform: uppercase;
         }}
+
+        /* BOTONES ESTILO PREMIUM */
+        div.stButton > button {{
+            border-radius: 4px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }}
+
+        div.stButton > button:hover {{
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+            transform: translateY(-1px);
+        }}
+
         div.stDownloadButton > button {{
             background-color: {PBI_LIGHT_BLUE} !important;
             color: white !important;
-            border-radius: 2px !important;
+            border-radius: 4px !important;
             font-weight: 600 !important;
         }}
+
         .stTabs [data-baseweb="tab"] {{
-            background-color: #E5E7EB;
+            background-color: #EDF2F7;
             border-radius: 4px 4px 0 0;
-            padding: 8px 16px;
+            padding: 10px 20px;
+            border: 1px solid #E2E8F0;
+            margin-right: 4px;
         }}
+
         .stTabs [aria-selected="true"] {{
             background-color: {PBI_CARD_BG} !important;
-            border-top: 3px solid {PBI_LIGHT_BLUE} !important;
+            border-top: 4px solid {PBI_LIGHT_BLUE} !important;
+            border-bottom: none !important;
             font-weight: bold;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
         }}
         </style>
     """, unsafe_allow_html=True)
-
