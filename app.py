@@ -10,6 +10,7 @@ import pandas as pd
 import xlsxwriter
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
 from streamlit_lottie import st_lottie
 from supabase import create_client, Client
 
@@ -423,11 +424,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # =========================================================================
-# === 4. PÁGINA DE LOGIN (CON RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA) ===
+# === 4. PÁGINA DE LOGIN (CON RECUPERACIÓN DE CONTRASEÑA CORREGIDA) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL ---
+    # --- A. INYECCIÓN DE ESTILO VISUAL --- (se mantiene igual)
     st.markdown("""
     <style>
         /* 1. FONDO DEGRADADO */
@@ -530,6 +532,16 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
+    # NUEVO: Snippet JS para convertir # a ? y redirigir (resuelve el problema del hash de Supabase)
+    components.html("""
+        <script>
+            const hash = window.location.hash.substr(1);
+            if (hash && !window.location.search) {
+                window.location.replace(window.location.pathname + '?' + hash);
+            }
+        </script>
+    """, height=0, width=0)
+
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
    
@@ -543,12 +555,16 @@ def login_page():
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
 
-        # --- DETECCIÓN DE MODO RECOVERY (usuario llega desde email de Supabase) ---
-        query_params = st.query_params
-        if "type" in query_params and query_params["type"] == "recovery":
+        # --- DETECCIÓN DE MODO RECOVERY ---
+        query_params = st.query_params.to_dict()  # MODIFICADO: Usamos .to_dict() para mejor manejo
+        if "type" in query_params and query_params["type"][0] == "recovery":  # Ahora detecta correctamente gracias al JS
             st.session_state.in_recovery_mode = True
-            # Limpiamos los parámetros para evitar que quede en la URL
-            st.query_params.clear()
+            st.query_params.clear()  # Limpiamos para evitar que quede en URL
+
+        # MODIFICADO: Mostrar mensaje persistente si se envió el email (para que se vea después de rerun)
+        if st.session_state.get("email_sent_message", False):
+            st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
+            del st.session_state["email_sent_message"]  # Lo borramos después de mostrarlo una vez
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
@@ -574,7 +590,6 @@ def login_page():
                                 supabase.auth.update_user({"password": new_password})
                                 st.success("¡Contraseña actualizada con éxito! 🎉")
                                 st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
-                                # Cerramos modo recovery y sesión temporal
                                 st.session_state.in_recovery_mode = False
                                 supabase.auth.sign_out()
                                 st.rerun()
@@ -604,8 +619,8 @@ def login_page():
                         except Exception as e:
                             st.error(f"Error al iniciar sesión: {e}")
 
-                # --- NUEVA FUNCIONALIDAD: OLVIDASTE CONTRASEÑA ---
-                st.markdown("<br>", unsafe_allow_html=True)  # Espacio
+                # --- OLVIDASTE CONTRASEÑA ---
+                st.markdown("<br>", unsafe_allow_html=True)
 
                 if st.button("¿Olvidaste tu contraseña?", type="secondary", use_container_width=True):
                     st.session_state.show_forgot_form = True
@@ -624,14 +639,13 @@ def login_page():
                                 st.error("Por favor ingresa tu correo.")
                             else:
                                 try:
-                                    # URL de redirección: tu app de desarrollo (beta)
                                     redirect_url = "https://proyecto-aulametrics-beta.streamlit.app/"
                                     
                                     supabase.auth.reset_password_for_email(
                                         forgot_email,
                                         options={"redirect_to": redirect_url}
                                     )
-                                    st.success("¡Enlace enviado! 📧 Revisa tu bandeja de entrada y carpeta de spam.")
+                                    st.session_state.email_sent_message = True  # NUEVO: Persistimos el mensaje
                                     st.session_state.show_forgot_form = False
                                     st.rerun()
                                 except Exception as e:
@@ -1079,6 +1093,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
