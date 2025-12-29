@@ -3,10 +3,10 @@
 primaryColor = "#FF8C00"
 
 # Fondo general (blanco humo Power BI)
-backgroundColor = "#FFF3E0"
+backgroundColor = "#FFFFFF"
 
 # Sidebar blanco limpio
-secondaryBackgroundColor = "#FFF3E0"
+secondaryBackgroundColor = "#F0F2F6"
 
 # Texto oscuro profesional
 textColor = "#262730"
