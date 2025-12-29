@@ -383,30 +383,45 @@ def mostrar_comparacion_entre_periodos():
         # Botón "Nuevo análisis" - aparece SOLO después de procesar
         if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
             st.markdown("---")
-            if st.button("Nuevo análisis", type="secondary", use_container_width=True):
+            if st.button("Nuevo análisis", type="primary", use_container_width=True, help="Inicia una nueva comparación desde cero"):
                 if st.session_state.get("confirm_reset", False):
+                    # Limpieza completa de todas las claves relacionadas
                     keys_to_clear = [
                         'excel_periodo1', 'excel_periodo2',
                         'info_periodo1', 'info_periodo2',
-                        'results_periodo1', 'results_periodo2'
+                        'results_periodo1', 'results_periodo2',
+                        'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Limpieza de selecciones
                     ]
                     for key in keys_to_clear:
                         if key in st.session_state:
                             del st.session_state[key]
+                    
+                    # Limpieza adicional de caché (por si hay cachés residuales)
+                    st.cache_data.clear()
+                    
                     st.session_state["confirm_reset"] = False
-                    st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                    st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos períodos.")
                     st.rerun()
                 else:
+                    # Primera pulsación → pedir confirmación
                     st.session_state["confirm_reset"] = True
-                    st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán los datos actuales.")
+                    st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán todos los datos actuales.")
                     col_yes, col_no = st.columns(2)
                     with col_yes:
                         if st.button("Sí, confirmar y limpiar", type="primary", use_container_width=True):
+                            # Limpieza completa (repetida para seguridad)
+                            keys_to_clear = [
+                                'excel_periodo1', 'excel_periodo2',
+                                'info_periodo1', 'info_periodo2',
+                                'results_periodo1', 'results_periodo2',
+                                'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'
+                            ]
                             for key in keys_to_clear:
                                 if key in st.session_state:
                                     del st.session_state[key]
+                            st.cache_data.clear()
                             st.session_state["confirm_reset"] = False
-                            st.success("Comparación reiniciada. ¡Listo para cargar nuevos períodos!")
+                            st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos períodos.")
                             st.rerun()
                     with col_no:
                         if st.button("No, cancelar", use_container_width=True):
