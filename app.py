@@ -574,35 +574,59 @@ def login_page():
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
             del st.session_state["email_sent_message"]
 
-        # === DETECCIÓN DIRECTA DE MODO RECOVERY (CORREGIDA PARA SESSION MISSING) ===
+        # === DETECCIÓN Y ACTUALIZACIÓN INMEDIATA DE CONTRASEÑA (SIN RERUN INTERMEDIO) ===
         query_params = st.query_params
 
         if query_params.get("type") == "recovery" and query_params.get("token_hash"):
             token_hash = query_params["token_hash"]
 
-            try:
-                # Verificamos el token y creamos la sesión de recuperación
-                supabase.auth.verify_otp({
-                    "type": "recovery",
-                    "token_hash": token_hash
-                })
+            # Mostramos directamente el formulario SIN verificar aún (para evitar problemas de sesión)
+            st.markdown("### 🔑 Restablece tu contraseña")
+            st.info("Ingresa tu nueva contraseña segura abajo.")
 
-                # === CLAVE: Refrescamos la sesión para que update_user la reconozca ===
-                supabase.auth.get_session()  # Esto carga la sesión temporal recién creada
+            with st.form("immediate_reset_password_form"):
+                new_password = st.text_input("Nueva contraseña", type="password", placeholder="Mínimo 6 caracteres")
+                confirm_password = st.text_input("Confirmar nueva contraseña", type="password")
+                submitted = st.form_submit_button("Actualizar contraseña", type="primary", use_container_width=True)
 
-                # Activamos el modo recovery
-                st.session_state.in_recovery_mode = True
+                if submitted:
+                    if new_password != confirm_password:
+                        st.error("Las contraseñas no coinciden.")
+                    elif len(new_password) < 6:
+                        st.error("La contraseña debe tener al menos 6 caracteres.")
+                    else:
+                        try:
+                            # Primero verificamos el token (crea la sesión temporal)
+                            supabase.auth.verify_otp({
+                                "type": "recovery",
+                                "token_hash": token_hash
+                            })
 
-                # Limpiamos la URL
+                            # Inmediatamente después, actualizamos la contraseña (misma ejecución, misma sesión)
+                            supabase.auth.update_user({"password": new_password})
+
+                            st.success("¡Contraseña actualizada con éxito! 🎉")
+                            st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
+                            st.balloons()
+
+                            # Limpiamos params y estado
+                            st.query_params.clear()
+                            if 'in_recovery_mode' in st.session_state:
+                                del st.session_state.in_recovery_mode
+
+                            # Opcional: redirigir al login normal
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"No se pudo actualizar la contraseña: {e}")
+                            st.info("El enlace puede haber expirado. Solicita uno nuevo.")
+
+            # Limpiamos la URL aunque no se envíe (para que no quede el token visible)
+            if not submitted:
                 st.query_params.clear()
 
-                # Recargamos para mostrar el formulario
-                st.rerun()
-
-            except Exception as e:
-                st.error("Enlace inválido o expirado. Por favor, solicita un nuevo enlace de recuperación.")
-                st.query_params.clear()
-                st.rerun()  # Opcional: recargar para limpiar
+            # Detenemos la ejecución para no mostrar el login normal debajo
+            st.stop()
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
@@ -1124,6 +1148,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
