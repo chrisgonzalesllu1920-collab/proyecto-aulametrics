@@ -8,6 +8,7 @@ import xlsxwriter
 import pedagogical_assistant
 import colorsys  # CAMBIO: Import para manejar colores
 import re
+import time
 
 # --- CONFIGURACIÓN DE ESTÉTICA POWER BI ---
 PBI_BLUE = "#113770"
@@ -277,7 +278,12 @@ def extraer_periodo_de_generalidades(excel_file):
 # ----------------------------------------------------------------------
 def mostrar_comparacion_entre_periodos():
     st.markdown("<h2 class='pbi-header'>📈 Comparación entre Períodos</h2>", unsafe_allow_html=True)
-   
+
+    # Timestamp para keys dinámicas de uploaders (se actualiza al reiniciar)
+    reset_timestamp = st.session_state.get('reset_timestamp', time.time())
+    uploader_key1 = f"comparacion_file1_{reset_timestamp}"
+    uploader_key2 = f"comparacion_file2_{reset_timestamp}"
+    
     st.info("""
     Carga dos archivos Excel con la misma estructura para comparar el desempeño
     del aula entre dos momentos diferentes (bimestres, trimestres, etc.).
@@ -289,7 +295,7 @@ def mostrar_comparacion_entre_periodos():
         file1 = st.file_uploader(
             "Selecciona el archivo del primer período",
             type=["xlsx"],
-            key="comparacion_file1",
+            key=uploader_key1,  # ← Key dinámica
             help="Archivo base para la comparación"
         )
        
@@ -311,7 +317,7 @@ def mostrar_comparacion_entre_periodos():
         file2 = st.file_uploader(
             "Selecciona el archivo del segundo período",
             type=["xlsx"],
-            key="comparacion_file2",
+            key=uploader_key2,  # ← Key dinámica
             help="Archivo que se comparará con el primero"
         )
        
@@ -406,6 +412,7 @@ def mostrar_comparacion_entre_periodos():
                         
                         # Limpieza de caché para reinicio total
                         st.cache_data.clear()
+                        st.session_state['reset_timestamp'] = time.time()  # Nuevo timestamp → uploaders se recrean
                         
                         st.session_state["confirm_reset"] = False
                         st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
