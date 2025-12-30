@@ -384,53 +384,36 @@ def mostrar_comparacion_entre_periodos():
         if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
             st.markdown("---")
             if st.button("Nuevo análisis", type="primary", use_container_width=True, help="Inicia una nueva comparación desde cero"):
-                if st.session_state.get("confirm_reset", False):
-                    # Limpieza completa: borramos TODAS las claves relacionadas
-                    keys_to_clear = [
-                        'excel_periodo1', 'excel_periodo2',
-                        'info_periodo1', 'info_periodo2',
-                        'results_periodo1', 'results_periodo2',
-                        'comparacion_file1', 'comparacion_file2',  # Claves internas de los uploaders
-                        'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Selecciones
-                    ]
-                    for key in keys_to_clear:
-                        if key in st.session_state:
-                            del st.session_state[key]
-                    
-                    # Limpieza de caché para forzar reinicio completo de widgets
-                    st.cache_data.clear()
-                    
-                    st.session_state["confirm_reset"] = False
-                    st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
-                    
-                    # Forzamos rerun completo
-                    st.rerun()
-                else:
-                    # Primera pulsación → pedir confirmación
-                    st.session_state["confirm_reset"] = True
-                    st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán todos los datos actuales.")
-                    col_yes, col_no = st.columns(2)
-                    with col_yes:
-                        if st.button("Sí, confirmar y limpiar", type="primary", use_container_width=True):
-                            # Limpieza completa (repetida para seguridad)
-                            keys_to_clear = [
-                                'excel_periodo1', 'excel_periodo2',
-                                'info_periodo1', 'info_periodo2',
-                                'results_periodo1', 'results_periodo2',
-                                'comparacion_file1', 'comparacion_file2',
-                                'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'
-                            ]
-                            for key in keys_to_clear:
-                                if key in st.session_state:
-                                    del st.session_state[key]
-                            st.cache_data.clear()
-                            st.session_state["confirm_reset"] = False
-                            st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
-                            st.rerun()
-                    with col_no:
-                        if st.button("No, cancelar", use_container_width=True):
-                            st.session_state["confirm_reset"] = False
-                            st.info("Acción cancelada.")
+                st.session_state["confirm_reset"] = True  # Activar confirmación
+            
+            # Mostrar confirmación si está activada
+            if st.session_state.get("confirm_reset", False):
+                st.warning("¿Estás seguro de querer iniciar un **nuevo análisis**? Se perderán todos los datos actuales.")
+                col_yes, col_no = st.columns(2)
+                with col_yes:
+                    if st.button("Sí, confirmar y limpiar", type="primary", use_container_width=True):
+                        # Limpieza completa: borramos TODAS las claves relacionadas, incluyendo uploaders
+                        keys_to_clear = [
+                            'excel_periodo1', 'excel_periodo2',
+                            'info_periodo1', 'info_periodo2',
+                            'results_periodo1', 'results_periodo2',
+                            'comparacion_file1', 'comparacion_file2',  # Claves de los uploaders para eliminar archivos cargados
+                            'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Selecciones residuales
+                        ]
+                        for key in keys_to_clear:
+                            if key in st.session_state:
+                                del st.session_state[key]
+                        
+                        # Limpieza de caché para reinicio total
+                        st.cache_data.clear()
+                        
+                        st.session_state["confirm_reset"] = False
+                        st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
+                        st.experimental_rerun()  # Fuerza rerun completo
+                with col_no:
+                    if st.button("No, cancelar", use_container_width=True):
+                        st.session_state["confirm_reset"] = False
+                        st.info("Acción cancelada.")
        
     elif 'excel_periodo1' in st.session_state or 'excel_periodo2' in st.session_state:
         st.warning("Carga el segundo archivo para comenzar la comparación.")
