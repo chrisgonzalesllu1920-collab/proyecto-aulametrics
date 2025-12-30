@@ -392,13 +392,13 @@ def mostrar_comparacion_entre_periodos():
                 col_yes, col_no = st.columns(2)
                 with col_yes:
                     if st.button("Sí, confirmar y limpiar", type="primary", use_container_width=True):
-                        # Limpieza completa: borramos TODAS las claves relacionadas, incluyendo uploaders
+                        # Limpieza completa: borramos TODAS las claves relacionadas
                         keys_to_clear = [
                             'excel_periodo1', 'excel_periodo2',
                             'info_periodo1', 'info_periodo2',
                             'results_periodo1', 'results_periodo2',
-                            'comparacion_file1', 'comparacion_file2',  # Claves de los uploaders para eliminar archivos cargados
-                            'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Selecciones residuales
+                            'comparacion_file1', 'comparacion_file2',  # Claves de los uploaders
+                            'todas_competencias', 'competencias_comparar', 'tipo_grafico_comparacion'  # Selecciones
                         ]
                         for key in keys_to_clear:
                             if key in st.session_state:
@@ -409,7 +409,7 @@ def mostrar_comparacion_entre_periodos():
                         
                         st.session_state["confirm_reset"] = False
                         st.success("¡Comparación reiniciada completamente! Listo para cargar nuevos archivos.")
-                        st.experimental_rerun()  # Fuerza rerun completo
+                        st.rerun()  # ← Corregido: sin "experimental"
                 with col_no:
                     if st.button("No, cancelar", use_container_width=True):
                         st.session_state["confirm_reset"] = False
