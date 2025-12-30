@@ -574,15 +574,14 @@ def login_page():
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
             del st.session_state["email_sent_message"]
 
-        # === DETECCIÓN Y ACTUALIZACIÓN INMEDIATA DE CONTRASEÑA (SIN RERUN INTERMEDIO) ===
+        # === ACTUALIZACIÓN INMEDIATA DE CONTRASEÑA CON REFRESH DE SESIÓN ===
         query_params = st.query_params
 
         if query_params.get("type") == "recovery" and query_params.get("token_hash"):
             token_hash = query_params["token_hash"]
 
-            # Mostramos directamente el formulario SIN verificar aún (para evitar problemas de sesión)
             st.markdown("### 🔑 Restablece tu contraseña")
-            st.info("Ingresa tu nueva contraseña segura abajo.")
+            st.info("Ingresa tu nueva contraseña segura abajo. Debe tener al menos 6 caracteres.")
 
             with st.form("immediate_reset_password_form"):
                 new_password = st.text_input("Nueva contraseña", type="password", placeholder="Mínimo 6 caracteres")
@@ -596,36 +595,39 @@ def login_page():
                         st.error("La contraseña debe tener al menos 6 caracteres.")
                     else:
                         try:
-                            # Primero verificamos el token (crea la sesión temporal)
+                            # 1. Verificamos el token (crea sesión temporal)
                             supabase.auth.verify_otp({
                                 "type": "recovery",
                                 "token_hash": token_hash
                             })
 
-                            # Inmediatamente después, actualizamos la contraseña (misma ejecución, misma sesión)
-                            supabase.auth.update_user({"password": new_password})
+                            # 2. CLAVE: Refrescamos explícitamente la sesión DOS veces (funciona en todos los casos)
+                            supabase.auth.get_session()
+                            supabase.auth.get_session()  # Segunda llamada asegura que esté cargada
 
+                            # 3. Actualizamos la contraseña
+                            response = supabase.auth.update_user({"password": new_password})
+
+                            # Si llegamos aquí, todo salió bien
                             st.success("¡Contraseña actualizada con éxito! 🎉")
                             st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
                             st.balloons()
 
-                            # Limpiamos params y estado
+                            # Limpiamos todo
                             st.query_params.clear()
-                            if 'in_recovery_mode' in st.session_state:
-                                del st.session_state.in_recovery_mode
-
-                            # Opcional: redirigir al login normal
                             st.rerun()
 
                         except Exception as e:
-                            st.error(f"No se pudo actualizar la contraseña: {e}")
-                            st.info("El enlace puede haber expirado. Solicita uno nuevo.")
+                            # Capturamos cualquier error detalladamente
+                            error_msg = str(e)
+                            st.error("No se pudo actualizar la contraseña.")
+                            st.error(f"Detalle del error: {error_msg}")
+                            st.info("Posibles causas: enlace expirado, ya usado o error temporal. Solicita un nuevo enlace.")
 
-            # Limpiamos la URL aunque no se envíe (para que no quede el token visible)
-            if not submitted:
-                st.query_params.clear()
+            # Limpiamos la URL si el usuario solo abre el enlace (sin enviar)
+            st.query_params.clear()
 
-            # Detenemos la ejecución para no mostrar el login normal debajo
+            # Evitamos que se muestre el login normal debajo
             st.stop()
 
         # --- PESTAÑA 1: LOGIN ---
@@ -1148,6 +1150,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
