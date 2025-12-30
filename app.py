@@ -595,38 +595,40 @@ def login_page():
                         st.error("La contraseña debe tener al menos 6 caracteres.")
                     else:
                         try:
-                            # 1. Verificamos el token
+                            # 1. Verificamos el token OTP
                             verify_response = supabase.auth.verify_otp({
                                 "type": "recovery",
                                 "token_hash": token_hash
                             })
-                            st.write("🔍 Verify OTP response:", verify_response)  # LOG TEMPORAL
+                            st.write("🔍 Verify OTP response:", verify_response)  # LOG
 
-                            # 2. Refrescamos sesión varias veces
+                            # 2. Forzamos refresh múltiple de sesión (crítico en Streamlit)
                             session1 = supabase.auth.get_session()
-                            st.write("🔍 Sesión después de verify:", session1)  # LOG TEMPORAL
+                            st.write("🔍 Sesión 1:", session1)  # LOG
                             session2 = supabase.auth.get_session()
-                            st.write("🔍 Sesión refresh 2:", session2)  # LOG TEMPORAL
+                            st.write("🔍 Sesión 2:", session2)  # LOG
+                            session3 = supabase.auth.get_session()
+                            st.write("🔍 Sesión 3 (final):", session3)  # LOG
 
-                            # 3. Actualizamos contraseña
+                            # 3. Actualizamos la contraseña
                             update_response = supabase.auth.update_user({"password": new_password})
-                            st.write("🔍 Update user response:", update_response)  # LOG TEMPORAL
 
-                            # Si llega aquí, éxito
+                            # LOG CRÍTICO: Si ves esto con datos del usuario → ¡ÉXITO REAL!
+                            st.write("🔍 Update user response:", update_response)
+
+                            # Mensajes de éxito
                             st.success("¡Contraseña actualizada con éxito! 🎉")
                             st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
                             st.balloons()
 
+                            # Limpiamos y recargamos
                             st.query_params.clear()
                             st.rerun()
 
                         except Exception as e:
-                            st.error("No se pudo actualizar la contraseña.")
-                            st.code(f"Error completo: {e}")  # Muestra el error real
+                            st.error("Error al actualizar la contraseña:")
+                            st.code(f"Detalle completo: {str(e)}")
                             st.info("Solicita un nuevo enlace de recuperación.")
-
-            st.query_params.clear()
-            st.stop()
 
         # --- PESTAÑA 1: LOGIN ---
         with tab_login:
@@ -1148,6 +1150,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
