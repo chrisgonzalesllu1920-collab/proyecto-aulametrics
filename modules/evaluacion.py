@@ -279,8 +279,11 @@ def extraer_periodo_de_generalidades(excel_file):
 def mostrar_comparacion_entre_periodos():
     st.markdown("<h2 class='pbi-header'>📈 Comparación entre Períodos</h2>", unsafe_allow_html=True)
 
-    # Timestamp para keys dinámicas de uploaders (se actualiza al reiniciar)
-    reset_timestamp = st.session_state.get('reset_timestamp', time.time())
+    # Timestamp para keys dinámicas: solo cambia cuando reiniciamos explícitamente
+    if 'reset_timestamp' not in st.session_state:
+        st.session_state['reset_timestamp'] = time.time()
+    
+    reset_timestamp = st.session_state['reset_timestamp']
     uploader_key1 = f"comparacion_file1_{reset_timestamp}"
     uploader_key2 = f"comparacion_file2_{reset_timestamp}"
     
