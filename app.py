@@ -574,7 +574,7 @@ def login_page():
             st.success("¡Enlace enviado! 📧 Revise su bandeja de entrada y carpeta de spam para recuperar su contraseña.")
             del st.session_state["email_sent_message"]
 
-        # === ACTUALIZACIÓN INMEDIATA DE CONTRASEÑA CON REFRESH DE SESIÓN ===
+        # === ACTUALIZACIÓN INMEDIATA CON LOGS DETALLADOS ===
         query_params = st.query_params
 
         if query_params.get("type") == "recovery" and query_params.get("token_hash"):
@@ -595,39 +595,37 @@ def login_page():
                         st.error("La contraseña debe tener al menos 6 caracteres.")
                     else:
                         try:
-                            # 1. Verificamos el token (crea sesión temporal)
-                            supabase.auth.verify_otp({
+                            # 1. Verificamos el token
+                            verify_response = supabase.auth.verify_otp({
                                 "type": "recovery",
                                 "token_hash": token_hash
                             })
+                            st.write("🔍 Verify OTP response:", verify_response)  # LOG TEMPORAL
 
-                            # 2. CLAVE: Refrescamos explícitamente la sesión DOS veces (funciona en todos los casos)
-                            supabase.auth.get_session()
-                            supabase.auth.get_session()  # Segunda llamada asegura que esté cargada
+                            # 2. Refrescamos sesión varias veces
+                            session1 = supabase.auth.get_session()
+                            st.write("🔍 Sesión después de verify:", session1)  # LOG TEMPORAL
+                            session2 = supabase.auth.get_session()
+                            st.write("🔍 Sesión refresh 2:", session2)  # LOG TEMPORAL
 
-                            # 3. Actualizamos la contraseña
-                            response = supabase.auth.update_user({"password": new_password})
+                            # 3. Actualizamos contraseña
+                            update_response = supabase.auth.update_user({"password": new_password})
+                            st.write("🔍 Update user response:", update_response)  # LOG TEMPORAL
 
-                            # Si llegamos aquí, todo salió bien
+                            # Si llega aquí, éxito
                             st.success("¡Contraseña actualizada con éxito! 🎉")
                             st.info("Ahora puedes iniciar sesión con tu nueva contraseña.")
                             st.balloons()
 
-                            # Limpiamos todo
                             st.query_params.clear()
                             st.rerun()
 
                         except Exception as e:
-                            # Capturamos cualquier error detalladamente
-                            error_msg = str(e)
                             st.error("No se pudo actualizar la contraseña.")
-                            st.error(f"Detalle del error: {error_msg}")
-                            st.info("Posibles causas: enlace expirado, ya usado o error temporal. Solicita un nuevo enlace.")
+                            st.code(f"Error completo: {e}")  # Muestra el error real
+                            st.info("Solicita un nuevo enlace de recuperación.")
 
-            # Limpiamos la URL si el usuario solo abre el enlace (sin enviar)
             st.query_params.clear()
-
-            # Evitamos que se muestre el login normal debajo
             st.stop()
 
         # --- PESTAÑA 1: LOGIN ---
@@ -1150,6 +1148,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
