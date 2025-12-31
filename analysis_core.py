@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import unicodedata
 
 NIVELES_LOGRO = ['AD', 'A', 'B', 'C']
 GENERAL_SHEET_NAME = 'Generalidades' 
@@ -69,7 +70,23 @@ def analyze_data(excel_file, sheet_names):
     
     general_data = extract_general_data(excel_file)
     
+    # El for debe estar al mismo nivel que general_data (sin espacios extras al inicio)
     for sheet_name in sheet_names:
+        # Normalización ultra-robusta: quita acentos, mayúsculas y espacios
+        import unicodedata
+        sheet_normalized = ''.join(c for c in unicodedata.normalize('NFD', sheet_name) 
+                                   if unicodedata.category(c) != 'Mn').lower().strip()
+        
+        if sheet_normalized == "comentarios":
+            analisis_results[sheet_name] = {
+                'ignored': True,  # ← Nueva clave: 'ignored' en lugar de 'error'
+                'message': f"La hoja '{sheet_name}' fue ignorada automáticamente porque no contiene competencias (es una hoja de comentarios).",
+                'generalidades': general_data,
+                'competencias': {}
+            }
+            continue  # Salta al siguiente sheet sin procesar
+        
+
         try:
             df_full = pd.read_excel(excel_file, sheet_name=sheet_name, header=None) 
             max_cols = df_full.shape[1] 
@@ -147,4 +164,15 @@ def analyze_data(excel_file, sheet_names):
                 'competencias': {}
             }
             
+
     return analisis_results
+
+
+
+
+
+
+
+
+
+

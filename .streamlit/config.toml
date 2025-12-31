@@ -1,18 +1,17 @@
 [theme]
-# 1. Color Primario (Acentos)
-primaryColor = "#2962FF"
+# Azul corporativo Power BI
+primaryColor = "#FF8C00"
 
-# 2. Color de Fondo (EL CAMBIO CLAVE)
-# Este es un Gris Azulado con más "peso".
-# Hará que las tarjetas blancas resalten muchísimo más.
-backgroundColor = "#E1E4E8"
+# Fondo general (blanco humo Power BI)
+backgroundColor = "#FFFFFF"
 
-# 3. Barra Lateral
-# Blanco Puro para crear el marco limpio a la izquierda
-secondaryBackgroundColor = "#FFFFFF"
+# Sidebar blanco limpio
+secondaryBackgroundColor = "#F0F2F6"
 
-# 4. Texto
-textColor = "#263238"
+# Texto oscuro profesional
+textColor = "#262730"
 
-# 5. Fuente
-font = "sans serif"
+# Fuente base
+font = "serif"
+
+runOnSave = true
