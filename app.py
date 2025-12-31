@@ -483,11 +483,11 @@ def login_page():
         .main-container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 4rem 1rem 2rem 1rem;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         /* Tarjeta glassmorphism única */
@@ -1083,6 +1083,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
