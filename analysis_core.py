@@ -70,10 +70,10 @@ def analyze_data(excel_file, sheet_names):
     general_data = extract_general_data(excel_file)
     
     for sheet_name in sheet_names:
-        # Filtro: Ignorar hojas de comentarios (no procesarlas como competencias)
-        if "comentario" in sheet_name.lower():
+        # Filtro: Ignorar hojas de Comentarios (no procesarlas como competencias)
+        if "Comentarios" in sheet_name.lower():
             analisis_results[sheet_name] = {
-                'error': f"Hoja ignorada: '{sheet_name}' es una hoja de comentarios y no contiene competencias.",
+                'error': f"Hoja ignorada: '{sheet_name}' es una hoja de Comentarios y no contiene competencias.",
                 'generalidades': general_data,
                 'competencias': {}
             }
@@ -158,3 +158,4 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
+
