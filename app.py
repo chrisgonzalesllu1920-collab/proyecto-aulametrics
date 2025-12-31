@@ -506,7 +506,7 @@ def login_page():
         /* Logo y texto centrado */
         .header-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .header-section img { max-width: 240px; margin: 0 auto; display: block; }
         .header-section h2 { color: white; margin: 20px 0 10px; font-size: 2rem; }
@@ -1083,6 +1083,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
