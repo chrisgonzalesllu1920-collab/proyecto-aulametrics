@@ -691,12 +691,25 @@ def login_page():
                         st.error(f"Error en el registro: {e}")
 
 # --- CONTACTO ---
-    st.markdown('<div class="contact-btn">', unsafe_allow_html=True)
-    url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-    st.markdown(f'<a href="{url_netlify}" target="_blank">💬 ¿Dudas? Contáctanos/TikTok</a>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)  # Cierra glass-card
+        st.markdown(f"""
+        <a href="{url_netlify}" target="_blank" style="
+            display: inline-block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #00C853;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s;
+            border: none;
+        ">
+            💬 ¿Dudas? Contáctanos/TikTok
+        </a>
+        """, unsafe_allow_html=True)
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1076,6 +1089,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
