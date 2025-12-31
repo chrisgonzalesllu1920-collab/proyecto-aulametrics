@@ -70,6 +70,15 @@ def analyze_data(excel_file, sheet_names):
     general_data = extract_general_data(excel_file)
     
     for sheet_name in sheet_names:
+        # Filtro: Ignorar hojas de comentarios (no procesarlas como competencias)
+        if "comentario" in sheet_name.lower():
+            analisis_results[sheet_name] = {
+                'error': f"Hoja ignorada: '{sheet_name}' es una hoja de comentarios y no contiene competencias.",
+                'generalidades': general_data,
+                'competencias': {}
+            }
+            continue  # Salta al siguiente sheet sin procesar
+
         try:
             df_full = pd.read_excel(excel_file, sheet_name=sheet_name, header=None) 
             max_cols = df_full.shape[1] 
@@ -147,4 +156,5 @@ def analyze_data(excel_file, sheet_names):
                 'competencias': {}
             }
             
+
     return analisis_results
