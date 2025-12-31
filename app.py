@@ -693,7 +693,7 @@ def login_page():
                                 st.error("Por favor ingresa tu correo.")
                             else:
                                 try:
-                                    redirect_url = "https://proyecto-aulametrics-beta.streamlit.app/"
+                                    redirect_url = "https://aulametrics.streamlit.app/"
                                     supabase.auth.reset_password_for_email(
                                         forgot_email,
                                         options={"redirect_to": redirect_url}
@@ -1145,6 +1145,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
