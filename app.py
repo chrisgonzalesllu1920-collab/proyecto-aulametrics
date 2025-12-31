@@ -479,12 +479,11 @@ def login_page():
         /* Limpieza total */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Contenedor principal responsive - sin espacio vacío arriba */
+        /* Contenedor principal centrado y con menos espacio arriba */
         .main-container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 2rem 1rem 2rem 1rem;   /* reducido padding superior */
-            min-height: 100vh;
+            padding: 2rem 1rem 2rem 1rem;   /* reducido espacio superior */
         }
 
         /* Tarjeta glassmorphism única */
@@ -497,7 +496,7 @@ def login_page():
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* Header sin margen extra ni cajón blanco */
+        /* Header sin margen extra */
         .header-section {
             text-align: center;
             margin-bottom: 20px;
@@ -582,7 +581,7 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENEDOR PRINCIPAL (sin flex que genera espacio vacío) ---
+    # --- TARJETA PRINCIPAL CENTRADA ---
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
@@ -1085,6 +1084,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
