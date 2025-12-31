@@ -632,11 +632,42 @@ def login_page():
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- PESTAÑA 2: REGISTRO ---
+    # --- PESTAÑA 2: REGISTRO (mantén tu código actual aquí) ---
     with tab_register:
-        # Tu código de registro igual (mantenlo)
+        if 'form_reset_id' not in st.session_state:
+            st.session_state['form_reset_id'] = 0
+        reset_id = st.session_state['form_reset_id']
+        if st.session_state.get('registro_exitoso', False):
+            st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
+            st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
+               
+        with st.form("register_form"):
+            st.markdown("### 📝 Nuevo Usuario")
+            name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
+            email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
+            password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
+           
+            submitted = st.form_submit_button("Registrarme", use_container_width=True)
+           
+            if submitted:
+                if not name or not email or not password:
+                    st.warning("Por favor, completa todos los campos.")
+                else:
+                    try:
+                        user = supabase.auth.sign_up({
+                            "email": email,
+                            "password": password,
+                            "options": {
+                                "data": { 'full_name': name }
+                            }
+                        })
+                        st.session_state['form_reset_id'] += 1
+                        st.session_state['registro_exitoso'] = True
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error en el registro: {e}")
 
-    # --- BOTÓN CONTACTO INTEGRADO ---
+    # --- BOTÓN DE CONTACTO INTEGRADO (AHORA CON INDENTACIÓN CORRECTA) ---
     st.markdown("<div class='contact-btn'>", unsafe_allow_html=True)
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     st.markdown(f"""
@@ -659,6 +690,9 @@ def login_page():
     </a>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # Cierre de la tarjeta principal
+    st.markdown('</div>', unsafe_allow_html=True)
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1038,5 +1072,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
