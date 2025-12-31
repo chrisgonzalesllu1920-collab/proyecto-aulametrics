@@ -65,7 +65,7 @@ def mostrar_analisis_general(results):
     """Lógica original con diseño avanzado de Power BI"""
     st.markdown(f"<h2 class='pbi-header'>Resultados Consolidados por Área</h2>", unsafe_allow_html=True)
     
-    # Mensaje amigable para hojas ignoradas (en info azul/gris, no rojo)
+    # Mensaje amigable para hojas ignoradas (en color info, no rojo)
     ignored_sheets = [name for name, data in results.items() if data.get('ignored', False)]
     if ignored_sheets:
         st.info(
@@ -75,23 +75,24 @@ def mostrar_analisis_general(results):
         )
     
     # Filtrar solo áreas válidas (con competencias reales)
-    valid_areas = {name: data for name, data in results.items() if 'competencias' in data and data['competencias']}
+    valid_areas = {name: data for name, data in results.items() 
+                   if 'competencias' in data and data['competencias']}
     
     if not valid_areas:
         st.warning("No se encontraron áreas con competencias válidas para procesar.")
         return
     
-    # Mostrar badges o chips solo de áreas válidas (como en tu captura)
-    cols = st.columns(min(4, len(valid_areas)))  # Ajusta columnas según cantidad
+    # Mostrar badges o chips solo de áreas válidas
+    cols = st.columns(min(4, len(valid_areas)))
     for i, (area_name, data) in enumerate(valid_areas.items()):
-        with cols[i % len(cols)]:
+        with cols[i]:
             st.markdown(f"● {area_name}")
     
-    # Resto de tu código original (contexto del grupo, sidebar, tabs, etc.)
-    first_sheet_key = next(iter(results), None)
+    # Contexto del grupo (del primer sheet válido)
+    first_sheet_key = next(iter(valid_areas), None)
     general_data = {}
-    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
-        general_data = results[first_sheet_key]['generalidades']
+    if first_sheet_key and 'generalidades' in valid_areas[first_sheet_key]:
+        general_data = valid_areas[first_sheet_key]['generalidades']
         st.markdown(f"""
             <div class='pbi-card' style='padding: 10px 20px; border-left: 5px solid {PBI_LIGHT_BLUE}; margin-bottom: 25px;'>
                 <span style='color: #666; font-size: 0.8rem;'>CONTEXTO DEL GRUPO</span><br>
@@ -114,13 +115,14 @@ def mostrar_analisis_general(results):
         st.session_state.chart_type = st.radio("Seleccionar Visual:", chart_options, key="chart_radio_pbi")
         st.info("Tip: Los gráficos son interactivos. Haz clic en las leyendas para filtrar niveles.")
     
-    tabs = st.tabs([f"📍 {sheet_name}" for sheet_name in results.keys()])
-    for i, (sheet_name, result) in enumerate(results.items()):
+    # Tabs solo con áreas válidas
+    tabs = st.tabs([f"📍 {sheet_name}" for sheet_name in valid_areas.keys()])
+    for i, (sheet_name, result) in enumerate(valid_areas.items()):
         with tabs[i]:
             if 'error' in result:
                 st.error(f"Error en '{sheet_name}': {result['error']}")
                 continue
-
+            
             # --- TABLA DE DATOS (ESTILO PBI) ---
             st.markdown("<div class='pbi-card'><b>1. Matriz de Frecuencias de Evaluación</b>", unsafe_allow_html=True)
             data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
