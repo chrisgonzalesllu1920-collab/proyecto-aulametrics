@@ -453,7 +453,7 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL FINAL: RESPONSIVE, LIMPIO Y CON ONDAS FLUIDAS ---
+    # --- ESTILO VISUAL FINAL: RESPONSIVE, LIMPIO Y SIN ESPACIO VACÍO ARRIBA ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
@@ -479,15 +479,12 @@ def login_page():
         /* Limpieza total */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Contenedor principal responsive */
+        /* Contenedor principal responsive - sin espacio vacío arriba */
         .main-container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 4rem 1rem 2rem 1rem;
+            padding: 2rem 1rem 2rem 1rem;   /* reducido padding superior */
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
         }
 
         /* Tarjeta glassmorphism única */
@@ -498,21 +495,29 @@ def login_page():
             padding: 40px 30px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* Logo y texto centrado */
+        /* Header sin margen extra ni cajón blanco */
         .header-section {
             text-align: center;
             margin-bottom: 20px;
         }
-        .header-section img { max-width: 240px; margin: 0 auto; display: block; }
-        .header-section h2 { color: white; margin: 20px 0 10px; font-size: 2rem; }
-        .header-section p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
+        .header-section img {
+            max-width: 240px;
+            margin: 0 auto;
+            display: block;
+        }
+        .header-section h2 {
+            color: white;
+            margin: 20px 0 10px;
+            font-size: 2rem;
+        }
+        .header-section p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
 
-        /* Tabs responsive y grandes */
+        /* Tabs */
         [data-baseweb="tab-list"] {
             justify-content: center !important;
             margin-bottom: 30px;
@@ -530,14 +535,14 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs más grandes y cómodos */
+        /* Inputs */
         .stTextInput > div > div > input {
             border-radius: 12px !important;
             padding: 14px !important;
             font-size: 1rem !important;
         }
 
-        /* Botón principal naranja grande */
+        /* Botón principal */
         .stForm button[kind="primary"] {
             background-color: #FB5607 !important;
             border-radius: 12px !important;
@@ -546,7 +551,7 @@ def login_page():
             font-weight: bold !important;
         }
 
-        /* Link "¿Olvidaste?" sutil */
+        /* Link "¿Olvidaste?" */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -562,8 +567,7 @@ def login_page():
 
         /* Botón contacto */
         .contact-btn {
-            margin-top: auto;
-            padding-top: 30px;
+            margin-top: 30px;
             text-align: center;
         }
 
@@ -578,13 +582,13 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENEDOR PRINCIPAL RESPONSIVE ---
+    # --- CONTENEDOR PRINCIPAL (sin flex que genera espacio vacío) ---
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
     # --- HEADER: Logo y bienvenida ---
     st.markdown('<div class="header-section">', unsafe_allow_html=True)
-    st.image("assets/logotipo-aulametrics.png", width=260)  # 260px en desktop, se reduce solo en móvil
+    st.image("assets/logotipo-aulametrics.png", width=260)
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
     st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -644,9 +648,7 @@ def login_page():
                 st.session_state.show_forgot_form = False
                 st.rerun()
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # --- PESTAÑA 2: REGISTRO (mantén tu código actual aquí) ---
+    # --- PESTAÑA REGISTRO ---
     with tab_register:
         if 'form_reset_id' not in st.session_state:
             st.session_state['form_reset_id'] = 0
@@ -654,15 +656,15 @@ def login_page():
         if st.session_state.get('registro_exitoso', False):
             st.success("✅ ¡Cuenta creada con éxito!", icon="🎉")
             st.info("👈 Tus datos ya fueron registrados. Ve a la pestaña **'Iniciar Sesión'**.")
-               
+              
         with st.form("register_form"):
             st.markdown("### 📝 Nuevo Usuario")
             name = st.text_input("Nombre", key=f"reg_name_{reset_id}", placeholder="Tu nombre completo")
             email = st.text_input("Correo Electrónico", key=f"reg_email_{reset_id}", placeholder="tucorreo@email.com")
             password = st.text_input("Contraseña", type="password", key=f"reg_pass_{reset_id}", placeholder="Crea una contraseña")
-           
+          
             submitted = st.form_submit_button("Registrarme", use_container_width=True)
-           
+          
             if submitted:
                 if not name or not email or not password:
                     st.warning("Por favor, completa todos los campos.")
@@ -681,7 +683,7 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error en el registro: {e}")
 
-    # --- BOTÓN CONTACTO (al final, dentro de la tarjeta) ---
+    # --- BOTÓN CONTACTO ---
     st.markdown('<div class="contact-btn">', unsafe_allow_html=True)
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     st.markdown(f"""
@@ -1083,6 +1085,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
