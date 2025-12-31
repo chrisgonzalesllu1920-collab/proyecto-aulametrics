@@ -453,19 +453,17 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- A. INYECCIÓN DE ESTILO VISUAL (NUEVO CSS PARA ONDAS FLUIDAS Y TARJETA SIMPLE) ---
+    # --- ESTILO VISUAL FINAL: RESPONSIVE, LIMPIO Y CON ONDAS FLUIDAS ---
     st.markdown("""
     <style>
-        /* 1. TIPOGRAFÍA ROBOTO */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
-        html, body, [class*="css"] {
-            font-family: 'Roboto', sans-serif;
-        }
-       
-        /* 2. FONDO DEGRADADO CON ONDAS FLUIDAS (INSPIRADO EN TU IMAGEN FAVORITA) */
+        html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
+
+        /* Fondo degradado con ondas fluidas */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #FF006E 0%, #8338EC 50%, #FB5607 100%);
             background-attachment: fixed;
+            min-height: 100vh;
             position: relative;
             overflow: hidden;
         }
@@ -473,136 +471,152 @@ def login_page():
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: url('https://svgshare.com/i/11rF.svg') no-repeat center center/cover; /* SVG de ondas fluidas - cambia por uno personalizado si quieres */
-            opacity: 0.3;
+            background: url('https://svgshare.com/i/11rF.svg') no-repeat center center/cover;
+            opacity: 0.25;
             z-index: -1;
         }
-       
-        /* 3. LIMPIEZA DE INTERFAZ */
-        .block-container {
-            padding-top: 5rem !important;
-            padding-bottom: 2rem !important;
-            max-width: 450px;
+
+        /* Limpieza total */
+        header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
+
+        /* Contenedor principal responsive */
+        .main-container {
+            max-width: 500px;
             margin: 0 auto;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        header[data-testid="stHeader"] {
-            background-color: transparent !important;
-            display: none !important;
-        }
-       
-        /* 4. UNA SOLA TARJETA GLASSMORPHISM (SIMPLE Y CENTRADA) */
+
+        /* Tarjeta glassmorphism única */
         .glass-card {
-            background-color: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(20px);
-            padding: 40px;
             border-radius: 24px;
+            padding: 40px 30px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
-        .glass-card h3, .glass-card p { color: #1a1a1a !important; }
-       
-        /* 5. INPUTS */
-        input[type="text"], input[type="password"] {
-            color: #000000 !important;
-            background-color: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid rgba(0, 0, 0, 0.2) !important;
-            border-radius: 8px !important;
+
+        /* Logo y texto centrado */
+        .header-section {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        ::placeholder {
-            color: #555555 !important;
+        .header-section img { max-width: 280px; }
+        .header-section h2 { color: white; margin: 20px 0 10px; font-size: 2rem; }
+        .header-section p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
+
+        /* Tabs responsive y grandes */
+        [data-baseweb="tab-list"] {
+            justify-content: center !important;
+            margin-bottom: 30px;
         }
-       
-        /* 6. TABS SIMPLIFICADOS */
         button[data-baseweb="tab"] {
-            background-color: rgba(255, 255, 255, 0.25) !important;
-            border-radius: 8px !important;
-            margin-right: 5px !important;
-            color: #333333 !important;
-            font-weight: bold !important;
+            background: rgba(255,255,255,0.2) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            padding: 12px 24px !important;
+            font-size: 1.1rem !important;
+            margin: 0 8px !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            color: #E94057 !important;
+            background: white !important;
+            color: #FB5607 !important;
         }
-       
-        /* 7. BOTONES */
-        div.stForm button[kind="secondary"] {
-            background-color: #ffffff !important;
-            color: #E94057 !important;
-            border: 2px solid #E94057 !important;
+
+        /* Inputs más grandes y cómodos */
+        .stTextInput > div > div > input {
+            border-radius: 12px !important;
+            padding: 14px !important;
+            font-size: 1rem !important;
         }
-        div.stForm button[kind="secondary"]:hover {
-            background-color: #E94057 !important;
-            color: white !important;
+
+        /* Botón principal naranja grande */
+        .stForm button[kind="primary"] {
+            background-color: #FB5607 !important;
+            border-radius: 12px !important;
+            padding: 14px !important;
+            font-size: 1.1rem !important;
+            font-weight: bold !important;
         }
-       
-        /* 8. LINK OLVIDASTE COMO TEXTO SUTIL */
+
+        /* Link "¿Olvidaste?" sutil */
         .forgot-link {
             text-align: center;
-            margin-top: 10px;
+            margin: 20px 0;
         }
         .forgot-link button {
             background: none !important;
-            color: #1a1a1a !important;
             border: none !important;
+            color: white !important;
             text-decoration: underline;
-            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
         }
-       
-        /* 9. BOTÓN CONTACTO INTEGRADO */
+
+        /* Botón contacto */
         .contact-btn {
-            margin-top: 20px;
+            margin-top: auto;
+            padding-top: 30px;
             text-align: center;
         }
-       
-        /* 10. MENSAJES */
-        div[data-testid="stNotification"] p {
-            color: #1a1a1a !important;
+
+        /* RESPONSIVE PARA MÓVIL */
+        @media (max-width: 640px) {
+            .main-container { padding: 1rem; }
+            .glass-card { padding: 30px 20px; border-radius: 20px; }
+            .header-section img { max-width: 220px; }
+            .header-section h2 { font-size: 1.8rem; }
+            button[data-baseweb="tab"] { padding: 10px 20px; font-size: 1rem; }
         }
-        footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-    # --- B. ESTRUCTURA SIMPLIFICADA (UNA TARJETA ÚNICA) ---
+    # --- CONTENEDOR PRINCIPAL RESPONSIVE ---
+    st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # Logo y bienvenida centrados
-    col_logo = st.columns(1)[0]
-    with col_logo:
-        st.image("assets/logotipo-aulametrics.png", width=300)
+    # --- HEADER: Logo y bienvenida ---
+    st.markdown('<div class="header-section">', unsafe_allow_html=True)
+    st.image("assets/logotipo-aulametrics.png", use_column_width=True)
+    st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
+    st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.subheader("Bienvenido a AulaMetrics", anchor=False)
-    st.markdown("**Tu asistente pedagógico y analista de datos.**")
+    # --- TABS ---
+    tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
 
-    # Tabs
-    tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
-
-    # --- PESTAÑA 1: LOGIN ---
+    # --- PESTAÑA LOGIN ---
     with tab_login:
         with st.form("login_form"):
             st.markdown("### 🔐 Acceso Docente")
             email = st.text_input("Correo Electrónico", key="login_email", placeholder="ejemplo@escuela.edu.pe")
             password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Ingresa tu contraseña")
-            submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True, type="primary")
-           
+            submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True)
+
             if submitted:
                 try:
-                    session = supabase.auth.sign_in_with_password({
-                        "email": email,
-                        "password": password
-                    })
+                    session = supabase.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.logged_in = True
                     st.session_state.user = session.user
                     st.session_state.show_welcome_message = True
-                    if 'registro_exitoso' in st.session_state: del st.session_state['registro_exitoso']
+                    if 'registro_exitoso' in st.session_state:
+                        del st.session_state['registro_exitoso']
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
 
-        # --- BOTÓN OLVIDASTE COMO LINK SUTIL ---
-        st.markdown("<div class='forgot-link'>", unsafe_allow_html=True)
-        if st.button("¿Olvidaste tu contraseña?", type="secondary", use_container_width=True):
+        # Olvidaste contraseña como link
+        st.markdown('<div class="forgot-link">', unsafe_allow_html=True)
+        if st.button("¿Olvidaste tu contraseña?", type="secondary"):
             st.session_state.show_forgot_form = True
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if st.session_state.get("show_forgot_form", False):
             st.markdown("### 🔄 Recuperar acceso")
@@ -667,32 +681,29 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error en el registro: {e}")
 
-    # --- BOTÓN DE CONTACTO INTEGRADO (AHORA CON INDENTACIÓN CORRECTA) ---
-    st.markdown("<div class='contact-btn'>", unsafe_allow_html=True)
+    # --- BOTÓN CONTACTO (al final, dentro de la tarjeta) ---
+    st.markdown('<div class="contact-btn">', unsafe_allow_html=True)
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     st.markdown(f"""
     <a href="{url_netlify}" target="_blank" style="
-        display: inline-block;
-        width: 100%;
-        padding: 15px 0;
+        display: block;
+        padding: 16px;
         background-color: #00C853;
         color: white;
         text-align: center;
+        border-radius: 12px;
         text-decoration: none;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: 800;
-        box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
-        transition: all 0.3s;
-        border: none;
+        font-weight: bold;
+        font-size: 1.1rem;
     ">
         💬 ¿Dudas? Contáctanos/TikTok
     </a>
     """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # Cierre de la tarjeta principal
     st.markdown('</div>', unsafe_allow_html=True)
+
+    # Cierre de contenedores
+    st.markdown('</div>', unsafe_allow_html=True)  # glass-card
+    st.markdown('</div>', unsafe_allow_html=True)  # main-container
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1072,6 +1083,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
