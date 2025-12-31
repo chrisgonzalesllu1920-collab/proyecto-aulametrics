@@ -453,75 +453,70 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL FINAL: RESPONSIVE, LIMPIO Y CON ONDAS FLUIDAS ---
+    # --- ESTILO VISUAL PROFESIONAL, RESPONSIVE Y EQUILIBRADO ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
         html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
 
-        /* Fondo degradado con ondas fluidas */
+        /* Fondo degradado con ondas sutiles */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #FF006E 0%, #8338EC 50%, #FB5607 100%);
             background-attachment: fixed;
             min-height: 100vh;
-            position: relative;
-            overflow: hidden;
-        }
-        [data-testid="stAppViewContainer"]::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url('https://svgshare.com/i/11rF.svg') no-repeat center center/cover;
-            opacity: 0.25;
-            z-index: -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* Limpieza total */
+        /* Limpieza */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Contenedor principal responsive */
-        .main-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Tarjeta glassmorphism única */
+        /* Tarjeta principal centrada y con ancho controlado */
         .glass-card {
             background: rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(20px);
             border-radius: 24px;
-            padding: 40px 30px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            padding: 40px 35px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
         }
 
-        /* Logo y texto centrado */
-        .header-section {
+        /* Logo tamaño perfecto */
+        .logo-img {
+            max-width: 260px;
+            margin: 0 auto 30px;
+            display: block;
+        }
+
+        /* Título y subtítulo */
+        .title-section h2 {
+            color: white;
             text-align: center;
-            margin-bottom: 30px;
+            font-size: 2rem;
+            margin: 0 0 10px 0;
         }
-        .header-section img { max-width: 280px; }
-        .header-section h2 { color: white; margin: 20px 0 10px; font-size: 2rem; }
-        .header-section p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
+        .title-section p {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 0;
+        }
 
-        /* Tabs responsive y grandes */
+        /* Tabs grandes y centrados */
         [data-baseweb="tab-list"] {
             justify-content: center !important;
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
         button[data-baseweb="tab"] {
-            background: rgba(255,255,255,0.2) !important;
+            background: rgba(255,255,255,0.25) !important;
             color: white !important;
             border-radius: 12px !important;
-            padding: 12px 24px !important;
+            padding: 12px 28px !important;
             font-size: 1.1rem !important;
             margin: 0 8px !important;
         }
@@ -530,23 +525,22 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs más grandes y cómodos */
+        /* Inputs y botones más elegantes */
         .stTextInput > div > div > input {
             border-radius: 12px !important;
             padding: 14px !important;
-            font-size: 1rem !important;
+            background: white !important;
         }
-
-        /* Botón principal naranja grande */
         .stForm button[kind="primary"] {
             background-color: #FB5607 !important;
             border-radius: 12px !important;
             padding: 14px !important;
             font-size: 1.1rem !important;
             font-weight: bold !important;
+            width: 100%;
         }
 
-        /* Link "¿Olvidaste?" sutil */
+        /* Link "¿Olvidaste?" sutil y centrado */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -558,41 +552,56 @@ def login_page():
             text-decoration: underline;
             font-size: 1rem;
             padding: 0;
+            cursor: pointer;
         }
 
-        /* Botón contacto */
+        /* Botón contacto verde grande */
         .contact-btn {
-            margin-top: auto;
-            padding-top: 30px;
+            margin-top: 30px;
             text-align: center;
         }
+        .contact-btn a {
+            display: block;
+            padding: 16px;
+            background-color: #00C853;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
-        /* RESPONSIVE PARA MÓVIL */
-        @media (max-width: 640px) {
-            .main-container { padding: 1rem; }
-            .glass-card { padding: 30px 20px; border-radius: 20px; }
-            .header-section img { max-width: 220px; }
-            .header-section h2 { font-size: 1.8rem; }
+        /* RESPONSIVE PERFECTO */
+        @media (max-width: 768px) {
+            .glass-card { padding: 30px 25px; border-radius: 20px; }
+            .logo-img { max-width: 220px; }
+            .title-section h2 { font-size: 1.8rem; }
+        }
+        @media (max-width: 480px) {
+            [data-testid="stAppViewContainer"] { padding: 10px; }
+            .glass-card { padding: 25px 20px; }
             button[data-baseweb="tab"] { padding: 10px 20px; font-size: 1rem; }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CONTENEDOR PRINCIPAL RESPONSIVE ---
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    # --- TARJETA PRINCIPAL CENTRADA ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- HEADER: Logo y bienvenida ---
-    st.markdown('<div class="header-section">', unsafe_allow_html=True)
-    st.image("assets/logotipo-aulametrics.png", use_column_width=True)
+    # Logo
+    st.markdown('<img src="assets/logotipo-aulametrics.png" class="logo-img">', unsafe_allow_html=True)
+
+    # Título y subtítulo
+    st.markdown('<div class="title-section">', unsafe_allow_html=True)
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
     st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- TABS ---
+    # Tabs
     tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
 
-    # --- PESTAÑA LOGIN ---
+    # --- LOGIN ---
     with tab_login:
         with st.form("login_form"):
             st.markdown("### 🔐 Acceso Docente")
@@ -612,9 +621,9 @@ def login_page():
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
 
-        # Olvidaste contraseña como link
+        # Olvidaste contraseña
         st.markdown('<div class="forgot-link">', unsafe_allow_html=True)
-        if st.button("¿Olvidaste tu contraseña?", type="secondary"):
+        if st.button("¿Olvidaste tu contraseña?"):
             st.session_state.show_forgot_form = True
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -681,29 +690,13 @@ def login_page():
                     except Exception as e:
                         st.error(f"Error en el registro: {e}")
 
-    # --- BOTÓN CONTACTO (al final, dentro de la tarjeta) ---
+# --- CONTACTO ---
     st.markdown('<div class="contact-btn">', unsafe_allow_html=True)
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-    st.markdown(f"""
-    <a href="{url_netlify}" target="_blank" style="
-        display: block;
-        padding: 16px;
-        background-color: #00C853;
-        color: white;
-        text-align: center;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 1.1rem;
-    ">
-        💬 ¿Dudas? Contáctanos/TikTok
-    </a>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<a href="{url_netlify}" target="_blank">💬 ¿Dudas? Contáctanos/TikTok</a>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Cierre de contenedores
-    st.markdown('</div>', unsafe_allow_html=True)  # glass-card
-    st.markdown('</div>', unsafe_allow_html=True)  # main-container
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierra glass-card
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1083,6 +1076,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
