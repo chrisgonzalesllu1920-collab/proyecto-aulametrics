@@ -72,16 +72,19 @@ def analyze_data(excel_file, sheet_names):
     
     # El for debe estar al mismo nivel que general_data (sin espacios extras al inicio)
     for sheet_name in sheet_names:
-        # Filtro: Ignorar exactamente la hoja "Comentarios" (insensible a mayúsculas/minúsculas y acentos)
-        sheet_normalized = sheet_name.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').strip()
+        # Normalización ultra-robusta: quita acentos, mayúsculas y espacios
+        import unicodedata
+        sheet_normalized = ''.join(c for c in unicodedata.normalize('NFD', sheet_name) 
+                                   if unicodedata.category(c) != 'Mn').lower().strip()
+        
         if sheet_normalized == "comentarios":
             analisis_results[sheet_name] = {
-                'error': f"Hoja ignorada: '{sheet_name}' es la hoja de comentarios y no contiene competencias.",
+                'ignored': True,  # ← Nueva clave: 'ignored' en lugar de 'error'
+                'message': f"La hoja '{sheet_name}' fue ignorada automáticamente porque no contiene competencias (es una hoja de comentarios).",
                 'generalidades': general_data,
                 'competencias': {}
             }
             continue  # Salta al siguiente sheet sin procesar
-
         
 
         try:
@@ -163,6 +166,7 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
+
 
 
 
