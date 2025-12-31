@@ -64,9 +64,9 @@ def evaluacion_page(asistente):
 def mostrar_analisis_general(results):
     """Lógica original con diseño avanzado de Power BI"""
     st.markdown(f"<h2 class='pbi-header'>Resultados Consolidados por Área</h2>", unsafe_allow_html=True)
-
-# Mensaje amigable para hojas ignoradas
-    ignored_sheets = [name for name, data in info_areas.items() if data.get('ignored', False)]
+    
+    # Mensaje amigable para hojas ignoradas (en info azul/gris, no rojo)
+    ignored_sheets = [name for name, data in results.items() if data.get('ignored', False)]
     if ignored_sheets:
         st.info(
             f"Nota: Se ignoraron automáticamente las hojas de comentarios: {', '.join(ignored_sheets)}. "
@@ -74,19 +74,20 @@ def mostrar_analisis_general(results):
             icon="ℹ️"
         )
     
-    # Filtrar solo áreas válidas (con competencias)
-    valid_areas = {name: data for name, data in info_areas.items() if 'competencias' in data and data['competencias']}
+    # Filtrar solo áreas válidas (con competencias reales)
+    valid_areas = {name: data for name, data in results.items() if 'competencias' in data and data['competencias']}
     
     if not valid_areas:
         st.warning("No se encontraron áreas con competencias válidas para procesar.")
         return
     
     # Mostrar badges o chips solo de áreas válidas (como en tu captura)
-    cols = st.columns(len(valid_areas))
+    cols = st.columns(min(4, len(valid_areas)))  # Ajusta columnas según cantidad
     for i, (area_name, data) in enumerate(valid_areas.items()):
-        with cols[i]:
+        with cols[i % len(cols)]:
             st.markdown(f"● {area_name}")
-  
+    
+    # Resto de tu código original (contexto del grupo, sidebar, tabs, etc.)
     first_sheet_key = next(iter(results), None)
     general_data = {}
     if first_sheet_key and 'generalidades' in results[first_sheet_key]:
@@ -99,7 +100,7 @@ def mostrar_analisis_general(results):
                 </span>
             </div>
         """, unsafe_allow_html=True)
-   
+    
     # Sidebar de Configuración (Power BI Slicer Style)
     with st.sidebar:
         st.markdown(f"<h3 style='color:{PBI_BLUE}; border-bottom: 1px solid #ccc; padding-bottom:5px;'>⚙️ Visualización</h3>", unsafe_allow_html=True)
@@ -112,17 +113,14 @@ def mostrar_analisis_general(results):
         )
         st.session_state.chart_type = st.radio("Seleccionar Visual:", chart_options, key="chart_radio_pbi")
         st.info("Tip: Los gráficos son interactivos. Haz clic en las leyendas para filtrar niveles.")
+    
     tabs = st.tabs([f"📍 {sheet_name}" for sheet_name in results.keys()])
     for i, (sheet_name, result) in enumerate(results.items()):
         with tabs[i]:
             if 'error' in result:
                 st.error(f"Error en '{sheet_name}': {result['error']}")
                 continue
-           
-            competencias = result.get('competencias', {})
-            if not competencias:
-                st.info(f"Sin datos en '{sheet_name}'.")
-                continue
+
             # --- TABLA DE DATOS (ESTILO PBI) ---
             st.markdown("<div class='pbi-card'><b>1. Matriz de Frecuencias de Evaluación</b>", unsafe_allow_html=True)
             data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
