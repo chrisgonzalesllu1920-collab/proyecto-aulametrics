@@ -453,13 +453,13 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL FINAL: RESPONSIVE, LIMPIO Y SIN ESPACIO VACÍO ARRIBA ---
+    # --- ESTILO VISUAL FINAL: LIMPIO, LEGIBLE Y SIN CAJÓN BLANCO ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
         html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
 
-        /* Fondo degradado con ondas fluidas */
+        /* Fondo degradado con ondas */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #FF006E 0%, #8338EC 50%, #FB5607 100%);
             background-attachment: fixed;
@@ -479,24 +479,24 @@ def login_page():
         /* Limpieza total */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Contenedor principal centrado y con menos espacio arriba */
+        /* Contenedor principal centrado con menos espacio arriba */
         .main-container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 2rem 1rem 2rem 1rem;   /* reducido espacio superior */
+            padding: 2rem 1rem 2rem 1rem;  /* espacio superior mínimo */
         }
 
-        /* Tarjeta glassmorphism única */
+        /* Tarjeta glassmorphism con fondo más claro para mejor legibilidad */
         .glass-card {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.25);  /* más opaco para contraste */
             backdrop-filter: blur(20px);
             border-radius: 24px;
             padding: 40px 30px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* Header sin margen extra */
+        /* Header: textos en blanco */
         .header-section {
             text-align: center;
             margin-bottom: 20px;
@@ -506,14 +506,23 @@ def login_page():
             margin: 0 auto;
             display: block;
         }
+        .header-section h2, .header-section p {
+            color: white !important;
+        }
         .header-section h2 {
-            color: white;
             margin: 20px 0 10px;
             font-size: 2rem;
         }
         .header-section p {
-            color: rgba(255,255,255,0.9);
             font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Títulos de formularios en blanco */
+        h3 {
+            color: white !important;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         /* Tabs */
@@ -522,7 +531,7 @@ def login_page():
             margin-bottom: 30px;
         }
         button[data-baseweb="tab"] {
-            background: rgba(255,255,255,0.2) !important;
+            background: rgba(255,255,255,0.25) !important;
             color: white !important;
             border-radius: 12px !important;
             padding: 12px 24px !important;
@@ -534,8 +543,10 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs */
+        /* Inputs con fondo blanco y texto negro */
         .stTextInput > div > div > input {
+            background-color: white !important;
+            color: black !important;
             border-radius: 12px !important;
             padding: 14px !important;
             font-size: 1rem !important;
@@ -550,7 +561,7 @@ def login_page():
             font-weight: bold !important;
         }
 
-        /* Link "¿Olvidaste?" */
+        /* Link "¿Olvidaste?" en blanco */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -570,7 +581,7 @@ def login_page():
             text-align: center;
         }
 
-        /* RESPONSIVE PARA MÓVIL */
+        /* RESPONSIVE */
         @media (max-width: 640px) {
             .main-container { padding: 1rem; }
             .glass-card { padding: 30px 20px; border-radius: 20px; }
@@ -581,11 +592,11 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- TARJETA PRINCIPAL CENTRADA ---
+    # --- TARJETA PRINCIPAL ---
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- HEADER: Logo y bienvenida ---
+    # --- HEADER ---
     st.markdown('<div class="header-section">', unsafe_allow_html=True)
     st.image("assets/logotipo-aulametrics.png", width=260)
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
@@ -595,7 +606,7 @@ def login_page():
     # --- TABS ---
     tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
 
-    # --- PESTAÑA LOGIN ---
+    # --- LOGIN ---
     with tab_login:
         with st.form("login_form"):
             st.markdown("### 🔐 Acceso Docente")
@@ -615,7 +626,7 @@ def login_page():
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
 
-        # Olvidaste contraseña como link
+        # Olvidaste contraseña
         st.markdown('<div class="forgot-link">', unsafe_allow_html=True)
         if st.button("¿Olvidaste tu contraseña?", type="secondary"):
             st.session_state.show_forgot_form = True
@@ -647,7 +658,7 @@ def login_page():
                 st.session_state.show_forgot_form = False
                 st.rerun()
 
-    # --- PESTAÑA REGISTRO ---
+    # --- REGISTRO ---
     with tab_register:
         if 'form_reset_id' not in st.session_state:
             st.session_state['form_reset_id'] = 0
@@ -702,7 +713,7 @@ def login_page():
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Cierre de contenedores
+    # Cierre
     st.markdown('</div>', unsafe_allow_html=True)  # glass-card
     st.markdown('</div>', unsafe_allow_html=True)  # main-container
        
@@ -1084,6 +1095,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
