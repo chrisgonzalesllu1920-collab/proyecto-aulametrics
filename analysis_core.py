@@ -72,25 +72,17 @@ def analyze_data(excel_file, sheet_names):
     
     # El for debe estar al mismo nivel que general_data (sin espacios extras al inicio)
     for sheet_name in sheet_names:
-        print(f"DEBUG - Hoja detectada: '{sheet_name}' (longitud: {len(sheet_name)}) - tipo: {type(sheet_name)}")
-        
-        # Normalización ultra-robusta
-        import unicodedata
-        sheet_normalized = ''.join(c for c in unicodedata.normalize('NFD', sheet_name) 
-                                   if unicodedata.category(c) != 'Mn').lower().strip()
-        
-        print(f"DEBUG - Normalizado: '{sheet_normalized}' (comparando con 'comentarios')")
-        
+        # Filtro: Ignorar exactamente la hoja "Comentarios" (insensible a mayúsculas/minúsculas y acentos)
+        sheet_normalized = sheet_name.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').strip()
         if sheet_normalized == "comentarios":
-            print(f"DEBUG - Ignorando hoja: {sheet_name}")
             analisis_results[sheet_name] = {
                 'error': f"Hoja ignorada: '{sheet_name}' es la hoja de comentarios y no contiene competencias.",
                 'generalidades': general_data,
                 'competencias': {}
             }
-            continue
+            continue  # Salta al siguiente sheet sin procesar
 
-           
+        
 
         try:
             df_full = pd.read_excel(excel_file, sheet_name=sheet_name, header=None) 
@@ -171,6 +163,7 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
+
 
 
 
