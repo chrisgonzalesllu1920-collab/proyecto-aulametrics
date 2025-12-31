@@ -508,7 +508,7 @@ def login_page():
             text-align: center;
             margin-bottom: 30px;
         }
-        .header-section img { max-width: 280px; }
+        .header-section img { max-width: 240px; margin: 0 auto; display: block; }
         .header-section h2 { color: white; margin: 20px 0 10px; font-size: 2rem; }
         .header-section p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
 
@@ -584,7 +584,7 @@ def login_page():
 
     # --- HEADER: Logo y bienvenida ---
     st.markdown('<div class="header-section">', unsafe_allow_html=True)
-    st.image("assets/logotipo-aulametrics.png", use_column_width=True)
+    st.image("assets/logotipo-aulametrics.png", width=260)  # 260px en desktop, se reduce solo en móvil
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
     st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1083,6 +1083,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
