@@ -453,7 +453,7 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL FINAL: LIMPIO, LEGIBLE Y SIN CAJÓN BLANCO ---
+    # --- ESTILO VISUAL FINAL: SIN CAJÓN BLANCO + LOGO EN CÍRCULO DESTACADO ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
@@ -466,6 +466,10 @@ def login_page():
             min-height: 100vh;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
         [data-testid="stAppViewContainer"]::before {
             content: '';
@@ -479,62 +483,72 @@ def login_page():
         /* Limpieza total */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Contenedor principal centrado con menos espacio arriba */
-        .main-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 2rem 1rem 2rem 1rem;  /* espacio superior mínimo */
-        }
-
-        /* Tarjeta glassmorphism con fondo más claro para mejor legibilidad */
+        /* Tarjeta única centrada (estructura plana, sin contenedores extra) */
         .glass-card {
-            background: rgba(255, 255, 255, 0.25);  /* más opaco para contraste */
+            background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(20px);
             border-radius: 24px;
-            padding: 40px 30px;
+            padding: 50px 40px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.4);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
         }
 
-        /* Header: textos en blanco */
-        .header-section {
-            text-align: center;
-            margin-bottom: 20px;
+        /* Logo en círculo blanco semitransparente con sombra */
+        .logo-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
         }
-        .header-section img {
-            max-width: 240px;
-            margin: 0 auto;
-            display: block;
+        .logo-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1;
         }
-        .header-section h2, .header-section p {
+        .logo-img {
+            position: relative;
+            z-index: 2;
+            max-width: 260px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        /* Textos en blanco y legibles */
+        h2, p {
             color: white !important;
         }
-        .header-section h2 {
-            margin: 20px 0 10px;
+        h2 {
             font-size: 2rem;
+            margin: 20px 0 10px;
         }
-        .header-section p {
+        p {
             font-size: 1.1rem;
             opacity: 0.9;
         }
-
-        /* Títulos de formularios en blanco */
         h3 {
             color: white !important;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 30px 0 20px;
         }
 
         /* Tabs */
         [data-baseweb="tab-list"] {
             justify-content: center !important;
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
         button[data-baseweb="tab"] {
             background: rgba(255,255,255,0.25) !important;
             color: white !important;
             border-radius: 12px !important;
-            padding: 12px 24px !important;
+            padding: 12px 28px !important;
             font-size: 1.1rem !important;
             margin: 0 8px !important;
         }
@@ -543,7 +557,7 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs con fondo blanco y texto negro */
+        /* Inputs */
         .stTextInput > div > div > input {
             background-color: white !important;
             color: black !important;
@@ -561,7 +575,7 @@ def login_page():
             font-weight: bold !important;
         }
 
-        /* Link "¿Olvidaste?" en blanco */
+        /* Link "¿Olvidaste?" */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -583,30 +597,32 @@ def login_page():
 
         /* RESPONSIVE */
         @media (max-width: 640px) {
-            .main-container { padding: 1rem; }
-            .glass-card { padding: 30px 20px; border-radius: 20px; }
-            .header-section img { max-width: 220px; }
-            .header-section h2 { font-size: 1.8rem; }
+            .glass-card { padding: 40px 25px; }
+            .logo-circle { width: 240px; height: 240px; }
+            .logo-img { max-width: 220px; }
+            h2 { font-size: 1.8rem; }
             button[data-baseweb="tab"] { padding: 10px 20px; font-size: 1rem; }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- TARJETA PRINCIPAL ---
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    # --- TARJETA ÚNICA (ESTRUCTURA PLANA) ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- HEADER ---
-    st.markdown('<div class="header-section">', unsafe_allow_html=True)
-    st.image("assets/logotipo-aulametrics.png", width=260)
+    # --- LOGO EN CÍRCULO BLANCO SEMITRANSPARENTE CON SOMBRA ---
+    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+    st.markdown('<div class="logo-circle"></div>', unsafe_allow_html=True)
+    st.image("assets/logotipo-aulametrics.png", class_="logo-img")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- TÍTULO Y SUBTÍTULO ---
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
     st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # --- TABS ---
     tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
 
-    # --- LOGIN ---
+    # --- PESTAÑA LOGIN ---
     with tab_login:
         with st.form("login_form"):
             st.markdown("### 🔐 Acceso Docente")
@@ -658,7 +674,7 @@ def login_page():
                 st.session_state.show_forgot_form = False
                 st.rerun()
 
-    # --- REGISTRO ---
+    # --- PESTAÑA REGISTRO ---
     with tab_register:
         if 'form_reset_id' not in st.session_state:
             st.session_state['form_reset_id'] = 0
@@ -713,9 +729,7 @@ def login_page():
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Cierre
-    st.markdown('</div>', unsafe_allow_html=True)  # glass-card
-    st.markdown('</div>', unsafe_allow_html=True)  # main-container
+    st.markdown('</div>', unsafe_allow_html=True)  # Cierra glass-card
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1095,6 +1109,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
