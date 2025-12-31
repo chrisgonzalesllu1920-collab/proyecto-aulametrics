@@ -64,6 +64,29 @@ def evaluacion_page(asistente):
 def mostrar_analisis_general(results):
     """Lógica original con diseño avanzado de Power BI"""
     st.markdown(f"<h2 class='pbi-header'>Resultados Consolidados por Área</h2>", unsafe_allow_html=True)
+
+# Mensaje amigable para hojas ignoradas
+    ignored_sheets = [name for name, data in info_areas.items() if data.get('ignored', False)]
+    if ignored_sheets:
+        st.info(
+            f"Nota: Se ignoraron automáticamente las hojas de comentarios: {', '.join(ignored_sheets)}. "
+            "Solo se analizaron las áreas con competencias válidas.",
+            icon="ℹ️"
+        )
+    
+    # Filtrar solo áreas válidas (con competencias)
+    valid_areas = {name: data for name, data in info_areas.items() if 'competencias' in data and data['competencias']}
+    
+    if not valid_areas:
+        st.warning("No se encontraron áreas con competencias válidas para procesar.")
+        return
+    
+    # Mostrar badges o chips solo de áreas válidas (como en tu captura)
+    cols = st.columns(len(valid_areas))
+    for i, (area_name, data) in enumerate(valid_areas.items()):
+        with cols[i]:
+            st.markdown(f"● {area_name}")
+  
     first_sheet_key = next(iter(results), None)
     general_data = {}
     if first_sheet_key and 'generalidades' in results[first_sheet_key]:
