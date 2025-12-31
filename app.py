@@ -707,9 +707,14 @@ def login_page():
             transition: all 0.3s;
             border: none;
         ">
-            💬 ¿Dudas? Contáctanos/TikTok
-        </a>
-        """, unsafe_allow_html=True)
+        💬 ¿Dudas? Contáctanos/TikTok
+    </a>
+    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Cierre de contenedores
+    st.markdown('</div>', unsafe_allow_html=True)  # glass-card
+    st.markdown('</div>', unsafe_allow_html=True)  # main-container
        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
@@ -1089,6 +1094,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
