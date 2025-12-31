@@ -659,9 +659,7 @@ def login_page():
     </a>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)  # Cierra la tarjeta glass-card
-        
+       
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
 # =========================================================================
@@ -1040,4 +1038,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
