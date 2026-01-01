@@ -818,10 +818,10 @@ def login_page():
                         except Exception as e:
                             st.error(f"Error en el registro: {e}")
 
-        st.divider()
-       
+st.divider()
+      
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-       
+      
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
             display: inline-block;
@@ -1220,6 +1220,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
