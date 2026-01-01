@@ -87,16 +87,19 @@ def mostrar_analisis_general(results):
         with cols[i]:
             st.markdown(f"● {area_name}")
     
-    # Contexto del grupo (del primer sheet válido)
-    first_sheet_key = next(iter(valid_areas), None)
+    # Contexto del grupo (incluyendo Sección)
+    first_sheet_key = next(iter(results), None)
     general_data = {}
-    if first_sheet_key and 'generalidades' in valid_areas[first_sheet_key]:
-        general_data = valid_areas[first_sheet_key]['generalidades']
+    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
+        general_data = results[first_sheet_key]['generalidades']
+        nivel = general_data.get('nivel', 'Descon.')
+        grado = general_data.get('grado', 'Descon.')
+        seccion = general_data.get('seccion', 'Descon.')  # ← Nueva línea
         st.markdown(f"""
             <div class='pbi-card' style='padding: 10px 20px; border-left: 5px solid {PBI_LIGHT_BLUE}; margin-bottom: 25px;'>
                 <span style='color: #666; font-size: 0.8rem;'>CONTEXTO DEL GRUPO</span><br>
                 <span style='font-size: 1.1rem; font-weight: bold; color: {PBI_BLUE};'>
-                    Nivel {general_data.get('nivel', 'Descon.')} | Grado {general_data.get('grado', 'Descon.')}
+                    Nivel {nivel} | Grado {grado} | Sección {seccion}
                 </span>
             </div>
         """, unsafe_allow_html=True)
