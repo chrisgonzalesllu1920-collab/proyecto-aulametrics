@@ -468,7 +468,7 @@ def login_page():
             background-size: cover;
             background-attachment: fixed;
         }
-       
+      
         /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
@@ -478,7 +478,7 @@ def login_page():
             background-color: transparent !important;
             display: none !important;
         }
-       
+      
         /* 3. TARJETA DE CRISTAL */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
@@ -533,7 +533,7 @@ def login_page():
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #E94057 !important;
         }
-       
+      
         /* 8. BOTONES SECUNDARIOS */
         div.stForm button[kind="secondary"] {
             background-color: #ffffff !important;
@@ -545,13 +545,13 @@ def login_page():
             background-color: #E94057 !important;
             color: white !important;
         }
-       
+      
         /* 9. TEXTO BOTONES SECUNDARIOS */
         div[data-testid="stVerticalBlock"] button[kind="secondary"] p {
             color: #1a1a1a !important;
             text-shadow: none !important;
         }
-       
+      
         /* 10. MENSAJES */
         div[data-testid="stNotification"] p,
         div[data-testid="stNotification"] div[data-testid="stMarkdownContainer"] p {
@@ -560,140 +560,86 @@ def login_page():
         }
         footer {visibility: hidden;}
 
-        /* RESPONSIVE: Ajustes para móviles y tablets */
-        @media (max-width: 768px) {
-            /* Reduce padding en móviles */
-            .block-container {
-                padding-top: 2rem !important;
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
-            }
-
-            /* Logo más pequeño en móvil */
-            img[src*="logotipo-aulametrics"] {
-                width: 250px !important;
-            }
-
-            /* Tabs más grandes y táctiles */
-            button[data-baseweb="tab"] {
-                padding: 12px 20px !important;
-                font-size: 1rem !important;
-            }
-
-            /* Inputs más grandes y fáciles de tocar */
-            input[type="text"], input[type="password"] {
-                padding: 16px !important;
-                font-size: 1.1rem !important;
-            }
-
-            /* Botones más grandes */
-            .stForm button[kind="primary"], .stForm button[kind="secondary"] {
-                padding: 16px !important;
-                font-size: 1.1rem !important;
-            }
-
-            /* Tarjeta de cristal más padding en móvil */
-            div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
-                padding: 30px 25px !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            /* En celulares muy pequeños */
-            img[src*="logotipo-aulametrics"] {
-                width: 220px !important;
-            }
-
-            h2 {
-                font-size: 1.8rem !important;
-            }
-
-            .block-container {
-                padding-top: 1.5rem !important;
-            }
-        }
-
-        /* ROBOT LOTTIE AL LADO DERECHO */
-        .robot-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 40px;
-            margin-bottom: 20px;
-            background: transparent !important;  /* Elimina cualquier fondo */
-        }
-        .robot-lottie {
-            width: 220px !important;
-            height: 220px !important;
-        }
-
-        /* RESPONSIVE: Robot arriba en móvil */
-        @media (max-width: 768px) {
-            .robot-container {
-                flex-direction: column;
-            }
-            .robot-lottie {
-                width: 120px !important;
-                height: 120px !important;
-                margin-bottom: 20px;
-            }
-        }
-        @media (max-width: 768px) {
-            div[style*="display: flex; align-items: center; justify-content: center; flex-wrap: wrap"] {
-                flex-direction: column !important;
-                gap: 20px !important;
-            }
-        }
-
-        /* QUITAR FONDO BLANCO Y BORDE DEL ROBOT LOTTIE - SOLUCIÓN DEFINITIVA */
+        /* ROBOT LOTTIE SIN FONDO BLANCO */
         div[data-testid="stLottie"] {
             background: transparent !important;
             padding: 0 !important;
             margin: 0 !important;
             border: none !important;
-            box-shadow: none !important;
         }
-        div[data-testid="stLottie"] > div {
+        div[data-testid="stLottie"] > div, div[data-testid="stLottie"] > div > div {
             background: transparent !important;
             padding: 0 !important;
             margin: 0 !important;
             border: none !important;
-            box-shadow: none !important;
         }
-        div[data-testid="stLottie"] > div > div {
-            background: transparent !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 2rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            img[src*="logotipo-aulametrics"] {
+                width: 250px !important;
+            }
+            button[data-baseweb="tab"] {
+                padding: 12px 20px !important;
+                font-size: 1rem !important;
+            }
+            input[type="text"], input[type="password"] {
+                padding: 16px !important;
+                font-size: 1.1rem !important;
+            }
+            .stForm button[kind="primary"], .stForm button[kind="secondary"] {
+                padding: 16px !important;
+                font-size: 1.1rem !important;
+            }
+            div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+                padding: 30px 25px !important;
+            }
+            div[data-testid="stLottie"] {
+                width: 180px !important;
+                height: 180px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            img[src*="logotipo-aulametrics"] {
+                width: 220px !important;
+            }
+            h2 {
+                font-size: 1.8rem !important;
+            }
+            .block-container {
+                padding-top: 1.5rem !important;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CARGA DEL ROBOT ---
+    # --- CARGA DEL ROBOT LOTTIE ---
     robot_hello = cargar_lottie("robot_hello.json")
-    
+
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
-   
+  
     with col_centro:
-        # --- LOGO + ROBOT AL LADO DERECHO (SIN DESPLAZAR) ---
-        col_header = st.columns([3, 2])  # Logo más espacio, robot menos
+        # --- LOGO + ROBOT AL LADO DERECHO ---
+        col_logo, col_robot = st.columns([3, 2])  # Logo más espacio, robot menos
         
-        with col_header[0]:
+        with col_logo:
             st.image("assets/logotipo-aulametrics.png", width=300)
         
-        with col_header[1]:
+        with col_robot:
             if robot_hello:
-                st_lottie(robot_hello, height=160, key="robot_saludo")
+                st_lottie(robot_hello, height=200, width=200, key="robot_saludo")
             else:
-                st.write("🤖")
-        
-        # Título y subtítulo debajo, centrados
-        st.markdown("<h2 style='text-align: center; color: white; margin-top: 20px;'>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 40px;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
-        
+                st.write("(Animación no cargada)")
+
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
+      
         st.write("")
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -1274,6 +1220,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
