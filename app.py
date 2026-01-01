@@ -606,18 +606,58 @@ def login_page():
                 padding-top: 1.5rem !important;
             }
         }
+
+        /* ROBOT LOTTIE AL LADO DERECHO */
+        .robot-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .robot-lottie {
+            width: 220px !important;
+            height: 220px !important;
+        }
+
+        /* RESPONSIVE: Robot arriba en móvil */
+        @media (max-width: 768px) {
+            .robot-container {
+                flex-direction: column;
+            }
+            .robot-lottie {
+                width: 180px !important;
+                height: 180px !important;
+                margin-bottom: 20px;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
 
+    # --- CARGA DEL ROBOT LOTTIE ---
+    robot_hello = cargar_lottie("robot_hello.json")
+    
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
    
     with col_centro:
-        st.image("assets/logotipo-aulametrics.png", width=300)
-       
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
-       
+        # --- LOGO + ROBOT AL LADO (RESPONSIVE) ---
+        st.markdown('<div class="robot-container">', unsafe_allow_html=True)
+        
+        col_logo, col_robot = st.columns([1, 1])
+        
+        with col_logo:
+            st.image("assets/logotipo-aulametrics.png", width=300)
+            st.subheader("Bienvenido a AulaMetrics", anchor=False)
+            st.markdown("**Tu asistente pedagógico y analista de datos.**")
+        
+        with col_robot:
+            if robot_hello:
+                st_lottie(robot_hello, key="robot_hello", height=220, width=220, class_="robot-lottie")
+            else:
+                st.write("(Animación no cargada)")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
         st.write("")
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -1198,6 +1238,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
