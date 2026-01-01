@@ -681,9 +681,6 @@ def login_page():
         st.markdown("<h2 style='text-align: center; color: white; margin-top: 20px;'>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 40px;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
         
-        st.subheader("Bienvenido a AulaMetrics", anchor=False)
-        st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        
         st.write("")
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -1264,6 +1261,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
