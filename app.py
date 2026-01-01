@@ -633,9 +633,22 @@ def login_page():
         
         with col_robot:
             if robot_hello:
-                st_lottie(robot_hello, height=200, width=200, key="robot_saludo")
+                # Renderizado directo con Lottie Player (sin fondo blanco)
+                st.markdown(f"""
+                <div style="display: flex; justify-content: center; align-items: center; height: 220px;">
+                    <lottie-player 
+                        src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode('utf-8')).decode('utf-8')}" 
+                        background="transparent" 
+                        speed="1" 
+                        style="width: 200px; height: 200px;" 
+                        loop 
+                        autoplay>
+                    </lottie-player>
+                </div>
+                <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                """, unsafe_allow_html=True)
             else:
-                st.write("(Animación no cargada)")
+                st.write("🤖")
 
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
@@ -1220,6 +1233,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
