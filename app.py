@@ -652,7 +652,12 @@ def login_page():
         
         with col_robot:
             if robot_hello:
-                st_lottie(robot_hello, key="robot_hello", height=220, width=220, class_="robot-lottie")
+                st.markdown(f"""
+                <div style="text-align: center;">
+                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                    <lottie-player src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode()).decode()}" background="transparent" speed="1" style="width: 220px; height: 220px;" loop autoplay></lottie-player>
+                </div>
+                """, unsafe_allow_html=True)
             else:
                 st.write("(Animación no cargada)")
         
@@ -1238,6 +1243,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
