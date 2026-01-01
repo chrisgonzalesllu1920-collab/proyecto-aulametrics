@@ -646,14 +646,27 @@ def login_page():
             }
         }
 
-        /* QUITAR FONDO BLANCO Y BORDE DEL ROBOT LOTTIE */
+        /* QUITAR FONDO BLANCO Y BORDE DEL ROBOT LOTTIE - SOLUCIÓN DEFINITIVA */
         div[data-testid="stLottie"] {
             background: transparent !important;
             padding: 0 !important;
             margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
         }
         div[data-testid="stLottie"] > div {
             background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stLottie"] > div > div {
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -1261,6 +1274,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
