@@ -453,7 +453,7 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL MINIMALISTA CENTRADO (OPCIÓN 1) ---
+    # --- ESTILO VISUAL MINIMALISTA CENTRADO (OPCIÓN 1 - CORREGIDA) ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
@@ -470,7 +470,7 @@ def login_page():
             padding: 20px;
         }
 
-        /* Ondas fluidas sutiles (opcional - si no te gusta, comenta la línea) */
+        /* Ondas fluidas sutiles */
         [data-testid="stAppViewContainer"]::before {
             content: '';
             position: absolute;
@@ -496,8 +496,8 @@ def login_page():
             text-align: center;
         }
 
-        /* Logo con sombra para resaltar */
-        .logo-img {
+        /* Logo con sombra */
+        .logo-shadow {
             max-width: 260px;
             margin: 0 auto 30px;
             display: block;
@@ -521,7 +521,7 @@ def login_page():
             margin: 30px 0 20px 0;
         }
 
-        /* Tabs grandes y limpios */
+        /* Tabs */
         [data-baseweb="tab-list"] {
             justify-content: center !important;
             margin: 30px 0;
@@ -539,7 +539,7 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs con fondo blanco y texto negro */
+        /* Inputs */
         .stTextInput > div > div > input {
             background-color: white !important;
             color: black !important;
@@ -548,7 +548,7 @@ def login_page():
             font-size: 1rem !important;
         }
 
-        /* Botón principal naranja */
+        /* Botón principal */
         .stForm button[kind="primary"] {
             background-color: #FB5607 !important;
             border: none !important;
@@ -559,7 +559,7 @@ def login_page():
             width: 100%;
         }
 
-        /* Link "¿Olvidaste?" sutil */
+        /* Link "¿Olvidaste?" */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -574,7 +574,7 @@ def login_page():
             cursor: pointer;
         }
 
-        /* Botón contacto verde */
+        /* Botón contacto */
         .contact-btn {
             margin-top: 30px;
             text-align: center;
@@ -594,7 +594,7 @@ def login_page():
         /* RESPONSIVE */
         @media (max-width: 640px) {
             .glass-card { padding: 40px 25px; border-radius: 20px; }
-            .logo-img { max-width: 220px; }
+            .logo-shadow { max-width: 220px; }
             h2 { font-size: 1.8rem; }
             button[data-baseweb="tab"] { padding: 10px 20px; font-size: 1rem; }
         }
@@ -604,8 +604,8 @@ def login_page():
     # --- TARJETA ÚNICA CENTRADA ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- LOGO RESALTADO CON SOMBRA ---
-    st.image("assets/logotipo-aulametrics.png", class_="logo-img")
+    # --- LOGO CON SOMBRA (SIN class_ inválido) ---
+    st.markdown('<img src="assets/logotipo-aulametrics.png" class="logo-shadow">', unsafe_allow_html=True)
 
     # --- TÍTULO Y SUBTÍTULO ---
     st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
@@ -1091,6 +1091,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
