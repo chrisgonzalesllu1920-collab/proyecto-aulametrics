@@ -453,37 +453,37 @@ from streamlit.components.v1 import html  # Si lo usas en otro lugar, mantenlo; 
 # === 4. PÁGINA DE LOGIN (RECUPERACIÓN DE CONTRASEÑA AUTOMÁTICA - VERSIÓN FINAL Y ESTABLE) ===
 # =========================================================================
 def login_page():
-    # --- ESTILO VISUAL FINAL: SIN CAJÓN BLANCO + LOGO EN CÍRCULO DESTACADO ---
+    # --- ESTILO VISUAL MINIMALISTA CENTRADO (OPCIÓN 1) ---
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
         html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
 
-        /* Fondo degradado con ondas */
+        /* Fondo degradado limpio */
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #FF006E 0%, #8338EC 50%, #FB5607 100%);
             background-attachment: fixed;
             min-height: 100vh;
-            position: relative;
-            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
+
+        /* Ondas fluidas sutiles (opcional - si no te gusta, comenta la línea) */
         [data-testid="stAppViewContainer"]::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: url('https://svgshare.com/i/11rF.svg') no-repeat center center/cover;
-            opacity: 0.25;
+            opacity: 0.2;
             z-index: -1;
         }
 
         /* Limpieza total */
         header, footer, [data-testid="stHeaderActionElements"] { display: none !important; }
 
-        /* Tarjeta única centrada (estructura plana, sin contenedores extra) */
+        /* Tarjeta única centrada */
         .glass-card {
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(20px);
@@ -492,29 +492,36 @@ def login_page():
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.4);
             width: 100%;
-            max-width: 500px;
+            max-width: 460px;
             text-align: center;
         }
 
-        /* Textos en blanco y legibles */
-        h2, p {
-            color: white !important;
+        /* Logo con sombra para resaltar */
+        .logo-img {
+            max-width: 260px;
+            margin: 0 auto 30px;
+            display: block;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
         }
+
+        /* Títulos y textos en blanco */
         h2 {
+            color: white !important;
             font-size: 2rem;
-            margin: 20px 0 10px;
+            margin: 0 0 10px 0;
         }
         p {
+            color: rgba(255,255,255,0.9) !important;
             font-size: 1.1rem;
-            opacity: 0.9;
+            margin: 0 0 40px 0;
         }
         h3 {
             color: white !important;
             text-align: center;
-            margin: 30px 0 20px;
+            margin: 30px 0 20px 0;
         }
 
-        /* Tabs */
+        /* Tabs grandes y limpios */
         [data-baseweb="tab-list"] {
             justify-content: center !important;
             margin: 30px 0;
@@ -532,7 +539,7 @@ def login_page():
             color: #FB5607 !important;
         }
 
-        /* Inputs */
+        /* Inputs con fondo blanco y texto negro */
         .stTextInput > div > div > input {
             background-color: white !important;
             color: black !important;
@@ -541,16 +548,18 @@ def login_page():
             font-size: 1rem !important;
         }
 
-        /* Botón principal */
+        /* Botón principal naranja */
         .stForm button[kind="primary"] {
             background-color: #FB5607 !important;
+            border: none !important;
             border-radius: 12px !important;
             padding: 14px !important;
             font-size: 1.1rem !important;
             font-weight: bold !important;
+            width: 100%;
         }
 
-        /* Link "¿Olvidaste?" */
+        /* Link "¿Olvidaste?" sutil */
         .forgot-link {
             text-align: center;
             margin: 20px 0;
@@ -562,18 +571,29 @@ def login_page():
             text-decoration: underline;
             font-size: 1rem;
             padding: 0;
+            cursor: pointer;
         }
 
-        /* Botón contacto */
+        /* Botón contacto verde */
         .contact-btn {
             margin-top: 30px;
             text-align: center;
         }
+        .contact-btn a {
+            display: block;
+            padding: 16px;
+            background-color: #00C853;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
         /* RESPONSIVE */
         @media (max-width: 640px) {
-            .glass-card { padding: 40px 25px; }
-            .logo-circle { width: 240px; height: 240px; }
+            .glass-card { padding: 40px 25px; border-radius: 20px; }
             .logo-img { max-width: 220px; }
             h2 { font-size: 1.8rem; }
             button[data-baseweb="tab"] { padding: 10px 20px; font-size: 1rem; }
@@ -581,19 +601,15 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- TARJETA ÚNICA ---
+    # --- TARJETA ÚNICA CENTRADA ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- LOGO CON SOMBRA Y RESALTADO (sin círculo extra ni error) ---
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 30px;">
-        <img src="assets/logotipo-aulametrics.png" style="max-width: 260px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));">
-    </div>
-    """, unsafe_allow_html=True)
+    # --- LOGO RESALTADO CON SOMBRA ---
+    st.image("assets/logotipo-aulametrics.png", class_="logo-img")
 
     # --- TÍTULO Y SUBTÍTULO ---
-    st.markdown("<h2 style='text-align: center; color: white; margin: 0 0 10px 0;'>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: rgba(255,255,255,0.9); font-size: 1.1rem;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+    st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
+    st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
 
     # --- TABS ---
     tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
@@ -689,17 +705,7 @@ def login_page():
     st.markdown('<div class="contact-btn">', unsafe_allow_html=True)
     url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
     st.markdown(f"""
-    <a href="{url_netlify}" target="_blank" style="
-        display: block;
-        padding: 16px;
-        background-color: #00C853;
-        color: white;
-        text-align: center;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 1.1rem;
-    ">
+    <a href="{url_netlify}" target="_blank">
         💬 ¿Dudas? Contáctanos/TikTok
     </a>
     """, unsafe_allow_html=True)
@@ -1085,6 +1091,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
