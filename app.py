@@ -645,6 +645,16 @@ def login_page():
                 gap: 20px !important;
             }
         }
+
+        /* QUITAR FONDO BLANCO DEL ROBOT LOTTIE */
+        div[data-testid="stLottie"] > div {
+            background: transparent !important;
+        }
+        div[data-testid="stLottie"] {
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -655,19 +665,21 @@ def login_page():
     col1, col_centro, col3 = st.columns([1, 4, 1])
    
     with col_centro:
-        # --- LOGO + ROBOT AL LADO (RESPONSIVE) ---
-        st.markdown('<div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 40px; margin-bottom: 30px;">', unsafe_allow_html=True)
+        # --- LOGO + ROBOT AL LADO DERECHO (SIN DESPLAZAR) ---
+        col_header = st.columns([3, 2])  # Logo más espacio, robot menos
         
-        # Logo
-        st.image("assets/logotipo-aulametrics.png", width=300)
+        with col_header[0]:
+            st.image("assets/logotipo-aulametrics.png", width=300)
         
-        # Robot
-        if robot_hello:
-            st_lottie(robot_hello, height=250, width=250, key="robot_saludo")
-        else:
-            st.write("🤖 (Robot no cargado - verifica el archivo)")
+        with col_header[1]:
+            if robot_hello:
+                st_lottie(robot_hello, height=220, key="robot_saludo")
+            else:
+                st.write("🤖")
         
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Título y subtítulo debajo, centrados
+        st.markdown("<h2 style='text-align: center; color: white; margin-top: 20px;'>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 40px;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
         
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
@@ -1252,6 +1264,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
