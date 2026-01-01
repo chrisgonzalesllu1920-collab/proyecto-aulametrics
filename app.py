@@ -618,7 +618,10 @@ def login_page():
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 20px;
+            background: transparent !important;  /* Elimina cualquier fondo */
         }
         .robot-lottie {
             width: 220px !important;
@@ -1249,6 +1252,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
