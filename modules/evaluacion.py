@@ -69,7 +69,7 @@ def mostrar_analisis_general(results):
     ignored_sheets = [name for name, data in results.items() if data.get('ignored', False)]
     if ignored_sheets:
         st.info(
-            f"Nota: Se ignoraron automáticamente las hojas de comentarios: {', '.join(ignored_sheets)}. "
+            f"Nota: Se ignoraron automáticamente las hojas de: {', '.join(ignored_sheets)}. "
             "Solo se analizaron las áreas con competencias válidas.",
             icon="ℹ️"
         )
