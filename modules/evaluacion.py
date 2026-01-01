@@ -306,14 +306,14 @@ def extraer_periodo_de_generalidades(excel_file):
                                 result["seccion"] = valor.upper()
                                 break
       
-return result
-  
-    except Exception as e:
-        return {
-            "periodo": f"Error al leer: {str(e)}",
-            "grado": "Error",
-            "seccion": "Error"
-        }
+            return result
+      
+        except Exception as e:
+            return {
+                "periodo": f"Error al leer: {str(e)}",
+                "grado": "Error",
+                "seccion": "Error"
+            }
 
 # ----------------------------------------------------------------------
 # NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
