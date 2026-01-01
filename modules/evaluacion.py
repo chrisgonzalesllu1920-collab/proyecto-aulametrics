@@ -250,7 +250,6 @@ def extraer_periodo_de_generalidades(excel_file):
             st.write("DEBUG - Valor después de strip():", repr(seccion_val.strip()))
         else:
             st.write("DEBUG - Celda J10 fuera de rango - shape:", df_gen.shape)
-    
         result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
       
         # 1. Extraer período: Buscamos "Período de evaluación" (insensible a mayúsculas)
