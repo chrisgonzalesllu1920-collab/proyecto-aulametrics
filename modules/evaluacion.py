@@ -716,17 +716,60 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
 def convert_df_to_excel(df, area_name, general_info):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Frecuencias', index=True)
+        # Escribir la tabla empezando en A1
+        df.to_excel(writer, sheet_name='Frecuencias', index=True, startrow=0, startcol=0)
+        
         workbook = writer.book
         worksheet = writer.sheets['Frecuencias']
-        fmt_header = workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1})
-        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1})
-        worksheet.set_column('A:A', 50, fmt_comp)
-        worksheet.set_column('B:Z', 12)
-        for col_num, value in enumerate(df.columns.values):
-            worksheet.write(0, col_num + 1, value, fmt_header)
+        
+        # Formatos diferenciados por nivel (usando tu paleta de colores)
+        header_formats = {
+            'AD': workbook.add_format({'bg_color': '#008450', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'A': workbook.add_format({'bg_color': '#32CD32', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'B': workbook.add_format({'bg_color': '#FFB900', 'font_color': 'black', 'bold': True, 'border': 1, 'align': 'center'}),
+            'C': workbook.add_format({'bg_color': '#E81123', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'default': workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'})
+        }
+        
+        # Formato para columna Competencia (texto envuelto, más ancho)
+        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1, 'align': 'left'})
+        
+        # Formato para celdas de datos (números centrados)
+        fmt_data = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0'})
+        fmt_percent = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0.0%'})
+        fmt_total = workbook.add_format({'bg_color': '#E2E8F0', 'bold': True, 'border': 1, 'align': 'center'})
+        
+        # Ajustar anchos de columnas
+        worksheet.set_column('A:A', 50, fmt_comp)  # Competencia
+        worksheet.set_column('B:B', 12, fmt_data)   # AD (Est.)
+        worksheet.set_column('C:C', 12, fmt_percent) # % AD
+        worksheet.set_column('D:D', 12, fmt_data)
+        worksheet.set_column('E:E', 12, fmt_percent)
+        worksheet.set_column('F:F', 12, fmt_data)
+        worksheet.set_column('G:G', 12, fmt_percent)
+        worksheet.set_column('H:H', 12, fmt_data)
+        worksheet.set_column('I:I', 12, fmt_percent)
+        worksheet.set_column('J:J', 12, fmt_total)  # Total
+        
+        # Aplicar formato a encabezados según nivel
+        header_row = 0  # Fila de encabezados
+        for col_num, col_name in enumerate(df.columns):
+            # Extraer el nivel (ej: 'AD (Est.)' → 'AD', '% AD' → 'AD')
+            level = col_name.split(' ')[0] if ' ' in col_name else col_name
+            fmt = header_formats.get(level, header_formats['default'])
+            worksheet.write(header_row, col_num + 1, col_name, fmt)  # +1 por columna índice
+        
+        # Limpiar formato en filas vacías (sin bordes extras)
+        empty_format = workbook.add_format({'border': 0})
+        for row in range(len(df) + 1, 50):  # Limpiar hasta fila 50 por si acaso
+            worksheet.set_row(row, None, empty_format)
+        
+        # Congelar paneles (encabezados fijos al bajar)
+        worksheet.freeze_panes(1, 1)  # Congelar fila 1 y columna A
+    
+    output.seek(0)
     return output.getvalue()
-
+    
 def configurar_uploader():
     st.markdown("<div class='pbi-card' style='text-align: center; border: 2px dashed #ccc;'>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Arrastra o selecciona el archivo Excel de SIAGIE", type=["xlsx"])
