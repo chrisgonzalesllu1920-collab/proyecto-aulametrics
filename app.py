@@ -38,20 +38,14 @@ except ImportError as e:
     st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
 
 # --- UTILIDADES ---
-def cargar_lottie(filepath: str):
-    """Carga un archivo Lottie JSON con manejo de errores."""
+def cargar_lottie(filepath):
+    """Carga archivos JSON para animaciones Lottie."""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        st.error(f"Archivo Lottie no encontrado: {filepath}")
         return None
-    except json.JSONDecodeError:
-        st.error(f"Archivo Lottie corrupto o mal codificado: {filepath}")
-        return None
-    except Exception as e:
-        st.error(f"Error al cargar Lottie: {e}")
-        return None
+
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
 # =========================================================================
@@ -468,7 +462,7 @@ def login_page():
             background-size: cover;
             background-attachment: fixed;
         }
-      
+       
         /* 2. LIMPIEZA DE INTERFAZ */
         .block-container {
             padding-top: 3rem !important;
@@ -478,7 +472,7 @@ def login_page():
             background-color: transparent !important;
             display: none !important;
         }
-      
+       
         /* 3. TARJETA DE CRISTAL */
         div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
             background-color: rgba(255, 255, 255, 0.25);
@@ -533,7 +527,7 @@ def login_page():
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #E94057 !important;
         }
-      
+       
         /* 8. BOTONES SECUNDARIOS */
         div.stForm button[kind="secondary"] {
             background-color: #ffffff !important;
@@ -545,13 +539,13 @@ def login_page():
             background-color: #E94057 !important;
             color: white !important;
         }
-      
+       
         /* 9. TEXTO BOTONES SECUNDARIOS */
         div[data-testid="stVerticalBlock"] button[kind="secondary"] p {
             color: #1a1a1a !important;
             text-shadow: none !important;
         }
-      
+       
         /* 10. MENSAJES */
         div[data-testid="stNotification"] p,
         div[data-testid="stNotification"] div[data-testid="stMarkdownContainer"] p {
@@ -560,102 +554,72 @@ def login_page():
         }
         footer {visibility: hidden;}
 
-        /* ROBOT LOTTIE SIN FONDO BLANCO */
-        div[data-testid="stLottie"] {
-            background: transparent !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-        }
-        div[data-testid="stLottie"] > div, div[data-testid="stLottie"] > div > div {
-            background: transparent !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-        }
 
-        /* RESPONSIVE */
+        /* RESPONSIVE: Ajustes para móviles y tablets */
         @media (max-width: 768px) {
+            /* Reduce padding en móviles */
             .block-container {
                 padding-top: 2rem !important;
                 padding-left: 1rem !important;
                 padding-right: 1rem !important;
             }
+
+            /* Logo más pequeño en móvil */
             img[src*="logotipo-aulametrics"] {
                 width: 250px !important;
             }
+
+            /* Tabs más grandes y táctiles */
             button[data-baseweb="tab"] {
                 padding: 12px 20px !important;
                 font-size: 1rem !important;
             }
+
+            /* Inputs más grandes y fáciles de tocar */
             input[type="text"], input[type="password"] {
                 padding: 16px !important;
                 font-size: 1.1rem !important;
             }
+
+            /* Botones más grandes */
             .stForm button[kind="primary"], .stForm button[kind="secondary"] {
                 padding: 16px !important;
                 font-size: 1.1rem !important;
             }
+
+            /* Tarjeta de cristal más padding en móvil */
             div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
                 padding: 30px 25px !important;
             }
-            div[data-testid="stLottie"] {
-                width: 180px !important;
-                height: 180px !important;
-            }
         }
+
         @media (max-width: 480px) {
+            /* En celulares muy pequeños */
             img[src*="logotipo-aulametrics"] {
                 width: 220px !important;
             }
+
             h2 {
                 font-size: 1.8rem !important;
             }
+
             .block-container {
                 padding-top: 1.5rem !important;
             }
         }
+        
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CARGA DEL ROBOT LOTTIE ---
-    robot_hello = cargar_lottie("robot_hello.json")
-
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
-  
+   
     with col_centro:
-        # --- LOGO + ROBOT AL LADO DERECHO ---
-        col_logo, col_robot = st.columns([3, 2])  # Logo más espacio, robot menos
-        
-        with col_logo:
-            st.image("assets/logotipo-aulametrics.png", width=300)
-        
-        with col_robot:
-            if robot_hello:
-                # Cargar el script del lottie-player primero
-                st.markdown('<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>', unsafe_allow_html=True)
-                
-                # Luego el player con la animación
-                st.markdown(f"""
-                <div style="display: flex; justify-content: center; align-items: center;">
-                    <lottie-player
-                        src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode('utf-8')).decode('utf-8')}"
-                        background="transparent"
-                        speed="1"
-                        style="width: 220px; height: 220px;"
-                        loop
-                        autoplay>
-                    </lottie-player>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.write("🤖")
-
-        
+        st.image("assets/logotipo-aulametrics.png", width=300)
+       
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
-      
+       
         st.write("")
        
         tab_login, tab_register = st.tabs(["Iniciar Sesión", "Registrarme"])
@@ -835,9 +799,9 @@ def login_page():
                             st.error(f"Error en el registro: {e}")
 
         st.divider()
-      
+       
         url_netlify = "https://chrisgonzalesllu1920-collab.github.io/aulametrics-landing/"
-      
+       
         st.markdown(f"""
         <a href="{url_netlify}" target="_blank" style="
             display: inline-block;
@@ -857,7 +821,7 @@ def login_page():
             💬 ¿Dudas? Contáctanos/TikTok
         </a>
         """, unsafe_allow_html=True)
-       
+        
 # =========================================================================
 # === 5. FUNCIONES AUXILIARES ===
 # =========================================================================
@@ -1236,17 +1200,4 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
