@@ -763,15 +763,63 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
 def convert_df_to_excel(df, area_name, general_info):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Frecuencias', index=True)
+        # Escribir la tabla en la hoja (empezando en A2 para dejar espacio arriba)
+        df.to_excel(writer, sheet_name='Frecuencias', index=True, startrow=1, startcol=0)
+        
         workbook = writer.book
         worksheet = writer.sheets['Frecuencias']
-        fmt_header = workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1})
-        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1})
-        worksheet.set_column('A:A', 50, fmt_comp)
-        worksheet.set_column('B:Z', 12)
-        for col_num, value in enumerate(df.columns.values):
-            worksheet.write(0, col_num + 1, value, fmt_header)
+        
+        # Formatos para encabezados por nivel (colores de tu paleta)
+        header_formats = {
+            'AD': workbook.add_format({'bg_color': '#008450', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'A': workbook.add_format({'bg_color': '#32CD32', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'B': workbook.add_format({'bg_color': '#FFB900', 'font_color': 'black', 'bold': True, 'border': 1, 'align': 'center'}),
+            'C': workbook.add_format({'bg_color': '#E81123', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'default': workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'})
+        }
+        
+        # Formato para columna Competencia (texto envuelto, más ancho)
+        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1, 'align': 'left'})
+        
+        # Formato para celdas de datos (sin bordes en vacías, números centrados)
+        fmt_data = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0'})
+        fmt_percent = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0.0%'})
+        fmt_total = workbook.add_format({'bg_color': '#E2E8F0', 'bold': True, 'border': 1, 'align': 'center'})
+        
+        # Ajustar anchos de columnas
+        worksheet.set_column('A:A', 50, fmt_comp)  # Competencia
+        worksheet.set_column('B:B', 12, fmt_data)   # AD (Est.)
+        worksheet.set_column('C:C', 12, fmt_percent) # % AD
+        worksheet.set_column('D:D', 12, fmt_data)
+        worksheet.set_column('E:E', 12, fmt_percent)
+        worksheet.set_column('F:F', 12, fmt_data)
+        worksheet.set_column('G:G', 12, fmt_percent)
+        worksheet.set_column('H:H', 12, fmt_data)
+        worksheet.set_column('I:I', 12, fmt_percent)
+        worksheet.set_column('J:J', 12, fmt_total)  # Total
+        
+        # Escribir encabezados con colores por nivel
+        header_row = 1  # Fila de encabezados (startrow=1)
+        for col_num, col_name in enumerate(df.columns):
+            # Extraer el nivel del nombre de columna (ej: 'AD (Est.)' → 'AD')
+            level = col_name.split(' ')[0]
+            fmt = header_formats.get(level, header_formats['default'])
+            worksheet.write(header_row, col_num + 1, col_name, fmt)  # +1 por columna índice
+        
+        # Escribir contexto del grupo en las filas 1-3 (arriba de la tabla)
+        worksheet.merge_range('A1:J1', f"Nivel: {general_info.get('nivel', 'Descon.')}", workbook.add_format({'bold': True, 'font_size': 12, 'align': 'center'}))
+        worksheet.merge_range('A2:J2', f"Grado: {general_info.get('grado', 'Descon.')}", workbook.add_format({'bold': True, 'font_size': 12, 'align': 'center'}))
+        worksheet.merge_range('A3:J3', f"Área: {area_name}", workbook.add_format({'bold': True, 'font_size': 12, 'align': 'center'}))
+        
+        # Formato sin bordes en filas vacías (si hay menos competencias)
+        empty_format = workbook.add_format({'border': 0})
+        for row in range(len(df) + 5, 30):  # Limpiar hasta fila 30 por si acaso
+            worksheet.set_row(row, None, empty_format)
+        
+        # Congelar paneles (encabezados fijos)
+        worksheet.freeze_panes(4, 1)  # Fila 4, columna 1 (después del contexto)
+    
+    output.seek(0)
     return output.getvalue()
 
 def configurar_uploader():
