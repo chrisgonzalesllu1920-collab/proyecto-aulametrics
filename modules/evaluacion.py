@@ -239,7 +239,18 @@ def extraer_periodo_de_generalidades(excel_file):
       
         # Convertimos todo a string para búsqueda segura
         df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
-      
+
+        # Depuración visible en la web (temporal - quitar después)
+        st.write("DEBUG - Shape de Generalidades (filas, columnas):", df_gen.shape)
+        st.write("DEBUG - ¿Hay al menos 10 filas y 10 columnas?", df_gen.shape[0] > 9 and df_gen.shape[1] > 9)
+        
+        if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
+            seccion_val = df_gen.iloc[9, 9].strip()
+            st.write("DEBUG - Valor crudo en J10 (fila 9, col 9):", repr(seccion_val))  # repr muestra espacios ocultos
+            st.write("DEBUG - Valor después de strip():", repr(seccion_val.strip()))
+        else:
+            st.write("DEBUG - Celda J10 fuera de rango - shape:", df_gen.shape)
+    
         result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
       
         # 1. Extraer período: Buscamos "Período de evaluación" (insensible a mayúsculas)
@@ -296,7 +307,7 @@ def extraer_periodo_de_generalidades(excel_file):
                                 result["seccion"] = valor.upper()
                                 break
       
-        return result
+return result
   
     except Exception as e:
         return {
@@ -304,7 +315,6 @@ def extraer_periodo_de_generalidades(excel_file):
             "grado": "Error",
             "seccion": "Error"
         }
-
 
 # ----------------------------------------------------------------------
 # NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
