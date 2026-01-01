@@ -496,31 +496,6 @@ def login_page():
             text-align: center;
         }
 
-        /* Logo en círculo blanco semitransparente con sombra */
-        .logo-container {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 30px;
-        }
-        .logo-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 280px;
-            height: 280px;
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 1;
-        }
-        .logo-img {
-            position: relative;
-            z-index: 2;
-            max-width: 260px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-        }
-
         /* Textos en blanco y legibles */
         h2, p {
             color: white !important;
@@ -606,18 +581,19 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- TARJETA ÚNICA (ESTRUCTURA PLANA) ---
+    # --- TARJETA ÚNICA ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
-    # --- LOGO EN CÍRCULO BLANCO SEMITRANSPARENTE CON SOMBRA ---
-    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-    st.markdown('<div class="logo-circle"></div>', unsafe_allow_html=True)
-    st.image("assets/logotipo-aulametrics.png", class_="logo-img")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # --- LOGO CON SOMBRA Y RESALTADO (sin círculo extra ni error) ---
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <img src="assets/logotipo-aulametrics.png" style="max-width: 260px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));">
+    </div>
+    """, unsafe_allow_html=True)
 
     # --- TÍTULO Y SUBTÍTULO ---
-    st.markdown("<h2>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
-    st.markdown("<p>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: white; margin: 0 0 10px 0;'>Bienvenido a AulaMetrics</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: rgba(255,255,255,0.9); font-size: 1.1rem;'>Tu asistente pedagógico y analista de datos.</p>", unsafe_allow_html=True)
 
     # --- TABS ---
     tab_login, tab_register = st.tabs([" Iniciar Sesión ", " Registrarme "])
@@ -1109,6 +1085,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
