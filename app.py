@@ -1244,24 +1244,3 @@ if not st.session_state.logged_in:
 else:
     home_page()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
