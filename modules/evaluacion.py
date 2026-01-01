@@ -232,34 +232,35 @@ def extraer_periodo_de_generalidades(excel_file):
             "grado": "No encontrado",
             "seccion": "No encontrado"
         }
-  
+ 
     try:
-        # Leemos la hoja sin encabezados, con más filas/columnas
+        # Leemos la hoja sin encabezados, con más filas/columnas para llegar a J10
         df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None, nrows=20, usecols=range(12))
-      
+     
         # Convertimos todo a string para búsqueda segura
         df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
-
-        # Depuración visible en la web (temporal - quitar después)
+      
+        # Depuración visible en la web (temporal - quítalo después de probar)
         st.write("DEBUG - Shape de Generalidades (filas, columnas):", df_gen.shape)
         st.write("DEBUG - ¿Hay al menos 10 filas y 10 columnas?", df_gen.shape[0] > 9 and df_gen.shape[1] > 9)
-        
+       
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
             seccion_val = df_gen.iloc[9, 9].strip()
             st.write("DEBUG - Valor crudo en J10 (fila 9, col 9):", repr(seccion_val))  # repr muestra espacios ocultos
             st.write("DEBUG - Valor después de strip():", repr(seccion_val.strip()))
         else:
             st.write("DEBUG - Celda J10 fuera de rango - shape:", df_gen.shape)
-        result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
       
+        result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
+     
         # 1. Extraer período: Buscamos "Período de evaluación" (insensible a mayúsculas)
         mask = df_gen.apply(lambda row: row.str.contains("período de evaluación", case=False).any(), axis=1)
-      
+     
         if mask.any():
             row_idx = mask.idxmax()
             row = df_gen.iloc[row_idx]
             col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
-          
+         
             for offset in range(1, 11):
                 col_try = col_idx + offset
                 if col_try < len(row):
@@ -267,7 +268,7 @@ def extraer_periodo_de_generalidades(excel_file):
                     if valor and valor.lower() != "nan" and valor != "":
                         result["periodo"] = valor.title()
                         break
-      
+     
         # 2. Extraer Grado directamente de H10 (fila 9, columna 7)
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 7:
             grado_val = df_gen.iloc[9, 7].strip()
@@ -286,7 +287,7 @@ def extraer_periodo_de_generalidades(excel_file):
                             if valor and valor.lower() != "nan" and valor != "":
                                 result["grado"] = valor.title()
                                 break
-      
+     
         # 3. Extraer Sección directamente de J10 (fila 9, columna 9)
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
             seccion_val = df_gen.iloc[9, 9].strip()
@@ -305,15 +306,15 @@ def extraer_periodo_de_generalidades(excel_file):
                             if valor and valor.lower() != "nan" and valor != "":
                                 result["seccion"] = valor.upper()
                                 break
-      
-            return result
-      
-        except Exception as e:
-            return {
-                "periodo": f"Error al leer: {str(e)}",
-                "grado": "Error",
-                "seccion": "Error"
-            }
+     
+        return result
+ 
+    except Exception as e:
+        return {
+            "periodo": f"Error al leer: {str(e)}",
+            "grado": "Error",
+            "seccion": "Error"
+        }
 
 # ----------------------------------------------------------------------
 # NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
