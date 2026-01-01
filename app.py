@@ -634,7 +634,7 @@ def login_page():
     """, unsafe_allow_html=True)
 
     # --- CARGA DEL ROBOT LOTTIE ---
-    robot_hello = cargar_lottie("robot_hello.json")
+    robot_hello = cargar_lottie("robot_logrado.json")  # o "robot_trabajando.json"
     
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
@@ -1243,4 +1243,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
