@@ -33,32 +33,35 @@ def clean_competencia_name(name: str) -> str:
 
 def extract_general_data(excel_file):
     """
-    Extrae el Grado (H10) y el Nivel (H5) de la hoja 'Generalidades'.
+    Extrae el Nivel (H5), Grado (H10) y Sección (J10) de la hoja 'Generalidades'.
     """
     try:
         df_generalidades = pd.read_excel(
-            excel_file, 
-            sheet_name=GENERAL_SHEET_NAME, 
-            header=None, 
-            nrows=10, 
-            usecols=range(8)
+            excel_file,
+            sheet_name=GENERAL_SHEET_NAME,
+            header=None,
+            nrows=15,  # Más filas por seguridad
+            usecols=range(12)  # Hasta columna J (índice 0-11 = A a L)
         )
+       
+        nivel = df_generalidades.iloc[4, 7]  # H5
+        grado = df_generalidades.iloc[9, 7]  # H10
+        seccion = df_generalidades.iloc[9, 9]  # J10
         
-        grado = df_generalidades.iloc[9, 7] 
-        nivel = df_generalidades.iloc[4, 7]
-        
-        grado_str = str(grado).strip() if pd.notna(grado) else "Grado Desconocido"
         nivel_str = str(nivel).strip() if pd.notna(nivel) else "Nivel Desconocido"
-
+        grado_str = str(grado).strip() if pd.notna(grado) else "Grado Desconocido"
+        seccion_str = str(seccion).strip() if pd.notna(seccion) else "Sección Desconocida"
+        
         return {
+            'nivel': nivel_str,
             'grado': grado_str,
-            'nivel': nivel_str
+            'seccion': seccion_str
         }
-
     except Exception as e:
         return {
-            'grado': f'Error al leer el grado ({str(e)})',
             'nivel': f'Error al leer el nivel ({str(e)})',
+            'grado': f'Error al leer el grado ({str(e)})',
+            'seccion': f'Error al leer la sección ({str(e)})',
             'error_details': str(e)
         }
 
@@ -166,6 +169,7 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
+
 
 
 
