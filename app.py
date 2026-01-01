@@ -636,6 +636,12 @@ def login_page():
                 margin-bottom: 20px;
             }
         }
+        @media (max-width: 768px) {
+            div[style*="display: flex; align-items: center; justify-content: center; flex-wrap: wrap"] {
+                flex-direction: column !important;
+                gap: 20px !important;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1243,6 +1249,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
