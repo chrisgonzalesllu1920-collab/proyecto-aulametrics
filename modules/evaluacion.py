@@ -128,7 +128,13 @@ def mostrar_analisis_general(results):
             # --- TABLA DE DATOS (ESTILO PBI) ---
             st.markdown("<div class='pbi-card'><b>1. Matriz de Frecuencias de Evaluación</b>", unsafe_allow_html=True)
             data = {'Competencia': [], 'AD (Est.)': [], '% AD': [], 'A (Est.)': [], '% A': [], 'B (Est.)': [], '% B': [], 'C (Est.)': [], '% C': [], 'Total': []}
-           
+          
+            competencias = result.get('competencias', {})
+            num_competencias = len(competencias)
+            if num_competencias == 0:
+                st.info(f"Sin datos en '{sheet_name}'.")
+                continue
+
             for col_original_name, comp_data in competencias.items():
                 counts = comp_data['conteo_niveles']
                 total = comp_data['total_evaluados']
@@ -139,14 +145,56 @@ def mostrar_analisis_general(results):
                     data[f'{level} (Est.)'].append(count)
                     data[f'% {level}'].append(f"{porcentaje:.1f}%")
                 data['Total'].append(total)
-           
+          
             df_table = pd.DataFrame(data).set_index('Competencia')
             st.dataframe(df_table, use_container_width=True)
-           
-            excel_data = convert_df_to_excel(df_table, sheet_name, general_data)
-            st.download_button(label=f"⬇️ Exportar Datos a Excel", data=excel_data,
-                              file_name=f'Reporte_PBI_{sheet_name}.xlsx', key=f'btn_dl_{i}')
+          
+            # Generación del Excel con formato profesional (colores por nivel)
+            excel_data = io.BytesIO()
+            with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
+                df_table.to_excel(writer, sheet_name=sheet_name, index=True)
+                workbook = writer.book
+                worksheet = writer.sheets[sheet_name]
+                
+                # Formatos para encabezados por nivel
+                header_formats = {
+                    'AD': workbook.add_format({'bg_color': '#008450', 'font_color': 'white', 'bold': True}),
+                    'A': workbook.add_format({'bg_color': '#32CD32', 'font_color': 'white', 'bold': True}),
+                    'B': workbook.add_format({'bg_color': '#FFB900', 'font_color': 'black', 'bold': True}),
+                    'C': workbook.add_format({'bg_color': '#E81123', 'font_color': 'white', 'bold': True}),
+                }
+                
+                # Aplicar formato a encabezados (según nivel)
+                header_row = 0  # Fila de encabezados
+                for col_num, col_name in enumerate(df_table.columns):
+                    level = col_name.split(' ')[0]  # Extrae 'AD', 'A', 'B', 'C'
+                    if level in header_formats:
+                        worksheet.write(header_row, col_num + 1, col_name, header_formats[level])  # +1 por índice
+                
+                # Ajustar ancho de columnas y eliminar bordes sobrantes
+                worksheet.set_column(0, 0, 40)  # Columna Competencia más ancha
+                worksheet.set_column(1, len(df_table.columns), 12)  # Columnas numéricas
+                
+                # Formato sin bordes en filas vacías (si las hay)
+                empty_format = workbook.add_format({'border': 0})
+                if len(df_table) < 20:  # Ejemplo: si hay menos de 20 competencias
+                    worksheet.set_row(len(df_table) + 1, None, empty_format)  # Limpia filas extras
+                
+                # Agregar contexto del grupo en la parte superior del Excel
+                worksheet.write('A1', f"Nivel: {general_data.get('nivel', 'Descon.')}")
+                worksheet.write('A2', f"Grado: {general_data.get('grado', 'Descon.')}")
+                worksheet.write('A3', f"Área: {sheet_name}")
+            
+            excel_data.seek(0)
+            st.download_button(
+                label=f"⬇️ Exportar Datos a Excel (formato profesional)",
+                data=excel_data,
+                file_name=f'Reporte_PBI_{sheet_name}.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f'btn_dl_{i}'
+            )
             st.markdown("</div>", unsafe_allow_html=True)
+            
             # --- GRÁFICOS INTERACTIVOS ---
             st.markdown(f"<div class='pbi-card'><b>2. Visualización Dinámica: {st.session_state.chart_type}</b>", unsafe_allow_html=True)
             competencia_nombres_limpios = df_table.index.tolist()
