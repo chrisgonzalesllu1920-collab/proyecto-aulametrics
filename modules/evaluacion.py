@@ -224,7 +224,7 @@ def mostrar_analisis_general(results):
 def extraer_periodo_de_generalidades(excel_file):
     """
     Extrae el período de evaluación, grado (H10) y sección (J10) desde la hoja 'Generalidades'.
-    Prioriza celdas fijas (H10 y J10) y mantiene fallback por búsqueda de texto.
+    Prioriza celdas fijas (H10 y J10) y mejora fallback para sección.
     """
     if "Generalidades" not in excel_file.sheet_names:
         return {
@@ -234,8 +234,8 @@ def extraer_periodo_de_generalidades(excel_file):
         }
   
     try:
-        # Leemos la hoja sin encabezados para preservar todo el formato
-        df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None)
+        # Leemos la hoja sin encabezados, con más filas/columnas
+        df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None, nrows=20, usecols=range(12))
       
         # Convertimos todo a string para búsqueda segura
         df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
@@ -250,7 +250,6 @@ def extraer_periodo_de_generalidades(excel_file):
             row = df_gen.iloc[row_idx]
             col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
           
-            # Extraemos período (hasta 10 columnas a la derecha)
             for offset in range(1, 11):
                 col_try = col_idx + offset
                 if col_try < len(row):
@@ -265,7 +264,7 @@ def extraer_periodo_de_generalidades(excel_file):
             if grado_val and grado_val.lower() != "nan" and grado_val != "":
                 result["grado"] = grado_val.title()
             else:
-                # Fallback por búsqueda de texto si no está en H10
+                # Fallback
                 mask_grado = df_gen.apply(lambda row: row.str.contains("grado :", case=False).any(), axis=1)
                 if mask_grado.any():
                     row_grado = df_gen[mask_grado].iloc[0]
@@ -282,9 +281,9 @@ def extraer_periodo_de_generalidades(excel_file):
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
             seccion_val = df_gen.iloc[9, 9].strip()
             if seccion_val and seccion_val.lower() != "nan" and seccion_val != "":
-                result["seccion"] = seccion_val.upper()  # Sección en mayúsculas (A, B, D...)
+                result["seccion"] = seccion_val.upper()
             else:
-                # Fallback por búsqueda de texto si no está en J10
+                # Fallback mejorado: buscar "sección :" en la misma fila que "grado :"
                 mask_seccion = df_gen.apply(lambda row: row.str.contains("sección :", case=False).any(), axis=1)
                 if mask_seccion.any():
                     row_seccion = df_gen[mask_seccion].iloc[0]
