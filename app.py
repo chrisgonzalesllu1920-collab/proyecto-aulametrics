@@ -38,14 +38,20 @@ except ImportError as e:
     st.error(f"Error crítico de importación en 'modules/evaluacion.py': {e}")
 
 # --- UTILIDADES ---
-def cargar_lottie(filepath):
-    """Carga archivos JSON para animaciones Lottie."""
+def cargar_lottie(filepath: str):
+    """Carga un archivo Lottie JSON con manejo de errores."""
     try:
-        with open(filepath, "r") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
+        st.error(f"Archivo Lottie no encontrado: {filepath}")
         return None
-
+    except json.JSONDecodeError:
+        st.error(f"Archivo Lottie corrupto o mal codificado: {filepath}")
+        return None
+    except Exception as e:
+        st.error(f"Error al cargar Lottie: {e}")
+        return None
 # =========================================================================
 # === 1. CONFIGURACIÓN INICIAL ===
 # =========================================================================
@@ -633,35 +639,29 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # --- CARGA DEL ROBOT LOTTIE ---
-    robot_hello = cargar_lottie("robot_logrado.json")  # o "robot_trabajando.json"
+    # --- CARGA DEL ROBOT ---
+    robot_hello = cargar_lottie("robot_hello.json")
     
     # --- B. ESTRUCTURA ---
     col1, col_centro, col3 = st.columns([1, 4, 1])
    
     with col_centro:
         # --- LOGO + ROBOT AL LADO (RESPONSIVE) ---
-        st.markdown('<div class="robot-container">', unsafe_allow_html=True)
+        st.markdown('<div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 40px; margin-bottom: 30px;">', unsafe_allow_html=True)
         
-        col_logo, col_robot = st.columns([1, 1])
+        # Logo
+        st.image("assets/logotipo-aulametrics.png", width=300)
         
-        with col_logo:
-            st.image("assets/logotipo-aulametrics.png", width=300)
-            st.subheader("Bienvenido a AulaMetrics", anchor=False)
-            st.markdown("**Tu asistente pedagógico y analista de datos.**")
-        
-        with col_robot:
-            if robot_hello:
-                st.markdown(f"""
-                <div style="text-align: center;">
-                    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-                    <lottie-player src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode()).decode()}" background="transparent" speed="1" style="width: 220px; height: 220px;" loop autoplay></lottie-player>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.write("(Animación no cargada)")
+        # Robot
+        if robot_hello:
+            st_lottie(robot_hello, height=250, width=250, key="robot_saludo")
+        else:
+            st.write("🤖 (Robot no cargado - verifica el archivo)")
         
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.subheader("Bienvenido a AulaMetrics", anchor=False)
+        st.markdown("**Tu asistente pedagógico y analista de datos.**")
         
         st.write("")
        
@@ -1243,5 +1243,6 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
