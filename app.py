@@ -633,23 +633,26 @@ def login_page():
         
         with col_robot:
             if robot_hello:
-                # Renderizado directo con Lottie Player (sin fondo blanco)
+                # Cargar el script del lottie-player primero
+                st.markdown('<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>', unsafe_allow_html=True)
+                
+                # Luego el player con la animación
                 st.markdown(f"""
-                <div style="display: flex; justify-content: center; align-items: center; height: 220px;">
-                    <lottie-player 
-                        src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode('utf-8')).decode('utf-8')}" 
-                        background="transparent" 
-                        speed="1" 
-                        style="width: 200px; height: 200px;" 
-                        loop 
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <lottie-player
+                        src="data:application/json;base64,{base64.b64encode(json.dumps(robot_hello).encode('utf-8')).decode('utf-8')}"
+                        background="transparent"
+                        speed="1"
+                        style="width: 220px; height: 220px;"
+                        loop
                         autoplay>
                     </lottie-player>
                 </div>
-                <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
                 """, unsafe_allow_html=True)
             else:
                 st.write("🤖")
 
+        
         st.subheader("Bienvenido a AulaMetrics", anchor=False)
         st.markdown("**Tu asistente pedagógico y analista de datos.**")
       
@@ -1233,6 +1236,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
