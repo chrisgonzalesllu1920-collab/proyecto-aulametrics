@@ -634,8 +634,8 @@ def login_page():
                 flex-direction: column;
             }
             .robot-lottie {
-                width: 180px !important;
-                height: 180px !important;
+                width: 120px !important;
+                height: 120px !important;
                 margin-bottom: 20px;
             }
         }
@@ -646,14 +646,14 @@ def login_page():
             }
         }
 
-        /* QUITAR FONDO BLANCO DEL ROBOT LOTTIE */
-        div[data-testid="stLottie"] > div {
-            background: transparent !important;
-        }
+        /* QUITAR FONDO BLANCO Y BORDE DEL ROBOT LOTTIE */
         div[data-testid="stLottie"] {
             background: transparent !important;
             padding: 0 !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
+        }
+        div[data-testid="stLottie"] > div {
+            background: transparent !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -673,7 +673,7 @@ def login_page():
         
         with col_header[1]:
             if robot_hello:
-                st_lottie(robot_hello, height=220, key="robot_saludo")
+                st_lottie(robot_hello, height=160, key="robot_saludo")
             else:
                 st.write("🤖")
         
@@ -1261,6 +1261,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
