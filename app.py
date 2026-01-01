@@ -553,6 +553,59 @@ def login_page():
             text-shadow: none !important;
         }
         footer {visibility: hidden;}
+
+        /* RESPONSIVE: Ajustes para móviles y tablets */
+        @media (max-width: 768px) {
+            /* Reduce padding en móviles */
+            .block-container {
+                padding-top: 2rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            /* Logo más pequeño en móvil */
+            img[src*="logotipo-aulametrics"] {
+                width: 250px !important;
+            }
+
+            /* Tabs más grandes y táctiles */
+            button[data-baseweb="tab"] {
+                padding: 12px 20px !important;
+                font-size: 1rem !important;
+            }
+
+            /* Inputs más grandes y fáciles de tocar */
+            input[type="text"], input[type="password"] {
+                padding: 16px !important;
+                font-size: 1.1rem !important;
+            }
+
+            /* Botones más grandes */
+            .stForm button[kind="primary"], .stForm button[kind="secondary"] {
+                padding: 16px !important;
+                font-size: 1.1rem !important;
+            }
+
+            /* Tarjeta de cristal más padding en móvil */
+            div[data-testid="stVerticalBlock"] > div:has(div.stForm) {
+                padding: 30px 25px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* En celulares muy pequeños */
+            img[src*="logotipo-aulametrics"] {
+                width: 220px !important;
+            }
+
+            h2 {
+                font-size: 1.8rem !important;
+            }
+
+            .block-container {
+                padding-top: 1.5rem !important;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1145,6 +1198,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
