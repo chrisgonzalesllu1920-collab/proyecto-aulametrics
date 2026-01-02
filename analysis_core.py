@@ -34,24 +34,29 @@ def clean_competencia_name(name: str) -> str:
 def extract_general_data(excel_file):
     """
     Extrae el Nivel (H5), Grado (H10) y Sección (J10) de la hoja 'Generalidades'.
+    Lee hasta columna J para llegar a la sección sin error.
     """
     try:
         df_generalidades = pd.read_excel(
             excel_file,
             sheet_name=GENERAL_SHEET_NAME,
             header=None,
-            nrows=15,  # Más filas por seguridad
-            usecols=range(12)  # Hasta columna J (índice 0-11 = A a L)
+            nrows=10,  # Más filas por seguridad
+            usecols=range(10)  # Columnas A a J (índices 0-9)
         )
        
-        nivel = df_generalidades.iloc[4, 7]  # H5
-        grado = df_generalidades.iloc[9, 7]  # H10
-        seccion = df_generalidades.iloc[9, 9]  # J10
-        
+        # Nivel en H5 (fila 4, columna 7)
+        nivel = df_generalidades.iloc[4, 7]
         nivel_str = str(nivel).strip() if pd.notna(nivel) else "Nivel Desconocido"
+       
+        # Grado en H10 (fila 9, columna 7)
+        grado = df_generalidades.iloc[9, 7]
         grado_str = str(grado).strip() if pd.notna(grado) else "Grado Desconocido"
+       
+        # Sección en J10 (fila 9, columna 9)
+        seccion = df_generalidades.iloc[9, 9]
         seccion_str = str(seccion).strip() if pd.notna(seccion) else "Sección Desconocida"
-        
+       
         return {
             'nivel': nivel_str,
             'grado': grado_str,
@@ -169,6 +174,7 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
+
 
 
 
