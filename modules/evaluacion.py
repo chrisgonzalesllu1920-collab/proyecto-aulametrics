@@ -520,8 +520,7 @@ def mostrar_comparacion_entre_periodos():
                         break
 
                 with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
-                    # ... (el resto del código de métricas, tabla y gráficos que ya tenías va aquí)
-                    # Puedes pegar tu código anterior de métricas, deltas, tabla y gráficos
+                    st.session_state.area_actual = hoja  # ← Agrega esta línea aquí
                             
                             # Buscamos la competencia en alguna de las hojas
                             data1 = None
@@ -659,7 +658,7 @@ def mostrar_comparacion_entre_periodos():
             if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
                 # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
                 # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
-                area_limpia = hoja.replace(" ", "-")  # ← CAMBIA 'hoja' por la variable real si es necesario
+                area_limpia = st.session_state.get('area_actual', 'Area').replace(" ", "-")
 
                 periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
                 periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
