@@ -754,7 +754,7 @@ def convert_df_to_excel(df, area_name, general_info):
         title_format = workbook.add_format({
             'bold': True, 'font_size': 12, 'align': 'center', 'bg_color': '#E2E8F0', 'border': 1
         })
-        title_text = f"Área: {area_name} - Nivel: {general_info.get('nivel', 'Descon.')} | Grado: {general_info.get('grado', 'Descon.')}"
+        title_text = f"Área: {area_name} - Nivel: {general_info.get('nivel', 'Descon.')} | Grado: {general_info.get('grado', 'Descon.')} | Sección: {general_info.get('seccion', 'Descon.')}"
         worksheet.merge_range('A1:J1', title_text, title_format)
         
         # Limpiar filas vacías (sin bordes)
