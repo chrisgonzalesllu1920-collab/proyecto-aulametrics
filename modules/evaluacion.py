@@ -9,6 +9,14 @@ import pedagogical_assistant
 import colorsys  # CAMBIO: Import para manejar colores
 import re
 import time
+from datetime import date
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from PIL import Image as PILImage
+import plotly.io as pio
 
 # --- CONFIGURACIÓN DE ESTÉTICA POWER BI ---
 PBI_BLUE = "#113770"
@@ -647,6 +655,23 @@ def mostrar_comparacion_entre_periodos():
                                 fig.update_traces(textposition='top center')
                                 st.plotly_chart(fig, use_container_width=True)
 
+                                # Botón de descarga PDF (visible solo si se generó algún gráfico)
+                                if 'fig' in locals():  # Detecta si se creó al menos un gráfico
+                                    periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")  # Limpiar para nombre de archivo
+                                    periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
+                                    area_limpia = sheet_name.replace(" ", "-")  # O usa el nombre del área real si lo tienes en otra variable
+                                    nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
+                                
+                                    pdf_data = generar_pdf_comparacion(fig, sheet_name, info1, info2, general_data)  # La función que te di antes
+                                
+                                    st.download_button(
+                                        label="⬇️ Descargar comparación en PDF",
+                                        data=pdf_data,
+                                        file_name=nombre_archivo,
+                                        mime="application/pdf",
+                                        key="btn_pdf_comparacion"
+                                    )
+
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
@@ -853,3 +878,37 @@ def inject_pbi_css():
         }}
         </style>
     """, unsafe_allow_html=True)
+
+def generar_pdf_comparacion(fig, area_name, info1, info2, general_data):
+    """
+    Genera PDF con el gráfico seleccionado y contexto completo.
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Título
+    title = f"Comparación entre {info1['periodo']} y {info2['periodo']}"
+    elements.append(Paragraph(title, styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    # Contexto
+    contexto = f"Área: {area_name} | Nivel: {general_data.get('nivel', 'Descon.')} | Grado: {general_data.get('grado', 'Descon.')} | Sección: {general_data.get('seccion', 'Descon.')}"
+    elements.append(Paragraph(contexto, styles['Normal']))
+    elements.append(Spacer(1, 24))
+
+    # Convertir gráfico Plotly a imagen
+    img_bytes = pio.to_image(fig, format="png", width=800, height=600)
+    img = PILImage.open(io.BytesIO(img_bytes))
+    elements.append(Image(img, width=500, height=375))
+    elements.append(Spacer(1, 36))
+
+    # Pie de página
+    fecha = date.today().strftime("%d/%m/%Y")
+    pie = f"Generado por AulaMetrics – {fecha}"
+    elements.append(Paragraph(pie, styles['Italic']))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer.getvalue()
