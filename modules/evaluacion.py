@@ -224,7 +224,7 @@ def mostrar_analisis_general(results):
 def extraer_periodo_de_generalidades(excel_file):
     """
     Extrae el período de evaluación, grado (H10) y sección (J10) desde 'Generalidades'.
-    Maneja hojas con pocas columnas sin error.
+    Lee todas las columnas disponibles y maneja límites sin error.
     """
     if "Generalidades" not in excel_file.sheet_names:
         return {
@@ -242,7 +242,7 @@ def extraer_periodo_de_generalidades(excel_file):
       
         result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
       
-        # 1. Extraer período: Buscamos "Período de evaluación"
+        # 1. Extraer período: Buscamos "Período de evaluación" (insensible a mayúsculas)
         mask = df_gen.apply(lambda row: row.str.contains("período de evaluación", case=False).any(), axis=1)
       
         if mask.any():
@@ -258,41 +258,43 @@ def extraer_periodo_de_generalidades(excel_file):
                         result["periodo"] = valor.title()
                         break
       
-        # 2. Extraer Grado de H10 (fila 9, columna 7) con chequeo de límites
+        # 2. Extraer Grado de H10 (fila 9, columna 7) con chequeo
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 7:
             grado_val = df_gen.iloc[9, 7].strip()
             if grado_val and grado_val.lower() != "nan" and grado_val != "":
                 result["grado"] = grado_val.title()
-        # Fallback por texto
-        mask_grado = df_gen.apply(lambda row: row.str.contains("grado :", case=False).any(), axis=1)
-        if mask_grado.any() and result["grado"] == "No encontrado":
-            row_grado = df_gen[mask_grado].iloc[0]
-            col_grado = row_grado[row_grado.str.contains("grado :", case=False)].index[0]
-            for offset in range(1, 6):
-                col_try = col_grado + offset
-                if col_try < len(row_grado):
-                    valor = row_grado[col_try].strip()
-                    if valor and valor.lower() != "nan" and valor != "":
-                        result["grado"] = valor.title()
-                        break
+            else:
+                # Fallback por texto
+                mask_grado = df_gen.apply(lambda row: row.str.contains("grado :", case=False).any(), axis=1)
+                if mask_grado.any():
+                    row_grado = df_gen[mask_grado].iloc[0]
+                    col_grado = row_grado[row_grado.str.contains("grado :", case=False)].index[0]
+                    for offset in range(1, 6):
+                        col_try = col_grado + offset
+                        if col_try < len(row_grado):
+                            valor = row_grado[col_try].strip()
+                            if valor and valor.lower() != "nan" and valor != "":
+                                result["grado"] = valor.title()
+                                break
       
-        # 3. Extraer Sección de J10 (fila 9, columna 9) con chequeo de límites
+        # 3. Extraer Sección de J10 (fila 9, columna 9) con chequeo
         if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
             seccion_val = df_gen.iloc[9, 9].strip()
             if seccion_val and seccion_val.lower() != "nan" and seccion_val != "":
                 result["seccion"] = seccion_val.upper()
-        # Fallback por texto
-        mask_seccion = df_gen.apply(lambda row: row.str.contains("sección :", case=False).any(), axis=1)
-        if mask_seccion.any() and result["seccion"] == "No encontrado":
-            row_seccion = df_gen[mask_seccion].iloc[0]
-            col_seccion = row_seccion[row_seccion.str.contains("sección :", case=False)].index[0]
-            for offset in range(1, 6):
-                col_try = col_seccion + offset
-                if col_try < len(row_seccion):
-                    valor = row_seccion[col_try].strip()
-                    if valor and valor.lower() != "nan" and valor != "":
-                        result["seccion"] = valor.upper()
-                        break
+            else:
+                # Fallback por texto
+                mask_seccion = df_gen.apply(lambda row: row.str.contains("sección :", case=False).any(), axis=1)
+                if mask_seccion.any():
+                    row_seccion = df_gen[mask_seccion].iloc[0]
+                    col_seccion = row_seccion[row_seccion.str.contains("sección :", case=False)].index[0]
+                    for offset in range(1, 6):
+                        col_try = col_seccion + offset
+                        if col_try < len(row_seccion):
+                            valor = row_seccion[col_try].strip()
+                            if valor and valor.lower() != "nan" and valor != "":
+                                result["seccion"] = valor.upper()
+                                break
       
         return result
  
