@@ -216,7 +216,7 @@ def mostrar_analisis_general(results):
                 )
                 st.plotly_chart(fig, use_container_width=True, key=f"plotly_v2_{sheet_name}_{selected_comp}_{i}")
             st.markdown("</div>", unsafe_allow_html=True)
-            if st.button(f"🎯 Generar Insights IA - {sheet_name}", type="primary", use_container_width=True, key=f"btn_ai_{i}"):
+            if st.button(f"💡 Ideas de mejora IA para {sheet_name}", type="primary", use_container_width=True, key=f"btn_ai_{i}"):
                 with st.expander("Panel de Sugerencias Pedagógicas (Generado por IA)", expanded=True):
                     ai_text = pedagogical_assistant.generate_suggestions(results, sheet_name, selected_comp)
                     st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid {PBI_BLUE};'>{ai_text}</div>", unsafe_allow_html=True)
