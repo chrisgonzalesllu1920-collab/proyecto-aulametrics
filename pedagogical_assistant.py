@@ -67,7 +67,7 @@ def generate_ai_suggestions(critical_comp_info):
        | Acción Concreta | Indicadores de Mejora | Evidencias Esperadas |
        |-----------------|------------------------|----------------------|
     3. Genera **exactamente 5 acciones concretas** (no más, no menos). Cada acción debe ser realista, fácil de implementar por un docente y enfocada en estudiantes con dificultades (niveles B y C).
-    4. Usa **negritas** dentro de las celdas para destacar puntos clave.
+    4. Usa texto claro y directo dentro de las celdas. Si necesitas destacar algo, usa cursivas (*texto*) o mayúsculas, pero NO uses **negritas** (asteriscos dobles).
     5. Añade un diseño visual:  
        - Encabezados con fondo azul oscuro y texto blanco (usa CSS: <thead style="background-color: #113770; color: white;">).
        - Bordes visibles y gruesos en la tabla.
@@ -1053,6 +1053,7 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
+
 
 
 
