@@ -223,8 +223,8 @@ def mostrar_analisis_general(results):
 
 def extraer_periodo_de_generalidades(excel_file):
     """
-    Extrae el período de evaluación, grado (H10) y sección (J10) desde 'Generalidades'.
-    Lee todas las columnas disponibles y maneja límites sin error.
+    Extrae el período de evaluación desde la hoja 'Generalidades'
+    Busca específicamente la fila con 'Período de evaluación :' y toma el valor de la columna siguiente
     """
     if "Generalidades" not in excel_file.sheet_names:
         return {
@@ -232,78 +232,75 @@ def extraer_periodo_de_generalidades(excel_file):
             "grado": "No encontrado",
             "seccion": "No encontrado"
         }
-  
+   
     try:
-        # Leemos la hoja completa (sin limitar columnas)
+        # Leemos la hoja sin encabezados para preservar todo el formato
         df_gen = pd.read_excel(excel_file, sheet_name="Generalidades", header=None)
-      
-        # Convertimos a string y limpiamos
+       
+        # Convertimos todo a string para búsqueda segura
         df_gen = df_gen.astype(str).apply(lambda x: x.str.strip())
-      
-        result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
-      
-        # 1. Extraer período: Buscamos "Período de evaluación" (insensible a mayúsculas)
+       
+        # Buscamos la fila donde aparece "Período de evaluación" (insensible a mayúsculas)
         mask = df_gen.apply(lambda row: row.str.contains("período de evaluación", case=False).any(), axis=1)
-      
-        if mask.any():
-            row_idx = mask.idxmax()
-            row = df_gen.iloc[row_idx]
-            col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
-          
-            for offset in range(1, 11):
-                col_try = col_idx + offset
+       
+        if not mask.any():
+            return {
+                "periodo": "Texto 'Período de evaluación' no encontrado",
+                "grado": "No encontrado",
+                "seccion": "No encontrado"
+            }
+       
+        # Tomamos la primera fila que coincida
+        row_idx = mask.idxmax()
+        row = df_gen.iloc[row_idx]
+       
+        # Buscamos la posición del texto en la fila
+        col_idx = row[row.str.contains("período de evaluación", case=False)].index[0]
+       
+        result = {"periodo": "No encontrado", "grado": "No encontrado", "seccion": "No encontrado"}
+       
+        # Extraemos período (hasta 10 columnas a la derecha, por si hay espacios)
+        for offset in range(1, 11):
+            col_try = col_idx + offset
+            if col_try < len(row):
+                valor = row[col_try].strip()
+                if valor and valor.lower() != "nan" and valor != "":
+                    result["periodo"] = valor.title()
+                    break
+       
+        # Extraemos grado: buscamos "grado :" en la misma fila
+        mask_grado = row.str.contains("grado :", case=False)
+        if mask_grado.any():
+            col_grado = mask_grado.idxmax()
+            for offset in range(1, 6):
+                col_try = col_grado + offset
                 if col_try < len(row):
                     valor = row[col_try].strip()
                     if valor and valor.lower() != "nan" and valor != "":
-                        result["periodo"] = valor.title()
+                        result["grado"] = valor.title()
                         break
-      
-        # 2. Extraer Grado de H10 (fila 9, columna 7) con chequeo
-        if df_gen.shape[0] > 9 and df_gen.shape[1] > 7:
-            grado_val = df_gen.iloc[9, 7].strip()
-            if grado_val and grado_val.lower() != "nan" and grado_val != "":
-                result["grado"] = grado_val.title()
-            else:
-                # Fallback por texto
-                mask_grado = df_gen.apply(lambda row: row.str.contains("grado :", case=False).any(), axis=1)
-                if mask_grado.any():
-                    row_grado = df_gen[mask_grado].iloc[0]
-                    col_grado = row_grado[row_grado.str.contains("grado :", case=False)].index[0]
-                    for offset in range(1, 6):
-                        col_try = col_grado + offset
-                        if col_try < len(row_grado):
-                            valor = row_grado[col_try].strip()
-                            if valor and valor.lower() != "nan" and valor != "":
-                                result["grado"] = valor.title()
-                                break
-      
-        # 3. Extraer Sección de J10 (fila 9, columna 9) con chequeo
-        if df_gen.shape[0] > 9 and df_gen.shape[1] > 9:
-            seccion_val = df_gen.iloc[9, 9].strip()
-            if seccion_val and seccion_val.lower() != "nan" and seccion_val != "":
-                result["seccion"] = seccion_val.upper()
-            else:
-                # Fallback por texto
-                mask_seccion = df_gen.apply(lambda row: row.str.contains("sección :", case=False).any(), axis=1)
-                if mask_seccion.any():
-                    row_seccion = df_gen[mask_seccion].iloc[0]
-                    col_seccion = row_seccion[row_seccion.str.contains("sección :", case=False)].index[0]
-                    for offset in range(1, 6):
-                        col_try = col_seccion + offset
-                        if col_try < len(row_seccion):
-                            valor = row_seccion[col_try].strip()
-                            if valor and valor.lower() != "nan" and valor != "":
-                                result["seccion"] = valor.upper()
-                                break
-      
+       
+        # Extraemos sección: buscamos "sección :" en la misma fila
+        mask_seccion = row.str.contains("sección :", case=False)
+        if mask_seccion.any():
+            col_seccion = mask_seccion.idxmax()
+            for offset in range(1, 6):
+                col_try = col_seccion + offset
+                if col_try < len(row):
+                    valor = row[col_try].strip()
+                    if valor and valor.lower() != "nan" and valor != "":
+                        result["seccion"] = valor.upper()  # Sección suele ser mayúscula (A, B...)
+                        break
+       
         return result
- 
+   
     except Exception as e:
         return {
             "periodo": f"Error al leer: {str(e)}",
             "grado": "Error",
             "seccion": "Error"
         }
+
 
 # ----------------------------------------------------------------------
 # NUEVA FUNCIÓN PRINCIPAL PARA LA PESTAÑA DE COMPARACIÓN
