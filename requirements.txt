@@ -10,6 +10,6 @@ google-genai
 supabase
 streamlit-lottie
 python-pptx
+reportlab
+Pillow
 requests
-pip install reportlab Pillow
-
