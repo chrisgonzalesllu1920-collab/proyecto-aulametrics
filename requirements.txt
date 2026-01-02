@@ -11,4 +11,5 @@ supabase
 streamlit-lottie
 python-pptx
 requests
+pip install reportlab Pillow
 
