@@ -58,23 +58,23 @@ def generate_ai_suggestions(critical_comp_info):
     
     prompt = f"""
     Elabora un plan de acción pedagógico completo y práctico para mejorar la competencia "{competencia}" en el área de "{area}" para estudiantes de {grado} de {nivel}.
-    
+
     Basado en este diagnóstico: {analisis}
-    
-    **REGLAS OBLIGATORIAS DE FORMATO (no las ignores):**
-    1. Responde **exclusivamente** con una tabla Markdown. NO pongas texto antes ni después de la tabla.
-    2. Usa exactamente estas 3 columnas:  
+
+    **REGLAS OBLIGATORIAS DE FORMATO (no las ignores, o no se aceptará la respuesta):**
+    1. Responde **exclusivamente** con una tabla Markdown. NO pongas texto antes, después, introducciones o conclusiones.
+    2. Usa **exactamente** estas 3 columnas:  
        | Acción Concreta | Indicadores de Mejora | Evidencias Esperadas |
-    3. Genera **exactamente 5 acciones concretas** (no más, no menos).
-    4. Cada acción debe ser realista, fácil de implementar por un docente y enfocada en estudiantes con dificultades (niveles B y C).
-    5. Usa **negritas** dentro de las celdas cuando sea necesario para destacar puntos clave.
-    6. Añade un diseño visual:  
-       - Encabezados con fondo azul oscuro (#113770) y texto blanco (usa la clase CSS 'pbi-header' si es posible, o solo indica que el fondo sea azul).
-       - Bordes de tabla visibles y gruesos.
-       - Alterna filas con fondo gris claro (#f8f9fa) para mejor legibilidad.
-    7. La tabla debe verse profesional y fácil de copiar/pegar.
-    
-    Comienza directamente con la tabla, sin introducciones.
+       |-----------------|------------------------|----------------------|
+    3. Genera **exactamente 5 acciones concretas** (no más, no menos). Cada acción debe ser realista, fácil de implementar por un docente y enfocada en estudiantes con dificultades (niveles B y C).
+    4. Usa **negritas** dentro de las celdas para destacar puntos clave.
+    5. Añade un diseño visual:  
+       - Encabezados con fondo azul oscuro y texto blanco (usa CSS: <thead style="background-color: #113770; color: white;">).
+       - Bordes visibles y gruesos en la tabla.
+       - Alterna filas con fondo gris claro (#f8f9fa) para mejor legibilidad (usa <tr style="background-color: #f8f9fa;"> en filas pares).
+    6. La tabla debe verse profesional y fácil de copiar.
+
+    Comienza directamente con la tabla <table> en Markdown, sin nada más.
     """
     
     try:
@@ -1053,6 +1053,7 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
+
 
 
 
