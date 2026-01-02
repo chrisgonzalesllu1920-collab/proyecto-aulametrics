@@ -473,17 +473,13 @@ def mostrar_comparacion_entre_periodos():
     if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
         results1 = st.session_state['results_periodo1']
         results2 = st.session_state['results_periodo2']
-
         st.subheader("Seleccione qué comparar")
-
         # Obtenemos las competencias disponibles desde la primera hoja válida
         competencias_disponibles = []
         if results1:
             primera_hoja = next(iter(results1))
             competencias_disponibles = list(results1[primera_hoja].get('competencias', {}).keys())
-
         todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
-
         competencias_sel = []
         if not todas_competencias:
             competencias_sel = st.multiselect(
@@ -492,14 +488,11 @@ def mostrar_comparacion_entre_periodos():
                 default=competencias_disponibles[:3] if competencias_disponibles else [],
                 key="competencias_comparar"
             )
-
         competencias_a_mostrar = competencias_disponibles if todas_competencias else competencias_sel
-
         if not competencias_a_mostrar:
             st.info("Seleccione al menos una competencia para comparar.")
         else:
             st.subheader("Visualizaciones comparativas")
-
             tipo_grafico = st.radio(
                 "Tipo de visualización",
                 options=[
@@ -510,7 +503,6 @@ def mostrar_comparacion_entre_periodos():
                 horizontal=True,
                 key="tipo_grafico_comparacion"
             )
-
             for competencia_original in competencias_a_mostrar:
                 nombre_limpio = "Competencia desconocida"
                 for hoja in results1:
@@ -518,167 +510,148 @@ def mostrar_comparacion_entre_periodos():
                     if comp_data and 'nombre_limpio' in comp_data:
                         nombre_limpio = comp_data['nombre_limpio']
                         break
-
                 with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
-                    st.session_state.area_actual = hoja  # ← Agrega esta línea aquí
-                            
-                            # Buscamos la competencia en alguna de las hojas
-                            data1 = None
-                            for hoja in results1:
-                                comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
-                                if comp_data:
-                                    data1 = comp_data
-                                    break
-
-                            data2 = None
-                            for hoja in results2:
-                                comp_data = results2[hoja].get('competencias', {}).get(competencia_original)
-                                if comp_data:
-                                    data2 = comp_data
-                                    break
-
-                            if not data1 or not data2:
-                                st.warning("No se encontraron datos completos para esta competencia en uno de los períodos.")
-                                continue
-
-                            # Conteos y porcentajes por nivel
-                            conteos1 = data1.get('conteo_niveles', {})
-                            total1 = data1.get('total_evaluados', 1)
-                            pct1 = {k: (v / total1 * 100) if total1 > 0 else 0 for k, v in conteos1.items()}
-
-                            conteos2 = data2.get('conteo_niveles', {})
-                            total2 = data2.get('total_evaluados', 1)
-                            pct2 = {k: (v / total2 * 100) if total2 > 0 else 0 for k, v in conteos2.items()}
-
-                            niveles = ['AD', 'A', 'B', 'C']
-                            valores1 = [conteos1.get(n, 0) for n in niveles]
-                            valores2 = [conteos2.get(n, 0) for n in niveles]
-
-                            # Deltas por nivel (P2 - P1)
-                            deltas = {n: pct2.get(n, 0) - pct1.get(n, 0) for n in niveles}
-
-                            # Colores condicionales por nivel (lógica pedagógica)
-                            color_rules = {
-                                'AD': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
-                                'A': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
-                                'B': lambda d: "green" if d > 0 else "orange" if d < 0 else "gray",  # ↓ en B puede ser bueno (suben a A)
-                                'C': lambda d: "green" if d < 0 else "red" if d > 0 else "gray"     # ↓ en C SIEMPRE positivo
-                            }
-
-                            # Métricas separadas por nivel (con flecha y color)
-                            cols = st.columns(4)
-                            for i, nivel in enumerate(niveles):
-                                delta = deltas[nivel]
-                                color = color_rules[nivel](delta)
-                                flecha = "↑" if delta > 0 else "↓" if delta < 0 else "→"
-                                with cols[i]:
-                                    st.metric(
-                                        label=f"% {nivel}",
-                                        value=f"{pct2.get(nivel, 0):.1f}%",
-                                        delta=f"{delta:+.1f}%",
-                                        delta_color="normal"  # Usamos color manual abajo
-                                    )
-                                    st.markdown(f"""
-                                    <div style="font-size: 1.5rem; color: {color}; text-align: center; margin-top: -10px;">
-                                        {flecha}
-                                    </div>
-                                    """, unsafe_allow_html=True)
-
-                            # Tabla comparativa mejorada con deltas y colores
-                            st.markdown("**Tabla comparativa detallada**")
-                            tabla = pd.DataFrame({
-                                'Nivel': niveles,
-                                f'Conteos {info1["periodo"]}': valores1,
-                                f'% {info1["periodo"]}': [f"{pct1.get(n, 0):.1f}%" for n in niveles],
-                                f'Conteos {info2["periodo"]}': valores2,
-                                f'% {info2["periodo"]}': [f"{pct2.get(n, 0):.1f}%" for n in niveles],
-                                'Δ %': [f"{d:+.1f}%" for d in deltas.values()],
-                                'Tendencia': [flecha + (" mejora" if d > 0 else " ↓ mejora" if d < 0 and n == 'C' else " ↓ retroceso" if d < 0 else " estable") 
-                                              for d, n in zip(deltas.values(), niveles)]
-                            })
-
-                            # Estilo condicional en la tabla (verde/rojo/naranja)
-                            def style_delta(val):
-                                color = 'green' if float(val.strip('%+')) > 0 else 'red' if float(val.strip('%+')) < 0 else 'gray'
-                                return f'color: {color}; font-weight: bold'
-
-                            st.dataframe(
-                                tabla.style.map(style_delta, subset=['Δ %']),
-                                use_container_width=True
+                    # Buscamos la competencia en alguna de las hojas
+                    data1 = None
+                    for hoja in results1:
+                        comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
+                        if comp_data:
+                            data1 = comp_data
+                            break
+                    data2 = None
+                    for hoja in results2:
+                        comp_data = results2[hoja].get('competencias', {}).get(competencia_original)
+                        if comp_data:
+                            data2 = comp_data
+                            break
+                    if not data1 or not data2:
+                        st.warning("No se encontraron datos completos para esta competencia en uno de los períodos.")
+                        continue
+                    # Conteos y porcentajes por nivel
+                    conteos1 = data1.get('conteo_niveles', {})
+                    total1 = data1.get('total_evaluados', 1)
+                    pct1 = {k: (v / total1 * 100) if total1 > 0 else 0 for k, v in conteos1.items()}
+                    conteos2 = data2.get('conteo_niveles', {})
+                    total2 = data2.get('total_evaluados', 1)
+                    pct2 = {k: (v / total2 * 100) if total2 > 0 else 0 for k, v in conteos2.items()}
+                    niveles = ['AD', 'A', 'B', 'C']
+                    valores1 = [conteos1.get(n, 0) for n in niveles]
+                    valores2 = [conteos2.get(n, 0) for n in niveles]
+                    # Deltas por nivel (P2 - P1)
+                    deltas = {n: pct2.get(n, 0) - pct1.get(n, 0) for n in niveles}
+                    # Colores condicionales por nivel (lógica pedagógica)
+                    color_rules = {
+                        'AD': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
+                        'A': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
+                        'B': lambda d: "green" if d > 0 else "orange" if d < 0 else "gray", # ↓ en B puede ser bueno (suben a A)
+                        'C': lambda d: "green" if d < 0 else "red" if d > 0 else "gray" # ↓ en C SIEMPRE positivo
+                    }
+                    # Métricas separadas por nivel (con flecha y color)
+                    cols = st.columns(4)
+                    for i, nivel in enumerate(niveles):
+                        delta = deltas[nivel]
+                        color = color_rules[nivel](delta)
+                        flecha = "↑" if delta > 0 else "↓" if delta < 0 else "→"
+                        with cols[i]:
+                            st.metric(
+                                label=f"% {nivel}",
+                                value=f"{pct2.get(nivel, 0):.1f}%",
+                                delta=f"{delta:+.1f}%",
+                                delta_color="normal" # Usamos color manual abajo
                             )
-
-                            # Preparación de datos comunes para los gráficos
-                            niveles = ['AD', 'A', 'B', 'C']
-                            valores1 = [conteos1.get(n, 0) for n in niveles]
-                            valores2 = [conteos2.get(n, 0) for n in niveles]
-
-                            df_comp = pd.DataFrame({
-                                'Nivel': niveles * 2,
-                                'Estudiantes': valores1 + valores2,
-                                'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
-                            })
-
-                            if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
-                                fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
-                                             barmode='group', text='Estudiantes',
-                                             color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
-                                fig.update_traces(textposition='outside')
-                                st.plotly_chart(fig, use_container_width=True)
-
-                            elif tipo_grafico == "Barras apiladas (distribución %)":
-                                df_pct = pd.DataFrame({
-                                    'Nivel': niveles,
-                                    info1['periodo']: [pct1.get(n, 0) for n in niveles],
-                                    info2['periodo']: [pct2.get(n, 0) for n in niveles]
-                                }).set_index('Nivel')
-                                fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
-                                             color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
-                                st.plotly_chart(fig, use_container_width=True)
-
-                            elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
-                                pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
-                                pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
-                                df_line = pd.DataFrame({
-                                    'Período': [info1['periodo'], info2['periodo']],
-                                    '% AD + A': [pct_ad_a_1, pct_ad_a_2]
-                                })
-                                # Escala dinámica (ya implementada antes)
-                                min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
-                                max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
-                                range_y = [max(0, min_pct), min(100, max_pct)]
-                                fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
-                                              range_y=range_y, text='% AD + A')
-                                fig.update_traces(textposition='top center')
-                                st.plotly_chart(fig, use_container_width=True)
-
-                                # Guardamos la última fig (la del gráfico seleccionado)
-                                st.session_state.last_fig = fig
-
-            # Botón de descarga PDF (fuera del bucle, al final de la sección)
-            if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
-                # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
-                # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
-                area_limpia = st.session_state.get('area_actual', 'Area').replace(" ", "-")
-
-                periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
-                periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
-                nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-
-                pdf_data = generar_pdf_comparacion(
-                    st.session_state.last_fig,
-                    area_limpia,
-                    info1,
-                    info2,
-                    general_data
-                )
-
-                st.download_button(
-                    label="⬇️ Descargar comparación en PDF",
-                    data=pdf_data,
-                    file_name=nombre_archivo,
-                    mime="application/pdf",
-                    key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
-                )
+                            st.markdown(f"""
+                            <div style="font-size: 1.5rem; color: {color}; text-align: center; margin-top: -10px;">
+                                {flecha}
+                            </div>
+                            """, unsafe_allow_html=True)
+                    # Tabla comparativa mejorada con deltas y colores
+                    st.markdown("**Tabla comparativa detallada**")
+                    tabla = pd.DataFrame({
+                        'Nivel': niveles,
+                        f'Conteos {info1["periodo"]}': valores1,
+                        f'% {info1["periodo"]}': [f"{pct1.get(n, 0):.1f}%" for n in niveles],
+                        f'Conteos {info2["periodo"]}': valores2,
+                        f'% {info2["periodo"]}': [f"{pct2.get(n, 0):.1f}%" for n in niveles],
+                        'Δ %': [f"{d:+.1f}%" for d in deltas.values()],
+                        'Tendencia': [flecha + (" mejora" if d > 0 else " ↓ mejora" if d < 0 and n == 'C' else " ↓ retroceso" if d < 0 else " estable")
+                                      for d, n in zip(deltas.values(), niveles)]
+                    })
+                    # Estilo condicional en la tabla (verde/rojo/naranja)
+                    def style_delta(val):
+                        color = 'green' if float(val.strip('%+')) > 0 else 'red' if float(val.strip('%+')) < 0 else 'gray'
+                        return f'color: {color}; font-weight: bold'
+                    st.dataframe(
+                        tabla.style.map(style_delta, subset=['Δ %']),
+                        use_container_width=True
+                    )
+                    # Preparación de datos comunes para los gráficos
+                    niveles = ['AD', 'A', 'B', 'C']
+                    valores1 = [conteos1.get(n, 0) for n in niveles]
+                    valores2 = [conteos2.get(n, 0) for n in niveles]
+                    df_comp = pd.DataFrame({
+                        'Nivel': niveles * 2,
+                        'Estudiantes': valores1 + valores2,
+                        'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
+                    })
+                    if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
+                        fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
+                                     barmode='group', text='Estudiantes',
+                                     color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
+                        fig.update_traces(textposition='outside')
+                        st.plotly_chart(fig, use_container_width=True)
+                    elif tipo_grafico == "Barras apiladas (distribución %)" :
+                        df_pct = pd.DataFrame({
+                            'Nivel': niveles,
+                            info1['periodo']: [pct1.get(n, 0) for n in niveles],
+                            info2['periodo']: [pct2.get(n, 0) for n in niveles]
+                        }).set_index('Nivel')
+                        fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
+                                     color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
+                        st.plotly_chart(fig, use_container_width=True)
+                    elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
+                        pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
+                        pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
+                        df_line = pd.DataFrame({
+                            'Período': [info1['periodo'], info2['periodo']],
+                            '% AD + A': [pct_ad_a_1, pct_ad_a_2]
+                        })
+                        # Escala dinámica (ya implementada antes)
+                        min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
+                        max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
+                        range_y = [max(0, min_pct), min(100, max_pct)]
+                        fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
+                                      range_y=range_y, text='% AD + A')
+                        fig.update_traces(textposition='top center')
+                        st.plotly_chart(fig, use_container_width=True)
+         
+                        # Guardamos la última fig (la del gráfico seleccionado)
+                        st.session_state.last_fig = fig
+       
+                    # Botón de descarga PDF (fuera del bucle, al final de la sección)
+                    if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
+                        # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
+                        # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
+                        area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
+       
+                        periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
+                        periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
+                        nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
+       
+                        pdf_data = generar_pdf_comparacion(
+                            st.session_state.last_fig,
+                            area_limpia,
+                            info1,
+                            info2,
+                            general_data
+                        )
+       
+                        st.download_button(
+                            label="⬇️ Descargar comparación en PDF",
+                            data=pdf_data,
+                            file_name=nombre_archivo,
+                            mime="application/pdf",
+                            key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
+                        )"
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
