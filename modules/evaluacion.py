@@ -639,51 +639,47 @@ def mostrar_comparacion_entre_periodos():
                             elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
                                 pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
                                 pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
-
                                 df_line = pd.DataFrame({
                                     'Período': [info1['periodo'], info2['periodo']],
                                     '% AD + A': [pct_ad_a_1, pct_ad_a_2]
                                 })
-
                                 # Escala dinámica (ya implementada antes)
                                 min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
                                 max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
                                 range_y = [max(0, min_pct), min(100, max_pct)]
-
                                 fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
                                               range_y=range_y, text='% AD + A')
                                 fig.update_traces(textposition='top center')
                                 st.plotly_chart(fig, use_container_width=True)
 
-          
-                                        # Guardamos la última fig (la del gráfico seleccionado)
-                                        if 'fig' in locals():
-                                            st.session_state.last_fig = fig
-                            
-                                        # Botón de descarga PDF (fuera del bucle, al final de la sección)
-                                        if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
-                                            # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
-                                            area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
-                            
-                                            periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
-                                            periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
-                                            nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-                            
-                                            pdf_data = generar_pdf_comparacion(
-                                                st.session_state.last_fig,
-                                                area_limpia,
-                                                info1,
-                                                info2,
-                                                general_data
-                                            )
-                            
-                                            st.download_button(
-                                                label="⬇️ Descargar comparación en PDF",
-                                                data=pdf_data,
-                                                file_name=nombre_archivo,
-                                                mime="application/pdf",
-                                                key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
-                                            )
+                                # Guardamos la última fig (la del gráfico seleccionado)
+                                st.session_state.last_fig = fig
+
+            # Botón de descarga PDF (fuera del bucle, al final de la sección)
+            if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
+                # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
+                # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
+                area_limpia = hoja.replace(" ", "-")  # ← CAMBIA 'hoja' por la variable real si es necesario
+
+                periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
+                periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
+                nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
+
+                pdf_data = generar_pdf_comparacion(
+                    st.session_state.last_fig,
+                    area_limpia,
+                    info1,
+                    info2,
+                    general_data
+                )
+
+                st.download_button(
+                    label="⬇️ Descargar comparación en PDF",
+                    data=pdf_data,
+                    file_name=nombre_archivo,
+                    mime="application/pdf",
+                    key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
+                )
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
