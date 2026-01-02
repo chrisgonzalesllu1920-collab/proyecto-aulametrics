@@ -655,7 +655,22 @@ def mostrar_comparacion_entre_periodos():
                                 fig.update_traces(textposition='top center')
                                 st.plotly_chart(fig, use_container_width=True)
 
-
+                                # Botón de descarga PDF (visible solo si se generó algún gráfico) Estaba en la linea 658
+                                if 'fig' in locals():  # Detecta si se creó al menos un gráfico
+                                    periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")  # Limpiar para nombre de archivo
+                                    periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
+                                    area_limpia = sheet_name.replace(" ", "-")  # O usa el nombre del área real si lo tienes en otra variable
+                                    nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
+                                
+                                    pdf_data = generar_pdf_comparacion(fig, sheet_name, info1, info2, general_data)  # La función que te di antes
+                                
+                                    st.download_button(
+                                        label="⬇️ Descargar comparación en PDF",
+                                        data=pdf_data,
+                                        file_name=nombre_archivo,
+                                        mime="application/pdf",
+                                        key="btn_pdf_comparacion"
+                                    )
 
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
