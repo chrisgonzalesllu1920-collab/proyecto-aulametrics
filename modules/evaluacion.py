@@ -642,7 +642,7 @@ def mostrar_comparacion_entre_periodos():
                     area_limpia,
                     info1,
                     info2,
-                    general_data
+                    st.session_state.general_data
                 )
             
                 st.download_button(
