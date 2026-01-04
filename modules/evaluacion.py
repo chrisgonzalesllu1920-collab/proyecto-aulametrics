@@ -503,6 +503,7 @@ def mostrar_comparacion_entre_periodos():
                 horizontal=True,
                 key="tipo_grafico_comparacion"
             )
+
             for competencia_original in competencias_a_mostrar:
                 nombre_limpio = "Competencia desconocida"
                 for hoja in results1:
@@ -599,7 +600,8 @@ def mostrar_comparacion_entre_periodos():
                                      color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
                         fig.update_traces(textposition='outside')
                         st.plotly_chart(fig, use_container_width=True)
-                    elif tipo_grafico == "Barras apiladas (distribución %)" :
+                        st.session_state.last_fig = fig
+                    elif tipo_grafico == "Barras apiladas (distribución %)":
                         df_pct = pd.DataFrame({
                             'Nivel': niveles,
                             info1['periodo']: [pct1.get(n, 0) for n in niveles],
@@ -608,6 +610,7 @@ def mostrar_comparacion_entre_periodos():
                         fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
                                      color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
                         st.plotly_chart(fig, use_container_width=True)
+                        st.session_state.last_fig = fig
                     elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
                         pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
                         pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
@@ -623,35 +626,33 @@ def mostrar_comparacion_entre_periodos():
                                       range_y=range_y, text='% AD + A')
                         fig.update_traces(textposition='top center')
                         st.plotly_chart(fig, use_container_width=True)
-         
-                        # Guardamos la última fig (la del gráfico seleccionado)
                         st.session_state.last_fig = fig
-       
-                    # Botón de descarga PDF (fuera del bucle, al final de la sección)
-                    if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
-                        # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
-                        # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
-                        area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
-       
-                        periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
-                        periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
-                        nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-       
-                        pdf_data = generar_pdf_comparacion(
-                            st.session_state.last_fig,
-                            area_limpia,
-                            info1,
-                            info2,
-                            general_data
-                        )
-       
-                        st.download_button(
-                            label="⬇️ Descargar comparación en PDF",
-                            data=pdf_data,
-                            file_name=nombre_archivo,
-                            mime="application/pdf",
-                            key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
-                        )"
+
+            # Botón de descarga PDF (fuera del bucle, al final de la sección)
+            if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
+                # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
+                # Si 'hoja' no está disponible aquí, usa la variable que tenga el nombre del área (ej: selected_sheet_name)
+                area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
+
+                periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
+                periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
+                nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
+
+                pdf_data = generar_pdf_comparacion(
+                    st.session_state.last_fig,
+                    area_limpia,
+                    info1,
+                    info2,
+                    general_data
+                )
+
+                st.download_button(
+                    label="⬇️ Descargar comparación en PDF",
+                    data=pdf_data,
+                    file_name=nombre_archivo,
+                    mime="application/pdf",
+                    key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
+                )
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
