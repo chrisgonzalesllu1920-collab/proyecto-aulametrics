@@ -627,6 +627,51 @@ def mostrar_comparacion_entre_periodos():
                         fig.update_traces(textposition='top center')
                         st.plotly_chart(fig, use_container_width=True)
                         st.session_state.last_fig = fig  # Guardamos fig aquí
+
+                        # Botones de descarga para esta competencia
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if 'fig' in locals():
+                                png_bytes = fig.to_image(format="png", width=800, height=600)
+                                st.download_button(
+                                    label="⬇️ Gráfico como PNG",
+                                    data=png_bytes,
+                                    file_name=f"Grafico_{nombre_limpio.replace(' ', '_')}_{tipo_grafico.split()[0]}.png",
+                                    mime="image/png",
+                                    key=f"png_{competencia_original}_{int(time.time())}"
+                                )
+    
+                        with col2:
+                            # Exportar la tabla comparativa a Excel (reutiliza tu función de export Excel)
+                            excel_data = io.BytesIO()
+                            with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
+                                tabla.to_excel(writer, sheet_name="Comparativa", index=False)
+                                workbook = writer.book
+                                worksheet = writer.sheets["Comparativa"]
+                                # Formato simple (opcional: colores condicionales como en tu export actual)
+                                format_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
+                                format_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
+                                # Aplica formato a la columna Δ % (ajusta según tu estilo)
+                                worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+                                    'type': 'cell',
+                                    'criteria': '>',
+                                    'value': 0,
+                                    'format': format_green
+                                })
+                                worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+                                    'type': 'cell',
+                                    'criteria': '<',
+                                    'value': 0,
+                                    'format': format_red
+                                })
+                            excel_data.seek(0)
+                            st.download_button(
+                                label="⬇️ Tabla como Excel",
+                                data=excel_data,
+                                file_name=f"Tabla_Comparativa_{nombre_limpio.replace(' ', '_')}.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                key=f"excel_{competencia_original}_{int(time.time())}"
+                            )
             
             # Botón de descarga PDF (fuera del bucle, al final de la sección)
             if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
