@@ -17,6 +17,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from PIL import Image as PILImage
 import plotly.io as pio
+import matplotlib.pyplot as plt
 
 # --- CONFIGURACIÓN DE ESTÉTICA POWER BI ---
 PBI_BLUE = "#113770"
@@ -631,16 +632,21 @@ def mostrar_comparacion_entre_periodos():
                     col1, col2 = st.columns(2)
                     with col1:
                         try:
-                            png_bytes = fig.to_image(format="png", width=800, height=600)
+                            # Convertir Plotly a imagen usando matplotlib (sin Kaleido)
+                            import matplotlib.pyplot as plt
+                            fig_mat = fig.to_mpl()  # Convertir a matplotlib
+                            buf = io.BytesIO()
+                            fig_mat.savefig(buf, format="png", dpi=300, bbox_inches='tight')
+                            buf.seek(0)
                             st.download_button(
                                 label="⬇️ Gráfico como PNG",
-                                data=png_bytes,
+                                data=buf,
                                 file_name=f"Grafico_{nombre_limpio.replace(' ', '_')}_{tipo_grafico.split()[0]}.png",
                                 mime="image/png",
                                 key=f"png_{competencia_original}_{int(time.time())}"
                             )
                         except Exception as e:
-                            st.warning(f"No se pudo generar la imagen del gráfico: {str(e)}. Intenta con otro tipo de visualización.")
+                            st.warning(f"No se pudo generar la imagen: {str(e)}. Puedes hacer captura manual del gráfico.")
 
                     with col2:
                         excel_data = io.BytesIO()
