@@ -645,35 +645,38 @@ def mostrar_comparacion_entre_periodos():
                     with col2:
                         excel_data = io.BytesIO()
                         with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
-                            # Exportar la tabla
-                            tabla.to_excel(writer, sheet_name="Comparativa", index=False, startrow=0)
+                            # Exportar SOLO las filas con datos (elimina filas vacías)
+                            tabla_con_datos = tabla.dropna(how='all')  # Elimina filas completamente vacías
+                            tabla_con_datos.to_excel(writer, sheet_name="Comparativa", index=False, startrow=0)
 
-                            # Accedemos al workbook y worksheet
                             workbook = writer.book
                             worksheet = writer.sheets["Comparativa"]
 
-                            # Formatos personalizados
+                            # Formato para encabezados (fila 0)
                             header_format = workbook.add_format({
                                 'bold': True,
-                                'bg_color': '#D3D3D3',  # Gris claro para encabezados
+                                'bg_color': '#D3D3D3',  # Gris claro
                                 'border': 1,
                                 'align': 'center',
                                 'valign': 'vcenter',
                                 'text_wrap': True
                             })
 
-                            periodo1_format = workbook.add_format({
-                                'bg_color': '#E6F3FF',  # Azul muy claro para Primer Bimestre
+                            # Formato para columnas de Primer Bimestre (azul claro)
+                            primer_format = workbook.add_format({
+                                'bg_color': '#E6F3FF',  # Azul muy claro
                                 'border': 1,
                                 'align': 'center'
                             })
 
-                            periodo2_format = workbook.add_format({
-                                'bg_color': '#FFE6E6',  # Rojo muy claro para Cuarto Bimestre
+                            # Formato para columnas de Cuarto Bimestre (rojo claro)
+                            cuarto_format = workbook.add_format({
+                                'bg_color': '#FFE6E6',  # Rojo muy claro
                                 'border': 1,
                                 'align': 'center'
                             })
 
+                            # Formato para Δ % (negrita)
                             delta_format = workbook.add_format({
                                 'bold': True,
                                 'border': 1,
@@ -681,38 +684,41 @@ def mostrar_comparacion_entre_periodos():
                             })
 
                             # Ajuste automático de ancho de columnas
-                            for idx, col in enumerate(tabla.columns):
-                                # Ancho máximo entre el encabezado y los datos
+                            for idx, col in enumerate(tabla_con_datos.columns):
+                                # Longitud máxima entre encabezado y datos
                                 max_len = max(
                                     len(str(col)),  # Longitud del encabezado
-                                    tabla[col].astype(str).map(len).max()  # Longitud máxima de los datos
+                                    tabla_con_datos[col].astype(str).map(len).max()  # Longitud máxima de datos
                                 )
-                                worksheet.set_column(idx, idx, max_len + 2)  # +2 para margen
+                                worksheet.set_column(idx, idx, max_len + 4)  # +4 para margen
 
-                            # Aplicar formato a encabezados (fila 1)
-                            for col_num, value in enumerate(tabla.columns.values):
+                            # Aplicar formato a encabezados (fila 1 en Excel, índice 0)
+                            for col_num, value in enumerate(tabla_con_datos.columns.values):
                                 worksheet.write(0, col_num, value, header_format)
 
-                            # Aplicar formatos a columnas de períodos (ej: columnas C, D, E, F)
-                            # Ajusta los índices según tu tabla (C=2, D=3, E=4, F=5)
-                            worksheet.set_column('C:C', None, periodo1_format)
-                            worksheet.set_column('D:D', None, periodo1_format)
-                            worksheet.set_column('E:E', None, periodo2_format)
-                            worksheet.set_column('F:F', None, periodo2_format)
+                            # Aplicar formatos diferenciados por bimestre
+                            # Ajusta los índices según tu tabla (ej: C=2, D=3 para Primer; E=4, F=5 para Cuarto)
+                            worksheet.set_column('C:C', None, primer_format)
+                            worksheet.set_column('D:D', None, primer_format)
+                            worksheet.set_column('E:E', None, cuarto_format)
+                            worksheet.set_column('F:F', None, cuarto_format)
 
                             # Formato condicional para Δ % (columna G, índice 6)
-                            worksheet.conditional_format('G2:G{}'.format(len(tabla)+1), {
+                            worksheet.conditional_format('G2:G{}'.format(len(tabla_con_datos)+1), {
                                 'type': 'cell',
                                 'criteria': '>',
                                 'value': 0,
                                 'format': workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
                             })
-                            worksheet.conditional_format('G2:G{}'.format(len(tabla)+1), {
+                            worksheet.conditional_format('G2:G{}'.format(len(tabla_con_datos)+1), {
                                 'type': 'cell',
                                 'criteria': '<',
                                 'value': 0,
                                 'format': workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
                             })
+
+                            # Formato para Tendencia (columna H, índice 7) - opcional
+                            worksheet.set_column('H:H', None, workbook.add_format({'bold': True}))
 
                         excel_data.seek(0)
                         st.download_button(
