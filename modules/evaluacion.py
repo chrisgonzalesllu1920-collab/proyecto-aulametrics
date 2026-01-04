@@ -643,7 +643,7 @@ def mostrar_comparacion_entre_periodos():
                     area_limpia,
                     info1,
                     info2,
-                    general_data
+                    st.session_state.general_data  # ← Usa la versión guardada en session_state
                 )
 
                 st.download_button(
@@ -783,6 +783,9 @@ def configurar_uploader():
             hojas_validas = [s for s in excel_file.sheet_names if s not in ["Generalidades", "Parametros"]]
             st.session_state.all_dataframes = {sheet: excel_file.parse(sheet) for sheet in hojas_validas}
             st.session_state.info_areas = analysis_core.analyze_data(excel_file, hojas_validas)
+            # Extraemos general_data una sola vez (del primer sheet o del principal)
+            primera_hoja = next(iter(st.session_state.info_areas))
+            st.session_state.general_data = st.session_state.info_areas[primera_hoja]['generalidades']
             st.session_state.df_cargado = True
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
