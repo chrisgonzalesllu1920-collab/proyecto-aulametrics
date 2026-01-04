@@ -600,7 +600,7 @@ def mostrar_comparacion_entre_periodos():
                                      color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
                         fig.update_traces(textposition='outside')
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig  # Guardamos fig aquí
+                        st.session_state.last_fig = fig
                     elif tipo_grafico == "Barras apiladas (distribución %)":
                         df_pct = pd.DataFrame({
                             'Nivel': niveles,
@@ -610,7 +610,7 @@ def mostrar_comparacion_entre_periodos():
                         fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
                                      color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig  # Guardamos fig aquí
+                        st.session_state.last_fig = fig
                     elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
                         pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
                         pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
@@ -618,7 +618,6 @@ def mostrar_comparacion_entre_periodos():
                             'Período': [info1['periodo'], info2['periodo']],
                             '% AD + A': [pct_ad_a_1, pct_ad_a_2]
                         })
-                        # Escala dinámica (ya implementada antes)
                         min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
                         max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
                         range_y = [max(0, min_pct), min(100, max_pct)]
@@ -626,52 +625,49 @@ def mostrar_comparacion_entre_periodos():
                                       range_y=range_y, text='% AD + A')
                         fig.update_traces(textposition='top center')
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig  # Guardamos fig aquí
+                        st.session_state.last_fig = fig
 
-                        # Botones de descarga para esta competencia
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if 'fig' in locals():
-                                png_bytes = fig.to_image(format="png", width=800, height=600)
-                                st.download_button(
-                                    label="⬇️ Gráfico como PNG",
-                                    data=png_bytes,
-                                    file_name=f"Grafico_{nombre_limpio.replace(' ', '_')}_{tipo_grafico.split()[0]}.png",
-                                    mime="image/png",
-                                    key=f"png_{competencia_original}_{int(time.time())}"
-                                )
-    
-                        with col2:
-                            # Exportar la tabla comparativa a Excel (reutiliza tu función de export Excel)
-                            excel_data = io.BytesIO()
-                            with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
-                                tabla.to_excel(writer, sheet_name="Comparativa", index=False)
-                                workbook = writer.book
-                                worksheet = writer.sheets["Comparativa"]
-                                # Formato simple (opcional: colores condicionales como en tu export actual)
-                                format_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
-                                format_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
-                                # Aplica formato a la columna Δ % (ajusta según tu estilo)
-                                worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
-                                    'type': 'cell',
-                                    'criteria': '>',
-                                    'value': 0,
-                                    'format': format_green
-                                })
-                                worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
-                                    'type': 'cell',
-                                    'criteria': '<',
-                                    'value': 0,
-                                    'format': format_red
-                                })
-                            excel_data.seek(0)
+                    # Botones de descarga para esta competencia (SIEMPRE, fuera de los if/elif)
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if 'fig' in locals():
+                            png_bytes = fig.to_image(format="png", width=800, height=600)
                             st.download_button(
-                                label="⬇️ Tabla como Excel",
-                                data=excel_data,
-                                file_name=f"Tabla_Comparativa_{nombre_limpio.replace(' ', '_')}.xlsx",
-                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                key=f"excel_{competencia_original}_{int(time.time())}"
+                                label="⬇️ Gráfico como PNG",
+                                data=png_bytes,
+                                file_name=f"Grafico_{nombre_limpio.replace(' ', '_')}_{tipo_grafico.split()[0]}.png",
+                                mime="image/png",
+                                key=f"png_{competencia_original}_{int(time.time())}"
                             )
+
+                    with col2:
+                        excel_data = io.BytesIO()
+                        with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
+                            tabla.to_excel(writer, sheet_name="Comparativa", index=False)
+                            workbook = writer.book
+                            worksheet = writer.sheets["Comparativa"]
+                            format_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
+                            format_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
+                            worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+                                'type': 'cell',
+                                'criteria': '>',
+                                'value': 0,
+                                'format': format_green
+                            })
+                            worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+                                'type': 'cell',
+                                'criteria': '<',
+                                'value': 0,
+                                'format': format_red
+                            })
+                        excel_data.seek(0)
+                        st.download_button(
+                            label="⬇️ Tabla como Excel",
+                            data=excel_data,
+                            file_name=f"Tabla_Comparativa_{nombre_limpio.replace(' ', '_')}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"excel_{competencia_original}_{int(time.time())}"
+                        )
             
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
