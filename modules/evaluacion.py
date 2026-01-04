@@ -631,7 +631,7 @@ def mostrar_comparacion_entre_periodos():
                     # Botones de descarga para esta competencia (SIEMPRE, fuera de los if/elif)
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.info("Para descargar el gráfico como imagen: haz clic en el ícono de cámara 📷 (arriba a la derecha del gráfico)")
+                        st.markdown("**Descarga el gráfico**: Haz clic en el ícono 📷 arriba a la derecha del gráfico.")
 
                     with col2:
                         excel_data = io.BytesIO()
