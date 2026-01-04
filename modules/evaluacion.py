@@ -673,23 +673,6 @@ def mostrar_comparacion_entre_periodos():
                                 key=f"excel_{competencia_original}_{int(time.time())}"
                             )
             
-            # Botón de descarga PDF (fuera del bucle, al final de la sección)
-            if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
-                # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
-                area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
-            
-                periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
-                periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
-                nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-         
-                st.download_button(
-                    label="⬇️ Descargar comparación en PDF",
-                    data=pdf_data,
-                    file_name=nombre_archivo,
-                    mime="application/pdf",
-                    key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
-                )
-
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
     st.markdown(f"<h2 class='pbi-header'>Perfil Integral del Estudiante</h2>", unsafe_allow_html=True)
