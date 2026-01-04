@@ -638,12 +638,14 @@ def mostrar_comparacion_entre_periodos():
                 periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
                 nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
 
+                general_data = st.session_state.get('general_data', {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'})  # Valores por defecto si no existe
+                
                 pdf_data = generar_pdf_comparacion(
                     st.session_state.last_fig,
                     area_limpia,
                     info1,
                     info2,
-                    st.session_state.general_data  # ← Usa la versión guardada en session_state
+                    general_data
                 )
 
                 st.download_button(
