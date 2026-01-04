@@ -13,3 +13,4 @@ python-pptx
 reportlab
 Pillow
 requests
+kaleido
