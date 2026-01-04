@@ -645,73 +645,70 @@ def mostrar_comparacion_entre_periodos():
                     with col2:
                         excel_data = io.BytesIO()
                         with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
-                            # Exportar SOLO las filas con datos (primeras 5 filas con niveles)
-                            tabla_con_datos = tabla.head(4)  # Solo las 4 filas de niveles (AD, A, B, C)
+                            # Solo las 4 filas con datos (AD, A, B, C)
+                            tabla_con_datos = tabla.head(4)
                             tabla_con_datos.to_excel(writer, sheet_name="Comparativa", index=False, startrow=0)
 
                             workbook = writer.book
                             worksheet = writer.sheets["Comparativa"]
 
-                            # Formato para encabezados (fila 0)
+                            # Formato encabezados
                             header_format = workbook.add_format({
                                 'bold': True,
-                                'bg_color': '#D3D3D3',  # Gris claro
+                                'bg_color': '#D3D3D3',
                                 'border': 1,
                                 'align': 'center',
                                 'valign': 'vcenter',
                                 'text_wrap': True
                             })
 
-                            # Formato para Primer Bimestre (Conteos y %): azul claro
+                            # Colores para Primer Bimestre (Tercer Bimestre en tu ejemplo)
                             primer_format = workbook.add_format({
-                                'bg_color': '#E6F3FF',  # Azul muy claro
+                                'bg_color': '#E6F3FF',  # Azul claro
                                 'border': 1,
                                 'align': 'center'
                             })
 
-                            # Formato para Cuarto Bimestre (Conteos y %): rojo claro
-                            cuarto_format = workbook.add_format({
-                                'bg_color': '#FFE6E6',  # Rojo muy claro
+                            # Colores para Segundo Bimestre (Cuarto Bimestre)
+                            segundo_format = workbook.add_format({
+                                'bg_color': '#FFE6E6',  # Rojo claro
                                 'border': 1,
                                 'align': 'center'
                             })
 
-                            # Ajuste automático de ancho de columnas
+                            # Ancho automático de columnas
                             for idx, col in enumerate(tabla_con_datos.columns):
-                                max_len = max(
-                                    len(str(col)),  # Longitud del encabezado
-                                    tabla_con_datos[col].astype(str).map(len).max()  # Longitud máxima de datos
-                                )
-                                worksheet.set_column(idx, idx, max_len + 4)  # +4 para margen
+                                max_len = max(len(str(col)), tabla_con_datos[col].astype(str).map(len).max())
+                                worksheet.set_column(idx, idx, max_len + 4)
 
-                            # Aplicar formato a encabezados
+                            # Aplicar encabezados
                             for col_num, value in enumerate(tabla_con_datos.columns.values):
                                 worksheet.write(0, col_num, value, header_format)
 
-                            # Colorear columnas de Primer Bimestre (Conteos y %: columnas C y D)
-                            worksheet.set_column('C:C', None, primer_format)  # Conteos Primer
-                            worksheet.set_column('D:D', None, primer_format)  # % Primer
+                            # Colorear columnas correctas
+                            worksheet.set_column('B:B', None, primer_format)  # Conteos Primer
+                            worksheet.set_column('C:C', None, primer_format)  # % Primer
+                            worksheet.set_column('D:D', None, segundo_format) # Conteos Segundo
+                            worksheet.set_column('E:E', None, segundo_format) # % Segundo
 
-                            # Colorear columnas de Cuarto Bimestre (Conteos y %: columnas E y F)
-                            worksheet.set_column('E:E', None, cuarto_format)  # Conteos Cuarto
-                            worksheet.set_column('F:F', None, cuarto_format)  # % Cuarto
-
-                            # Formato condicional para Δ % (columna G)
-                            worksheet.conditional_format('G2:G{}'.format(len(tabla_con_datos)+1), {
+                            # Formato condicional en Δ % (columna F)
+                            worksheet.conditional_format('F2:F5', {
                                 'type': 'cell',
                                 'criteria': '>',
                                 'value': 0,
-                                'format': workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
+                                'format': workbook.add_format({'bg_color': '#C6EFCE'})
                             })
-                            worksheet.conditional_format('G2:G{}'.format(len(tabla_con_datos)+1), {
+                            worksheet.conditional_format('F2:F5', {
                                 'type': 'cell',
                                 'criteria': '<',
                                 'value': 0,
-                                'format': workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
+                                'format': workbook.add_format({'bg_color': '#FFC7CE'})
                             })
 
-                            # Formato para Tendencia (columna H): negrita
-                            worksheet.set_column('H:H', None, workbook.add_format({'bold': True}))
+                            # Limpiar filas vacías (sin bordes desde fila 6)
+                            empty_format = workbook.add_format({'border': 0})
+                            for row in range(5, 50):
+                                worksheet.set_row(row, None, empty_format)
 
                         excel_data.seek(0)
                         st.download_button(
