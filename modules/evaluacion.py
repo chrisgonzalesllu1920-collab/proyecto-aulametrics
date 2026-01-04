@@ -600,7 +600,7 @@ def mostrar_comparacion_entre_periodos():
                                      color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
                         fig.update_traces(textposition='outside')
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig
+                        st.session_state.last_fig = fig  # Guardamos fig aquí
                     elif tipo_grafico == "Barras apiladas (distribución %)":
                         df_pct = pd.DataFrame({
                             'Nivel': niveles,
@@ -610,7 +610,7 @@ def mostrar_comparacion_entre_periodos():
                         fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
                                      color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig
+                        st.session_state.last_fig = fig  # Guardamos fig aquí
                     elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
                         pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
                         pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
@@ -626,16 +626,16 @@ def mostrar_comparacion_entre_periodos():
                                       range_y=range_y, text='% AD + A')
                         fig.update_traces(textposition='top center')
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig
-
+                        st.session_state.last_fig = fig  # Guardamos fig aquí
+            
             # Botón de descarga PDF (fuera del bucle, al final de la sección)
             if 'last_fig' in st.session_state and st.session_state.last_fig is not None:
-                area_limpia = hoja.replace(" ", "-")  # Ajusta si 'hoja' no es la variable correcta
+                # Usamos 'hoja' como nombre del área (es la variable que usas en el loop for hoja in results1)
+                area_limpia = hoja.replace(" ", "-")  # ← Esta línea resuelve el NameError
+            
                 periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
                 periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
                 nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-            
-                general_data = st.session_state.get('general_data', {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'})
             
                 pdf_data = generar_pdf_comparacion(
                     st.session_state.last_fig,
@@ -650,7 +650,7 @@ def mostrar_comparacion_entre_periodos():
                     data=pdf_data,
                     file_name=nombre_archivo,
                     mime="application/pdf",
-                    key=f"btn_pdf_comparacion_{int(time.time())}"
+                    key=f"btn_pdf_comparacion_{int(time.time())}"  # Key única para evitar removeChild
                 )
 
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
