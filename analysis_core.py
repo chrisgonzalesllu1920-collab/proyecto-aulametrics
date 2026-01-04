@@ -174,15 +174,3 @@ def analyze_data(excel_file, sheet_names):
             
 
     return analisis_results
-
-
-
-
-
-
-
-
-
-
-
-
