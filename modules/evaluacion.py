@@ -637,12 +637,13 @@ def mostrar_comparacion_entre_periodos():
                 periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
                 nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
             
+                general_data = st.session_state.get('general_data', {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'})
                 pdf_data = generar_pdf_comparacion(
                     st.session_state.last_fig,
                     area_limpia,
                     info1,
                     info2,
-                    st.session_state.general_data
+                    general_data
                 )
             
                 st.download_button(
@@ -782,11 +783,15 @@ def configurar_uploader():
             hojas_validas = [s for s in excel_file.sheet_names if s not in ["Generalidades", "Parametros"]]
             st.session_state.all_dataframes = {sheet: excel_file.parse(sheet) for sheet in hojas_validas}
             st.session_state.info_areas = analysis_core.analyze_data(excel_file, hojas_validas)
-            # Extraemos general_data una sola vez (del primer sheet o del principal)
-            primera_hoja = next(iter(st.session_state.info_areas))
-            st.session_state.general_data = st.session_state.info_areas[primera_hoja]['generalidades']
             st.session_state.df_cargado = True
             st.rerun()
+
+        # Guardado de general_data (DESPUÉS del rerun y fuera del spinner)
+        if 'info_areas' in st.session_state and st.session_state.info_areas:
+            primera_hoja = next(iter(st.session_state.info_areas))
+            st.session_state.general_data = st.session_state.info_areas[primera_hoja]['generalidades']
+        else:
+            st.session_state.general_data = {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'}
     st.markdown("</div>", unsafe_allow_html=True)
 
 def inject_pbi_css():
