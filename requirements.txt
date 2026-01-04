@@ -14,3 +14,4 @@ reportlab
 Pillow
 requests
 kaleido
+matplotlib
