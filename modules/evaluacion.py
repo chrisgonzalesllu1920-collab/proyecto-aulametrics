@@ -625,12 +625,12 @@ def mostrar_comparacion_entre_periodos():
                                       range_y=range_y, text='% AD + A')
                         fig.update_traces(textposition='top center')
                         st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_fig = fig
+                        st.session_state.last_fig = fig  # Guardamos fig aquí
 
                     # Botones de descarga para esta competencia (SIEMPRE, fuera de los if/elif)
                     col1, col2 = st.columns(2)
                     with col1:
-                        if 'fig' in locals():
+                        try:
                             png_bytes = fig.to_image(format="png", width=800, height=600)
                             st.download_button(
                                 label="⬇️ Gráfico como PNG",
@@ -639,6 +639,8 @@ def mostrar_comparacion_entre_periodos():
                                 mime="image/png",
                                 key=f"png_{competencia_original}_{int(time.time())}"
                             )
+                        except Exception as e:
+                            st.warning(f"No se pudo generar la imagen del gráfico: {str(e)}. Intenta con otro tipo de visualización.")
 
                     with col2:
                         excel_data = io.BytesIO()
