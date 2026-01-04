@@ -681,16 +681,7 @@ def mostrar_comparacion_entre_periodos():
                 periodo1 = info1['periodo'].replace(" ", "_").replace("/", "-")
                 periodo2 = info2['periodo'].replace(" ", "_").replace("/", "-")
                 nombre_archivo = f"Comparación_{periodo1}_vs_{periodo2}_{area_limpia}.pdf"
-            
-                general_data = st.session_state.get('general_data', {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'})
-                pdf_data = generar_pdf_comparacion(
-                    st.session_state.last_fig,
-                    area_limpia,
-                    info1,
-                    info2,
-                    general_data
-                )
-            
+         
                 st.download_button(
                     label="⬇️ Descargar comparación en PDF",
                     data=pdf_data,
@@ -912,36 +903,3 @@ def inject_pbi_css():
         </style>
     """, unsafe_allow_html=True)
 
-def generar_pdf_comparacion(fig, area_name, info1, info2, general_data):
-    """
-    Genera PDF con el gráfico seleccionado y contexto completo.
-    """
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
-    elements = []
-
-    # Título
-    title = f"Comparación entre {info1['periodo']} y {info2['periodo']}"
-    elements.append(Paragraph(title, styles['Title']))
-    elements.append(Spacer(1, 12))
-
-    # Contexto
-    contexto = f"Área: {area_name} | Nivel: {general_data.get('nivel', 'Descon.')} | Grado: {general_data.get('grado', 'Descon.')} | Sección: {general_data.get('seccion', 'Descon.')}"
-    elements.append(Paragraph(contexto, styles['Normal']))
-    elements.append(Spacer(1, 24))
-
-    # Convertir gráfico Plotly a imagen
-    img_bytes = pio.to_image(fig, format="png", width=800, height=600)
-    img = PILImage.open(io.BytesIO(img_bytes))
-    elements.append(Image(img, width=500, height=375))
-    elements.append(Spacer(1, 36))
-
-    # Pie de página
-    fecha = date.today().strftime("%d/%m/%Y")
-    pie = f"Generado por AulaMetrics – {fecha}"
-    elements.append(Paragraph(pie, styles['Italic']))
-
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer.getvalue()
