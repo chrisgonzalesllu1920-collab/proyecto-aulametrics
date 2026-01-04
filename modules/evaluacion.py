@@ -631,22 +631,7 @@ def mostrar_comparacion_entre_periodos():
                     # Botones de descarga para esta competencia (SIEMPRE, fuera de los if/elif)
                     col1, col2 = st.columns(2)
                     with col1:
-                        try:
-                            # Convertir Plotly a imagen usando matplotlib (sin Kaleido)
-                            import matplotlib.pyplot as plt
-                            fig_mat = fig.to_mpl()  # Convertir a matplotlib
-                            buf = io.BytesIO()
-                            fig_mat.savefig(buf, format="png", dpi=300, bbox_inches='tight')
-                            buf.seek(0)
-                            st.download_button(
-                                label="⬇️ Gráfico como PNG",
-                                data=buf,
-                                file_name=f"Grafico_{nombre_limpio.replace(' ', '_')}_{tipo_grafico.split()[0]}.png",
-                                mime="image/png",
-                                key=f"png_{competencia_original}_{int(time.time())}"
-                            )
-                        except Exception as e:
-                            st.warning(f"No se pudo generar la imagen: {str(e)}. Puedes hacer captura manual del gráfico.")
+                        st.info("Puedes hacer captura manual del gráfico (Impr Pant o herramienta de recorte).")
 
                     with col2:
                         excel_data = io.BytesIO()
