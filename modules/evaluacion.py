@@ -645,23 +645,75 @@ def mostrar_comparacion_entre_periodos():
                     with col2:
                         excel_data = io.BytesIO()
                         with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
-                            tabla.to_excel(writer, sheet_name="Comparativa", index=False)
+                            # Exportar la tabla
+                            tabla.to_excel(writer, sheet_name="Comparativa", index=False, startrow=0)
+
+                            # Accedemos al workbook y worksheet
                             workbook = writer.book
                             worksheet = writer.sheets["Comparativa"]
-                            format_green = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
-                            format_red = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
-                            worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+
+                            # Formatos personalizados
+                            header_format = workbook.add_format({
+                                'bold': True,
+                                'bg_color': '#D3D3D3',  # Gris claro para encabezados
+                                'border': 1,
+                                'align': 'center',
+                                'valign': 'vcenter',
+                                'text_wrap': True
+                            })
+
+                            periodo1_format = workbook.add_format({
+                                'bg_color': '#E6F3FF',  # Azul muy claro para Primer Bimestre
+                                'border': 1,
+                                'align': 'center'
+                            })
+
+                            periodo2_format = workbook.add_format({
+                                'bg_color': '#FFE6E6',  # Rojo muy claro para Cuarto Bimestre
+                                'border': 1,
+                                'align': 'center'
+                            })
+
+                            delta_format = workbook.add_format({
+                                'bold': True,
+                                'border': 1,
+                                'align': 'center'
+                            })
+
+                            # Ajuste automático de ancho de columnas
+                            for idx, col in enumerate(tabla.columns):
+                                # Ancho máximo entre el encabezado y los datos
+                                max_len = max(
+                                    len(str(col)),  # Longitud del encabezado
+                                    tabla[col].astype(str).map(len).max()  # Longitud máxima de los datos
+                                )
+                                worksheet.set_column(idx, idx, max_len + 2)  # +2 para margen
+
+                            # Aplicar formato a encabezados (fila 1)
+                            for col_num, value in enumerate(tabla.columns.values):
+                                worksheet.write(0, col_num, value, header_format)
+
+                            # Aplicar formatos a columnas de períodos (ej: columnas C, D, E, F)
+                            # Ajusta los índices según tu tabla (C=2, D=3, E=4, F=5)
+                            worksheet.set_column('C:C', None, periodo1_format)
+                            worksheet.set_column('D:D', None, periodo1_format)
+                            worksheet.set_column('E:E', None, periodo2_format)
+                            worksheet.set_column('F:F', None, periodo2_format)
+
+                            # Formato condicional para Δ % (columna G, índice 6)
+                            worksheet.conditional_format('G2:G{}'.format(len(tabla)+1), {
                                 'type': 'cell',
                                 'criteria': '>',
                                 'value': 0,
-                                'format': format_green
+                                'format': workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
                             })
-                            worksheet.conditional_format('F2:F{}'.format(len(tabla)+1), {
+                            worksheet.conditional_format('G2:G{}'.format(len(tabla)+1), {
                                 'type': 'cell',
                                 'criteria': '<',
                                 'value': 0,
-                                'format': format_red
+                                'format': workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
                             })
+
                         excel_data.seek(0)
                         st.download_button(
                             label="⬇️ Tabla como Excel",
