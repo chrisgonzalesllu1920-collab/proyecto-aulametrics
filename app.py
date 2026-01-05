@@ -458,7 +458,7 @@ def login_page():
     <style>
         /* 1. FONDO DEGRADADO */
         [data-testid="stAppViewContainer"] {
-            background: #1e293b;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             background-size: cover;
             background-attachment: fixed;
         }
@@ -607,16 +607,7 @@ def login_page():
                 padding-top: 1.5rem !important;
             }
         }
-        /* PATRÓN SUTIL DE PUNTOS EDUCATIVOS */
-        [data-testid="stAppViewContainer"]::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23445566' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='2'/%3E%3C/g%3E%3C/svg%3E");
-            background-repeat: repeat;
-            pointer-events: none;
-            z-index: 1;
-        }        
+      
     </style>
     """, unsafe_allow_html=True)
 
@@ -1209,6 +1200,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
