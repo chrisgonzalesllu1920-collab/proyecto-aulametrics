@@ -458,7 +458,7 @@ def login_page():
     <style>
         /* 1. FONDO DEGRADADO */
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #FF5E9E 0%, #A0E85A 100%);
+            background: linear-gradient(135deg, #FF5E9E 0%, #FF5E9E 30%, #A0E85A 100%);
             background-size: cover;
             background-attachment: fixed;
         }
@@ -1200,6 +1200,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
