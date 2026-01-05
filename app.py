@@ -594,20 +594,34 @@ def login_page():
         }
 
         @media (max-width: 480px) {
-            /* En celulares muy pequeños */
             img[src*="logotipo-aulametrics"] {
                 width: 220px !important;
             }
-
             h2 {
                 font-size: 1.8rem !important;
             }
-
             .block-container {
                 padding-top: 1.5rem !important;
             }
         }
-      
+
+        /* ONDAS SUTILES EDUCATIVAS */
+        [data-testid="stAppViewContainer"]::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 Q 25 20, 50 50 T 100 50 L 100 100 L 0 100 Z' fill='%233b82f6' opacity='0.1'/%3E%3Cpath d='M0 70 Q 25 40, 50 70 T 100 70 L 100 100 L 0 100 Z' fill='%231e3a8a' opacity='0.15'/%3E%3C/svg%3E") repeat-x bottom;
+            background-size: 200px 200px;
+            pointer-events: none;
+            z-index: 1;
+            animation: ondas 30s linear infinite;
+        }
+
+        @keyframes ondas {
+            0% { background-position: 0 100%; }
+            100% { background-position: 200px 100%; }
+        }
+     
     </style>
     """, unsafe_allow_html=True)
 
@@ -1200,6 +1214,7 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
 
 
