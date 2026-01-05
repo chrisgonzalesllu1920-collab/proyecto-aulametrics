@@ -10,5 +10,8 @@ google-genai
 supabase
 streamlit-lottie
 python-pptx
+reportlab
+Pillow
 requests
-
+kaleido
+matplotlib

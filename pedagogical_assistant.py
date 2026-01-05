@@ -57,21 +57,24 @@ def generate_ai_suggestions(critical_comp_info):
     analisis = critical_comp_info['analisis'] 
     
     prompt = f"""
-    Quiero que elabores un **cuadro claro y completo** con acciones, indicadores y evidencias de mejora, dirigido a un docente de **{area}** de **{grado}** de {nivel}.
+    Elabora un plan de acción pedagógico completo y práctico para mejorar la competencia "{competencia}" en el área de "{area}" para estudiantes de {grado} de {nivel}.
 
-    El enfoque debe estar orientado a mejorar el desempeño de los estudiantes que presentan dificultades, basado en el siguiente diagnóstico:
-    **Diagnóstico:** {analisis}
-    **Competencia a mejorar:** "{competencia}"
+    Basado en este diagnóstico: {analisis}
 
-    El cuadro debe contener **5 acciones concretas** que el docente puede implementar. Por cada acción, debes incluir:
-    1.  **Indicadores de mejora:** (Cómo se evidencia el progreso del estudiante o de la práctica docente).
-    2.  **Evidencias esperadas:** (Documentos, actitudes, producciones u observaciones visibles que demuestran ese progreso).
+    **REGLAS OBLIGATORIAS DE FORMATO (no las ignores, o no se aceptará la respuesta):**
+    1. Responde **exclusivamente** con una tabla Markdown. NO pongas texto antes, después, introducciones o conclusiones.
+    2. Usa **exactamente** estas 3 columnas:  
+       | Acción Concreta | Indicadores de Mejora | Evidencias Esperadas |
+       |-----------------|------------------------|----------------------|
+    3. Genera **exactamente 5 acciones concretas** (no más, no menos). Cada acción debe ser realista, fácil de implementar por un docente y enfocada en estudiantes con dificultades (niveles B y C).
+    4. Usa texto claro y directo dentro de las celdas. Si necesitas destacar algo, usa cursivas (*texto*) o mayúsculas, pero NO uses **negritas** (asteriscos dobles).
+    5. Añade un diseño visual:  
+       - Encabezados con fondo azul oscuro y texto blanco (usa CSS: <thead style="background-color: #113770; color: white;">).
+       - Bordes visibles y gruesos en la tabla.
+       - Alterna filas con fondo gris claro (#f8f9fa) para mejor legibilidad (usa <tr style="background-color: #f8f9fa;"> en filas pares).
+    6. La tabla debe verse profesional y fácil de copiar.
 
-    **REGLAS DE FORMATO ESTRICTAS:**
-    1.  Formatea la respuesta como una **tabla Markdown** (usando |, ---, etc.).
-    2.  Las columnas deben ser: **Acción Concreta**, **Indicadores de Mejora**, y **Evidencias Esperadas**.
-    3.  **NO** incluyas **ningún** código HTML, CSS, o etiquetas <div>, <span> o <style>.
-    4.  No añadas introducciones o conclusiones fuera de la tabla. La respuesta debe ser *solo* la tabla.
+    Comienza directamente con la tabla <table> en Markdown, sin nada más.
     """
     
     try:
@@ -1050,6 +1053,9 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
+
+
+
 
 
 

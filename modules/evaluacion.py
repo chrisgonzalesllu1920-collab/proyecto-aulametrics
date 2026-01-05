@@ -9,6 +9,15 @@ import pedagogical_assistant
 import colorsys  # CAMBIO: Import para manejar colores
 import re
 import time
+from datetime import date
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from PIL import Image as PILImage
+import plotly.io as pio
+import matplotlib.pyplot as plt
 
 # --- CONFIGURACIÓN DE ESTÉTICA POWER BI ---
 PBI_BLUE = "#113770"
@@ -87,16 +96,19 @@ def mostrar_analisis_general(results):
         with cols[i]:
             st.markdown(f"● {area_name}")
     
-    # Contexto del grupo (del primer sheet válido)
-    first_sheet_key = next(iter(valid_areas), None)
+    # Contexto del grupo (incluyendo Sección)
+    first_sheet_key = next(iter(results), None)
     general_data = {}
-    if first_sheet_key and 'generalidades' in valid_areas[first_sheet_key]:
-        general_data = valid_areas[first_sheet_key]['generalidades']
+    if first_sheet_key and 'generalidades' in results[first_sheet_key]:
+        general_data = results[first_sheet_key]['generalidades']
+        nivel = general_data.get('nivel', 'Descon.')
+        grado = general_data.get('grado', 'Descon.')
+        seccion = general_data.get('seccion', 'Descon.')  # ← Nueva línea
         st.markdown(f"""
             <div class='pbi-card' style='padding: 10px 20px; border-left: 5px solid {PBI_LIGHT_BLUE}; margin-bottom: 25px;'>
                 <span style='color: #666; font-size: 0.8rem;'>CONTEXTO DEL GRUPO</span><br>
                 <span style='font-size: 1.1rem; font-weight: bold; color: {PBI_BLUE};'>
-                    Nivel {general_data.get('nivel', 'Descon.')} | Grado {general_data.get('grado', 'Descon.')}
+                    Nivel {nivel} | Grado {grado} | Sección {seccion}
                 </span>
             </div>
         """, unsafe_allow_html=True)
@@ -147,6 +159,7 @@ def mostrar_analisis_general(results):
             st.download_button(label=f"⬇️ Exportar Datos a Excel", data=excel_data,
                               file_name=f'Reporte_PBI_{sheet_name}.xlsx', key=f'btn_dl_{i}')
             st.markdown("</div>", unsafe_allow_html=True)
+            
             # --- GRÁFICOS INTERACTIVOS ---
             st.markdown(f"<div class='pbi-card'><b>2. Visualización Dinámica: {st.session_state.chart_type}</b>", unsafe_allow_html=True)
             competencia_nombres_limpios = df_table.index.tolist()
@@ -212,7 +225,7 @@ def mostrar_analisis_general(results):
                 )
                 st.plotly_chart(fig, use_container_width=True, key=f"plotly_v2_{sheet_name}_{selected_comp}_{i}")
             st.markdown("</div>", unsafe_allow_html=True)
-            if st.button(f"🎯 Generar Insights IA - {sheet_name}", type="primary", use_container_width=True, key=f"btn_ai_{i}"):
+            if st.button(f"💡 Ideas de mejora IA para {sheet_name}", type="primary", use_container_width=True, key=f"btn_ai_{i}"):
                 with st.expander("Panel de Sugerencias Pedagógicas (Generado por IA)", expanded=True):
                     ai_text = pedagogical_assistant.generate_suggestions(results, sheet_name, selected_comp)
                     st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid {PBI_BLUE};'>{ai_text}</div>", unsafe_allow_html=True)
@@ -461,17 +474,13 @@ def mostrar_comparacion_entre_periodos():
     if 'results_periodo1' in st.session_state and 'results_periodo2' in st.session_state:
         results1 = st.session_state['results_periodo1']
         results2 = st.session_state['results_periodo2']
-
         st.subheader("Seleccione qué comparar")
-
         # Obtenemos las competencias disponibles desde la primera hoja válida
         competencias_disponibles = []
         if results1:
             primera_hoja = next(iter(results1))
             competencias_disponibles = list(results1[primera_hoja].get('competencias', {}).keys())
-
         todas_competencias = st.checkbox("Comparar TODAS las competencias", value=True, key="todas_competencias")
-
         competencias_sel = []
         if not todas_competencias:
             competencias_sel = st.multiselect(
@@ -480,14 +489,11 @@ def mostrar_comparacion_entre_periodos():
                 default=competencias_disponibles[:3] if competencias_disponibles else [],
                 key="competencias_comparar"
             )
-
         competencias_a_mostrar = competencias_disponibles if todas_competencias else competencias_sel
-
         if not competencias_a_mostrar:
             st.info("Seleccione al menos una competencia para comparar.")
         else:
             st.subheader("Visualizaciones comparativas")
-
             tipo_grafico = st.radio(
                 "Tipo de visualización",
                 options=[
@@ -506,144 +512,204 @@ def mostrar_comparacion_entre_periodos():
                     if comp_data and 'nombre_limpio' in comp_data:
                         nombre_limpio = comp_data['nombre_limpio']
                         break
-
                 with st.expander(f"Competencia: {nombre_limpio}", expanded=True):
-                    # ... (el resto del código de métricas, tabla y gráficos que ya tenías va aquí)
-                    # Puedes pegar tu código anterior de métricas, deltas, tabla y gráficos
-                            
-                            # Buscamos la competencia en alguna de las hojas
-                            data1 = None
-                            for hoja in results1:
-                                comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
-                                if comp_data:
-                                    data1 = comp_data
-                                    break
-
-                            data2 = None
-                            for hoja in results2:
-                                comp_data = results2[hoja].get('competencias', {}).get(competencia_original)
-                                if comp_data:
-                                    data2 = comp_data
-                                    break
-
-                            if not data1 or not data2:
-                                st.warning("No se encontraron datos completos para esta competencia en uno de los períodos.")
-                                continue
-
-                            # Conteos y porcentajes por nivel
-                            conteos1 = data1.get('conteo_niveles', {})
-                            total1 = data1.get('total_evaluados', 1)
-                            pct1 = {k: (v / total1 * 100) if total1 > 0 else 0 for k, v in conteos1.items()}
-
-                            conteos2 = data2.get('conteo_niveles', {})
-                            total2 = data2.get('total_evaluados', 1)
-                            pct2 = {k: (v / total2 * 100) if total2 > 0 else 0 for k, v in conteos2.items()}
-
-                            niveles = ['AD', 'A', 'B', 'C']
-                            valores1 = [conteos1.get(n, 0) for n in niveles]
-                            valores2 = [conteos2.get(n, 0) for n in niveles]
-
-                            # Deltas por nivel (P2 - P1)
-                            deltas = {n: pct2.get(n, 0) - pct1.get(n, 0) for n in niveles}
-
-                            # Colores condicionales por nivel (lógica pedagógica)
-                            color_rules = {
-                                'AD': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
-                                'A': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
-                                'B': lambda d: "green" if d > 0 else "orange" if d < 0 else "gray",  # ↓ en B puede ser bueno (suben a A)
-                                'C': lambda d: "green" if d < 0 else "red" if d > 0 else "gray"     # ↓ en C SIEMPRE positivo
-                            }
-
-                            # Métricas separadas por nivel (con flecha y color)
-                            cols = st.columns(4)
-                            for i, nivel in enumerate(niveles):
-                                delta = deltas[nivel]
-                                color = color_rules[nivel](delta)
-                                flecha = "↑" if delta > 0 else "↓" if delta < 0 else "→"
-                                with cols[i]:
-                                    st.metric(
-                                        label=f"% {nivel}",
-                                        value=f"{pct2.get(nivel, 0):.1f}%",
-                                        delta=f"{delta:+.1f}%",
-                                        delta_color="normal"  # Usamos color manual abajo
-                                    )
-                                    st.markdown(f"""
-                                    <div style="font-size: 1.5rem; color: {color}; text-align: center; margin-top: -10px;">
-                                        {flecha}
-                                    </div>
-                                    """, unsafe_allow_html=True)
-
-                            # Tabla comparativa mejorada con deltas y colores
-                            st.markdown("**Tabla comparativa detallada**")
-                            tabla = pd.DataFrame({
-                                'Nivel': niveles,
-                                f'Conteos {info1["periodo"]}': valores1,
-                                f'% {info1["periodo"]}': [f"{pct1.get(n, 0):.1f}%" for n in niveles],
-                                f'Conteos {info2["periodo"]}': valores2,
-                                f'% {info2["periodo"]}': [f"{pct2.get(n, 0):.1f}%" for n in niveles],
-                                'Δ %': [f"{d:+.1f}%" for d in deltas.values()],
-                                'Tendencia': [flecha + (" mejora" if d > 0 else " ↓ mejora" if d < 0 and n == 'C' else " ↓ retroceso" if d < 0 else " estable") 
-                                              for d, n in zip(deltas.values(), niveles)]
-                            })
-
-                            # Estilo condicional en la tabla (verde/rojo/naranja)
-                            def style_delta(val):
-                                color = 'green' if float(val.strip('%+')) > 0 else 'red' if float(val.strip('%+')) < 0 else 'gray'
-                                return f'color: {color}; font-weight: bold'
-
-                            st.dataframe(
-                                tabla.style.map(style_delta, subset=['Δ %']),
-                                use_container_width=True
+                    # Buscamos la competencia en alguna de las hojas
+                    data1 = None
+                    for hoja in results1:
+                        comp_data = results1[hoja].get('competencias', {}).get(competencia_original)
+                        if comp_data:
+                            data1 = comp_data
+                            break
+                    data2 = None
+                    for hoja in results2:
+                        comp_data = results2[hoja].get('competencias', {}).get(competencia_original)
+                        if comp_data:
+                            data2 = comp_data
+                            break
+                    if not data1 or not data2:
+                        st.warning("No se encontraron datos completos para esta competencia en uno de los períodos.")
+                        continue
+                    # Conteos y porcentajes por nivel
+                    conteos1 = data1.get('conteo_niveles', {})
+                    total1 = data1.get('total_evaluados', 1)
+                    pct1 = {k: (v / total1 * 100) if total1 > 0 else 0 for k, v in conteos1.items()}
+                    conteos2 = data2.get('conteo_niveles', {})
+                    total2 = data2.get('total_evaluados', 1)
+                    pct2 = {k: (v / total2 * 100) if total2 > 0 else 0 for k, v in conteos2.items()}
+                    niveles = ['AD', 'A', 'B', 'C']
+                    valores1 = [conteos1.get(n, 0) for n in niveles]
+                    valores2 = [conteos2.get(n, 0) for n in niveles]
+                    # Deltas por nivel (P2 - P1)
+                    deltas = {n: pct2.get(n, 0) - pct1.get(n, 0) for n in niveles}
+                    # Colores condicionales por nivel (lógica pedagógica)
+                    color_rules = {
+                        'AD': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
+                        'A': lambda d: "green" if d > 0 else "red" if d < 0 else "gray",
+                        'B': lambda d: "green" if d > 0 else "orange" if d < 0 else "gray", # ↓ en B puede ser bueno (suben a A)
+                        'C': lambda d: "green" if d < 0 else "red" if d > 0 else "gray" # ↓ en C SIEMPRE positivo
+                    }
+                    # Métricas separadas por nivel (con flecha y color)
+                    cols = st.columns(4)
+                    for i, nivel in enumerate(niveles):
+                        delta = deltas[nivel]
+                        color = color_rules[nivel](delta)
+                        flecha = "↑" if delta > 0 else "↓" if delta < 0 else "→"
+                        with cols[i]:
+                            st.metric(
+                                label=f"% {nivel}",
+                                value=f"{pct2.get(nivel, 0):.1f}%",
+                                delta=f"{delta:+.1f}%",
+                                delta_color="normal" # Usamos color manual abajo
                             )
+                            st.markdown(f"""
+                            <div style="font-size: 1.5rem; color: {color}; text-align: center; margin-top: -10px;">
+                                {flecha}
+                            </div>
+                            """, unsafe_allow_html=True)
+                    # Tabla comparativa mejorada con deltas y colores
+                    st.markdown("**Tabla comparativa detallada**")
+                    tabla = pd.DataFrame({
+                        'Nivel': niveles,
+                        f'Conteos {info1["periodo"]}': valores1,
+                        f'% {info1["periodo"]}': [f"{pct1.get(n, 0):.1f}%" for n in niveles],
+                        f'Conteos {info2["periodo"]}': valores2,
+                        f'% {info2["periodo"]}': [f"{pct2.get(n, 0):.1f}%" for n in niveles],
+                        'Δ %': [f"{d:+.1f}%" for d in deltas.values()],
+                        'Tendencia': [flecha + (" mejora" if d > 0 else " ↓ mejora" if d < 0 and n == 'C' else " ↓ retroceso" if d < 0 else " estable")
+                                      for d, n in zip(deltas.values(), niveles)]
+                    })
+                    # Estilo condicional en la tabla (verde/rojo/naranja)
+                    def style_delta(val):
+                        color = 'green' if float(val.strip('%+')) > 0 else 'red' if float(val.strip('%+')) < 0 else 'gray'
+                        return f'color: {color}; font-weight: bold'
+                    st.dataframe(
+                        tabla.style.map(style_delta, subset=['Δ %']),
+                        use_container_width=True
+                    )
+                    # Preparación de datos comunes para los gráficos
+                    niveles = ['AD', 'A', 'B', 'C']
+                    valores1 = [conteos1.get(n, 0) for n in niveles]
+                    valores2 = [conteos2.get(n, 0) for n in niveles]
+                    df_comp = pd.DataFrame({
+                        'Nivel': niveles * 2,
+                        'Estudiantes': valores1 + valores2,
+                        'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
+                    })
+                    if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
+                        fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
+                                     barmode='group', text='Estudiantes',
+                                     color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
+                        fig.update_traces(textposition='outside')
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.session_state.last_fig = fig
+                    elif tipo_grafico == "Barras apiladas (distribución %)":
+                        df_pct = pd.DataFrame({
+                            'Nivel': niveles,
+                            info1['periodo']: [pct1.get(n, 0) for n in niveles],
+                            info2['periodo']: [pct2.get(n, 0) for n in niveles]
+                        }).set_index('Nivel')
+                        fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
+                                     color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.session_state.last_fig = fig
+                    elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
+                        pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
+                        pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
+                        df_line = pd.DataFrame({
+                            'Período': [info1['periodo'], info2['periodo']],
+                            '% AD + A': [pct_ad_a_1, pct_ad_a_2]
+                        })
+                        min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
+                        max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
+                        range_y = [max(0, min_pct), min(100, max_pct)]
+                        fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
+                                      range_y=range_y, text='% AD + A')
+                        fig.update_traces(textposition='top center')
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.session_state.last_fig = fig  # Guardamos fig aquí
 
-                            # Preparación de datos comunes para los gráficos
-                            niveles = ['AD', 'A', 'B', 'C']
-                            valores1 = [conteos1.get(n, 0) for n in niveles]
-                            valores2 = [conteos2.get(n, 0) for n in niveles]
+                    # Botones de descarga para esta competencia (SIEMPRE, fuera de los if/elif)
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**Descarga el gráfico**: Haz clic en el ícono 📷 arriba a la derecha del gráfico.")
 
-                            df_comp = pd.DataFrame({
-                                'Nivel': niveles * 2,
-                                'Estudiantes': valores1 + valores2,
-                                'Período': [info1['periodo']] * 4 + [info2['periodo']] * 4
+                    with col2:
+                        excel_data = io.BytesIO()
+                        with pd.ExcelWriter(excel_data, engine='xlsxwriter') as writer:
+                            # Solo las 4 filas con datos (AD, A, B, C)
+                            tabla_con_datos = tabla.head(4)
+                            tabla_con_datos.to_excel(writer, sheet_name="Comparativa", index=False, startrow=0)
+
+                            workbook = writer.book
+                            worksheet = writer.sheets["Comparativa"]
+
+                            # Formato encabezados
+                            header_format = workbook.add_format({
+                                'bold': True,
+                                'bg_color': '#D3D3D3',
+                                'border': 1,
+                                'align': 'center',
+                                'valign': 'vcenter',
+                                'text_wrap': True
                             })
 
-                            if tipo_grafico == "Barras agrupadas (AD/A/B/C por período)":
-                                fig = px.bar(df_comp, x='Nivel', y='Estudiantes', color='Período',
-                                             barmode='group', text='Estudiantes',
-                                             color_discrete_sequence=[PBI_LIGHT_BLUE, "#FF6B6B"])
-                                fig.update_traces(textposition='outside')
-                                st.plotly_chart(fig, use_container_width=True)
+                            # Colores para Primer Bimestre (Tercer Bimestre en tu ejemplo)
+                            primer_format = workbook.add_format({
+                                'bg_color': '#E6F3FF',  # Azul claro
+                                'border': 1,
+                                'align': 'center'
+                            })
 
-                            elif tipo_grafico == "Barras apiladas (distribución %)":
-                                df_pct = pd.DataFrame({
-                                    'Nivel': niveles,
-                                    info1['periodo']: [pct1.get(n, 0) for n in niveles],
-                                    info2['periodo']: [pct2.get(n, 0) for n in niveles]
-                                }).set_index('Nivel')
-                                fig = px.bar(df_pct, barmode='stack', text_auto='.1f',
-                                             color_discrete_sequence=['#008450','#32CD32','#FFB900','#E81123'])
-                                st.plotly_chart(fig, use_container_width=True)
+                            # Colores para Segundo Bimestre (Cuarto Bimestre)
+                            segundo_format = workbook.add_format({
+                                'bg_color': '#FFE6E6',  # Rojo claro
+                                'border': 1,
+                                'align': 'center'
+                            })
 
-                            elif tipo_grafico == "Líneas - Evolución % Destacado + Logrado (AD+A)":
-                                pct_ad_a_1 = pct1.get('AD', 0) + pct1.get('A', 0)
-                                pct_ad_a_2 = pct2.get('AD', 0) + pct2.get('A', 0)
+                            # Ancho automático de columnas
+                            for idx, col in enumerate(tabla_con_datos.columns):
+                                max_len = max(len(str(col)), tabla_con_datos[col].astype(str).map(len).max())
+                                worksheet.set_column(idx, idx, max_len + 4)
 
-                                df_line = pd.DataFrame({
-                                    'Período': [info1['periodo'], info2['periodo']],
-                                    '% AD + A': [pct_ad_a_1, pct_ad_a_2]
-                                })
+                            # Aplicar encabezados
+                            for col_num, value in enumerate(tabla_con_datos.columns.values):
+                                worksheet.write(0, col_num, value, header_format)
 
-                                # Escala dinámica (ya implementada antes)
-                                min_pct = min(pct_ad_a_1, pct_ad_a_2) - 5
-                                max_pct = max(pct_ad_a_1, pct_ad_a_2) + 5
-                                range_y = [max(0, min_pct), min(100, max_pct)]
+                            # Colorear columnas correctas
+                            worksheet.set_column('B:B', None, primer_format)  # Conteos Primer
+                            worksheet.set_column('C:C', None, primer_format)  # % Primer
+                            worksheet.set_column('D:D', None, segundo_format) # Conteos Segundo
+                            worksheet.set_column('E:E', None, segundo_format) # % Segundo
 
-                                fig = px.line(df_line, x='Período', y='% AD + A', markers=True,
-                                              range_y=range_y, text='% AD + A')
-                                fig.update_traces(textposition='top center')
-                                st.plotly_chart(fig, use_container_width=True)
+                            # Formato condicional en Δ % (columna F)
+                            worksheet.conditional_format('F2:F5', {
+                                'type': 'cell',
+                                'criteria': '>',
+                                'value': 0,
+                                'format': workbook.add_format({'bg_color': '#C6EFCE'})
+                            })
+                            worksheet.conditional_format('F2:F5', {
+                                'type': 'cell',
+                                'criteria': '<',
+                                'value': 0,
+                                'format': workbook.add_format({'bg_color': '#FFC7CE'})
+                            })
 
+                            # Limpiar filas vacías (sin bordes desde fila 6)
+                            empty_format = workbook.add_format({'border': 0})
+                            for row in range(5, 50):
+                                worksheet.set_row(row, None, empty_format)
 
+                        excel_data.seek(0)
+                        st.download_button(
+                            label="⬇️ Tabla como Excel",
+                            data=excel_data,
+                            file_name=f"Tabla_Comparativa_{nombre_limpio.replace(' ', '_')}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"excel_{competencia_original}_{int(time.time())}"
+                        )
+            
 def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
     """Perfil individual con tarjetas de KPI estilo Power BI"""
     st.markdown(f"<h2 class='pbi-header'>Perfil Integral del Estudiante</h2>", unsafe_allow_html=True)
@@ -715,17 +781,55 @@ def mostrar_analisis_por_estudiante(df_first, df_config, info_areas):
 def convert_df_to_excel(df, area_name, general_info):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Frecuencias', index=True)
+        # Escribir la tabla empezando en fila 3 (deja espacio arriba para título)
+        df.to_excel(writer, sheet_name='Frecuencias', index=True, startrow=2, startcol=0)
+        
         workbook = writer.book
         worksheet = writer.sheets['Frecuencias']
-        fmt_header = workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1})
-        fmt_comp = workbook.add_format({'text_wrap': True, 'valign': 'vcenter', 'border': 1})
-        worksheet.set_column('A:A', 50, fmt_comp)
-        worksheet.set_column('B:Z', 12)
-        for col_num, value in enumerate(df.columns.values):
-            worksheet.write(0, col_num + 1, value, fmt_header)
+        
+        # Formatos para encabezados por nivel
+        header_formats = {
+            'AD': workbook.add_format({'bg_color': '#008450', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'A': workbook.add_format({'bg_color': '#32CD32', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'B': workbook.add_format({'bg_color': '#FFB900', 'font_color': 'black', 'bold': True, 'border': 1, 'align': 'center'}),
+            'C': workbook.add_format({'bg_color': '#E81123', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'}),
+            'default': workbook.add_format({'bg_color': '#113770', 'font_color': 'white', 'bold': True, 'border': 1, 'align': 'center'})
+        }
+        
+        # Formato para celdas de datos
+        fmt_data = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0'})
+        fmt_percent = workbook.add_format({'border': 1, 'align': 'center', 'num_format': '0.0%'})
+        fmt_total = workbook.add_format({'bg_color': '#E2E8F0', 'bold': True, 'border': 1, 'align': 'center'})
+        
+        # Ajustar anchos de columnas
+        worksheet.set_column('A:A', 50, fmt_data)
+        worksheet.set_column('B:J', 12, fmt_data)
+        
+        # Aplicar formato a encabezados (según nivel)
+        header_row = 2  # Fila de encabezados (startrow=2)
+        for col_num, col_name in enumerate(df.columns):
+            level = col_name.split(' ')[0]
+            fmt = header_formats.get(level, header_formats['default'])
+            worksheet.write(header_row, col_num + 1, col_name, fmt)  # +1 por índice
+        
+        # Título fusionado arriba (sin afectar la tabla)
+        title_format = workbook.add_format({
+            'bold': True, 'font_size': 12, 'align': 'center', 'bg_color': '#E2E8F0', 'border': 1
+        })
+        title_text = f"Área: {area_name} - Nivel: {general_info.get('nivel', 'Descon.')} | Grado: {general_info.get('grado', 'Descon.')} | Sección: {general_info.get('seccion', 'Descon.')}"
+        worksheet.merge_range('A1:J1', title_text, title_format)
+        
+        # Limpiar filas vacías (sin bordes)
+        empty_format = workbook.add_format({'border': 0})
+        for row in range(len(df) + 3, 50):  # Limpiar desde la fila siguiente a la tabla
+            worksheet.set_row(row, None, empty_format)
+        
+        # Congelar paneles (encabezados fijos)
+        worksheet.freeze_panes(3, 1)  # Congelar fila 3 (encabezados) y columna A
+    
+    output.seek(0)
     return output.getvalue()
-
+    
 def configurar_uploader():
     st.markdown("<div class='pbi-card' style='text-align: center; border: 2px dashed #ccc;'>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Arrastra o selecciona el archivo Excel de SIAGIE", type=["xlsx"])
@@ -737,6 +841,13 @@ def configurar_uploader():
             st.session_state.info_areas = analysis_core.analyze_data(excel_file, hojas_validas)
             st.session_state.df_cargado = True
             st.rerun()
+
+        # Guardado de general_data (DESPUÉS del rerun y fuera del spinner)
+        if 'info_areas' in st.session_state and st.session_state.info_areas:
+            primera_hoja = next(iter(st.session_state.info_areas))
+            st.session_state.general_data = st.session_state.info_areas[primera_hoja]['generalidades']
+        else:
+            st.session_state.general_data = {'nivel': 'Descon.', 'grado': 'Descon.', 'seccion': 'Descon.'}
     st.markdown("</div>", unsafe_allow_html=True)
 
 def inject_pbi_css():
