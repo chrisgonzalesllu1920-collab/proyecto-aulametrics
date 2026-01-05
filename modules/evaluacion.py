@@ -922,4 +922,3 @@ def inject_pbi_css():
         }}
         </style>
     """, unsafe_allow_html=True)
-
