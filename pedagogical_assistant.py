@@ -1054,10 +1054,3 @@ def generar_reto_ahorcado(tema, grado, cantidad):
         print(f"Error generando ahorcado: {e}")
         return []
 
-
-
-
-
-
-
-
