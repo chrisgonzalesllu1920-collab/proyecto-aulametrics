@@ -329,86 +329,6 @@ def generar_reporte_estudiante(nombre_estudiante, total_conteo, desglose_areas):
     return buffer
 
 # =========================================================================
-# === VI. GENERADOR DE ESTRUCTURA PARA PPT (Versión 7 Slides + IMÁGENES) ===
-# =========================================================================
-
-def generar_estructura_ppt(sesion_texto):
-    """
-    Toma el texto completo de la sesión y usa IA para extraer
-    el contenido resumido Y sugerir imágenes para 7 diapositivas.
-    """
-    # Verificamos si el cliente existe (asegurate que 'client' esté definido al inicio del archivo)
-    # Si 'client' da error, cámbialo por la variable global que uses, ej: client
-    if 'client' not in globals() and 'client' not in locals():
-         return None
-
-    # Prompt MEJORADO: Ahora solicita descripciones visuales
-    prompt = f"""
-    Actúa como un diseñador de presentaciones pedagógicas experto.
-    Tu tarea es EXTRAER el contenido de la sesión y SUGERIR UNA IMAGEN SIMPLE para cada diapositiva.
-
-    TEXTO DE LA SESIÓN:
-    {sesion_texto}
-
-    REGLAS DE SALIDA (ESTRICTO JSON):
-    Devuelve SOLO un objeto JSON con esta estructura exacta:
-    
-    {{
-      "slide_1": {{ 
-          "titulo": "Título de la Sesión", 
-          "subtitulo": "Grado, Sección y Área",
-          "descripcion_imagen": "Professional and abstract background related to the main topic (e.g., 'math symbols background', 'science DNA particles', 'history ancient ruins')." 
-      }},
-      "slide_2": {{ 
-          "titulo": "Propósito de la Sesión", 
-          "contenido": "COPIA TEXTUALMENTE el párrafo del apartado 'II. PROPÓSITO DE LA SESIÓN'.",
-          "descripcion_imagen": "Student achieving a goal or a person pointing to a successful target (English)."
-      }},
-      "slide_3": {{ 
-          "titulo": "Motivación Inicial", 
-          "contenido": "Extrae la actividad de motivación o la pregunta del conflicto cognitivo.",
-          "descripcion_imagen": "Image illustrating the initial motivation or problem (English, e.g., 'students brainstorming', 'question mark over child')."
-      }},
-      "slide_4": {{ 
-          "titulo": "Desarrollo y Gestión", 
-          "puntos": ["Actividad principal 1", "Actividad principal 2", "Reto cognitivo"],
-          "descripcion_imagen": "Students actively engaged in the main learning activity (English, e.g., 'students collaborating', 'teacher guiding')."
-      }},
-      "slide_5": {{ 
-          "titulo": "Criterios de Evaluación", 
-          "puntos": ["Criterio 1", "Criterio 2", "Criterio 3"],
-          "descripcion_imagen": "Icon or image related to a checklist, rubric, or successful evaluation (English)."
-      }},
-      "slide_6": {{ 
-          "titulo": "Cierre de la Sesión", 
-          "contenido": "Resumen de la actividad de cierre o conclusiones.",
-          "descripcion_imagen": "Happy students finishing a class or concept of conclusion/success (English)."
-      }},
-      "slide_7": {{ 
-          "titulo": "Metacognición", 
-          "contenido": "Extrae las preguntas de reflexión.",
-          "descripcion_imagen": "Person thinking, lightbulb idea, or brain concept (English)."
-      }}
-    }}
-    
-    Reglas de Contenido:
-    1. Fidelidad: El Propósito y los Criterios deben ser idénticos a la sesión.
-    2. Brevedad: Resume los puntos largos (máx 30 palabras por slide).
-    3. Imágenes: Las descripciones deben ser en INGLÉS, CORTAS y DIRECTAS.
-    """
-
-    try:
-        response = client.models.generate_content(
-            model='models/gemini-2.5-flash',
-            contents=prompt,
-            config={'response_mime_type': 'application/json'}
-        )
-        return response.text
-    except Exception as e:
-        return None
-
-
-# =========================================================================
 # === VII. GENERADOR DE TRIVIA (GAMIFICACIÓN) - VERSIÓN DINÁMICA ===
 # =========================================================================
 
@@ -687,6 +607,3 @@ def generar_reto_ahorcado(tema, grado, cantidad):
     except Exception as e:
         print(f"Error generando ahorcado: {e}")
         return []
-
-
-
