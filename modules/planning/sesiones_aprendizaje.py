@@ -390,18 +390,171 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
 
 
 def run():
-    """
-    Función principal para ejecutar el asistente de Sesiones de Aprendizaje desde app.py
-    """
-    st.title("🗓️ Generador de Sesiones de Aprendizaje")
+    st.header("🧠 Asistente Pedagógico")
 
-    # --- SELECTOR DE HERRAMIENTA (temporal, solo sesiones por ahora) ---
-    st.info("Herramienta actual: Sesiones de Aprendizaje")
+    # Función de limpieza local
+    def limpiar_resultados():
+        keys_to_clear = ['sesion_generada', 'docx_bytes', 'doc_buffer']
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
 
-    # Aquí irá todo el código del formulario y generación que estaba en app.py
-    # Lo moveremos en el siguiente paso
+    tipo_herramienta = st.radio(
+        "01. Selecciona la herramienta que deseas usar:",
+        options=["Sesión de aprendizaje", "Unidad de aprendizaje", "Planificación Anual"],
+        index=0,
+        horizontal=True,
+        key="asistente_tipo_herramienta",
+        on_change=limpiar_resultados
+    )
+    st.markdown("---")
 
-    st.write("Próximamente: aquí estará el formulario completo para generar sesiones.")
+    if tipo_herramienta == "Sesión de aprendizaje":
+        st.subheader("Generador de Sesión de Aprendizaje")
 
-    # Placeholder temporal para probar que funciona
-    st.success("Módulo de Sesiones de Aprendizaje cargado correctamente 🎉")
+        # Carga de datos pedagógicos (asegúrate de tener esta función o importarla)
+        df_gen, df_cic, df_desc_sec, df_desc_prim = cargar_datos_pedagogicos()
+
+        if df_gen is None:
+            st.error("Error crítico: No se pudieron cargar los estándares.")
+        else:
+            st.subheader("Paso 1: Selecciona el Nivel")
+            niveles = df_gen['NIVEL'].dropna().unique()
+
+            nivel_sel = st.selectbox(
+                "Nivel",
+                options=niveles,
+                index=None,
+                placeholder="Elige una opción...",
+                key="asistente_nivel_sel",
+                label_visibility="collapsed",
+                on_change=limpiar_resultados
+            )
+
+            st.subheader("Paso 2: Selecciona el Grado")
+            grados_options = []
+            if st.session_state.asistente_nivel_sel:
+                grados_options = df_gen[df_gen['NIVEL'] == st.session_state.asistente_nivel_sel]['GRADO CORRESPONDIENTE'].dropna().unique()
+
+            grado_sel = st.selectbox(
+                "Grado",
+                options=grados_options,
+                index=None,
+                placeholder="Elige un Nivel primero...",
+                disabled=(not st.session_state.asistente_nivel_sel),
+                key="asistente_grado_sel",
+                label_visibility="collapsed",
+                on_change=limpiar_resultados
+            )
+
+            st.subheader("Paso 3: Selecciona el Área")
+            areas_options = []
+            df_hoja_descriptor = None
+            if st.session_state.asistente_grado_sel:
+                if st.session_state.asistente_nivel_sel == "SECUNDARIA":
+                    df_hoja_descriptor = df_desc_sec
+                elif st.session_state.asistente_nivel_sel == "PRIMARIA":
+                    df_hoja_descriptor = df_desc_prim
+                if df_hoja_descriptor is not None:
+                    areas_options = df_hoja_descriptor['Área'].dropna().unique()
+            area_sel = st.selectbox("Área", options=areas_options, index=None, placeholder="Elige un Grado primero...", disabled=(not st.session_state.asistente_grado_sel), key="asistente_area_sel", label_visibility="collapsed")
+
+            st.subheader("Paso 4: Selecciona la(s) Competencia(s)")
+            competencias_options = []
+            if st.session_state.asistente_area_sel and (df_hoja_descriptor is not None):
+                competencias_options = df_hoja_descriptor[
+                    df_hoja_descriptor['Área'] == st.session_state.asistente_area_sel
+                ]['Competencia'].dropna().unique()
+            competencias_sel = st.multiselect("Competencia(s)", options=competencias_options, placeholder="Elige un Área primero...", disabled=(not st.session_state.asistente_area_sel), key="asistente_competencias_sel", label_visibility="collapsed")
+
+            form_disabled = not st.session_state.asistente_competencias_sel
+            st.markdown("---")
+            st.subheader("Paso 5: Contextualización (Opcional)")
+            contexto_toggle = st.toggle("¿Desea contextualizar su sesión?", key="asistente_contexto", disabled=form_disabled)
+            with st.form(key="session_form"):
+                if st.session_state.asistente_contexto:
+                    st.info("La IA usará estos datos para generar ejemplos y situaciones relevantes.")
+                    region_sel = st.text_input("Región de su I.E.", placeholder="Ej: Lambayeque", disabled=form_disabled)
+                    provincia_sel = st.text_input("Provincia de su I.E.", placeholder="Ej: Chiclayo", disabled=form_disabled)
+                    distrito_sel = st.text_input("Distrito de su I.E.", placeholder="Ej: Monsefú", disabled=form_disabled)
+                else:
+                    region_sel = None
+                    provincia_sel = None
+                    distrito_sel = None
+
+                st.markdown("---")
+                st.subheader("Paso 6: Instrucciones Adicionales (Opcional)")
+                instrucciones_sel = st.text_area("Indica un enfoque específico para la IA", placeholder="Ej: Quiero reforzar el cálculo de porcentajes...", max_chars=500, disabled=form_disabled)
+                st.markdown("---")
+                st.subheader("Paso 7: Detalles de la Sesión")
+                tema_sel = st.text_input("Escribe el tema o temática a tratar", placeholder="Ej: El sistema solar...", disabled=form_disabled)
+                tiempo_sel = st.selectbox("Selecciona la duración de la sesión", options=["90 minutos", "180 minutos"], index=None, placeholder="Elige una opción...", disabled=form_disabled)
+
+                submitted = st.form_submit_button("Generar Sesión de Aprendizaje", disabled=form_disabled)
+
+                if submitted:
+                    if not tema_sel or not tiempo_sel:
+                        st.error("Por favor, completa los campos del Paso 7.")
+                        st.session_state.sesion_generada = None
+                        st.session_state.docx_bytes = None
+                    else:
+                        with st.spinner("🤖 Generando tu sesión de aprendizaje..."):
+                            try:
+                                nivel = st.session_state.asistente_nivel_sel
+                                grado = st.session_state.asistente_grado_sel
+                                area = st.session_state.asistente_area_sel
+                                competencias = st.session_state.asistente_competencias_sel
+                                tema = tema_sel
+                                tiempo = tiempo_sel
+
+                                ciclo_float = df_cic[df_cic['grados que corresponde'] == grado]['ciclo'].iloc[0]
+                                ciclo_encontrado = int(ciclo_float)
+                                datos_filtrados = df_hoja_descriptor[(df_hoja_descriptor['Área'] == area) & (df_hoja_descriptor['Competencia'].isin(competencias))]
+                                capacidades_lista = datos_filtrados['capacidad'].dropna().unique().tolist()
+                                columna_estandar_correcta = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
+                                estandares_lista = datos_filtrados[columna_estandar_correcta].dropna().unique().tolist()
+                                estandar_texto_completo = "\n\n".join(estandares_lista)
+                                
+                                # Aquí usamos las funciones del mismo archivo
+                                sesion_generada = generar_sesion_aprendizaje(
+                                    nivel=nivel, grado=grado, ciclo=str(ciclo_encontrado), area=area,
+                                    competencias_lista=competencias, capacidades_lista=capacidades_lista,
+                                    estandar_texto=estandar_texto_completo, tematica=tema, tiempo=tiempo,
+                                    region=region_sel, provincia=provincia_sel, distrito=distrito_sel,
+                                    instrucciones_docente=instrucciones_sel
+                                )
+                                docx_bytes = generar_docx_sesion(sesion_markdown_text=sesion_generada, area_docente=area)
+
+                                st.session_state.sesion_generada = sesion_generada
+                                st.session_state.docx_bytes = docx_bytes
+                                st.session_state.tema_sesion = tema_sel
+                                st.success("¡Sesión generada!")
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+                                st.session_state.sesion_generada = None
+
+        # MOSTRAR RESULTADOS
+        if st.session_state.get('sesion_generada'):
+            st.markdown("---")
+            st.subheader("Resultado")
+            st.markdown(st.session_state.sesion_generada)
+
+            st.success("¡Sesión generada con éxito!")
+
+            # ZONA DE DESCARGA
+            if st.session_state.get('docx_bytes'):
+                st.download_button(
+                    label="📄 Descargar Sesión en Word",
+                    data=st.session_state.docx_bytes,
+                    file_name="Sesion_Aprendizaje.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+            else:
+                st.warning("⚠️ El archivo expiró. Por favor genera la sesión de nuevo.")
+
+    elif tipo_herramienta == "Unidad de aprendizaje":
+        st.info("Función de Unidades de Aprendizaje (Próximamente).")
+
+    elif tipo_herramienta == "Planificación Anual":
+        st.info("Función de Planificación Anual (Próximamente).")
