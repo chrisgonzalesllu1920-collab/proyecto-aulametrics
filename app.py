@@ -1013,10 +1013,6 @@ def home_page():
 
     # 3. ASISTENTE PEDAGÓGICO
     elif pagina == "Asistente Pedagógico":
-        from modules.planning.sesiones_aprendizaje import run as run_sesiones
-        from modules.planning.unidades_aprendizaje import run as run_unidades
-        from modules.planning.planificacion_anual import run as run_planificacion
-
         st.header("🧠 Asistente Pedagógico")
 
         tipo_herramienta = st.radio(
@@ -1029,11 +1025,14 @@ def home_page():
         st.markdown("---")
 
         if tipo_herramienta == "Sesión de aprendizaje":
+            from modules.planning.sesiones_aprendizaje import run as run_sesiones
             run_sesiones()
+
         elif tipo_herramienta == "Unidad de aprendizaje":
-            run_unidades()
+            st.info("🔄 Función de Unidades de Aprendizaje en desarrollo. ¡Próximamente!")
+
         elif tipo_herramienta == "Planificación Anual":
-            run_planificacion()
+            st.info("📅 Función de Planificación Anual en desarrollo. ¡Próximamente!")
 
     # 4. RECURSOS (Llamando al nuevo módulo)
     elif pagina == "Recursos":
@@ -1068,4 +1067,5 @@ if not st.session_state.logged_in:
     login_page()
 else:
     home_page()
+
 
