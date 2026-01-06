@@ -19,6 +19,40 @@ from docx.oxml.ns import qn
 
 
 # =========================================================================
+# === 5. FUNCIONES AUXILIARES ===
+# =========================================================================
+ISOTIPO_PATH = "assets/isotipo.png"
+RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
+
+@st.cache_data(ttl=3600)
+def cargar_datos_pedagogicos():
+    try:
+        df_generalidades = pd.read_excel(RUTA_ESTANDARES, sheet_name="Generalidades")
+        df_ciclos = pd.read_excel(RUTA_ESTANDARES, sheet_name="Cicloseducativos")
+        df_desc_sec = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorsecundaria")
+        df_desc_prim = pd.read_excel(RUTA_ESTANDARES, sheet_name="Descriptorprimaria")
+        
+        df_generalidades['NIVEL'] = df_generalidades['NIVEL'].ffill()
+        df_ciclos['ciclo'] = df_ciclos['ciclo'].ffill()
+        
+        columna_estandar = "DESCRIPCIÓN DE LOS NIVELES DEL DESARROLLO DE LA COMPETENCIA"
+        
+        cols_to_fill_prim = ['Área', 'Competencia', 'Ciclo', columna_estandar]
+        cols_to_fill_sec = ['Área', 'Competencia', 'Ciclo', columna_estandar]
+        
+        df_desc_prim[cols_to_fill_prim] = df_desc_prim[cols_to_fill_prim].ffill()
+        df_desc_sec[cols_to_fill_sec] = df_desc_sec[cols_to_fill_sec].ffill()
+        
+        return df_generalidades, df_ciclos, df_desc_sec, df_desc_prim
+    
+    except FileNotFoundError:
+        st.error(f"Error: No se encontró el archivo en la ruta: {RUTA_ESTANDARES}")
+        return None, None, None, None
+    except Exception as e:
+        st.error(f"Ocurrió un error al leer el archivo Excel: {e}")
+        return None, None, None, None
+
+# =========================================================================
 # === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
 # =========================================================================
 
