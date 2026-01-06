@@ -17,9 +17,8 @@ from docx.table import _Cell
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-
 # =========================================================================
-# === 5. FUNCIONES AUXILIARES ===
+# === 1. FUNCIONES AUXILIARES ===
 # =========================================================================
 ISOTIPO_PATH = "assets/isotipo.png"
 RUTA_ESTANDARES = "assets/Estandares de aprendizaje.xlsx" 
@@ -53,7 +52,7 @@ def cargar_datos_pedagogicos():
         return None, None, None, None
 
 # =========================================================================
-# === 1. CONFIGURACIÓN GLOBAL DE LA IA ===
+# === 2. CONFIGURACIÓN GLOBAL DE LA IA ===
 # =========================================================================
 
 try:
@@ -67,8 +66,7 @@ except Exception as e:
     client = None
 
 # =========================================================================
-# === IV. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
-# === (Versión ORIGINAL ESTABLE) ===
+# === 3. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
 # =========================================================================
 
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, 
@@ -238,7 +236,7 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
         return f"Error inesperado: {e}"
 
 # =========================================================================
-# === II-B. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - v4.0 COLOR ===
+# === 4. EXPORTACIÓN A WORD INTELIGENTE (Sesión) - v4.0 COLOR ===
 # =========================================================================
 def generar_docx_sesion(sesion_markdown_text, area_docente):
     """
