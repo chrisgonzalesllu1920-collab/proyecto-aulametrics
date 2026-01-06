@@ -387,3 +387,21 @@ def generar_docx_sesion(sesion_markdown_text, area_docente):
     document.save(buffer)
     buffer.seek(0)
     return buffer
+
+
+def run():
+    """
+    Función principal para ejecutar el asistente de Sesiones de Aprendizaje desde app.py
+    """
+    st.title("🗓️ Generador de Sesiones de Aprendizaje")
+
+    # --- SELECTOR DE HERRAMIENTA (temporal, solo sesiones por ahora) ---
+    st.info("Herramienta actual: Sesiones de Aprendizaje")
+
+    # Aquí irá todo el código del formulario y generación que estaba en app.py
+    # Lo moveremos en el siguiente paso
+
+    st.write("Próximamente: aquí estará el formulario completo para generar sesiones.")
+
+    # Placeholder temporal para probar que funciona
+    st.success("Módulo de Sesiones de Aprendizaje cargado correctamente 🎉")
