@@ -167,9 +167,11 @@ En 'desarrollo', incluye al menos una actividad de razonamiento complejo, creati
 
     try:
         response = client.models.generate_content(
-            model='models/gemini-1.5-flash',
+            model='gemini-1.5-flash-latest',
             contents=prompt,
-            config={'response_mime_type': 'application/json'}
+            generation_config={
+                'response_mime_type': 'application/json'
+            }
         )
         return response.text.strip()
     except APIError as e:
