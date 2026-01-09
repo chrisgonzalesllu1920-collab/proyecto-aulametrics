@@ -68,7 +68,6 @@ except Exception as e:
 # =========================================================================
 # === 3. FUNCIÓN DE GENERACIÓN DE SESIÓN (Pestaña 3) ===
 # =========================================================================
-
 def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, capacidades_lista, estandar_texto, tematica, tiempo, region=None, provincia=None, distrito=None, instrucciones_docente=None):
     if client is None:
         return "Error: No se pudo inicializar el cliente de Gemini."
@@ -77,29 +76,29 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
     competencias_str = "\n".join(f"- {comp}" for comp in competencias_lista)
     capacidades_str = "\n".join(f"- {cap}" for cap in capacidades_lista)
 
-    # --- CONTEXTO GEOGRÁFICO ---
+    # CONTEXTO GEOGRÁFICO
     contexto_str = ""
     if region and region.strip():
         contexto_str = f"""
 - **Región:** {region}
 - **Provincia:** {provincia}
 - **Distrito:** {distrito}
-**REGLA DE CONTEXTUALIZACIÓN:** DEBES usar estos datos para generar ejemplos relevantes en las tablas.
+DEBES usar estos datos para generar ejemplos relevantes en las tablas.
 """
     else:
-        contexto_str = "No hay contexto geográfico proporcionado. Usa ejemplos generales."
+        contexto_str = "No hay contexto geográfico. Usa ejemplos generales."
 
-    # --- INSTRUCCIONES ADICIONALES ---
+    # INSTRUCCIONES ADICIONALES
     instrucciones_str = ""
     if instrucciones_docente and instrucciones_docente.strip():
         instrucciones_str = f"""
 **INSTRUCCIONES ADICIONALES DEL DOCENTE:** {instrucciones_docente}
-**REGLA DE PRIORIDAD:** Modifica todas las tablas para cumplir esto estrictamente.
+Modifica todas las tablas para cumplir esto estrictamente.
 """
     else:
         instrucciones_str = "No hay instrucciones adicionales. Genera una sesión estándar."
 
-    # --- MENÚ DE METODOLOGÍAS ACTIVAS ---
+    # MENÚ DE METODOLOGÍAS
     menu_metodologias = """
 1. Aprendizaje Basado en Problemas (ABP)
 2. Aprendizaje Basado en Indagación (Indagación Científica)
@@ -109,18 +108,18 @@ def generar_sesion_aprendizaje(nivel, grado, ciclo, area, competencias_lista, ca
 6. Aula Invertida (Flipped Classroom)
 """
 
-    # Prompt estricto con todos los elementos originales
+    # Prompt estricto con salida JSON
     prompt = f"""
-Actúa como un docente experto en diseño curricular peruano.
+Actúa como docente experto en diseño curricular peruano.
 
-**ESTRATEGIA PEDAGÓGICA (SELECTOR METODOLÓGICO):**
-ANALIZA el Grado ({grado}), Área ({area}) y Tema ({tematica}). ELIGE una metodología apropiada de esta lista:
+**ESTRATEGIA PEDAGÓGICA:**
+Analiza Grado ({grado}), Área ({area}), Tema ({tematica}). Elige UNA metodología de esta lista:
 {menu_metodologias}
 
 **MANDATO DE ALTA DEMANDA COGNITIVA:**
-En la tabla de 'DESARROLLO', incluye al menos una fila con actividad de razonamiento complejo, creatividad o pensamiento crítico. Evita pasividad: enfócate en lo que el estudiante HACE.
+En 'desarrollo', incluye al menos una actividad de razonamiento complejo, creatividad o pensamiento crítico. Enfócate en lo que el estudiante HACE.
 
-**DATOS DE ENTRADA:**
+**DATOS:**
 - Nivel: {nivel}
 - Grado: {grado}
 - Ciclo: {ciclo}
@@ -130,41 +129,47 @@ En la tabla de 'DESARROLLO', incluye al menos una fila con actividad de razonami
 - Competencia(s): {competencias_str}
 - Capacidad(es): {capacidades_str}
 - Estándar(es): "{estandar_texto}"
-**CONTEXTO GEOGRÁFICO:**
-{contexto_str}
+- Contexto geográfico: {contexto_str}
 {instrucciones_str}
 
-**REGLAS OBLIGATORIAS - NO ROMPER BAJO NINGÚN MOTIVO:**
-1. Responde SOLO con Markdown válido.
-2. NO agregues introducción, conclusión, saludos o texto libre.
-3. Usa EXACTAMENTE estas secciones y títulos:
-   - ## Título de la Sesión
-   - ## Objetivos de la Sesión (lista con viñetas)
-   - ## Metodología Elegida (texto corto)
-   - ## Inicio (tabla)
-   - ## Desarrollo (tabla)
-   - ## Cierre (tabla)
-   - ## Recursos Generales (tabla)
-   - ## Evaluación (tabla)
+**REGLAS OBLIGATORIAS - NO ROMPERLAS:**
+1. Responde **SOLO** con JSON válido.
+2. NO texto libre, NO introducción, NO conclusión.
+3. Estructura JSON exacta:
+{{
+  "titulo": "Título creativo de la sesión",
+  "objetivos": ["Objetivo 1", "Objetivo 2", ...],
+  "metodologia_elegida": "Nombre de la metodología elegida",
+  "inicio": [
+    {{"actividad": "...", "tiempo": "...", "recursos": "...", "responsable": "..."}},
+    ...
+  ],
+  "desarrollo": [
+    {{"paso": "...", "descripcion": "...", "objetivo": "...", "materiales": "..."}},
+    ...
+  ],
+  "cierre": [
+    {{"actividad": "...", "tiempo": "...", "evaluacion": "..."}},
+    ...
+  ],
+  "recursos_generales": [
+    {{"recurso": "...", "cantidad": "...", "uso": "..."}},
+    ...
+  ],
+  "evaluacion": [
+    {{"criterio": "...", "indicador": "...", "instrumento": "..."}},
+    ...
+  ]
+}}
 
-4. Cada tabla debe tener al menos 3 filas (más si es necesario).
-5. Usa formato Markdown para tablas: | Columna1 | Columna2 | etc. con --- separador.
-
-**FORMATO DE TABLAS EXACTO:**
-- Inicio: | Actividad | Tiempo | Recursos | Responsable |
-- Desarrollo: | Paso | Descripción de la actividad | Objetivo específico | Materiales necesarios |
-- Cierre: | Actividad | Tiempo | Evaluación / Reflexión |
-- Recursos Generales: | Recurso | Cantidad | Uso |
-- Evaluación: | Criterio | Indicador de logro | Instrumento |
-
-**Output SOLO con estas secciones y tablas. Nada más.**
+**Output SOLO JSON válido. Nada más.**
 """
 
     try:
         response = client.models.generate_content(
             model='models/gemini-1.5-flash',
             contents=prompt,
-            config={'response_mime_type': 'text/markdown'}
+            config={'response_mime_type': 'application/json'}
         )
         return response.text.strip()
     except APIError as e:
@@ -506,9 +511,37 @@ def run():
         if st.session_state.get('sesion_generada'):
             st.markdown("---")
             st.subheader("Resultado")
-            st.markdown(st.session_state.sesion_generada)
-
+    if st.session_state.get('sesion_generada'):
+        try:
+            data = json.loads(st.session_state.sesion_generada)
+            
+            st.markdown(f"### {data.get('titulo', 'Sesión generada')}")
+            
+            st.markdown("#### Objetivos")
+            st.markdown("\n".join(f"- {obj}" for obj in data.get('objetivos', [])))
+            
+            st.markdown("#### Metodología Elegida")
+            st.markdown(data.get('metodologia_elegida', 'No especificada'))
+            
+            # Tablas (usamos st.table o Markdown)
+            st.markdown("#### Inicio")
+            st.table(data.get('inicio', []))
+            
+            st.markdown("#### Desarrollo")
+            st.table(data.get('desarrollo', []))
+            
+            st.markdown("#### Cierre")
+            st.table(data.get('cierre', []))
+            
+            st.markdown("#### Recursos Generales")
+            st.table(data.get('recursos_generales', []))
+            
+            st.markdown("#### Evaluación")
+            st.table(data.get('evaluacion', []))
+            
             st.success("¡Sesión generada con éxito!")
+        except json.JSONDecodeError:
+            st.markdown(st.session_state.sesion_generada)  # Fallback si no es JSON válido
 
             # ZONA DE DESCARGA
             if st.session_state.get('docx_bytes'):
