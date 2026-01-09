@@ -509,41 +509,77 @@ def run():
 
         # MOSTRAR RESULTADOS
         if st.session_state.get('sesion_generada'):
-            st.markdown("---")
-            st.subheader("Resultado")
-    if st.session_state.get('sesion_generada'):
-        try:
-            data = json.loads(st.session_state.sesion_generada)
+            try:
+                # Intentamos parsear como JSON
+                data = json.loads(st.session_state.sesion_generada)
+                
+                # Título principal
+                st.markdown(f"### {data.get('titulo', 'Sesión generada')}")
+                
+                # Objetivos (lista)
+                st.markdown("#### Objetivos de la Sesión")
+                objetivos = data.get('objetivos', [])
+                if objetivos:
+                    st.markdown("\n".join(f"- {obj}" for obj in objetivos))
+                else:
+                    st.markdown("No se definieron objetivos.")
+                
+                # Metodología
+                st.markdown(f"#### Metodología Elegida\n{data.get('metodologia_elegida', 'No especificada')}")
+                
+                # Tabla de Inicio
+                st.markdown("#### Inicio")
+                inicio = data.get('inicio', [])
+                if inicio:
+                    st.table(pd.DataFrame(inicio))
+                else:
+                    st.markdown("No hay actividades de inicio definidas.")
+                
+                # Tabla de Desarrollo
+                st.markdown("#### Desarrollo")
+                desarrollo = data.get('desarrollo', [])
+                if desarrollo:
+                    st.table(pd.DataFrame(desarrollo))
+                else:
+                    st.markdown("No hay actividades de desarrollo definidas.")
+                
+                # Tabla de Cierre
+                st.markdown("#### Cierre")
+                cierre = data.get('cierre', [])
+                if cierre:
+                    st.table(pd.DataFrame(cierre))
+                else:
+                    st.markdown("No hay actividades de cierre definidas.")
+                
+                # Recursos Generales
+                st.markdown("#### Recursos Generales")
+                recursos = data.get('recursos_generales', [])
+                if recursos:
+                    st.table(pd.DataFrame(recursos))
+                else:
+                    st.markdown("No hay recursos generales definidos.")
+                
+                # Evaluación
+                st.markdown("#### Evaluación")
+                evaluacion = data.get('evaluacion', [])
+                if evaluacion:
+                    st.table(pd.DataFrame(evaluacion))
+                else:
+                    st.markdown("No hay criterios de evaluación definidos.")
+                
+                st.success("¡Sesión generada con éxito!")
+                
+            except json.JSONDecodeError:
+                # Si no es JSON válido (por si algo falla), fallback a Markdown crudo
+                st.markdown("#### Resultado (formato crudo)")
+                st.markdown(st.session_state.sesion_generada)
+                st.warning("La respuesta no fue JSON válido. Se muestra en formato crudo.")
             
-            st.markdown(f"### {data.get('titulo', 'Sesión generada')}")
-            
-            st.markdown("#### Objetivos")
-            st.markdown("\n".join(f"- {obj}" for obj in data.get('objetivos', [])))
-            
-            st.markdown("#### Metodología Elegida")
-            st.markdown(data.get('metodologia_elegida', 'No especificada'))
-            
-            # Tablas (usamos st.table o Markdown)
-            st.markdown("#### Inicio")
-            st.table(data.get('inicio', []))
-            
-            st.markdown("#### Desarrollo")
-            st.table(data.get('desarrollo', []))
-            
-            st.markdown("#### Cierre")
-            st.table(data.get('cierre', []))
-            
-            st.markdown("#### Recursos Generales")
-            st.table(data.get('recursos_generales', []))
-            
-            st.markdown("#### Evaluación")
-            st.table(data.get('evaluacion', []))
-            
-            st.success("¡Sesión generada con éxito!")
-        except json.JSONDecodeError:
-            st.markdown(st.session_state.sesion_generada)  # Fallback si no es JSON válido
+            except Exception as e:
+                st.error(f"Error al mostrar la sesión: {e}")
+                st.markdown(st.session_state.sesion_generada)
 
-            # ZONA DE DESCARGA
+            # ZONA DE DESCARGA (queda igual)
             if st.session_state.get('docx_bytes'):
                 st.download_button(
                     label="📄 Descargar Sesión en Word",
